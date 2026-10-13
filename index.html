@@ -1830,8 +1830,8 @@
     .zone-ligne-tete span:last-child { text-align: right; }
     /* Une pastille ronde par série (au lieu de bâtonnets) ; leur taille
        s'adapte à la largeur, sans dépasser 12 px. */
-    .zone-barre { display: flex; gap: 3px; align-items: center; }
-    .zone-barre span { flex: 1 1 0; min-width: 0; max-width: 12px; aspect-ratio: 1; border-radius: 50%; }
+    .zone-barre { display: grid; gap: 3px; align-items: center; }
+    .zone-barre span { width: 100%; max-width: 12px; aspect-ratio: 1; border-radius: 50%; }
     .zone-ligne-note { font-size: 0.68rem; color: var(--text-muted); margin-top: 4px; }
     .zones-legende { display: grid; gap: 8px; margin: 4px 0 16px; }
     .zones-legende-item { background: var(--verre-creux); border-left: 3px solid; border-radius: 10px; padding: 8px 11px; font-size: 0.8rem; }
@@ -14943,7 +14943,7 @@ function renderProgrammeExercicesEnEdition() {
       </div>`}
       <div class="tempo-ligne">
         <label for="tempo-prog-${i}">Tempo</label>
-        <input type="text" id="tempo-prog-${i}" maxlength="7" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="ex : 3010" value="${escapeHtml(pe.tempo || '')}" onchange="modifierTempoProgramme(${i}, this.value, this)">
+        <input type="text" id="tempo-prog-${i}" maxlength="7" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="3010" value="${escapeHtml(pe.tempo || '')}" onchange="modifierTempoProgramme(${i}, this.value, this)">
         <button type="button" class="tempo-aide-btn" onclick="ouvrirAideTempo(document.getElementById('tempo-prog-${i}').value)" aria-label="Comment fonctionne le tempo ?">${ICONE_INFO_TEMPO}</button>
         <small id="tempo-resume-${i}">${pe.tempo ? escapeHtml(resumeTempo(pe.tempo)) : ''}</small>
       </div>
@@ -15986,6 +15986,7 @@ function seriesSemaine(lundi, inclureSessionActive, historique) {
 /* Barre segmentée façon "jauge" : un segment par série jusqu'un peu au-delà
    du MRV, chaque segment prenant la couleur de la zone qu'il représente ;
    seuls les segments déjà atteints sont allumés. */
+const NB_PASTILLES_ZONES = Math.max(...Object.values(ZONES_VOLUME).map(z => z.mrv + 2));
 function barreZoneHTML(groupe, series) {
   const z = ZONES_VOLUME[groupe];
   const total = z.mrv + 2;
@@ -15995,7 +15996,10 @@ function barreZoneHTML(groupe, series) {
     const allume = series + 1e-9 >= i;
     segs += `<span style="background:${ZONES_INFO[cle].couleur};${allume ? '' : 'opacity:0.16;'}"></span>`;
   }
-  return `<div class="zone-barre" aria-hidden="true">${segs}</div>`;
+  // Même grille pour tous les muscles (le plus grand nombre de pastilles) :
+  // les pastilles ont toutes la même taille, et un muscle au plafond plus
+  // bas (lombaires…) a simplement une jauge plus courte.
+  return `<div class="zone-barre" aria-hidden="true" style="grid-template-columns:repeat(${NB_PASTILLES_ZONES}, 1fr);">${segs}</div>`;
 }
 function phraseProchaineZone(groupe, series) {
   const z = ZONES_VOLUME[groupe];
@@ -16484,7 +16488,7 @@ function renderSessionExerciceBlocHTML(exo, ei) {
     </div>
     <div class="tempo-ligne" style="margin:8px 0 4px;">
       <label for="tempo-seance-${ei}">Tempo</label>
-      <input type="text" id="tempo-seance-${ei}" maxlength="7" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="ex : 3010" value="${escapeHtml(exo.tempo || '')}" onchange="modifierTempoSession(${ei}, this.value, this)">
+      <input type="text" id="tempo-seance-${ei}" maxlength="7" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="3010" value="${escapeHtml(exo.tempo || '')}" onchange="modifierTempoSession(${ei}, this.value, this)">
       <button type="button" class="tempo-aide-btn" onclick="ouvrirAideTempo(document.getElementById('tempo-seance-${ei}').value)" aria-label="Comment fonctionne le tempo ?">${ICONE_INFO_TEMPO}</button>
       <small id="tempo-seance-resume-${ei}">${exo.tempo ? escapeHtml(resumeTempo(exo.tempo)) : ''}</small>
     </div>
