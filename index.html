@@ -8731,6 +8731,10 @@ const TOUR_MUSCU = [
   { ecran: 'seance', cible: '[onclick="ouvrirAssistantProgrammeIA()"]', titre: "Programme par l'IA", texte: "Donne ton objectif, tes jours disponibles et ton matériel : l'IA te propose un programme complet, que tu peux ensuite modifier." },
   { ecran: 'seance', cible: '[onclick="demarrerSeanceLibre()"]', titre: 'Séance libre', texte: "Pas de programme ? Ajoute tes exercices au fil de la séance. À la fin, tu peux l'enregistrer comme programme." },
   { ecran: 'seance', cible: '[onclick="ouvrirBibliotheque()"]', titre: "Bibliothèque d'exercices", texte: "Plus de 800 exercices, filtrés par muscle et par matériel. Chaque fiche a trois onglets : Instructions (vidéo, muscles, étapes), Résumé (tes records et ta courbe) et Historique." },
+  { ecran: 'seance', siSession: true, cible: '#titre-session-modal', titre: 'Pendant une séance',
+    texte: () => (musculationSessionActive && musculationSessionActive.demo
+      ? "Quand tu touches un programme (ou « Séance libre »), l'écran Activité passe en mode séance : le nom de la séance, un chrono, et tes exercices à remplir. Pour la suite, voici une séance de démonstration : rien n'y est enregistré."
+      : "Quand tu touches un programme (ou « Séance libre »), l'écran Activité passe en mode séance : le nom de la séance, un chrono, et tes exercices à remplir. Voici ta séance en cours.") },
   { ecran: 'seance', siSession: true, cible: '#session-haut', titre: 'Le volume de ta semaine', texte: "En haut de la séance : une jauge par muscle travaillé, qui compte tes séries de travail de la semaine (MV maintien, MEV croissance, MAV zone idéale, MRV plafond). Le corps se colore pareil ; touche-le pour l'agrandir." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-prec', titre: 'Ta séance précédente', texte: "La colonne « Préc. » rappelle ce que tu as fait la dernière fois. Touche-la pour reprendre ces valeurs, puis essaie de faire un peu mieux." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-num-btn', titre: 'Le type de série', texte: "Touche le numéro d'une série pour la marquer : Échauffement (W, jamais comptée dans les jauges), Dégressif, Pyramidal ou Échec." },
@@ -8875,7 +8879,7 @@ function positionnerTourEtape(cible, etape) {
   document.getElementById('tour-compteur').textContent = `Étape ${tourEtape + 1} / ${n}`;
   document.getElementById('tour-barre').style.width = ((tourEtape + 1) / n * 100) + '%';
   document.getElementById('tour-titre').textContent = etape.titre;
-  document.getElementById('tour-texte').textContent = etape.texte;
+  document.getElementById('tour-texte').textContent = typeof etape.texte === 'function' ? etape.texte() : etape.texte;
   document.getElementById('tour-precedent').style.visibility = tourEtape === 0 ? 'hidden' : 'visible';
   document.getElementById('tour-suivant').textContent = tourEtape === n - 1 ? 'Terminer' : 'Suivant';
 
