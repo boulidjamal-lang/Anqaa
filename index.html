@@ -1979,6 +1979,50 @@
     .historique-carte-date { font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; }
     .historique-carte-meta { font-size: 0.74rem; color: var(--text-muted); margin-top: 4px; }
 
+    /* --- Détail d'une séance / historique d'un exercice : cartes à tableau
+       SET · KG × RÉP · E1RM · VOL, comme les grandes applis de suivi. --- */
+    .hd-surtitre { font-size: 0.68rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); }
+    .hd-titre { font-size: 1.45rem; font-weight: 800; line-height: 1.15; margin: 2px 0 2px; }
+    .hd-date { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; }
+    .hd-resume { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: center; background: var(--verre-creux); border-radius: 16px; padding: 10px 14px; margin-bottom: 12px; }
+    .hd-resume-ligne { display: flex; justify-content: space-between; gap: 8px; font-size: 0.8rem; padding: 6px 0; border-bottom: 1px solid var(--verre-brd); }
+    .hd-resume-ligne:last-child { border-bottom: 0; }
+    .hd-resume-ligne > span { color: var(--text-muted); }
+    .hd-resume-ligne b { font-weight: 700; }
+    .hd-resume .corps-svg { margin: 0 auto; max-width: 170px; }
+    .hd-exo { background: var(--verre-creux); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px; }
+    .hd-exo-entete { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .hd-exo-nom { font-weight: 700; font-size: 0.92rem; }
+    .hd-exo-courbe { flex: 0 0 auto; background: none; border: 0; color: var(--text-muted); padding: 2px; cursor: pointer; }
+    .hd-exo-courbe svg { width: 20px; height: 20px; }
+    .hd-badges { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 2px; }
+    .hd-badge { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.6px; color: #f5b83d; border: 1px solid color-mix(in srgb, #f5b83d 55%, transparent); border-radius: 6px; padding: 1px 6px; display: inline-flex; align-items: center; gap: 3px; }
+    .hd-badge svg { width: 10px; height: 10px; }
+    .hd-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+    .hd-table th { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.7px; color: var(--text-muted); text-align: left; padding: 4px 0; border-bottom: 1px solid var(--verre-brd); }
+    .hd-table td { padding: 5px 0; border-bottom: 1px solid var(--verre-brd); }
+    .hd-table tr:last-child td { border-bottom: 0; }
+    .hd-table th.num, .hd-table td.num { text-align: right; }
+    .hd-table td.set { width: 34px; color: var(--text-muted); }
+    .hd-table .kg { color: var(--text-muted); }
+    .hd-table .top { color: #f5b83d; font-weight: 700; }
+    .hd-table tr.non-fait td { opacity: 0.45; }
+    .hd-superset { font-size: 0.68rem; font-weight: 800; letter-spacing: 1px; color: #f5b83d; margin: 4px 2px 6px; }
+    .hd-note { font-size: 0.78rem; font-style: italic; color: var(--text-muted); margin: 6px 0 0; }
+    .hd-seance-lien { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 10px; background: none; border: 0; padding: 0; color: inherit; font-family: inherit; text-align: left; cursor: pointer; }
+    .hd-seance-lien .hd-date { margin: 0; white-space: nowrap; }
+    .fh-periodes { margin-bottom: 10px; }
+    .fh-barre { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+    .fh-chip { display: inline-flex; align-items: center; gap: 5px; font-family: inherit; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.4px; padding: 6px 10px; border-radius: 999px; border: 0; background: var(--verre-creux); color: var(--text); cursor: pointer; }
+    .fh-chip i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+    .fh-chip[aria-pressed="false"] { opacity: 0.45; }
+    .fh-agrandir { margin-left: auto; background: none; border: 0; color: var(--text); padding: 4px; cursor: pointer; }
+    .fh-agrandir svg { width: 20px; height: 20px; }
+    .fh-courbe { position: relative; height: 220px; border-radius: 12px; margin: 6px 0 14px; transition: height 0.25s ease; }
+    .fh-courbe.grand { height: 380px; }
+    .fh-vide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .fh-vide span { background: var(--verre-fort); border-radius: 10px; padding: 6px 12px; font-size: 0.85rem; }
+
     /* --- Techniques d'intensification (dégressif, pyramidal) et supersets --- */
     .badge-technique {
       display: inline-block; font-size: 0.62rem; font-weight: 700; padding: 2px 8px;
@@ -14159,19 +14203,158 @@ function renderHistoriqueSeances(historique, idCible, jours) {
   }).join('');
 }
 
+/* Chiffres d'une série/d'un exercice partagés par le détail de séance et
+   l'historique d'un exercice. Seules les séries cochées comptent. */
+function formatNombreFr(n, dec) {
+  return Number(n).toLocaleString('fr-FR', { maximumFractionDigits: dec == null ? 1 : dec });
+}
+function mesuresExercice(e) {
+  const faites = (e.series || []).filter(x => x.fait);
+  let un = 0, poids = 0, reps = 0, vol = 0;
+  faites.forEach(x => {
+    const p = Number(x.poids) || 0, r = Number(x.reps) || 0;
+    un = Math.max(un, unRmEstime(p, r)); poids = Math.max(poids, p); reps += r; vol += p * r;
+  });
+  return { un, poids, reps, vol, n: faites.length };
+}
+/* Ordre chronologique d'une séance : `debut` (horodatage) quand il existe,
+   sinon la date seule — deux séances du même jour sans heure restent
+   départagées par leur position dans l'historique (le plus récent en tête). */
+function cleChronoSeance(h, i, total) {
+  return (h.date || '') + '|' + String(h.debut || 0).padStart(15, '0') + '|' + String(total - i).padStart(6, '0');
+}
+/* Records battus par cet exercice dans cette séance, par rapport à toutes
+   les séances ANTÉRIEURES. Rien la première fois : il n'y a rien à battre. */
+function recordsExerciceSeance(historique, h, e) {
+  const total = historique.length;
+  const iSeance = historique.indexOf(h);
+  const cle = cleChronoSeance(h, iSeance, total);
+  const avant = [];
+  historique.forEach((x, i) => {
+    if (x === h || cleChronoSeance(x, i, total) >= cle) return;
+    (x.exercices || []).forEach(ex => { if (ex.exerciceId === e.exerciceId) avant.push(ex); });
+  });
+  if (!avant.length) return [];
+  const m = mesuresExercice(e);
+  if (!m.n) return [];
+  const prec = avant.map(mesuresExercice);
+  const out = [];
+  if (m.un > 0 && m.un > Math.max(...prec.map(p => p.un))) out.push('1RM');
+  if (m.poids > 0 && m.poids > Math.max(...prec.map(p => p.poids))) out.push('POIDS');
+  if (m.vol > 0 && m.vol > Math.max(...prec.map(p => p.vol))) out.push('VOL');
+  // Répétitions : plus de reps qu'avant à une charge au moins égale.
+  const seriesAvant = [];
+  avant.forEach(ex => (ex.series || []).forEach(x => { if (x.fait) seriesAvant.push(x); }));
+  const recordReps = (e.series || []).some(x => {
+    if (!x.fait) return false;
+    const p = Number(x.poids) || 0, r = Number(x.reps) || 0;
+    const comparables = seriesAvant.filter(y => (Number(y.poids) || 0) >= p);
+    return comparables.length && r > Math.max(...comparables.map(y => Number(y.reps) || 0));
+  });
+  if (recordReps) out.push('RÉPS');
+  return out;
+}
+const ICONE_RECORD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" /></svg>';
+const ICONE_COURBE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 20v-6" /><path d="M10 20V9" /><path d="M15 20v-8" /><path d="M20 20V4" /></svg>';
+/* Tableau SET · KG × RÉP · E1RM · VOL d'un exercice ; la meilleure série
+   (1RM estimé le plus haut) ressort en couleur. */
+function tableSeriesHTML(e) {
+  const series = e.series || [];
+  let iTop = -1, best = 0;
+  series.forEach((x, i) => {
+    if (!x.fait) return;
+    const v = unRmEstime(Number(x.poids) || 0, Number(x.reps) || 0);
+    if (v > best) { best = v; iTop = i; }
+  });
+  const lignes = series.map((x, i) => {
+    const p = Number(x.poids) || 0, r = Number(x.reps) || 0;
+    const un = x.fait ? unRmEstime(p, r) : 0;
+    const vol = x.fait ? p * r : 0;
+    const num = (x.technique && TECHNIQUE_LETTRES[x.technique]) || (i + 1);
+    return `<tr class="${x.fait ? '' : 'non-fait'}">
+      <td class="set">${num}</td>
+      <td><span class="kg">${x.poids != null && x.poids !== '' ? formatNombreFr(p, 2) : '—'} ×</span> <span class="${i === iTop ? 'top' : ''}">${x.reps != null && x.reps !== '' ? r : '—'}</span></td>
+      <td class="num">${un > 0 ? formatNombreFr(un) : '–'}</td>
+      <td class="num">${vol > 0 ? formatNombreFr(vol, 0) : '–'}</td>
+    </tr>`;
+  }).join('');
+  return `<table class="hd-table"><thead><tr><th>SET</th><th>KG × RÉP.</th><th class="num">E1RM</th><th class="num">VOL.</th></tr></thead><tbody>${lignes}</tbody></table>`;
+}
+function libelleExerciceHistorique(e) {
+  const exo = trouverExercice(e.exerciceId);
+  return exo ? libelleExercice(exo) : (e.nom || 'Exercice');
+}
+function heureSeance(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return isNaN(d) ? '' : String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+function dateLongueSeance(iso) {
+  const d = new Date(iso + 'T12:00:00');
+  return isNaN(d) ? iso : d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 function voirDetailHistorique(id) {
-  const h = muscuContexteActuel.historique.find(x => x.id === id);
+  const historique = muscuContexteActuel.historique;
+  const h = historique.find(x => x.id === id);
   if (!h) return;
   historiqueDetailCourant = id;
-  document.getElementById('titre-historique-detail').innerHTML =
-    '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M8 13h.01" /><path d="M12 13h.01" /><path d="M16 13h.01" /><path d="M8 17h.01" /><path d="M12 17h.01" /><path d="M16 17h.01" /></svg> ' + (h.programmeNom ? escapeHtml(h.programmeNom) : 'Séance libre') + ' — ' + formatDateDisplay(h.date);
-  document.getElementById('historique-detail-container').innerHTML =
-    renderListeExercicesDetail(h.exercices) + (h.notes ? `<p class="note"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" /><path d="M14 2v5a1 1 0 0 0 1 1h5" /><path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" /></svg> ${escapeHtml(h.notes)}</p>` : '');
+  // "Programme - Jour" : le programme passe en surtitre, le jour en titre.
+  const nomComplet = h.programmeNom || 'Séance libre';
+  const coupe = nomComplet.lastIndexOf(' - ');
+  const surtitre = coupe > 0 ? nomComplet.slice(0, coupe) : '';
+  const titre = coupe > 0 ? nomComplet.slice(coupe + 3) : nomComplet;
+  document.getElementById('titre-historique-detail').textContent = 'Séance';
+  const hDeb = heureSeance(h.debut), hFin = heureSeance(h.fin);
+  const nbSeries = h.exercices.reduce((n, e) => n + (e.series || []).filter(x => x.fait).length, 0);
+  const records = h.exercices.map(e => recordsExerciceSeance(historique, h, e));
+  const nbRecords = records.reduce((n, r) => n + r.length, 0);
+  const groupes = ajouterSeriesParGroupe({}, h.exercices);
+  const idJs = id => String(id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+  let html = `${surtitre ? `<div class="hd-surtitre">${escapeHtml(surtitre)}</div>` : ''}
+    <div class="hd-titre">${escapeHtml(titre)}</div>
+    <div class="hd-date">${escapeHtml(dateLongueSeance(h.date))}${hDeb ? ' · ' + hDeb + (hFin ? '–' + hFin : '') : ''}</div>
+    <div class="hd-resume">
+      <div>
+        <div class="hd-resume-ligne"><span>Temps</span><b>${h.dureeMin ? h.dureeMin + ' min' : '—'}</b></div>
+        <div class="hd-resume-ligne"><span>Sets</span><b>${nbSeries}</b></div>
+        <div class="hd-resume-ligne"><span>Volume total</span><b>${formatNombreFr(volumeSeance(h), 0)} kg</b></div>
+        <div class="hd-resume-ligne"><span>Records</span><b style="color:#f5b83d;">${nbRecords ? `<span class="hd-badge" style="border:0; padding:0; font-size:0.8rem;">${ICONE_RECORD} ${nbRecords}</span>` : '0'}</b></div>
+      </div>
+      <div>${corpsSVG(couleursSeance(groupes), 'Muscles travaillés pendant cette séance')}</div>
+    </div>`;
+
+  html += grouperBlocsExercices(h.exercices).map(indices => {
+    const cartes = indices.map(i => {
+      const e = h.exercices[i];
+      const badges = records[i].length
+        ? `<div class="hd-badges">${records[i].map(r => `<span class="hd-badge">${r} ${ICONE_RECORD}</span>`).join('')}</div>` : '';
+      return `<div class="hd-exo">
+        <div class="hd-exo-entete">
+          <div class="hd-exo-nom">${escapeHtml(libelleExerciceHistorique(e))}</div>
+          <button type="button" class="hd-exo-courbe" onclick="ouvrirHistoriqueExercice('${idJs(e.exerciceId)}')" aria-label="Historique et courbe de l'exercice">${ICONE_COURBE}</button>
+        </div>
+        ${badges}
+        ${tableSeriesHTML(e)}
+        ${e.notes ? `<p class="hd-note">Note : ${escapeHtml(e.notes)}</p>` : ''}
+      </div>`;
+    }).join('');
+    return indices.length > 1 ? `<div class="hd-superset">SUPERSET</div>${cartes}` : cartes;
+  }).join('');
+  if (h.notes) html += `<p class="note">Note de séance : ${escapeHtml(h.notes)}</p>`;
+  document.getElementById('historique-detail-container').innerHTML = html;
   // Depuis le panneau Administration, cette fenêtre reste consultative :
   // l'admin ne supprime pas les données d'un compte depuis cette vue.
   const btnSuppr = document.getElementById('btn-suppr-seance-historique');
   if (btnSuppr) btnSuppr.style.display = muscuContexteActuel.admin ? 'none' : 'block';
   ouvrirModal('historique-detail-modal');
+}
+/* Bouton courbe d'une carte d'exercice : ouvre la fiche de l'exercice,
+   directement sur son historique, avec l'historique du compte consulté
+   (le sien, ou celui affiché dans Administration). */
+function ouvrirHistoriqueExercice(exerciceId) {
+  afficherFicheExerciceBiblio(exerciceId, { historique: muscuContexteActuel.historique, onglet: 'historique' });
 }
 function supprimerSeanceHistorique() {
   if (!historiqueDetailCourant || muscuContexteActuel.admin) return;
@@ -14740,12 +14923,14 @@ function choisirExercicePicker(id) {
     afficherFicheExerciceBiblio(id);
   }
 }
-function afficherFicheExerciceBiblio(id) {
+function afficherFicheExerciceBiblio(id, options) {
   const e = trouverExercice(id);
   if (!e) return;
+  const opts = options || {};
+  const histoSource = opts.historique || musculationHistorique;
+  ficheHisto = { id, historique: histoSource, periode: ficheHisto ? ficheHisto.periode : '6m', metriques: ficheHisto ? ficheHisto.metriques : ['1rm', 'vol', 'reps'], grand: false };
   document.getElementById('titre-fiche-exercice').textContent = libelleExercice(e);
-  const pratique = musculationHistorique.filter(h => h.exercices.some(x => x.exerciceId === id));
-  const derniere = dernierePerfExercice(id);
+  const pratique = histoSource.filter(h => h.exercices.some(x => x.exerciceId === id));
   const secondaires = (e.secondaires && e.secondaires.length) ? e.secondaires.map(g => GROUPES_MUSCULAIRES[g]).join(', ') : null;
   const media = mediaExercice(e);
 
@@ -14805,36 +14990,136 @@ function afficherFicheExerciceBiblio(id) {
     <ol class="fiche-exo-instructions">${media.ins.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol>`;
   }
 
-  html += `</div><div class="fiche-onglet hidden" data-onglet="historique">`;
-  if (derniere) {
-    html += `<p class="note" style="margin:0 0 6px;">Dernière fois — ${formatDateDisplay(derniere.date)} :</p>`;
-    html += derniere.series.map((s, i) => `<div style="display:flex; justify-content:space-between; font-size:0.82rem; padding:4px 0; border-bottom:1px solid var(--verre-brd);">
-      <span>Série ${i + 1}</span><span>${s.poids ?? '—'} kg × ${s.reps ?? '—'}</span></div>`).join('');
-    const seances = musculationHistorique.map(h => ({ h, x: h.exercices.find(x => x.exerciceId === id) }))
-      .filter(o => o.x && o.x.series.some(s => s.fait));
-    if (seances.length > 1) {
-      html += `<p class="note" style="margin:14px 0 6px; font-weight:700; text-transform:uppercase; font-size:0.72rem; letter-spacing:0.8px;">Toutes les séances (${seances.length})</p>`;
-      html += seances.slice(0, 30).map(o => {
-        const faites = o.x.series.filter(s => s.fait);
-        const top = faites.reduce((b, s) => (unRmEstime(Number(s.poids), Number(s.reps)) > unRmEstime(Number(b.poids), Number(b.reps)) ? s : b), faites[0]);
-        return `<div style="display:flex; justify-content:space-between; gap:8px; font-size:0.8rem; padding:4px 0; border-bottom:1px solid var(--verre-brd);">
-          <span>${formatDateDisplay(o.h.date)}</span><span class="note" style="margin:0;">${faites.length} série${faites.length > 1 ? 's' : ''} · meilleure ${top.poids ?? '—'} kg × ${top.reps ?? '—'}</span></div>`;
-      }).join('');
-    }
-  } else {
-    html += '<p class="note">Pas encore pratiqué.</p>';
-  }
+  html += `</div><div class="fiche-onglet hidden" data-onglet="historique"><div id="fiche-histo"></div>`;
   html += `</div><div class="fiche-onglet hidden" data-onglet="niveau">
     <p class="note" style="margin:0 0 4px;">Où tu te situes par rapport à la plupart des pratiquants, d'après ton meilleur 1RM estimé sur cet exercice et ton poids de corps.</p>
     ${jaugeForceHTML(niveauForceExercice(id))}
   </div>`;
   document.getElementById('fiche-exercice-container').innerHTML = html;
+  rendreHistoriqueFiche();
   ouvrirModal('fiche-exercice-modal');
   if (!video && media && media.img && media.img.length > 1) demarrerAnimationFiche();
+  if (opts.onglet) choisirOngletFiche(opts.onglet);
 }
 function choisirOngletFiche(nom) {
   document.querySelectorAll('#fiche-exercice-container .fiche-onglet').forEach(o => o.classList.toggle('hidden', o.dataset.onglet !== nom));
   majSegment('fiche-onglets', ['infos', 'historique', 'niveau'], nom);
+  // Le graphique se dessine une fois l'onglet visible : dans un conteneur
+  // masqué, Chart.js mesure une largeur nulle.
+  if (nom === 'historique') dessinerCourbeFiche();
+}
+
+/* --- Historique d'un exercice : courbe de progression + séances -------- */
+let ficheHisto = null;
+let ficheHistoChart = null;
+const PERIODES_FICHE = [['1m', '1 m', 30], ['3m', '3 m', 91], ['6m', '6 m', 182], ['1an', '1 an', 365], ['tout', 'Tout', 0]];
+const METRIQUES_FICHE = [
+  ['1rm', '1RM', '#e5484d', m => m.un],
+  ['vol', 'VOL', '#f5b83d', m => m.vol],
+  ['reps', 'RÉPS', '#3e8bff', m => m.reps],
+  ['poids', 'POIDS', '#9aa0a6', m => m.poids]
+];
+/* Séances (les plus anciennes d'abord) où l'exercice a au moins une série
+   cochée, dans la période choisie. */
+function seancesFicheHisto() {
+  if (!ficheHisto) return [];
+  const p = PERIODES_FICHE.find(x => x[0] === ficheHisto.periode) || PERIODES_FICHE[4];
+  const seuil = p[2] ? shiftDate(todayStr(), -p[2]) : '';
+  const total = ficheHisto.historique.length;
+  return ficheHisto.historique
+    .map((h, i) => ({ h, i, e: (h.exercices || []).find(x => x.exerciceId === ficheHisto.id) }))
+    .filter(o => o.e && (o.e.series || []).some(x => x.fait) && (!seuil || o.h.date >= seuil))
+    .sort((a, b) => cleChronoSeance(a.h, a.i, total).localeCompare(cleChronoSeance(b.h, b.i, total)));
+}
+function rendreHistoriqueFiche() {
+  const c = document.getElementById('fiche-histo');
+  if (!c || !ficheHisto) return;
+  const seances = seancesFicheHisto();
+  const idJs = id => String(id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  let html = `<div class="segment fh-periodes" id="fiche-histo-periodes" role="group" aria-label="Période">
+    ${PERIODES_FICHE.map(p => `<button type="button" onclick="choisirPeriodeFiche('${p[0]}')" aria-pressed="${p[0] === ficheHisto.periode}">${p[1]}</button>`).join('')}
+  </div>
+  <div class="fh-barre">
+    ${METRIQUES_FICHE.map(m => `<button type="button" class="fh-chip" onclick="basculerMetriqueFiche('${m[0]}')" aria-pressed="${ficheHisto.metriques.includes(m[0])}"><i style="background:${m[2]}"></i>${m[1]}</button>`).join('')}
+    <button type="button" class="fh-agrandir" onclick="agrandirCourbeFiche()" aria-label="Agrandir la courbe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6" /><path d="M9 21H3v-6" /><path d="m21 3-7 7" /><path d="m3 21 7-7" /></svg></button>
+  </div>
+  <p class="note" style="margin:2px 0 0;">Variation en % depuis la première séance affichée</p>
+  <div class="fh-courbe${ficheHisto.grand ? ' grand' : ''}" id="fiche-histo-courbe"><canvas id="fiche-histo-canvas"></canvas>${seances.length ? '' : '<div class="fh-vide"><span>Pas de données</span></div>'}</div>`;
+  html += seances.slice().reverse().map(o => `<div class="hd-exo">
+      <button type="button" class="hd-seance-lien" onclick="ouvrirSeanceDepuisFiche('${idJs(o.h.id)}')">
+        <span class="hd-exo-nom">${escapeHtml(o.h.programmeNom || 'Séance libre')}</span>
+        <span class="hd-date">${escapeHtml(dateLongueSeance(o.h.date))} ›</span>
+      </button>
+      ${tableSeriesHTML(o.e)}
+      ${o.e.notes ? `<p class="hd-note">Note : ${escapeHtml(o.e.notes)}</p>` : ''}
+    </div>`).join('') || '<p class="note">Pas encore pratiqué sur cette période.</p>';
+  c.innerHTML = html;
+  dessinerCourbeFiche();
+}
+function dessinerCourbeFiche() {
+  if (ficheHistoChart) { ficheHistoChart.destroy(); ficheHistoChart = null; }
+  const canvas = document.getElementById('fiche-histo-canvas');
+  if (!canvas || !ficheHisto || typeof Chart === 'undefined') return;
+  if (!canvas.offsetParent) return; // onglet masqué : redessiné à l'ouverture
+  const seances = seancesFicheHisto();
+  const mesures = seances.map(o => mesuresExercice(o.e));
+  const c = graphiqueCouleursMuscu();
+  // Chaque courbe part de 0 % : sa première valeur non nulle sert de base.
+  const datasets = METRIQUES_FICHE.filter(m => ficheHisto.metriques.includes(m[0])).map(m => {
+    const vals = mesures.map(m[3]);
+    const base = vals.find(v => v > 0);
+    return {
+      label: m[1],
+      data: vals.map(v => (base && v > 0) ? Math.round((v / base - 1) * 1000) / 10 : (base ? null : 0)),
+      borderColor: m[2], backgroundColor: m[2], pointBackgroundColor: m[2],
+      tension: 0.3, borderWidth: 2, pointRadius: seances.length > 1 ? 3 : 5, pointHoverRadius: 6, spanGaps: true
+    };
+  });
+  ficheHistoChart = new Chart(canvas, {
+    type: 'line',
+    data: { labels: seances.map(o => { const d = new Date(o.h.date + 'T12:00:00'); return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }); }), datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: Object.assign(tooltipMuscu(c), {
+          displayColors: true,
+          callbacks: { label: ctx => ctx.parsed.y == null ? null : ` ${ctx.dataset.label} ${ctx.parsed.y > 0 ? '+' : ''}${formatNombreFr(ctx.parsed.y)} %` }
+        })
+      },
+      scales: {
+        x: { ticks: { color: c.texte, font: { size: 9 }, maxTicksLimit: 6 }, grid: { display: false }, border: { display: false } },
+        y: {
+          ticks: { color: c.texte, font: { size: 9 }, callback: v => (v > 0 ? '+' : '') + formatNombreFr(v) + '%' },
+          grid: { color: c.grille, drawTicks: false }, border: { display: false },
+          suggestedMin: -1, suggestedMax: 1
+        }
+      }
+    }
+  });
+}
+function choisirPeriodeFiche(p) {
+  if (!ficheHisto) return;
+  ficheHisto.periode = p;
+  rendreHistoriqueFiche();
+}
+function basculerMetriqueFiche(m) {
+  if (!ficheHisto) return;
+  const l = ficheHisto.metriques;
+  ficheHisto.metriques = l.includes(m) ? l.filter(x => x !== m) : l.concat(m);
+  rendreHistoriqueFiche();
+}
+function agrandirCourbeFiche() {
+  if (!ficheHisto) return;
+  ficheHisto.grand = !ficheHisto.grand;
+  const el = document.getElementById('fiche-histo-courbe');
+  if (el) el.classList.toggle('grand', ficheHisto.grand);
+  setTimeout(() => { if (ficheHistoChart) ficheHistoChart.resize(); }, 260);
+}
+function ouvrirSeanceDepuisFiche(idSeance) {
+  fermerModal('fiche-exercice-modal');
+  voirDetailHistorique(idSeance);
 }
 let exercicePersoEnEdition = null;
 function remplirSelectsExercice(idGroupe, idMateriel) {
