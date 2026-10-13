@@ -3201,7 +3201,13 @@
       <input type="text" id="aliments-filter-nom" placeholder="Nom de l'aliment" oninput="filtrerAlimentsAdmin()" autocomplete="off">
       <input type="text" id="aliments-filter-createur" placeholder="Email du créateur" oninput="filtrerAlimentsAdmin()" autocomplete="off">
       <input type="date" id="aliments-filter-date" onchange="filtrerAlimentsAdmin()">
+      <select id="aliments-filter-statut" onchange="rendreAlimentsAdmin(adminAlimentsCharges)" aria-label="Statut">
+        <option value="">Tous</option>
+        <option value="attente">En attente de validation</option>
+        <option value="valide">Validés (visibles par tous)</option>
+      </select>
     </div>
+    <p class="note" style="margin:-4px 0 12px;">Un aliment créé par un utilisateur reste visible par lui seul tant qu'il n'est pas validé ici.</p>
     <button class="btn btn-secondaire" type="button" style="margin-bottom:12px;" onclick="nettoyerDoublonsAlimentsPartages()">Retirer les aliments copiés de CIQUAL</button>
     <p class="note" id="note-nettoyage-aliments" style="margin:-4px 0 12px;"></p>
 
@@ -5552,7 +5558,7 @@ function afficherSuggestionsOFF(products, probleme) {
       if (p.fois > 1) meta += ' · ' + p.fois + '×';
     }
     // Confidentialité : on indique la provenance, jamais l'identité.
-    if (p.source === 'partage') meta += p.est_mien ? ' · mon aliment' : ' · créé par un autre utilisateur';
+    if (p.source === 'partage') meta += p.est_mien ? (p.valide === false ? ' · mon aliment (en attente de validation)' : ' · mon aliment') : ' · créé par un autre utilisateur';
     if (p.code) meta += ' · <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="9" y2="9" /><line x1="4" x2="20" y1="15" y2="15" /><line x1="10" x2="8" y1="3" y2="21" /><line x1="16" x2="14" y1="3" y2="21" /></svg>' + escapeHtml(p.code);
     bas.innerHTML = meta;
     el.appendChild(bas);
@@ -9529,7 +9535,104 @@ create policy "photos progression ajout" on storage.objects for insert to authen
   with check (bucket_id = 'photos-progression' and (storage.foldername(name))[1] = auth.uid()::text);
 drop policy if exists "photos progression suppr" on storage.objects;
 create policy "photos progression suppr" on storage.objects for delete to authenticated
-  using (bucket_id = 'photos-progression' and (storage.foldername(name))[1] = auth.uid()::text);`;
+  using (bucket_id = 'photos-progression' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- 6) Aliments partagés : un aliment créé par un utilisateur n'est visible
+--    que par lui tant que l'admin ne l'a pas validé. Tout est vérifié ici,
+--    côté serveur : modifier le stockage local du téléphone ne peut ni
+--    valider un aliment, ni le rendre visible, ni en ressusciter un retiré.
+do $$ begin
+  if not exists (select 1 from information_schema.columns
+                 where table_schema = 'public' and table_name = 'aliments_partages' and column_name = 'valide') then
+    alter table public.aliments_partages add column valide boolean not null default false;
+    -- Les aliments déjà partagés avant cette étape restent visibles.
+    update public.aliments_partages set valide = true where not coalesce(supprime, false);
+  end if;
+end $$;
+alter table public.aliments_partages add column if not exists valide_par text;
+alter table public.aliments_partages add column if not exists valide_le timestamptz;
+alter table public.aliments_partages enable row level security;
+do $$ declare r record; begin
+  for r in select policyname from pg_policies where schemaname = 'public' and tablename = 'aliments_partages' loop
+    execute format('drop policy %I on public.aliments_partages', r.policyname);
+  end loop;
+end $$;
+create policy "aliments lecture" on public.aliments_partages for select to authenticated
+  using (auth.jwt() ->> 'email' = 'jambou592@gmail.com'
+         or (not coalesce(supprime, false) and (valide or createur_id::text = auth.uid()::text)));
+create policy "aliments creation" on public.aliments_partages for insert to authenticated
+  with check (auth.jwt() ->> 'email' = 'jambou592@gmail.com'
+              or (createur_id::text = auth.uid()::text and not valide and not coalesce(supprime, false)
+                  and not est_bloque(auth.uid()::text) and mon_compte_existe()));
+create policy "aliments admin modif" on public.aliments_partages for update to authenticated
+  using (auth.jwt() ->> 'email' = 'jambou592@gmail.com') with check (auth.jwt() ->> 'email' = 'jambou592@gmail.com');
+create policy "aliments admin suppr" on public.aliments_partages for delete to authenticated
+  using (auth.jwt() ->> 'email' = 'jambou592@gmail.com');
+
+create or replace function public.plier_texte(t text) returns text language sql immutable as $fn$
+  select translate(lower(coalesce(t, '')), 'àâäáãåçéèêëíìîïñóòôöõúùûüýÿœæ', 'aaaaaaceeeeiiiinooooouuuuyyoa')
+$fn$;
+do $$ declare r record; begin
+  for r in select p.oid::regprocedure as sig from pg_proc p
+           where p.proname = 'chercher_aliments' and p.pronamespace = 'public'::regnamespace loop
+    execute 'drop function ' || r.sig;
+  end loop;
+end $$;
+create function public.chercher_aliments(p_query text, p_limite integer default 20)
+returns setof jsonb language sql stable security definer set search_path = public as $fn$
+  with mots as (
+    select m from unnest(string_to_array(plier_texte(trim(p_query)), ' ')) as m where m <> ''
+  )
+  select jsonb_build_object(
+    'id', to_jsonb(a) -> 'id', 'nom', a.nom,
+    'kcal100', a.kcal100, 'p100', a.p100, 'c100', a.c100, 'f100', a.f100,
+    'code_barre', a.code_barre, 'cree_le', to_jsonb(a) -> 'cree_le',
+    'est_mien', coalesce(a.createur_id::text = auth.uid()::text, false),
+    'valide', a.valide)
+  from aliments_partages a
+  where not coalesce(a.supprime, false)
+    and (a.valide or a.createur_id::text = auth.uid()::text)
+    and length(trim(coalesce(p_query, ''))) >= 2
+    and not exists (select 1 from mots where position(mots.m in plier_texte(a.nom)) = 0)
+  order by coalesce(a.createur_id::text = auth.uid()::text, false) desc,
+           position(plier_texte(trim(p_query)) in plier_texte(a.nom)) = 0,
+           length(a.nom)
+  limit least(greatest(coalesce(p_limite, 20), 1), 50)
+$fn$;
+grant execute on function public.chercher_aliments(text, integer) to anon, authenticated;
+
+-- 7) Recettes : seul l'admin peut rendre une recette visible par tous.
+--    Le drapeau « partagee » envoyé par un téléphone est ignoré : à la
+--    création il est retiré, à la modification il garde sa valeur serveur.
+create or replace function public.proteger_partage_recette()
+returns trigger language plpgsql security definer set search_path = public as $fn$
+begin
+  if coalesce(auth.jwt() ->> 'email', '') = 'jambou592@gmail.com' then return new; end if;
+  if tg_op = 'INSERT' or not (old.donnees ? 'partagee') then
+    new.donnees := new.donnees - 'partagee';
+  else
+    new.donnees := jsonb_set(new.donnees, '{partagee}', old.donnees -> 'partagee');
+  end if;
+  return new;
+end;
+$fn$;
+drop trigger if exists recettes_partage_admin_seul on public.recettes_perso;
+create trigger recettes_partage_admin_seul before insert or update on public.recettes_perso
+  for each row execute function public.proteger_partage_recette();
+
+-- 8) Base CIQUAL : lecture pour tous, écriture réservée à l'admin (l'appli
+--    n'y écrit plus ; un ancien téléphone ne peut plus y ajouter d'aliment).
+do $$ declare r record; begin
+  if to_regclass('public.ciqual_aliments') is not null then
+    execute 'alter table public.ciqual_aliments enable row level security';
+    for r in select policyname from pg_policies where schemaname = 'public' and tablename = 'ciqual_aliments' loop
+      execute format('drop policy %I on public.ciqual_aliments', r.policyname);
+    end loop;
+    execute 'create policy "ciqual lecture" on public.ciqual_aliments for select to anon, authenticated using (true)';
+    execute 'create policy "ciqual admin" on public.ciqual_aliments for all to authenticated '
+         || 'using (auth.jwt() ->> ''email'' = ''jambou592@gmail.com'') with check (auth.jwt() ->> ''email'' = ''jambou592@gmail.com'')';
+  end if;
+end $$;`;
 
 function copierSqlGymbro() {
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -11308,7 +11411,7 @@ async function synchroniser(raison) {
     chargerRecettesPerso();
     chargerRecettesPartagees();
 
-    // Les aliments en attente repartent avec la même occasion réseau.
+    // Ancienne file d'aliments locale : effacée, plus jamais renvoyée.
     viderFileAliments();
 
     // Le profil distant est arrivé : on sait maintenant si ce compte a
@@ -11316,9 +11419,7 @@ async function synchroniser(raison) {
     verifierBilanInitial();
 
     const recus = (data || []).length;
-    const enAttente = fileAliments().length;
-    majEtatSync('ok', `À jour · ${aPousser.length} journée(s) envoyée(s), ${recus} sur le serveur.`
-      + (enAttente ? ` ${enAttente} aliment(s) en attente d'envoi.` : ''));
+    majEtatSync('ok', `À jour · ${aPousser.length} journée(s) envoyée(s), ${recus} sur le serveur.`);
   } catch (e) {
     // Une panne de synchro ne doit jamais bloquer l'usage : les données sont
     // déjà en sécurité en local, on se contente de le signaler.
@@ -11406,23 +11507,19 @@ async function detecterSchemaAliments(force) {
 }
 
 /* =====================================================================
-   TOUT NOUVEL ALIMENT REJOINT LA BASE
-   Un produit saisi sur le téléphone ne vivait que dans le stockage local de
-   ce téléphone. Il part désormais dans la table, avec ses valeurs pour 100 g
-   et son code-barres : il est disponible sur les autres appareils, et il
-   enrichit la base au lieu d'être ressaisi.
+   NOUVEL ALIMENT SAISI À LA MAIN -> ALIMENTS PARTAGÉS, EN ATTENTE
+   Un produit saisi sur le téléphone part dans la table aliments_partages,
+   non validé : visible tout de suite par son créateur, et par les autres
+   comptes seulement une fois validé dans Administration › Aliments partagés.
 
-   L'envoi ne bloque jamais la saisie : en cas d'échec ou de coupure, la
-   fiche est mise en file d'attente et repart à la prochaine synchronisation.
+   Sécurité : plus rien n'est écrit dans la base CIQUAL depuis l'appli, et
+   plus aucune file d'attente n'est gardée dans le stockage local — c'est
+   ce qui permettait à un téléphone de renvoyer des aliments (même retirés)
+   dans la base commune. L'ancienne file est effacée au démarrage.
    ===================================================================== */
 const FILE_ALIMENTS_LS = 'mc_file_aliments';
-
-function fileAliments() {
-  try { return JSON.parse(localStorage.getItem(FILE_ALIMENTS_LS)) || []; } catch (e) { return []; }
-}
-function ecrireFileAliments(f) {
-  // On borne la file : une panne longue ne doit pas remplir le stockage.
-  try { localStorage.setItem(FILE_ALIMENTS_LS, JSON.stringify(f.slice(-200))); } catch (e) {}
+function viderFileAliments() {
+  try { localStorage.removeItem(FILE_ALIMENTS_LS); } catch (e) {}
 }
 
 /* Un aliment est décrit à l'unité de 100 g, comme la table. `item` arrive lui
@@ -11447,17 +11544,8 @@ function enregistrerAlimentDansBase(item) {
   if (item && Array.isArray(item.ingredients) && item.ingredients.length) return;
   const fiche = ficheDepuisItem(item);
   if (!fiche) return;
-  const file = fileAliments();
-  const cle = normaliserRecherche(fiche.nom);
-  // Déjà en attente : inutile de l'empiler deux fois.
-  if (file.some(f => normaliserRecherche(f.nom) === cle)) return;
-  file.push(fiche);
-  ecrireFileAliments(file);
-
-  /* Le même aliment rejoint la table partagée, visible par tous les
-     comptes. `fiche` est déjà ramenée à 100 g par ficheDepuisItem(),
-     seuls les noms de champs diffèrent. L'appel n'est pas attendu :
-     un échec réseau ne doit pas retarder la saisie du repas. */
+  // L'appel n'est pas attendu : un échec réseau ne doit pas retarder la
+  // saisie du repas (l'aliment reste de toute façon dans l'historique local).
   enregistrerAlimentPartage({
     nom: fiche.nom,
     kcal100: fiche.kcal,
@@ -11467,90 +11555,8 @@ function enregistrerAlimentDansBase(item) {
     code_barre: fiche.code,
     source: 'manuel'
   });
-
-  viderFileAliments();
 }
 
-let envoiAlimentsEnCours = false;
-
-async function viderFileAliments() {
-  if (envoiAlimentsEnCours || !supa) return;
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
-  const file = fileAliments();
-  if (!file.length) return;
-
-  envoiAlimentsEnCours = true;
-  const table = confSupabase().table;
-  const restants = [];
-  try {
-    const s = await detecterSchemaAliments();
-    if (!s || !s.nom || !s.cle) throw new Error('colonnes nom ou clé non reconnues');
-
-    for (const fiche of file) {
-      try {
-        const norme = normaliserRecherche(fiche.nom);
-
-        /* On ne veut pas d'un doublon de ce qui existe déjà. Le code-barres
-           identifie un produit sans ambiguïté ; à défaut, le nom normalisé. */
-        let existe = false;
-        if (fiche.code && s.codeBarre) {
-          const r = await supa.from(table).select(s.cle).eq(s.codeBarre, fiche.code).limit(1);
-          if (!r.error && r.data && r.data.length) existe = true;
-        }
-        if (!existe) {
-          const colonne = s.recherche || s.nom;
-          const valeur = s.recherche ? norme : fiche.nom;
-          const r = await supa.from(table).select(s.cle).eq(colonne, valeur).limit(1);
-          if (!r.error && r.data && r.data.length) existe = true;
-        }
-        if (existe) continue;   // rien à ajouter, la fiche sort de la file
-
-        /* Clé primaire : le code-barres quand il y en a un — c'est
-           l'identifiant naturel du produit —, sinon une clé dérivée du nom,
-           préfixée pour ne jamais entrer en collision avec un code CIQUAL. */
-        const ligne = {};
-        ligne[s.cle] = fiche.code || ('mc-' + norme.replace(/ /g, '-').slice(0, 48));
-        ligne[s.nom] = fiche.nom;
-        if (s.kcal) ligne[s.kcal] = fiche.kcal;
-        if (s.prot) ligne[s.prot] = fiche.prot;
-        if (s.gluc) ligne[s.gluc] = fiche.gluc;
-        if (s.lip) ligne[s.lip] = fiche.lip;
-        if (s.codeBarre && fiche.code) ligne[s.codeBarre] = fiche.code;
-        if (s.source) ligne[s.source] = 'perso';
-
-        /* La colonne de recherche normalisée est censée être calculée par
-           Postgres — on ne l'écrit donc pas. Mais si elle a été créée en
-           colonne ordinaire, elle resterait vide et la ligne serait
-           introuvable. On vérifie une fois, puis on sait. */
-        if (s.recherche && s.rechercheEcrivable) ligne[s.recherche] = norme;
-
-        const { error } = await supa.from(table).upsert([ligne], { onConflict: s.cle });
-        if (error) throw error;
-
-        if (s.recherche && s.rechercheEcrivable === undefined) {
-          const v = await supa.from(table).select(s.cle).eq(s.recherche, norme).limit(1);
-          s.rechercheEcrivable = !(!v.error && v.data && v.data.length);
-          if (s.rechercheEcrivable) {
-            // Colonne ordinaire : on la remplit nous-mêmes, pour cette ligne
-            // et pour toutes les suivantes.
-            const rattrapage = Object.assign({}, ligne);
-            rattrapage[s.recherche] = norme;
-            await supa.from(table).upsert([rattrapage], { onConflict: s.cle });
-          }
-        }
-      } catch (e) {
-        restants.push(fiche);   // on retentera, sans perdre la fiche
-      }
-    }
-    cacheAliments.clear();
-    if (restants.length !== file.length) compterAliments();
-  } catch (e) {
-    restants.push(...file);
-  } finally {
-    ecrireFileAliments(restants);
-    envoiAlimentsEnCours = false;
-  }
-}
 
 // Une valeur peut arriver en texte (« 12,5 », « < 0,5 », « traces »).
 function nombreSouple(v) {
@@ -16677,9 +16683,14 @@ async function chercherAlimentsPartages(q) {
       // La fonction SQL ne renvoie plus d'email : seulement de qui vient
       // l'aliment, sans dire qui. L'identité reste au panneau admin.
       est_mien: !!a.est_mien,
+      // Un aliment non validé n'est renvoyé qu'à son créateur (RLS + RPC).
+      valide: a.valide !== false,
       cree_le: a.cree_le,
       id: a.id
-    }));
+    }))
+      // Ceinture et bretelles : même si la base renvoyait par erreur un
+      // aliment non validé d'un autre compte, il ne serait pas proposé.
+      .filter(a => a.valide || a.est_mien);
     cacheEcrire(cle, resultats);
     return resultats;
   } catch (e) {
@@ -16797,6 +16808,7 @@ function versFormatSuggestion(a) {
     name: a.nom,
     source: a.source === 'usda' ? 'usda' : 'partage',
     est_mien: !!a.est_mien,
+    valide: a.valide !== false,
     code: a.code_barre || '',
     nutriments: {
       'energy-kcal_100g': a.kcal100,
@@ -17041,6 +17053,7 @@ async function chargerAlimentsAdmin() {
     });
     if (error) throw error;
     adminAlimentsCharges = data || [];
+    await completerStatutsAliments(adminAlimentsCharges);
     rendreAlimentsAdmin(adminAlimentsCharges);
   } catch (e) {
     conteneur.innerHTML = '';
@@ -17102,10 +17115,44 @@ async function nettoyerDoublonsAlimentsPartages() {
   }
 }
 
+/* admin_aliments ne renvoie pas forcément la colonne `valide` : on la
+   relit à part (l'admin voit toutes les lignes, voir la policy RLS). */
+async function completerStatutsAliments(liste) {
+  if (!supa || !liste || !liste.length || liste.every(a => typeof a.valide === 'boolean')) return;
+  try {
+    const { data, error } = await supa.from('aliments_partages').select('id,valide').in('id', liste.map(a => a.id));
+    if (error) throw error;
+    const statut = new Map((data || []).map(r => [String(r.id), r.valide]));
+    liste.forEach(a => { if (statut.has(String(a.id))) a.valide = statut.get(String(a.id)); });
+  } catch (e) {
+    console.warn('[Aliments] statut de validation illisible :', e.message);
+  }
+}
+async function basculerValidationAliment(a) {
+  if (!supa) return;
+  const valider = !a.valide;
+  try {
+    const { error } = await supa.from('aliments_partages').update({
+      valide: valider,
+      valide_par: valider ? (sessionUtilisateur ? sessionUtilisateur.email : 'inconnu') : null,
+      valide_le: valider ? new Date().toISOString() : null
+    }).eq('id', a.id);
+    if (error) throw error;
+    a.valide = valider;
+    cacheVider();
+    await consignerAction(valider ? 'aliment_valide' : 'aliment_devalide', a.id, a.nom || '', null, { createur: a.createur || null });
+    rendreAlimentsAdmin(adminAlimentsCharges);
+  } catch (e) {
+    alert('Impossible de changer la validation : ' + e.message + "\n\nAs-tu bien exécuté le dernier SQL (Administration › SQL) ?");
+  }
+}
+
 function rendreAlimentsAdmin(aliments) {
   const conteneur = document.getElementById('admin-aliments-feuille-liste');
   if (!conteneur) return;
   conteneur.innerHTML = '';
+  const filtreStatut = (document.getElementById('aliments-filter-statut') || {}).value || '';
+  if (filtreStatut && aliments) aliments = aliments.filter(a => filtreStatut === 'valide' ? a.valide === true : a.valide !== true);
 
   if (!aliments || !aliments.length) {
     const p = document.createElement('p');
@@ -17117,7 +17164,9 @@ function rendreAlimentsAdmin(aliments) {
 
   const compteur = document.createElement('p');
   compteur.className = 'note';
+  const nbAttente = aliments.filter(a => a.valide !== true).length;
   compteur.textContent = aliments.length + ' aliment(s)'
+    + (nbAttente ? ' · ' + nbAttente + ' en attente de validation' : '')
     + (aliments.length >= 100 ? ' — affine les filtres pour en voir davantage' : '');
   conteneur.appendChild(compteur);
 
@@ -17137,10 +17186,20 @@ function rendreAlimentsAdmin(aliments) {
     meta.textContent = (a.createur || 'inconnu')
       + ' · ' + (a.cree_le ? new Date(a.cree_le).toLocaleDateString('fr-FR') : '—')
       + (a.code_barre ? ' · ' + a.code_barre : '');
-    info.appendChild(nom); info.appendChild(meta);
+    const statut = document.createElement('small');
+    statut.style.cssText = 'display:block; font-weight:700; color:' + (a.valide === true ? 'var(--primary)' : '#f5b83d') + ';';
+    statut.textContent = a.valide === true ? 'Partagé avec tous' : 'En attente : visible par son créateur seulement';
+    info.appendChild(nom); info.appendChild(meta); info.appendChild(statut);
 
     const actions = document.createElement('div');
     actions.className = 'aliment-actions';
+    const btnValider = document.createElement('button');
+    btnValider.className = 'btn ' + (a.valide === true ? 'btn-secondaire' : 'btn-primary');
+    btnValider.style.cssText = 'width:100%; min-height:auto; padding:9px 10px; font-size:0.8rem; margin-top:10px;';
+    btnValider.type = 'button';
+    btnValider.textContent = a.valide === true ? 'Retirer le partage' : 'Valider le partage';
+    btnValider.title = a.valide === true ? 'Ne plus proposer cet aliment aux autres comptes' : 'Rendre cet aliment visible par tous';
+    btnValider.addEventListener('click', () => basculerValidationAliment(a));
     const btnEdit = document.createElement('button');
     btnEdit.className = 'bouton-petit';
     btnEdit.type = 'button';
@@ -17176,6 +17235,7 @@ function rendreAlimentsAdmin(aliments) {
       grille.appendChild(box);
     });
     carte.appendChild(grille);
+    carte.appendChild(btnValider);
 
     conteneur.appendChild(carte);
   });
