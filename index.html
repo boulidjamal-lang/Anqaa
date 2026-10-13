@@ -14151,9 +14151,11 @@ function construireExercicesSession(programme) {
     } else {
       series = cibles.map(c => ({ poids: c.poids, reps: c.reps, fait: false, technique: c.technique || null }));
     }
+    // Au lancement, chaque exercice est replié sur une ligne : on déplie
+    // celui qu'on attaque (voir basculerRepliExerciceSession).
     return {
       exerciceId: pe.exerciceId, nom: exo ? exo.nom : 'Exercice', series,
-      supersetSuivant: !!pe.supersetSuivant,
+      supersetSuivant: !!pe.supersetSuivant, replie: true,
       ...(pe.tempo ? { tempo: pe.tempo } : {})
     };
   });
