@@ -16560,8 +16560,8 @@ function renderSessionExerciceBlocHTML(exo, ei) {
     const fini = exo.series.length > 0 && faites === exo.series.length;
     return `<div class="session-exo-bloc session-exo-bloc--replie">
     <div class="session-exo-entete">
-      <span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet) : ''}</span>
       <button type="button" class="session-exo-replie-btn" onclick="basculerRepliExerciceSession(${ei})" aria-expanded="false" aria-label="Déplier ${nomExo}">
+        <span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet) : ''}</span>
         <span class="session-exo-nom">${nomExo}</span>
         <span class="session-exo-progression${fini ? ' session-exo-progression--fini' : ''}">${fini ? '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>' : ''}${faites}/${exo.series.length} série${exo.series.length > 1 ? 's' : ''}</span>
         <span class="session-exo-chevron" aria-hidden="true">${ICONE_CHEVRON_EXO}</span>
