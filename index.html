@@ -803,9 +803,9 @@
     .fab {
       width: 60px; height: 60px; border-radius: 21px;
       border: 2px solid var(--primary);
-      /* Fond de page à 10 % : le bouton masque à peine le contenu défilé
-         derrière lui, mais n'est plus totalement transparent. */
-      background: color-mix(in srgb, var(--bg) 10%, transparent);
+      /* Fond de la couleur du contour, à 30 % : le bouton se détache du
+         contenu défilé tout en laissant deviner ce qu'il y a derrière. */
+      background: color-mix(in srgb, var(--primary) 30%, transparent);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
       color: var(--primary);
