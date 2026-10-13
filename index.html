@@ -8722,8 +8722,8 @@ const TOUR_ETAPES = [
   { titre: "C'est parti !", texte: "Tu connais l'essentiel. Pour tout savoir sur les programmes, les séances et les jauges de volume, lance la visite « Musculation » depuis les Réglages." }
 ];
 /* Visite dédiée à la musculation. Les étapes « siSession » montrent un
-   élément de la séance en cours : sans séance lancée, la bulle s'affiche
-   simplement au centre, avec la même explication. */
+   élément de la séance en cours : sans séance lancée, une séance de
+   démonstration est ouverte le temps de ces étapes (voir assurerSeanceDemo). */
 const TOUR_MUSCU = [
   { titre: 'La musculation dans Anqā', texte: "Programmes, séances, suivi du volume par muscle, records et progression : voici comment tout s'enchaîne." },
   { ecran: 'seance', cible: '#programmes-liste-container', titre: 'Tes programmes', texte: "Un programme = une liste d'exercices avec leurs séries, charges et répétitions cibles. Touche-en un pour le lancer, ou ⋯ pour le dupliquer ou le supprimer." },
@@ -8742,6 +8742,37 @@ const TOUR_MUSCU = [
   { titre: 'Bon entraînement !', texte: "Tu peux revoir cette visite à tout moment depuis Profil › Réglages." }
 ];
 let tourListe = TOUR_ETAPES;
+/* Visite Musculation sans séance en cours : une séance de démonstration
+   (un exercice, quelques séries d'exemple) est ouverte le temps des étapes
+   de séance, puis retirée. Elle n'est jamais enregistrée (voir
+   sauvegarderSessionActive) et ne compte nulle part. */
+function assurerSeanceDemo() {
+  if (musculationSessionActive) return;
+  const exos = toutesLesExercices();
+  const exo = exos.find(e => /d[ée]velopp[ée] couch[ée]/i.test(libelleExercice(e)) && e.materiel === 'barre')
+    || exos.find(e => e.groupe === 'pectoraux') || exos[0];
+  if (!exo) return;
+  musculationSessionActive = {
+    demo: true, programmeId: null, programmeNom: 'Séance de démonstration', debut: Date.now(), notes: '',
+    exercices: [{
+      exerciceId: exo.id, nom: exo.nom, supersetSuivant: false, tempo: '3010',
+      series: [
+        { poids: 30, reps: 12, fait: true, technique: 'echauffement' },
+        { poids: 50, reps: 10, fait: false, technique: null },
+        { poids: 50, reps: 10, fait: false, technique: null },
+        { poids: 50, reps: 8, fait: false, technique: 'echec' }
+      ]
+    }]
+  };
+  reposActifs = {}; palierOuvert = {};
+  renderSeance();
+}
+function retirerSeanceDemo() {
+  if (!musculationSessionActive || !musculationSessionActive.demo) return;
+  musculationSessionActive = null;
+  reposActifs = {}; palierOuvert = {};
+  renderSeance();
+}
 let tourActif = false;
 let tourEtape = 0;
 let tourResizeHandler = null;
@@ -8780,6 +8811,9 @@ function afficherEtapeTour() {
   } else if (document.querySelector('.feuille.show')) {
     fermerFeuilles();
   }
+  // Visite Musculation : séance de démonstration pendant les étapes de
+  // séance seulement (sinon elle masquerait l'accueil de l'écran Activité).
+  if (etape.siSession) assurerSeanceDemo(); else retirerSeanceDemo();
   if (etape.avant) { try { etape.avant(); } catch (e) {} }
   let cible = etape.cible ? document.querySelector(etape.cible) : null;
   // Étape de séance sans séance en cours, ou élément masqué/absent : bulle
@@ -8888,6 +8922,7 @@ function tourPrecedent() {
   afficherEtapeTour();
 }
 function fermerTourGuide() {
+  retirerSeanceDemo();
   tourActif = false;
   tourGeneration++;
   document.getElementById('tour-overlay').classList.add('hidden');
@@ -13661,6 +13696,7 @@ function chargerMuscu() {
   try { musculationExosPerso = JSON.parse(localStorage.getItem(MUSCU_EXOS_PERSO_KEY)) || []; } catch (e) { musculationExosPerso = []; }
   try { exercicesCommunaute = JSON.parse(localStorage.getItem(MUSCU_EXOS_COMMUNAUTE_KEY)) || []; } catch (e) { exercicesCommunaute = []; }
   try { musculationSessionActive = JSON.parse(localStorage.getItem(MUSCU_SESSION_KEY)) || null; } catch (e) { musculationSessionActive = null; }
+  if (musculationSessionActive && musculationSessionActive.demo) musculationSessionActive = null;
   try { programmeEnEdition = JSON.parse(localStorage.getItem(MUSCU_PROGRAMME_EDITION_KEY)) || null; } catch (e) { programmeEnEdition = null; }
   try { appliquerOverridesBase(JSON.parse(localStorage.getItem(MUSCU_BASE_OVERRIDES_KEY)) || []); } catch (e) {}
 }
@@ -13777,6 +13813,8 @@ function sauvegarderSessionActive() {
   // coche, et la synchroniser en direct sur chaque case cochée coûterait
   // une requête réseau par case sans réel bénéfice (elle n'est de toute
   // façon envoyée à Supabase qu'une fois terminée, via sauvegarderHistorique).
+  // Séance de démonstration de la visite guidée : jamais enregistrée.
+  if (musculationSessionActive && musculationSessionActive.demo) return;
   try {
     if (musculationSessionActive) localStorage.setItem(MUSCU_SESSION_KEY, JSON.stringify(musculationSessionActive));
     else localStorage.removeItem(MUSCU_SESSION_KEY);
