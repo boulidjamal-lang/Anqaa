@@ -15278,12 +15278,13 @@ function afficherFicheExerciceBiblio(id, options) {
   const pratique = histoSource.filter(h => h.exercices.some(x => x.exerciceId === id));
   const media = mediaExercice(e);
 
-  // Trois onglets : Résumé (chiffres, courbe, records, niveau), Historique
-  // (toutes les séances) et Technique (démonstration, muscles, consignes).
+  // Trois onglets : Instructions (démonstration, muscles, consignes),
+  // Résumé (chiffres, courbe, records, niveau) et Historique (toutes les
+  // séances). La clé interne de l'onglet Instructions reste « technique ».
   let html = `<div class="segment" id="fiche-onglets" role="group" aria-label="Sections de la fiche" style="margin-bottom:12px;">
+    <button type="button" onclick="choisirOngletFiche('technique')" aria-pressed="false">Instructions</button>
     <button type="button" onclick="choisirOngletFiche('resume')" aria-pressed="true">Résumé</button>
     <button type="button" onclick="choisirOngletFiche('historique')" aria-pressed="false">Historique</button>
-    <button type="button" onclick="choisirOngletFiche('technique')" aria-pressed="false">Technique</button>
   </div>
   <div class="fiche-onglet" data-onglet="resume">${resumeFicheHTML(id, histoSource)}</div>
   <div class="fiche-onglet hidden" data-onglet="historique"><div id="fiche-histo-liste"></div></div>
@@ -15342,7 +15343,7 @@ function choisirOngletFiche(nom) {
   if (nom === 'infos') nom = 'technique';
   if (nom === 'niveau') nom = 'resume';
   document.querySelectorAll('#fiche-exercice-container .fiche-onglet').forEach(o => o.classList.toggle('hidden', o.dataset.onglet !== nom));
-  majSegment('fiche-onglets', ['resume', 'historique', 'technique'], nom);
+  majSegment('fiche-onglets', ['technique', 'resume', 'historique'], nom);
   // Le graphique se dessine une fois l'onglet visible : dans un conteneur
   // masqué, Chart.js mesure une largeur nulle.
   if (nom === 'resume') dessinerCourbeFiche();
