@@ -1744,7 +1744,7 @@
     /* Carte du corps */
     .corps-carte { background: var(--verre-creux); border-radius: 16px; padding: 10px 12px; margin-bottom: 14px; }
     .corps-carte summary { font-weight: 800; font-size: 0.8rem; cursor: pointer; }
-    .corps-svg { display: block; width: 100%; max-width: 300px; height: auto; margin: 8px auto 0; }
+    .corps-svg { display: block; width: 100%; max-width: 380px; height: auto; margin: 8px auto 0; }
     .corps-puces { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-top: 6px; }
     .corps-puces span { font-size: 0.68rem; background: var(--verre-fort); border-radius: 999px; padding: 2px 8px; }
     .corps-puces b { color: var(--primary); }
@@ -14148,48 +14148,89 @@ function legendeZonesHTML() {
 }
 
 /* =====================================================================
-   CARTE DU CORPS — face + dos, chaque groupe musculaire coloriable.
-   `couleurs` : { groupe: couleur CSS } ; un groupe absent reste neutre.
+   CARTE DU CORPS — planche anatomique face + dos, dessinée muscle par
+   muscle. Chaque forme est décrite pour la moitié gauche de l'image
+   (x < 100, axe du corps en x = 100) puis recopiée en miroir : les deux
+   côtés restent parfaitement symétriques. Chaque muscle porte le groupe
+   de GROUPES_MUSCULAIRES qu'il colore ; null = forme neutre (cou…).
    ===================================================================== */
-function figureCorpsSVG(cx, vue, c, base) {
-  const r = n => Math.round(n * 10) / 10;
-  const el = (x, y, rx, ry, rot, fill) => `<ellipse cx="${r(x)}" cy="${y}" rx="${rx}" ry="${ry}"${rot ? ` transform="rotate(${rot} ${r(x)} ${y})"` : ''} fill="${fill}"/>`;
-  const paire = (dx, y, rx, ry, rot, fill) => el(cx - dx, y, rx, ry, rot, fill) + el(cx + dx, y, rx, ry, -rot, fill);
-  const trait = (dx1, y1, dx2, y2, w) => [-1, 1].map(s => `<line x1="${cx + s * dx1}" y1="${y1}" x2="${cx + s * dx2}" y2="${y2}" stroke="${base}" stroke-width="${w}" stroke-linecap="round"/>`).join('');
-  const miroir = (f, fill) => [-1, 1].map(s => `<path d="${f(s)}" fill="${fill}"/>`).join('');
-  let h = `<circle cx="${cx}" cy="14" r="10" fill="${base}"/><rect x="${cx - 4}" y="21" width="8" height="9" fill="${base}"/>`;
-  h += `<path d="M${cx - 21},31 Q${cx},26 ${cx + 21},31 L${cx + 17},78 L${cx + 19},98 L${cx - 19},98 L${cx - 17},78 Z" fill="${base}"/>`;
-  h += trait(23, 35, 28, 70, 10) + trait(28, 72, 32, 104, 8) + trait(10, 98, 11, 146, 17) + trait(11, 148, 11, 192, 11);
-  h += `<circle cx="${cx - 33}" cy="110" r="4" fill="${base}"/><circle cx="${cx + 33}" cy="110" r="4" fill="${base}"/>`;
-  if (vue === 'face') {
-    h += miroir(s => `M${cx + s * 4},24 L${cx + s * 15},31 L${cx + s * 4},31 Z`, c('trapezes'));
-    h += miroir(s => `M${cx + s * 1},36 Q${cx + s * 15},31 ${cx + s * 19},40 Q${cx + s * 17},54 ${cx + s * 1},52 Z`, c('pectoraux'));
-    h += paire(22, 36, 6.5, 7.5, 0, c('epaules'));
-    h += paire(26, 56, 4.5, 11, 10, c('biceps'));
-    h += paire(30, 88, 4, 13, 7, c('avant_bras'));
-    h += `<rect x="${cx - 8}" y="55" width="16" height="27" rx="5" fill="${c('abdos')}"/>`;
-    h += paire(4.5, 113, 3, 11, 0, c('adducteurs'));
-    h += paire(12, 122, 6.5, 21, 3, c('quadriceps'));
-    h += paire(11, 168, 4.5, 14, 0, c('mollets'));
-  } else {
-    h += `<path d="M${cx},22 L${cx - 15},31 L${cx},58 L${cx + 15},31 Z" fill="${c('trapezes')}"/>`;
-    h += paire(22, 36, 6.5, 7.5, 0, c('epaules'));
-    h += miroir(s => `M${cx + s * 3},42 Q${cx + s * 19},36 ${cx + s * 19},47 Q${cx + s * 16},66 ${cx + s * 4},74 Z`, c('dos'));
-    h += paire(26, 56, 4.5, 11, 10, c('triceps'));
-    h += paire(30, 88, 4, 13, 7, c('avant_bras'));
-    h += `<rect x="${cx - 7}" y="66" width="14" height="13" rx="4" fill="${c('lombaires')}"/>`;
-    h += paire(9, 92, 9, 9, 0, c('fessiers'));
-    h += paire(11.5, 124, 6.5, 18, 2, c('ischios'));
-    h += paire(11, 166, 6, 14, 0, c('mollets'));
-  }
-  h += `<text x="${cx}" y="206" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-weight="700">${vue === 'face' ? 'FACE' : 'DOS'}</text>`;
-  return h;
+const CORPS_SILHOUETTE = [
+  'M100,8 C87,8 80,18 80,33 C80,41 81,47 83,52 C79,51 78,56 80,60 C81,63 83,64 85,63 C87,70 92,76 100,78 Z',
+  'M87,60 L85,86 L100,88 L100,62 Z',
+  'M100,80 C92,80 84,82 76,86 C64,88 54,90 46,96 C47,112 52,128 54,140 C56,160 58,178 60,192 C61,204 60,214 58,224 C56,236 57,248 60,258 L100,266 Z',
+  'M50,90 C38,91 30,100 28,114 C26,132 27,150 28,168 C27,180 24,194 21,208 C18,224 16,242 15,258 L29,262 C32,246 37,228 42,212 C46,200 49,192 51,184 C54,170 56,156 56,140 C56,124 56,106 50,90 Z',
+  'M15,256 C10,266 8,278 10,290 C12,298 17,302 22,300 C27,296 28,288 28,280 C29,272 30,266 29,260 Z',
+  'M58,248 C53,270 53,296 57,320 C59,332 60,344 59,356 C57,376 59,398 64,418 C65,426 63,432 61,438 C60,444 68,448 80,448 L90,447 C92,440 89,432 88,424 C88,404 90,384 92,366 C93,352 93,340 95,328 C98,306 99,282 100,260 Z'
+];
+
+// [groupe, chemin du muscle, traits internes facultatifs]
+const MUSCLES_FACE = [
+  [null, 'M86,62 C88,70 92,78 98,88 L100,88 L100,84 C96,76 93,68 91,62 Z'],
+  ['trapezes', 'M85,70 C80,79 68,85 56,88 C66,90 78,90 92,88 C88,82 86,76 85,70 Z'],
+  ['epaules', 'M56,88 C64,89 71,93 74,99 C67,107 59,117 52,128 C48,120 47,108 50,97 C52,92 54,89 56,88 Z'],
+  ['epaules', 'M56,88 C44,90 34,98 31,112 C29,122 30,132 34,142 C40,138 46,134 52,128 C48,120 47,108 50,97 Z', 'M44,96 C39,108 36,122 35,136'],
+  ['pectoraux', 'M99,92 C90,89 81,90 74,95 C66,102 58,113 52,126 C57,137 67,144 80,145 C90,146 96,142 99,138 Z', 'M99,107 C89,107 78,109 64,115 M98,124 C88,126 76,128 62,128'],
+  ['dos', 'M52,128 C50,138 52,152 55,164 C57,156 57,146 57,138 C56,134 54,130 52,128 Z'],
+  ['abdos', 'M64,144 C71,146 77,148 82,150 L83,224 C76,226 68,222 60,214 C60,198 60,182 60,168 C60,158 61,150 64,144 Z', 'M60,174 C67,172 75,171 82,171 M61,192 C68,191 75,190 82,190 M61,206 C68,207 75,208 82,209'],
+  ['abdos', 'M56,140 L66,146 C64,149 63,151 62,153 L56,150 Z'],
+  ['abdos', 'M56,154 L62,157 C61,160 61,162 61,165 L57,163 Z'],
+  ['abdos', 'M98,147 L87,147 C84,147 83,149 83,152 L83,162 C83,165 85,166 87,166 L98,166 Z'],
+  ['abdos', 'M98,169 L87,169 C84,169 83,171 83,174 L83,184 C83,187 85,188 87,188 L98,188 Z'],
+  ['abdos', 'M98,191 L87,191 C84,191 83,193 83,196 L83,206 C83,209 85,210 87,210 L98,210 Z'],
+  ['abdos', 'M98,213 L87,213 C84,213 83,215 83,219 C84,231 88,243 98,253 Z'],
+  ['biceps', 'M52,127 C56,140 56,156 54,170 C52,180 48,186 42,188 C38,184 36,176 36,166 C36,152 40,138 46,131 C48,129 50,128 52,127 Z', 'M46,138 C44,152 43,166 44,182'],
+  ['triceps', 'M34,142 C30,152 28,166 29,178 C31,186 36,189 42,188 C38,184 36,176 36,166 C36,156 36,148 34,142 Z'],
+  ['avant_bras', 'M28,184 C24,200 20,218 18,236 C17,244 16,250 16,256 L22,258 C23,252 24,246 26,236 C30,216 36,198 42,188 C38,186 32,184 28,184 Z', 'M26,198 C23,214 21,230 19,246'],
+  ['avant_bras', 'M42,188 C36,198 30,216 26,236 C24,246 23,252 22,258 L29,261 C31,246 36,230 41,214 C45,204 48,196 51,185 C48,184 45,186 42,188 Z', 'M46,194 C41,210 36,228 31,248 M38,200 C34,216 30,234 27,252'],
+  ['fessiers', 'M58,220 C61,222 64,226 67,232 L60,246 C56,238 56,228 58,220 Z'],
+  ['quadriceps', 'M60,240 C53,262 53,292 57,318 C60,330 66,338 74,341 L90,341 C95,336 97,328 96,318 C94,302 92,288 90,274 C88,262 85,252 82,244 C76,236 70,230 64,226 Z', 'M64,250 C69,272 70,302 72,336 M84,262 C87,286 88,306 86,326 M63,230 C75,246 85,262 91,298 M69,228 C80,244 89,262 95,292'],
+  ['quadriceps', 'M86,300 C82,312 82,326 87,339 C92,343 97,339 97,329 C97,317 94,307 86,300 Z'],
+  ['adducteurs', 'M99,258 C93,256 89,261 88,269 C88,282 90,294 93,304 C97,294 99,280 99,266 Z', 'M93,262 C92,274 93,286 95,296'],
+  [null, 'M78,341 C73,343 72,349 74,355 C77,359 84,359 87,355 C89,349 87,343 83,341 Z'],
+  ['mollets', 'M60,358 C56,376 58,398 63,418 L76,420 C75,400 75,380 78,360 C72,356 66,356 60,358 Z', 'M66,362 C64,380 65,400 68,418'],
+  ['mollets', 'M83,357 C80,374 80,396 82,420 L88,420 C88,402 90,382 93,362 C91,358 87,356 83,357 Z']
+];
+const MUSCLES_DOS = [
+  ['trapezes', 'M100,60 C96,68 92,76 88,80 C78,86 64,88 54,90 C66,100 78,114 86,130 C92,144 96,160 100,178 Z', 'M100,100 C94,98 87,96 79,94'],
+  ['epaules', 'M54,90 C42,92 33,100 30,114 C28,124 30,134 34,142 C40,130 48,118 58,108 C60,100 58,94 54,90 Z', 'M48,96 C42,108 37,122 34,136'],
+  ['dos', 'M58,108 C68,106 78,112 86,128 C79,136 70,141 62,141 C56,132 55,120 58,108 Z', 'M59,124 C67,122 75,122 84,127'],
+  ['dos', 'M62,142 C71,142 79,138 86,132 C88,138 86,145 82,149 C74,151 66,151 59,149 C59,146 60,144 62,142 Z'],
+  ['dos', 'M57,150 C68,153 79,152 86,148 C92,164 97,184 100,202 L100,218 C88,222 75,218 63,212 C60,194 57,174 55,158 C55,155 56,152 57,150 Z', 'M62,170 C72,176 83,186 92,200'],
+  ['lombaires', 'M92,186 C89,202 89,220 91,236 L100,240 L100,184 Z'],
+  ['triceps', 'M34,142 C29,154 27,168 28,180 C30,188 36,190 44,188 L50,186 C54,170 56,154 55,140 C50,134 40,134 34,142 Z', 'M44,140 C41,156 40,172 41,188 M50,140 C50,156 49,170 47,186'],
+  ['avant_bras', 'M28,184 C24,200 20,218 18,236 C17,244 16,250 16,256 L22,258 C23,252 24,246 26,236 C30,216 36,198 42,188 C38,186 32,184 28,184 Z', 'M26,198 C23,214 21,230 19,246'],
+  ['avant_bras', 'M42,188 C36,198 30,216 26,236 C24,246 23,252 22,258 L29,261 C31,246 36,230 41,214 C45,204 48,196 51,185 C48,184 45,186 42,188 Z', 'M46,194 C41,210 36,228 31,248'],
+  ['fessiers', 'M58,216 C55,224 55,234 58,242 C68,236 80,232 95,230 C89,221 76,216 58,216 Z'],
+  ['fessiers', 'M58,244 C54,260 56,276 65,284 C77,290 90,288 99,282 L99,238 C84,236 70,238 58,244 Z', 'M63,260 C74,264 86,266 98,264'],
+  ['ischios', 'M57,288 C53,306 55,328 62,344 L92,344 C95,326 96,306 96,286 C88,290 70,290 57,288 Z', 'M76,290 C73,306 74,324 77,344 M86,292 C85,308 86,326 88,344'],
+  ['adducteurs', 'M96,286 C96,300 95,314 92,328 C97,318 99,302 99,290 Z'],
+  [null, 'M62,346 C70,349 80,349 92,346 C92,352 89,356 84,357 C76,357 68,355 63,352 Z'],
+  ['mollets', 'M61,358 C55,372 55,390 61,406 C68,404 74,394 77,380 C78,368 72,360 61,358 Z'],
+  ['mollets', 'M79,360 C77,374 78,394 84,410 C91,402 94,384 92,364 C88,360 83,358 79,360 Z'],
+  ['mollets', 'M62,408 C65,418 68,426 71,434 L85,434 C86,426 86,418 86,412 C78,416 70,416 62,408 Z', 'M78,414 L78,434']
+];
+
+function figureCorpsSVG(vue, c) {
+  const peau = '#1b1c1f';
+  const trait = '#111113';
+  const muscles = vue === 'face' ? MUSCLES_FACE : MUSCLES_DOS;
+  let gauche = CORPS_SILHOUETTE.map(d => `<path d="${d}" fill="${peau}"/>`).join('');
+  muscles.forEach(([g, d, details]) => {
+    gauche += `<path d="${d}" fill="${g ? c(g) : '#3a3b40'}" stroke="${trait}" stroke-width="1.2" stroke-linejoin="round"/>`;
+    if (details) gauche += `<path d="${details}" fill="none" stroke="${trait}" stroke-width="0.8" stroke-linecap="round" opacity="0.75"/>`;
+  });
+  return `<g>${gauche}</g><g transform="matrix(-1 0 0 1 200 0)">${gauche}</g>` +
+    `<path d="${vue === 'face' ? 'M100,90 L100,252' : 'M100,60 L100,238'}" stroke="${trait}" stroke-width="1.4"/>`;
 }
 function corpsSVG(couleurs, libelle) {
-  const neutre = 'color-mix(in srgb, var(--text) 16%, transparent)';
-  const base = 'color-mix(in srgb, var(--text) 7%, transparent)';
+  const neutre = '#5a5b61';
   const c = g => (couleurs && couleurs[g]) || neutre;
-  return `<svg class="corps-svg" viewBox="0 0 240 210" role="img" aria-label="${escapeHtml(libelle || 'Répartition musculaire')}">${figureCorpsSVG(60, 'face', c, base)}${figureCorpsSVG(180, 'dos', c, base)}</svg>`;
+  return `<svg class="corps-svg" viewBox="0 0 420 476" role="img" aria-label="${escapeHtml(libelle || 'Répartition musculaire')}">
+    <g>${figureCorpsSVG('face', c)}</g>
+    <g transform="translate(220,0)">${figureCorpsSVG('dos', c)}</g>
+    <text x="100" y="470" text-anchor="middle" font-size="12" fill="var(--text-muted)" font-weight="700" letter-spacing="1">FACE</text>
+    <text x="320" y="470" text-anchor="middle" font-size="12" fill="var(--text-muted)" font-weight="700" letter-spacing="1">DOS</text>
+  </svg>`;
 }
 /* Couleurs "zones" : chaque groupe prend la couleur de sa zone de la
    semaine (rien si aucune série). */
@@ -14207,7 +14248,7 @@ function couleursSeance(seriesParGroupe) {
   const out = {};
   Object.keys(seriesParGroupe).forEach(g => {
     const n = seriesParGroupe[g];
-    if (n > 0) out[g] = `color-mix(in srgb, var(--primary) ${Math.round(35 + 65 * Math.min(1, n / 6))}%, transparent)`;
+    if (n > 0) out[g] = `color-mix(in srgb, var(--primary) ${Math.round(45 + 55 * Math.min(1, n / 6))}%, #5a5b61)`;
   });
   return out;
 }
