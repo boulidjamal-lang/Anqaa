@@ -14210,24 +14210,81 @@ const MUSCLES_DOS = [
   ['mollets', 'M62,408 C65,418 68,426 71,434 L85,434 C86,426 86,418 86,412 C78,416 70,416 62,408 Z', 'M78,414 L78,434']
 ];
 
-function figureCorpsSVG(vue, c) {
+/* Version femme : dérivée de la même planche par une déformation douce
+   (épaules et taille plus étroites, hanches et cuisses plus larges, bras
+   plus fins, tête un peu plus petite), plus les cheveux et le contour de
+   la poitrine. Chaque point x,y des tracés est recalculé une fois. */
+function interpolerTable(y, table) {
+  if (y <= table[0][0]) return table[0][1];
+  for (let i = 1; i < table.length; i++) {
+    if (y <= table[i][0]) {
+      const [y0, v0] = table[i - 1], [y1, v1] = table[i];
+      return v0 + (v1 - v0) * (y - y0) / (y1 - y0);
+    }
+  }
+  return table[table.length - 1][1];
+}
+const FACTEURS_FEMME_TRONC = [[0, 0.93], [60, 0.93], [80, 0.9], [95, 0.86], [150, 0.87], [190, 0.83], [218, 1.0], [240, 1.08], [280, 1.08], [330, 1.02], [370, 0.98], [460, 0.95]];
+function deformerPointFemme(x, y) {
+  const d = 100 - x;
+  const tronc = interpolerTable(y, FACTEURS_FEMME_TRONC);
+  // Bras : au-delà du flanc, sous l'épaule — plus fins et rapprochés.
+  const t = y > 118 ? Math.max(0, Math.min(1, (d - 40) / 10)) : 0;
+  const facteur = tronc * (1 - t) + 0.86 * t;
+  return [100 - d * facteur, y < 72 ? 8 + (y - 8) * 0.96 : y];
+}
+function deformerCheminFemme(chemin) {
+  return chemin.replace(/(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/g, (m, x, y) => {
+    const [nx, ny] = deformerPointFemme(Number(x), Number(y));
+    return (Math.round(nx * 10) / 10) + ',' + (Math.round(ny * 10) / 10);
+  });
+}
+const CORPS_FEMME = {};
+function planchesCorps(femme) {
+  if (!femme) return { silhouette: CORPS_SILHOUETTE, face: MUSCLES_FACE, dos: MUSCLES_DOS };
+  if (!CORPS_FEMME.silhouette) {
+    const def = liste => liste.map(([g, d, det]) => [g, deformerCheminFemme(d), det ? deformerCheminFemme(det) : det]);
+    CORPS_FEMME.silhouette = CORPS_SILHOUETTE.map(deformerCheminFemme);
+    CORPS_FEMME.face = def(MUSCLES_FACE);
+    CORPS_FEMME.dos = def(MUSCLES_DOS);
+  }
+  return CORPS_FEMME;
+}
+// Cheveux (moitié gauche, recopiés en miroir) : volume autour du visage
+// et chignon ; de dos, ils couvrent l'arrière du crâne.
+const CHEVEUX_FACE = 'M100,4 C86,4 78,13 77,28 C76,40 78,52 80,60 C82,54 82,46 83,38 C84,26 90,20 100,20 Z';
+const CHEVEUX_DOS = 'M100,4 C86,4 78,13 77,28 C76,42 79,56 84,66 C90,70 96,71 100,71 Z';
+const CHIGNON = 'M100,-6 C93,-6 89,-2 89,3 C89,8 93,11 100,11 Z';
+const POITRINE = 'M99,122 C96,136 86,144 74,143 C65,142 58,135 55,126';
+
+function figureCorpsSVG(vue, c, femme) {
   const peau = '#1b1c1f';
   const trait = '#111113';
-  const muscles = vue === 'face' ? MUSCLES_FACE : MUSCLES_DOS;
-  let gauche = CORPS_SILHOUETTE.map(d => `<path d="${d}" fill="${peau}"/>`).join('');
+  const planches = planchesCorps(femme);
+  const muscles = vue === 'face' ? planches.face : planches.dos;
+  let gauche = planches.silhouette.map(d => `<path d="${d}" fill="${peau}"/>`).join('');
   muscles.forEach(([g, d, details]) => {
     gauche += `<path d="${d}" fill="${g ? c(g) : '#3a3b40'}" stroke="${trait}" stroke-width="1.2" stroke-linejoin="round"/>`;
     if (details) gauche += `<path d="${details}" fill="none" stroke="${trait}" stroke-width="0.8" stroke-linecap="round" opacity="0.75"/>`;
   });
+  if (femme) {
+    const cheveux = '#2f3035';
+    gauche += `<path d="${CHIGNON}" fill="${cheveux}"/><path d="${vue === 'face' ? CHEVEUX_FACE : CHEVEUX_DOS}" fill="${cheveux}"/>`;
+    gauche += `<path d="${vue === 'face' ? 'M96,8 C90,12 86,20 85,30' : 'M96,10 C88,18 84,32 84,48 M92,12 C90,30 90,48 92,64'}" fill="none" stroke="${trait}" stroke-width="0.8" opacity="0.8"/>`;
+    if (vue === 'face') gauche += `<path d="${deformerCheminFemme(POITRINE)}" fill="none" stroke="${trait}" stroke-width="1.3" stroke-linecap="round"/>`;
+  }
   return `<g>${gauche}</g><g transform="matrix(-1 0 0 1 200 0)">${gauche}</g>` +
     `<path d="${vue === 'face' ? 'M100,90 L100,252' : 'M100,60 L100,238'}" stroke="${trait}" stroke-width="1.4"/>`;
 }
+/* La silhouette suit le sexe choisi à la création du compte (Profil) :
+   femme -> planche féminine, sinon planche masculine. */
 function corpsSVG(couleurs, libelle) {
   const neutre = '#5a5b61';
   const c = g => (couleurs && couleurs[g]) || neutre;
-  return `<svg class="corps-svg" viewBox="0 0 420 476" role="img" aria-label="${escapeHtml(libelle || 'Répartition musculaire')}">
-    <g>${figureCorpsSVG('face', c)}</g>
-    <g transform="translate(220,0)">${figureCorpsSVG('dos', c)}</g>
+  const femme = typeof userProfile !== 'undefined' && userProfile && userProfile.gender === 'f';
+  return `<svg class="corps-svg" viewBox="0 -8 420 484" role="img" aria-label="${escapeHtml(libelle || 'Répartition musculaire')}">
+    <g>${figureCorpsSVG('face', c, femme)}</g>
+    <g transform="translate(220,0)">${figureCorpsSVG('dos', c, femme)}</g>
     <text x="100" y="470" text-anchor="middle" font-size="12" fill="var(--text-muted)" font-weight="700" letter-spacing="1">FACE</text>
     <text x="320" y="470" text-anchor="middle" font-size="12" fill="var(--text-muted)" font-weight="700" letter-spacing="1">DOS</text>
   </svg>`;
