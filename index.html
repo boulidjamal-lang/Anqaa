@@ -2606,6 +2606,9 @@
       <button class="btn btn-primary" type="button" onclick="afficherFeuillRecettesAdmin()">
         <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11h18" /><path d="M12 3c-1.5 2-2 4-2 5.5A2 2 0 0 0 12 11a2 2 0 0 0 2-2.5c0-1.5-.5-3.5-2-5.5Z" /><path d="M3 11c0 6 3.5 10 9 10s9-4 9-10" /></svg> Recettes
       </button>
+      <button class="btn btn-primary" type="button" onclick="afficherFeuilleBaseAliments()">
+        <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5V19A9 3 0 0 0 21 19V5" /><path d="M3 12A9 3 0 0 0 21 12" /></svg> Base d'aliments
+      </button>
       <button class="btn btn-primary" type="button" onclick="afficherFeuilleCouleursAdmin()">
         <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /></svg> Couleurs de l'application
       </button>
@@ -3202,17 +3205,30 @@
       <input type="text" id="aliments-filter-nom" placeholder="Nom de l'aliment" oninput="filtrerAlimentsAdmin()" autocomplete="off">
       <input type="text" id="aliments-filter-createur" placeholder="Email du créateur" oninput="filtrerAlimentsAdmin()" autocomplete="off">
       <input type="date" id="aliments-filter-date" onchange="filtrerAlimentsAdmin()">
-      <select id="aliments-filter-statut" onchange="rendreAlimentsAdmin(adminAlimentsCharges)" aria-label="Statut">
-        <option value="">Tous</option>
-        <option value="attente">En attente de validation</option>
-        <option value="valide">Validés (visibles par tous)</option>
-      </select>
     </div>
-    <p class="note" style="margin:-4px 0 12px;">Un aliment créé par un utilisateur reste visible par lui seul tant qu'il n'est pas validé ici.</p>
+    <p class="note" style="margin:-4px 0 12px;">Seulement les aliments à valider. Un aliment créé par un utilisateur reste visible par lui seul ; « Valider » l'ajoute à la base d'aliments commune (bouton « Base d'aliments ») et le retire d'ici. La corbeille le refuse.</p>
+    <div id="aliments-transfert-anciens"></div>
     <button class="btn btn-secondaire" type="button" style="margin-bottom:12px;" onclick="nettoyerDoublonsAlimentsPartages()">Retirer les aliments copiés de CIQUAL</button>
     <p class="note" id="note-nettoyage-aliments" style="margin:-4px 0 12px;"></p>
 
     <div id="admin-aliments-feuille-liste"></div>
+  </div>
+</div>
+
+<!-- ============ FEUILLE : base d'aliments CIQUAL / USDA (admin) ============ -->
+<div class="feuille" id="feuille-admin-base" role="dialog" aria-modal="true" aria-labelledby="feuille-admin-base-titre">
+  <div class="feuille-contenu">
+    <div class="feuille-poignee"></div>
+    <div class="feuille-entete">
+      <div class="feuille-titre" id="feuille-admin-base-titre">Base d'aliments</div>
+      <button class="feuille-fermer" type="button" onclick="fermerFeuilles()" aria-label="Fermer">&times;</button>
+    </div>
+    <p class="note" style="margin-top:-4px;">La base commune : CIQUAL (modifiable ici) et USDA (consultation). Un aliment partagé que tu valides arrive ici, marqué « Ajouté par un utilisateur ».</p>
+    <div class="aliments-filtres">
+      <input type="text" id="base-filter-nom" placeholder="Chercher un aliment (2 lettres min.)" oninput="filtrerBaseAliments()" autocomplete="off">
+    </div>
+    <p class="note" id="base-aliments-compteur" style="margin:-4px 0 10px;"></p>
+    <div id="admin-base-liste"></div>
   </div>
 </div>
 
@@ -17099,6 +17115,7 @@ async function chargerAlimentsAdmin() {
     adminAlimentsCharges = data || [];
     await completerStatutsAliments(adminAlimentsCharges);
     rendreAlimentsAdmin(adminAlimentsCharges);
+    compterAnciensValides();
   } catch (e) {
     conteneur.innerHTML = '';
     const p = document.createElement('p');
@@ -17162,55 +17179,246 @@ async function nettoyerDoublonsAlimentsPartages() {
 /* admin_aliments ne renvoie pas forcément la colonne `valide` : on la
    relit à part (l'admin voit toutes les lignes, voir la policy RLS). */
 async function completerStatutsAliments(liste) {
-  if (!supa || !liste || !liste.length || liste.every(a => typeof a.valide === 'boolean')) return;
+  if (!supa || !liste || !liste.length || liste.every(a => typeof a.valide === 'boolean' && 'supprime' in a)) return;
   try {
-    const { data, error } = await supa.from('aliments_partages').select('id,valide').in('id', liste.map(a => a.id));
+    const { data, error } = await supa.from('aliments_partages').select('id,valide,supprime').in('id', liste.map(a => a.id));
     if (error) throw error;
-    const statut = new Map((data || []).map(r => [String(r.id), r.valide]));
-    liste.forEach(a => { if (statut.has(String(a.id))) a.valide = statut.get(String(a.id)); });
+    const statut = new Map((data || []).map(r => [String(r.id), r]));
+    liste.forEach(a => {
+      const r = statut.get(String(a.id));
+      if (r) { a.valide = r.valide; a.supprime = r.supprime; }
+    });
   } catch (e) {
     console.warn('[Aliments] statut de validation illisible :', e.message);
   }
 }
-async function basculerValidationAliment(a) {
-  if (!supa) return;
-  const valider = !a.valide;
+/* --- Feuille admin « Base d'aliments » --------------------------------- */
+let minuteurBaseAliments = null;
+let baseAlimentsAffiches = [];
+function afficherFeuilleBaseAliments() {
+  const champ = document.getElementById('base-filter-nom');
+  if (champ) champ.value = '';
+  document.getElementById('admin-base-liste').innerHTML = '';
+  document.getElementById('base-aliments-compteur').textContent = nbAlimentsBase ? nbAlimentsBase.toLocaleString('fr-FR') + ' aliments dans CIQUAL.' : '';
+  ouvrirFeuille('feuille-admin-base');
+  if (champ) setTimeout(() => champ.focus(), 80);
+}
+function filtrerBaseAliments() {
+  clearTimeout(minuteurBaseAliments);
+  minuteurBaseAliments = setTimeout(chercherBaseAlimentsAdmin, 300);
+}
+async function chercherBaseAlimentsAdmin() {
+  const conteneur = document.getElementById('admin-base-liste');
+  const q = (document.getElementById('base-filter-nom') || {}).value || '';
+  if (!conteneur) return;
+  if (q.trim().length < 2) { conteneur.innerHTML = ''; return; }
+  if (!supa) { conteneur.innerHTML = '<p class="note">Pas de connexion à Supabase.</p>'; return; }
+  conteneur.innerHTML = '<p class="note">Recherche…</p>';
   try {
-    const { error } = await supa.from('aliments_partages').update({
-      valide: valider,
-      valide_par: valider ? (sessionUtilisateur ? sessionUtilisateur.email : 'inconnu') : null,
-      valide_le: valider ? new Date().toISOString() : null
-    }).eq('id', a.id);
+    const s = await detecterSchemaAliments();
+    const table = confSupabase().table;
+    const colonne = s.recherche || s.nom;
+    const mots = (s.recherche ? normaliserRecherche(q) : q.toLowerCase().trim()).split(/\s+/).filter(Boolean).slice(0, 4);
+    let req = supa.from(table).select('*').limit(40);
+    mots.forEach(m => { req = req.ilike(colonne, '%' + m + '%'); });
+    const [{ data, error }, usda] = await Promise.all([req, chercherUSDA(q)]);
     if (error) throw error;
-    a.valide = valider;
-    cacheVider();
-    await consignerAction(valider ? 'aliment_valide' : 'aliment_devalide', a.id, a.nom || '', null, { createur: a.createur || null });
-    rendreAlimentsAdmin(adminAlimentsCharges);
+    const n = v => nombreSouple(v);
+    baseAlimentsAffiches = (data || []).map(r => ({
+      cle: r[s.cle], nom: String(r[s.nom] || ''),
+      kcal100: s.kcal ? n(r[s.kcal]) : 0, p100: s.prot ? n(r[s.prot]) : 0,
+      c100: s.gluc ? n(r[s.gluc]) : 0, f100: s.lip ? n(r[s.lip]) : 0,
+      code_barre: s.codeBarre ? (r[s.codeBarre] || '') : '',
+      perso: !!(s.source && r[s.source] === 'perso')
+    }));
+    rendreBaseAliments(baseAlimentsAffiches, usda || []);
   } catch (e) {
-    alert('Impossible de changer la validation : ' + e.message + "\n\nAs-tu bien exécuté le dernier SQL (Administration › SQL) ?");
+    conteneur.innerHTML = '<p class="note">Recherche impossible : ' + escapeHtml(e.message) + '</p>';
   }
+}
+function rendreBaseAliments(ciqual, usda) {
+  const conteneur = document.getElementById('admin-base-liste');
+  conteneur.innerHTML = '';
+  const titre = t => { const p = document.createElement('p'); p.className = 'note'; p.style.cssText = 'font-weight:700; margin:12px 0 6px;'; p.textContent = t; conteneur.appendChild(p); };
+  const carte = (a, modifiable) => {
+    const c = document.createElement('div');
+    c.className = 'admin-aliment-card';
+    const tete = document.createElement('div'); tete.className = 'aliment-header';
+    const info = document.createElement('div'); info.className = 'aliment-info';
+    const nom = document.createElement('strong'); nom.textContent = a.nom || 'Sans nom';
+    const meta = document.createElement('small');
+    meta.textContent = `${Math.round(a.kcal100)} kcal · P ${round1(a.p100)} · G ${round1(a.c100)} · L ${round1(a.f100)} (pour 100 g)` + (a.code_barre ? ' · ' + a.code_barre : '');
+    info.appendChild(nom); info.appendChild(meta);
+    if (a.perso) { const t = document.createElement('small'); t.style.cssText = 'display:block; font-weight:700; color:var(--accent);'; t.textContent = 'Ajouté par un utilisateur'; info.appendChild(t); }
+    tete.appendChild(info);
+    if (modifiable) {
+      const actions = document.createElement('div'); actions.className = 'aliment-actions';
+      const bE = document.createElement('button'); bE.type = 'button'; bE.className = 'bouton-petit'; bE.title = 'Modifier';
+      bE.innerHTML = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></svg>';
+      bE.addEventListener('click', () => editerAlimentBase(a));
+      const bS = document.createElement('button'); bS.type = 'button'; bS.className = 'bouton-petit danger'; bS.title = 'Supprimer';
+      bS.innerHTML = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>';
+      bS.addEventListener('click', () => supprimerAlimentBase(a));
+      actions.appendChild(bE); actions.appendChild(bS); tete.appendChild(actions);
+    }
+    c.appendChild(tete);
+    conteneur.appendChild(c);
+  };
+  titre(`CIQUAL — ${ciqual.length}${ciqual.length >= 40 ? '+' : ''} résultat(s)`);
+  if (!ciqual.length) { const p = document.createElement('p'); p.className = 'note'; p.textContent = 'Aucun aliment trouvé.'; conteneur.appendChild(p); }
+  ciqual.forEach(a => carte(a, true));
+  titre(`USDA (consultation) — ${usda.length} résultat(s)`);
+  usda.forEach(a => carte({ nom: a.nom, kcal100: Number(a.kcal100) || 0, p100: Number(a.p100) || 0, c100: Number(a.c100) || 0, f100: Number(a.f100) || 0 }, false));
+}
+function editerAlimentBase(a) {
+  editerAliment({ id: '', nom: a.nom, code_barre: a.code_barre, kcal100: a.kcal100, p100: a.p100, c100: a.c100, f100: a.f100 });
+  const modal = document.getElementById('modal-edit-aliment');
+  modal.dataset.alimentId = '';
+  modal.dataset.cleBase = String(a.cle);
+}
+async function supprimerAlimentBase(a) {
+  if (!supa) return;
+  if (!confirm(`Supprimer « ${a.nom} » de la base d'aliments ?\n\nIl disparaît de la recherche pour tous. Les repas déjà notés ne changent pas.`)) return;
+  try {
+    const s = await detecterSchemaAliments();
+    const { error } = await supa.from(confSupabase().table).delete().eq(s.cle, a.cle);
+    if (error) throw error;
+    cacheAliments.clear();
+    await consignerAction('aliment_base_supprime', String(a.cle), a.nom || '', null, null);
+    chercherBaseAlimentsAdmin();
+  } catch (e) {
+    alert('Suppression impossible : ' + e.message);
+  }
+}
+
+/* --- Base d'aliments commune (table CIQUAL) --------------------------
+   Seul l'admin y écrit (policy « ciqual admin »). Un aliment partagé
+   validé y est copié, puis retiré de aliments_partages (suppression douce,
+   tracée « transfere_base ») : il n'y a ainsi jamais deux exemplaires du
+   même aliment dans la recherche. */
+async function insererDansBaseAliments(a) {
+  const s = await detecterSchemaAliments(true);
+  if (!s || !s.nom || !s.cle) throw new Error("colonnes de la base d'aliments non reconnues");
+  const table = confSupabase().table;
+  const nom = String(a.nom || '').trim();
+  const code = String(a.code_barre || '').trim();
+  const norme = normaliserRecherche(nom);
+  // Déjà dans la base (même code-barres, ou même nom) : rien à ajouter.
+  if (code && s.codeBarre) {
+    const r = await supa.from(table).select(s.cle).eq(s.codeBarre, code).limit(1);
+    if (!r.error && r.data && r.data.length) return 'existe';
+  }
+  const colonne = s.recherche || s.nom;
+  const r2 = await supa.from(table).select(s.cle).eq(colonne, s.recherche ? norme : nom).limit(1);
+  if (!r2.error && r2.data && r2.data.length) return 'existe';
+
+  const ligne = {};
+  ligne[s.cle] = code || ('mc-' + norme.replace(/ /g, '-').slice(0, 48));
+  ligne[s.nom] = nom;
+  if (s.kcal) ligne[s.kcal] = Number(a.kcal100) || 0;
+  if (s.prot) ligne[s.prot] = Number(a.p100) || 0;
+  if (s.gluc) ligne[s.gluc] = Number(a.c100) || 0;
+  if (s.lip) ligne[s.lip] = Number(a.f100) || 0;
+  if (s.codeBarre && code) ligne[s.codeBarre] = code;
+  if (s.source) ligne[s.source] = 'perso';
+  const { error } = await supa.from(table).insert(ligne);
+  if (error) throw error;
+  // Colonne de recherche normalisée : calculée par Postgres en principe ;
+  // si c'est une colonne ordinaire restée vide, on la remplit.
+  if (s.recherche) {
+    const v = await supa.from(table).select(s.cle).eq(s.recherche, norme).limit(1);
+    if (!v.error && !(v.data && v.data.length)) {
+      const maj = {}; maj[s.recherche] = norme;
+      await supa.from(table).update(maj).eq(s.cle, ligne[s.cle]);
+    }
+  }
+  cacheAliments.clear();
+  return 'ajoute';
+}
+async function retirerAlimentPartageTransfere(a) {
+  const { error } = await supa.from('aliments_partages').update({
+    valide: true,
+    valide_par: sessionUtilisateur ? sessionUtilisateur.email : 'inconnu',
+    valide_le: new Date().toISOString(),
+    supprime: true,
+    supprime_par: 'transfere_base:' + (sessionUtilisateur ? sessionUtilisateur.email : 'inconnu'),
+    supprime_le: new Date().toISOString()
+  }).eq('id', a.id);
+  if (error) throw error;
+}
+async function validerAlimentPartage(a) {
+  if (!supa) return;
+  if (!confirm(`Valider « ${a.nom} » ?\n\nIl rejoint la base d'aliments commune, visible par tous les utilisateurs.`)) return;
+  try {
+    const resultat = await insererDansBaseAliments(a);
+    await retirerAlimentPartageTransfere(a);
+    cacheVider();
+    await consignerAction('aliment_valide_vers_base', a.id, a.nom || '', null, { createur: a.createur || null, resultat });
+    if (resultat === 'existe') alert(`« ${a.nom} » était déjà dans la base d'aliments : le doublon partagé est retiré.`);
+    await chargerAlimentsAdmin();
+  } catch (e) {
+    alert('Validation impossible : ' + e.message + "\n\nAs-tu bien exécuté le dernier SQL (Administration › SQL) ?");
+  }
+}
+// Aliments validés avant ce fonctionnement (encore dans aliments_partages) :
+// transfert groupé vers la base commune.
+async function compterAnciensValides() {
+  const zone = document.getElementById('aliments-transfert-anciens');
+  if (!zone || !supa) return;
+  zone.innerHTML = '';
+  try {
+    const { data, error } = await supa.from('aliments_partages').select('id,nom,kcal100,p100,c100,f100,code_barre,createur,supprime')
+      .eq('valide', true).limit(1000);
+    if (error) throw error;
+    const anciens = (data || []).filter(a => !a.supprime);
+    if (!anciens.length) return;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn btn-secondaire';
+    b.style.marginBottom = '12px';
+    b.textContent = `Transférer dans la base les ${anciens.length} aliment(s) déjà validés`;
+    b.addEventListener('click', () => transfererAnciensValides(anciens, b));
+    zone.appendChild(b);
+  } catch (e) {
+    console.warn('[Aliments] anciens validés illisibles :', e.message);
+  }
+}
+async function transfererAnciensValides(anciens, bouton) {
+  if (!confirm(`Transférer ${anciens.length} aliment(s) déjà validés dans la base d'aliments commune ?\n\nIls y restent visibles par tous et disparaissent des aliments partagés.`)) return;
+  let faits = 0, echecs = 0;
+  for (const a of anciens) {
+    try {
+      await insererDansBaseAliments(a);
+      await retirerAlimentPartageTransfere(a);
+      faits++;
+    } catch (e) { echecs++; }
+    if (bouton) bouton.textContent = `Transfert… ${faits + echecs} / ${anciens.length}`;
+  }
+  cacheVider();
+  await consignerAction('aliments_valides_transferes', null, faits + ' aliments', null, null);
+  alert(`${faits} aliment(s) transféré(s) dans la base.` + (echecs ? ` ${echecs} échec(s).` : ''));
+  await chargerAlimentsAdmin();
 }
 
 function rendreAlimentsAdmin(aliments) {
   const conteneur = document.getElementById('admin-aliments-feuille-liste');
   if (!conteneur) return;
   conteneur.innerHTML = '';
-  const filtreStatut = (document.getElementById('aliments-filter-statut') || {}).value || '';
-  if (filtreStatut && aliments) aliments = aliments.filter(a => filtreStatut === 'valide' ? a.valide === true : a.valide !== true);
+  // Seulement ce qui reste à valider : les aliments validés sont dans la
+  // base commune, les refusés sont supprimés.
+  if (aliments) aliments = aliments.filter(a => a.valide !== true && a.supprime !== true);
 
   if (!aliments || !aliments.length) {
     const p = document.createElement('p');
     p.className = 'note';
-    p.textContent = 'Aucun aliment ne correspond.';
+    p.textContent = 'Aucun aliment à valider.';
     conteneur.appendChild(p);
     return;
   }
 
   const compteur = document.createElement('p');
   compteur.className = 'note';
-  const nbAttente = aliments.filter(a => a.valide !== true).length;
-  compteur.textContent = aliments.length + ' aliment(s)'
-    + (nbAttente ? ' · ' + nbAttente + ' en attente de validation' : '')
+  compteur.textContent = aliments.length + ' aliment(s) à valider'
     + (aliments.length >= 100 ? ' — affine les filtres pour en voir davantage' : '');
   conteneur.appendChild(compteur);
 
@@ -17232,18 +17440,18 @@ function rendreAlimentsAdmin(aliments) {
       + (a.code_barre ? ' · ' + a.code_barre : '');
     const statut = document.createElement('small');
     statut.style.cssText = 'display:block; font-weight:700; color:' + (a.valide === true ? 'var(--primary)' : '#f5b83d') + ';';
-    statut.textContent = a.valide === true ? 'Partagé avec tous' : 'En attente : visible par son créateur seulement';
+    statut.textContent = 'En attente : visible par son créateur seulement';
     info.appendChild(nom); info.appendChild(meta); info.appendChild(statut);
 
     const actions = document.createElement('div');
     actions.className = 'aliment-actions';
     const btnValider = document.createElement('button');
-    btnValider.className = 'btn ' + (a.valide === true ? 'btn-secondaire' : 'btn-primary');
+    btnValider.className = 'btn btn-primary';
     btnValider.style.cssText = 'width:100%; min-height:auto; padding:9px 10px; font-size:0.8rem; margin-top:10px;';
     btnValider.type = 'button';
-    btnValider.textContent = a.valide === true ? 'Retirer le partage' : 'Valider le partage';
-    btnValider.title = a.valide === true ? 'Ne plus proposer cet aliment aux autres comptes' : 'Rendre cet aliment visible par tous';
-    btnValider.addEventListener('click', () => basculerValidationAliment(a));
+    btnValider.textContent = 'Valider et ajouter à la base';
+    btnValider.title = "L'ajouter à la base d'aliments commune, visible par tous";
+    btnValider.addEventListener('click', () => validerAlimentPartage(a));
     const btnEdit = document.createElement('button');
     btnEdit.className = 'bouton-petit';
     btnEdit.type = 'button';
@@ -17299,6 +17507,7 @@ function editerAliment(aliment) {
   if (!modal) return;
 
   modal.dataset.alimentId = aliment.id;
+  modal.dataset.cleBase = '';
   const champ = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
   champ('edit-nom', aliment.nom || '');
   champ('edit-code-barre', aliment.code_barre || '');
@@ -17314,6 +17523,7 @@ function editerAliment(aliment) {
 async function sauvegarderEditionAliment() {
   const modal = document.getElementById('modal-edit-aliment');
   if (!modal || !supa) return;
+  if (modal.dataset.cleBase) { await sauvegarderAlimentBase(modal); return; }
   const id = modal.dataset.alimentId;
   if (!id) return;
 
@@ -17347,6 +17557,39 @@ async function sauvegarderEditionAliment() {
     modal.classList.remove('show');
     majCoucheOuverte();
     await chargerAlimentsAdmin();
+  } catch (e) {
+    alert('Modification impossible : ' + e.message);
+  }
+}
+
+async function sauvegarderAlimentBase(modal) {
+  const val = id2 => { const el = document.getElementById(id2); return el ? el.value : ''; };
+  const nom = val('edit-nom').trim();
+  if (!nom) { alert('Le nom ne peut pas être vide.'); return; }
+  const nombre = (id2, max) => { const n = Number(val(id2)); return (!isFinite(n) || n < 0) ? 0 : Math.min(n, max); };
+  try {
+    const s = await detecterSchemaAliments();
+    const maj = {};
+    maj[s.nom] = nom;
+    if (s.kcal) maj[s.kcal] = nombre('edit-kcal', 2000);
+    if (s.prot) maj[s.prot] = nombre('edit-p100', 200);
+    if (s.gluc) maj[s.gluc] = nombre('edit-c100', 200);
+    if (s.lip) maj[s.lip] = nombre('edit-f100', 200);
+    if (s.codeBarre) maj[s.codeBarre] = val('edit-code-barre').trim() || null;
+    if (s.recherche && s.rechercheEcrivable !== false) maj[s.recherche] = normaliserRecherche(nom);
+    let { error } = await supa.from(confSupabase().table).update(maj).eq(s.cle, modal.dataset.cleBase);
+    // Colonne de recherche calculée par Postgres : on ne peut pas l'écrire.
+    if (error && s.recherche && maj[s.recherche]) {
+      delete maj[s.recherche];
+      ({ error } = await supa.from(confSupabase().table).update(maj).eq(s.cle, modal.dataset.cleBase));
+    }
+    if (error) throw error;
+    cacheAliments.clear();
+    await consignerAction('aliment_base_modifie', modal.dataset.cleBase, nom, null, null);
+    modal.dataset.cleBase = '';
+    modal.classList.remove('show');
+    majCoucheOuverte();
+    chercherBaseAlimentsAdmin();
   } catch (e) {
     alert('Modification impossible : ' + e.message);
   }
