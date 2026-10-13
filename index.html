@@ -2049,6 +2049,24 @@
     .hd-seance-lien { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 10px; background: none; border: 0; padding: 0; color: inherit; font-family: inherit; text-align: left; cursor: pointer; }
     .hd-seance-lien .hd-date { margin: 0; white-space: nowrap; }
     .fh-periodes { margin-bottom: 10px; }
+    /* Fiche exercice : chiffres clés, records, carte « muscles ». */
+    .fiche-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .fiche-kpis > div { background: var(--verre-creux); border-radius: 14px; padding: 10px 8px; text-align: center; }
+    .fiche-kpis small { display: block; font-size: 0.64rem; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+    .fiche-kpis b { display: block; font-size: 1.05rem; margin-top: 3px; }
+    .fiche-bloc { background: var(--verre-creux); border-radius: 16px; padding: 12px 14px; margin-bottom: 12px; }
+    .fiche-bloc-titre { display: flex; align-items: center; gap: 7px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+    .fiche-bloc-titre svg:not(.info-depliant) { width: 16px; height: 16px; color: #f5b83d; }
+    .fiche-record { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--verre-brd); }
+    .fiche-record:last-child { border-bottom: 0; }
+    .fiche-record span { font-size: 0.86rem; }
+    .fiche-record b { font-size: 0.92rem; text-align: right; }
+    .fiche-record b small { display: block; font-weight: 400; font-size: 0.68rem; color: var(--text-muted); }
+    .fiche-vide { text-align: center; padding: 16px 10px; color: var(--text-muted); font-size: 0.85rem; }
+    .fiche-vide svg { width: 34px; height: 34px; opacity: 0.6; display: block; margin: 0 auto 6px; }
+    .fiche-muscles { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 2px; }
+    .fiche-muscles span { font-size: 0.74rem; padding: 3px 10px; border-radius: 999px; background: var(--verre-fort); }
+    .fiche-muscles span.principal { background: color-mix(in srgb, var(--primary) 22%, transparent); color: var(--primary); font-weight: 700; }
     .fh-barre { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
     .fh-chip { display: inline-flex; align-items: center; gap: 5px; font-family: inherit; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.4px; padding: 6px 10px; border-radius: 999px; border: 0; background: var(--verre-creux); color: var(--text); cursor: pointer; }
     .fh-chip i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
@@ -14681,7 +14699,7 @@ function voirDetailHistorique(id) {
    directement sur son historique, avec l'historique du compte consulté
    (le sien, ou celui affiché dans Administration). */
 function ouvrirHistoriqueExercice(exerciceId) {
-  afficherFicheExerciceBiblio(exerciceId, { historique: muscuContexteActuel.historique, onglet: 'historique' });
+  afficherFicheExerciceBiblio(exerciceId, { historique: muscuContexteActuel.historique, onglet: 'resume' });
 }
 function supprimerSeanceHistorique() {
   if (!historiqueDetailCourant || muscuContexteActuel.admin) return;
@@ -15258,15 +15276,18 @@ function afficherFicheExerciceBiblio(id, options) {
   ficheHisto = { id, historique: histoSource, periode: ficheHisto ? ficheHisto.periode : '6m', metriques: ficheHisto ? ficheHisto.metriques : ['1rm', 'vol', 'reps'], grand: false };
   document.getElementById('titre-fiche-exercice').textContent = libelleExercice(e);
   const pratique = histoSource.filter(h => h.exercices.some(x => x.exerciceId === id));
-  const secondaires = (e.secondaires && e.secondaires.length) ? e.secondaires.map(g => GROUPES_MUSCULAIRES[g]).join(', ') : null;
   const media = mediaExercice(e);
 
+  // Trois onglets : Résumé (chiffres, courbe, records, niveau), Historique
+  // (toutes les séances) et Technique (démonstration, muscles, consignes).
   let html = `<div class="segment" id="fiche-onglets" role="group" aria-label="Sections de la fiche" style="margin-bottom:12px;">
-    <button type="button" onclick="choisirOngletFiche('infos')" aria-pressed="true">Infos</button>
+    <button type="button" onclick="choisirOngletFiche('resume')" aria-pressed="true">Résumé</button>
     <button type="button" onclick="choisirOngletFiche('historique')" aria-pressed="false">Historique</button>
-    <button type="button" onclick="choisirOngletFiche('niveau')" aria-pressed="false">Niveau de force</button>
+    <button type="button" onclick="choisirOngletFiche('technique')" aria-pressed="false">Technique</button>
   </div>
-  <div class="fiche-onglet" data-onglet="infos">`;
+  <div class="fiche-onglet" data-onglet="resume">${resumeFicheHTML(id, histoSource)}</div>
+  <div class="fiche-onglet hidden" data-onglet="historique"><div id="fiche-histo-liste"></div></div>
+  <div class="fiche-onglet hidden" data-onglet="technique">`;
   const video = !e.perso && videoExercice(e);
   if (video) {
     html += `<div class="fiche-exo-video"><video src="${escapeHtml(video.video)}"${video.poster ? ` poster="${escapeHtml(video.poster)}"` : ''} autoplay muted loop playsinline preload="metadata" aria-label="Démonstration : ${escapeHtml(libelleExercice(e))}"></video></div>
@@ -15287,11 +15308,10 @@ function afficherFicheExerciceBiblio(id, options) {
     <p class="note fiche-exo-note-source">Pas de photo pour cet exercice précis : schéma du groupe musculaire ciblé.</p>`;
   }
 
-  html += `<div class="stats-grille" style="margin-bottom:14px;">
-    <div><small>Groupe principal</small><div class="stats-valeur">${GROUPES_MUSCULAIRES[e.groupe]}</div></div>
-    <div><small>Matériel</small><div class="stats-valeur">${MATERIELS[e.materiel].ic} ${MATERIELS[e.materiel].label}</div></div>
-    ${secondaires ? `<div><small>Muscles secondaires</small><div class="stats-valeur">${escapeHtml(secondaires)}</div></div>` : ''}
-    <div><small>Pratiqué</small><div class="stats-valeur">${pratique.length} fois</div></div>
+  html += `<div class="fiche-bloc">
+    <div class="fiche-bloc-titre">Muscles sollicités</div>
+    <div class="fiche-muscles"><span class="principal">${escapeHtml(GROUPES_MUSCULAIRES[e.groupe] || '')}</span>${(e.secondaires || []).filter(g => g !== e.groupe && GROUPES_MUSCULAIRES[g]).map(g => `<span>${escapeHtml(GROUPES_MUSCULAIRES[g])}</span>`).join('')}</div>
+    <div class="fiche-record" style="margin-top:6px;"><span>Matériel</span><b>${MATERIELS[e.materiel].ic} ${escapeHtml(MATERIELS[e.materiel].label)}</b></div>
   </div>`;
 
   if (e.perso) {
@@ -15306,27 +15326,79 @@ function afficherFicheExerciceBiblio(id, options) {
   }
 
   if (media && media.ins && media.ins.length) {
-    html += `<p class="note" style="margin:0 0 6px; font-weight:700; text-transform:uppercase; font-size:0.72rem; letter-spacing:0.8px;">Comment faire l'exercice</p>
-    <ol class="fiche-exo-instructions">${media.ins.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol>`;
+    html += `<div class="fiche-bloc"><div class="fiche-bloc-titre">Exécution, étape par étape</div>
+    <ol class="fiche-exo-instructions" style="margin-bottom:0;">${media.ins.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol></div>`;
   }
 
-  html += `</div><div class="fiche-onglet hidden" data-onglet="historique"><div id="fiche-histo"></div>`;
-  html += `</div><div class="fiche-onglet hidden" data-onglet="niveau">
-    <p class="note" style="margin:0 0 4px;">Où tu te situes par rapport à la plupart des pratiquants, d'après ton meilleur 1RM estimé sur cet exercice et ton poids de corps.</p>
-    ${jaugeForceHTML(niveauForceExercice(id))}
-  </div>`;
+  html += `</div>`;
   document.getElementById('fiche-exercice-container').innerHTML = html;
   rendreHistoriqueFiche();
   ouvrirModal('fiche-exercice-modal');
   if (!video && media && media.img && media.img.length > 1) demarrerAnimationFiche();
-  if (opts.onglet) choisirOngletFiche(opts.onglet);
+  // Jamais pratiqué : on ouvre sur la technique, sinon sur le résumé.
+  choisirOngletFiche(opts.onglet || (pratique.length ? 'resume' : 'technique'));
 }
 function choisirOngletFiche(nom) {
+  if (nom === 'infos') nom = 'technique';
+  if (nom === 'niveau') nom = 'resume';
   document.querySelectorAll('#fiche-exercice-container .fiche-onglet').forEach(o => o.classList.toggle('hidden', o.dataset.onglet !== nom));
-  majSegment('fiche-onglets', ['infos', 'historique', 'niveau'], nom);
+  majSegment('fiche-onglets', ['resume', 'historique', 'technique'], nom);
   // Le graphique se dessine une fois l'onglet visible : dans un conteneur
   // masqué, Chart.js mesure une largeur nulle.
-  if (nom === 'historique') dessinerCourbeFiche();
+  if (nom === 'resume') dessinerCourbeFiche();
+}
+/* Onglet Résumé : chiffres clés, courbe (remplie par rendreHistoriqueFiche),
+   records et niveau de force. Seules les séries cochées (hors échauffement)
+   comptent. */
+function resumeFicheHTML(id, historique) {
+  const seances = [];
+  (historique || []).forEach(h => (h.exercices || []).forEach(x => {
+    if (x.exerciceId !== id) return;
+    const faites = (x.series || []).filter(s => s.fait && s.technique !== 'echauffement');
+    if (faites.length) seances.push({ h, faites });
+  }));
+  seances.sort((a, b) => String(b.h.date).localeCompare(String(a.h.date)));
+  const nbSeries = seances.reduce((n, o) => n + o.faites.length, 0);
+  const fmtDate = iso => { const d = new Date(iso + 'T12:00:00'); return isNaN(d) ? '' : d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }); };
+  // Records
+  let charge = null, unRm = null, serie = null, seanceVol = null, reps = null;
+  seances.forEach(o => {
+    let volSeance = 0;
+    o.faites.forEach(s => {
+      const p = Number(s.poids) || 0, r = Number(s.reps) || 0, v = p * r, u = unRmEstime(p, r);
+      volSeance += v;
+      if (p > 0 && (!charge || p > charge.p || (p === charge.p && r > charge.r))) charge = { p, r, d: o.h.date };
+      if (u > 0 && (!unRm || u > unRm.u)) unRm = { u, p, r, d: o.h.date };
+      if (v > 0 && (!serie || v > serie.v)) serie = { v, p, r, d: o.h.date };
+      if (r > 0 && (!reps || r > reps.r)) reps = { r, p, d: o.h.date };
+    });
+    if (volSeance > 0 && (!seanceVol || volSeance > seanceVol.v)) seanceVol = { v: volSeance, d: o.h.date };
+  });
+  const ligne = (label, valeur, sous) => `<div class="fiche-record"><span>${label}</span><b>${valeur}${sous ? `<small>${sous}</small>` : ''}</b></div>`;
+  const kg = n => formatNombreFr(n, 1) + ' kg';
+  const records = [
+    ligne('Charge la plus lourde', charge ? kg(charge.p) : '—', charge ? `× ${charge.r} rép. · ${fmtDate(charge.d)}` : ''),
+    ligne('1RM estimé', unRm ? kg(unRm.u) : '—', unRm ? `d'après ${formatNombreFr(unRm.p, 1)} kg × ${unRm.r} · ${fmtDate(unRm.d)}` : ''),
+    ligne('Meilleure série (volume)', serie ? formatNombreFr(serie.v, 0) + ' kg' : '—', serie ? `${formatNombreFr(serie.p, 1)} kg × ${serie.r} · ${fmtDate(serie.d)}` : ''),
+    ligne('Meilleure séance (volume)', seanceVol ? formatNombreFr(seanceVol.v, 0) + ' kg' : '—', seanceVol ? fmtDate(seanceVol.d) : ''),
+    ligne('Plus de répétitions', reps ? reps.r + ' rép.' : '—', reps ? `à ${formatNombreFr(reps.p, 1)} kg · ${fmtDate(reps.d)}` : '')
+  ].join('');
+  const icone = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+  return `<div class="fiche-kpis">
+      <div><small>Séances</small><b>${seances.length}</b></div>
+      <div><small>Séries</small><b>${nbSeries}</b></div>
+      <div><small>Dernière fois</small><b style="font-size:0.86rem;">${seances.length ? escapeHtml(formatDateDisplay(seances[0].h.date)) : '—'}</b></div>
+    </div>
+    ${seances.length ? '<div id="fiche-resume-courbe"></div>' : `<div class="fiche-bloc fiche-vide">${icone}<path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M7 16v-4" /><path d="M12 16V8" /><path d="M17 16v-6" /></svg>Pas encore de séance sur cet exercice : la courbe et les records apparaîtront ici.</div>`}
+    <div class="fiche-bloc">
+      <div class="fiche-bloc-titre">${icone}<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" /></svg>Mes records</div>
+      ${records}
+    </div>
+    <div class="fiche-bloc">
+      <div class="fiche-bloc-titre titre-depliant" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-niveau-fiche')">Niveau de force<svg class="icone-ui info-depliant" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg></div>
+      <p class="note note-repliee" id="note-niveau-fiche" style="margin:0 0 4px;">Où tu te situes par rapport à la plupart des pratiquants, d'après ton meilleur 1RM estimé sur cet exercice et ton poids de corps.</p>
+      ${jaugeForceHTML(niveauForceExercice(id))}
+    </div>`;
 }
 
 /* --- Historique d'un exercice : courbe de progression + séances -------- */
@@ -15341,10 +15413,10 @@ const METRIQUES_FICHE = [
 ];
 /* Séances (les plus anciennes d'abord) où l'exercice a au moins une série
    cochée, dans la période choisie. */
-function seancesFicheHisto() {
+function seancesFicheHisto(toutes) {
   if (!ficheHisto) return [];
   const p = PERIODES_FICHE.find(x => x[0] === ficheHisto.periode) || PERIODES_FICHE[4];
-  const seuil = p[2] ? shiftDate(todayStr(), -p[2]) : '';
+  const seuil = (!toutes && p[2]) ? shiftDate(todayStr(), -p[2]) : '';
   const total = ficheHisto.historique.length;
   return ficheHisto.historique
     .map((h, i) => ({ h, i, e: (h.exercices || []).find(x => x.exerciceId === ficheHisto.id) }))
@@ -15352,9 +15424,10 @@ function seancesFicheHisto() {
     .sort((a, b) => cleChronoSeance(a.h, a.i, total).localeCompare(cleChronoSeance(b.h, b.i, total)));
 }
 function rendreHistoriqueFiche() {
-  const c = document.getElementById('fiche-histo');
-  if (!c || !ficheHisto) return;
+  if (!ficheHisto) return;
   const seances = seancesFicheHisto();
+  const courbe = document.getElementById('fiche-resume-courbe');
+  const liste = document.getElementById('fiche-histo-liste');
   const idJs = id => String(id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   let html = `<div class="segment fh-periodes" id="fiche-histo-periodes" role="group" aria-label="Période">
     ${PERIODES_FICHE.map(p => `<button type="button" onclick="choisirPeriodeFiche('${p[0]}')" aria-pressed="${p[0] === ficheHisto.periode}">${p[1]}</button>`).join('')}
@@ -15364,16 +15437,17 @@ function rendreHistoriqueFiche() {
     <button type="button" class="fh-agrandir" onclick="agrandirCourbeFiche()" aria-label="Agrandir la courbe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6" /><path d="M9 21H3v-6" /><path d="m21 3-7 7" /><path d="m3 21 7-7" /></svg></button>
   </div>
   <p class="note" style="margin:2px 0 0;">Variation en % depuis la première séance affichée</p>
-  <div class="fh-courbe${ficheHisto.grand ? ' grand' : ''}" id="fiche-histo-courbe"><canvas id="fiche-histo-canvas"></canvas>${seances.length ? '' : '<div class="fh-vide"><span>Pas de données</span></div>'}</div>`;
-  html += seances.slice().reverse().map(o => `<div class="hd-exo">
+  <div class="fh-courbe${ficheHisto.grand ? ' grand' : ''}" id="fiche-histo-courbe"><canvas id="fiche-histo-canvas"></canvas>${seances.length ? '' : '<div class="fh-vide"><span>Pas de données sur cette période</span></div>'}</div>`;
+  if (courbe) courbe.innerHTML = html;
+  // Historique : toutes les séances, quelle que soit la période de la courbe.
+  if (liste) liste.innerHTML = seancesFicheHisto(true).slice().reverse().map(o => `<div class="hd-exo">
       <button type="button" class="hd-seance-lien" onclick="ouvrirSeanceDepuisFiche('${idJs(o.h.id)}')">
         <span class="hd-exo-nom">${escapeHtml(o.h.programmeNom || 'Séance libre')}</span>
         <span class="hd-date">${escapeHtml(dateLongueSeance(o.h.date))} ›</span>
       </button>
       ${tableSeriesHTML(o.e)}
       ${o.e.notes ? `<p class="hd-note">Note : ${escapeHtml(o.e.notes)}</p>` : ''}
-    </div>`).join('') || '<p class="note">Pas encore pratiqué sur cette période.</p>';
-  c.innerHTML = html;
+    </div>`).join('') || '<p class="note">Pas encore pratiqué.</p>';
   dessinerCourbeFiche();
 }
 function dessinerCourbeFiche() {
