@@ -1894,6 +1894,7 @@
     .serie-num-btn[data-technique="degressif"] { background: var(--accent); border-color: var(--accent); color: #fff; }
     .serie-num-btn[data-technique="pyramidal"] { background: var(--carbs); border-color: var(--carbs); color: #fff; }
     .serie-num-btn[data-technique="echec"] { background: var(--danger); border-color: var(--danger); color: #fff; }
+    .serie-num-btn[data-technique="echauffement"] { background: #f5b83d; border-color: #f5b83d; color: #1b1c1f; }
     /* Menu qui s'ouvre au tap sur la pastille — même habillage que la liste
        de suggestions d'aliments (.off-liste), en position fixe pour rester
        ancré au bon endroit quel que soit le défilement du contenu derrière. */
@@ -2817,6 +2818,7 @@
      dynamiquement (voir ouvrirMenuTechnique). -->
 <div class="menu-technique-popup hidden" id="menu-technique-popup" role="menu">
   <button type="button" role="menuitem" onclick="choisirTechniqueMenu(null)">Normale</button>
+  <button type="button" role="menuitem" onclick="choisirTechniqueMenu('echauffement')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9a4 4 0 0 0-2 7.5" /><path d="M12 3v2" /><path d="m6.6 18.4-1.4 1.4" /><path d="M20 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z" /><path d="M4 13H2" /><path d="M6.34 7.34 4.93 5.93" /></svg> Échauffement <small style="opacity:0.7;">(hors jauges)</small></button>
   <button type="button" role="menuitem" onclick="choisirTechniqueMenu('degressif')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg> Dégressif</button>
   <button type="button" role="menuitem" onclick="choisirTechniqueMenu('pyramidal')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /></svg> Pyramidal</button>
   <button type="button" role="menuitem" onclick="choisirTechniqueMenu('echec')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4" /></svg> Échec</button>
@@ -13634,8 +13636,8 @@ function grouperBlocsExercices(liste) {
   }
   return blocs;
 }
-const TECHNIQUE_LABELS = { degressif: 'Dégressif', pyramidal: 'Pyramidal', echec: 'Échec' };
-const TECHNIQUE_LETTRES = { degressif: 'D', pyramidal: 'P', echec: 'É' };
+const TECHNIQUE_LABELS = { echauffement: 'Échauffement', degressif: 'Dégressif', pyramidal: 'Pyramidal', echec: 'Échec' };
+const TECHNIQUE_LETTRES = { echauffement: 'W', degressif: 'D', pyramidal: 'P', echec: 'É' };
 
 /* =====================================================================
    Rendu de l'onglet Séance
@@ -13831,7 +13833,7 @@ function renderZonesMuscu(idCible) {
   const fmt = iso => { const d = dateLocale(iso); return d.getDate() + ' ' + d.toLocaleDateString('fr-FR', { month: 'short' }).replace('.', ''); };
 
   let html = `<div class="titre-section">Cette semaine · ${fmt(lundi)} – ${fmt(decalerJours(lundi, 6))}</div>
-    <p class="note" style="margin:0 0 6px;">Chaque série faite compte 1 pour le muscle principal de l'exercice et 0,5 pour ses muscles secondaires.</p>
+    <p class="note" style="margin:0 0 6px;">Seules les séries de travail comptent (proches de l'échec) : 1 pour le muscle principal de l'exercice, 0,5 pour ses muscles secondaires. Les séries marquées « Échauffement » et celles trop légères par rapport à ton 1RM récent (plus de ${RIR_MAX_SERIE_TRAVAIL} répétitions en réserve estimées) sont ignorées.</p>
     ${corpsSVG(couleursZones(semaine), 'Zone atteinte par chaque muscle cette semaine')}
     <div style="height:12px;"></div>`;
   html += actifs.length
@@ -14324,7 +14326,7 @@ function voirDetailHistorique(id) {
   const nbSeries = h.exercices.reduce((n, e) => n + (e.series || []).filter(x => x.fait).length, 0);
   const records = h.exercices.map(e => recordsExerciceSeance(historique, h, e));
   const nbRecords = records.reduce((n, r) => n + r.length, 0);
-  const groupes = ajouterSeriesParGroupe({}, h.exercices);
+  const groupes = ajouterSeriesParGroupe({}, h.exercices, { date: h.date, historique });
   const idJs = id => String(id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
   let html = `${surtitre ? `<div class="hd-surtitre">${escapeHtml(surtitre)}</div>` : ''}
@@ -15293,13 +15295,53 @@ function cleZoneVolume(groupe, series) {
 function arrondiSeries(n) { return Math.round(n * 2) / 2; }
 function formatSeries(n) { return String(arrondiSeries(n)).replace('.', ','); }
 
-/* Séries faites par groupe pour une liste d'exercices (séance en cours ou
-   entrée d'historique) : 1 pour le principal, 0,5 par secondaire. */
-function ajouterSeriesParGroupe(acc, exercices) {
+/* Séries de travail : MV / MEV / MAV / MRV ne comptent que les séries
+   menées près de l'échec. Une série n'entre donc pas dans les jauges si :
+   - elle est marquée « Échauffement » ;
+   - ou elle est trop légère pour avoir été dure : d'après le meilleur 1RM
+     estimé récent sur l'exercice (8 semaines, séance comprise), il serait
+     resté plus de RIR_MAX_SERIE_TRAVAIL répétitions en réserve
+     (reps possibles à cette charge, formule d'Epley inversée, moins les
+     reps faites).
+   Sans charge (poids du corps) ou sans repère de 1RM, la série compte. */
+const RIR_MAX_SERIE_TRAVAIL = 5;
+function reference1RMExercice(exerciceId, dateRef, historique, exercicesCourants, cache) {
+  const cle = exerciceId + '|' + dateRef;
+  if (cache && cache.has(cle)) return cache.get(cle);
+  const debut = decalerJours(dateRef, -56);
+  let best = 0;
+  const lire = series => (series || []).forEach(x => {
+    if (!x.fait || x.technique === 'echauffement') return;
+    best = Math.max(best, unRmEstime(Number(x.poids) || 0, Number(x.reps) || 0));
+  });
+  (historique || musculationHistorique).forEach(h => {
+    if (h.date < debut || h.date > dateRef) return;
+    (h.exercices || []).forEach(e => { if (e.exerciceId === exerciceId) lire(e.series); });
+  });
+  (exercicesCourants || []).forEach(e => { if (e.exerciceId === exerciceId) lire(e.series); });
+  if (cache) cache.set(cle, best);
+  return best;
+}
+function estSerieDeTravail(x, ref) {
+  if (!x || !x.fait || x.technique === 'echauffement') return false;
+  const p = Number(x.poids) || 0, r = Number(x.reps) || 0;
+  if (!(p > 0) || !(r > 0) || !(ref > 0) || p >= ref) return true;
+  const repsPossibles = 30 * (ref / p - 1);
+  return repsPossibles - r <= RIR_MAX_SERIE_TRAVAIL;
+}
+/* Séries de travail par groupe pour une liste d'exercices (séance en cours
+   ou entrée d'historique) : 1 pour le principal, 0,5 par secondaire.
+   ctx (facultatif) : { date, historique, cache } — date de la séance et
+   historique servant de repère de 1RM. */
+function ajouterSeriesParGroupe(acc, exercices, ctx) {
+  const date = (ctx && ctx.date) || todayStr();
+  const historique = (ctx && ctx.historique) || musculationHistorique;
+  const cache = (ctx && ctx.cache) || new Map();
   (exercices || []).forEach(e => {
     const exo = trouverExercice(e.exerciceId);
     if (!exo) return;
-    const n = (e.series || []).filter(s => s.fait).length;
+    const ref = reference1RMExercice(e.exerciceId, date, historique, exercices, cache);
+    const n = (e.series || []).filter(x => estSerieDeTravail(x, ref)).length;
     if (!n) return;
     if (ZONES_VOLUME[exo.groupe]) acc[exo.groupe] = (acc[exo.groupe] || 0) + n;
     (exo.secondaires || []).forEach(g => {
@@ -15319,8 +15361,10 @@ function decalerJours(iso, n) { const d = dateLocale(iso); d.setDate(d.getDate()
 function seriesSemaine(lundi, inclureSessionActive, historique) {
   const dimanche = decalerJours(lundi, 6);
   const acc = {};
-  (historique || musculationHistorique).forEach(h => { if (h.date >= lundi && h.date <= dimanche) ajouterSeriesParGroupe(acc, h.exercices); });
-  if (inclureSessionActive && musculationSessionActive) ajouterSeriesParGroupe(acc, musculationSessionActive.exercices);
+  const histo = historique || musculationHistorique;
+  const cache = new Map();
+  histo.forEach(h => { if (h.date >= lundi && h.date <= dimanche) ajouterSeriesParGroupe(acc, h.exercices, { date: h.date, historique: histo, cache }); });
+  if (inclureSessionActive && musculationSessionActive) ajouterSeriesParGroupe(acc, musculationSessionActive.exercices, { date: todayStr(), historique: histo, cache });
   return acc;
 }
 
