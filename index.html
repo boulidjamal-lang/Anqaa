@@ -13725,11 +13725,16 @@ function medaillonExercice(exo, anime) {
   // passe avant les anciennes photos, pour que la liste montre la même
   // démonstration que la fiche. Un exercice personnalisé garde sa photo.
   // « anime » (séance, aperçu d'un programme : quelques exercices à la
-  // fois) : la vignette joue la vidéo en boucle, sans son. Ailleurs
-  // (bibliothèque, sélecteurs : des centaines de lignes) elle reste une
-  // image, pour ne pas télécharger une vidéo par ligne.
+  // fois) : la vignette joue en boucle, sans son, une version miniature de
+  // la vidéo (120 px, ~10 Ko, dans assets/miniatures) au lieu de l'originale
+  // Full HD de ~1 Mo, trop lente à charger pour une vignette. Ailleurs
+  // (bibliothèque, sélecteurs : des centaines de lignes) elle reste une image.
   const sw = !exo.perso && videoExercice(exo);
-  if (sw && sw.poster && anime) return `<video src="${escapeHtml(sw.video)}" poster="${escapeHtml(sw.poster)}" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="metadata" aria-hidden="true" style="background:#fff;"></video>`;
+  const swBase = anime && !exo.perso && typeof exo.video !== 'string' && VIDEOS_SMARTWORKOUT[exo.id];
+  if (swBase) {
+    const mini = 'assets/miniatures/' + swBase[0];
+    return `<video src="${mini}.mp4" poster="${mini}.jpg" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" style="background:#2b2c30;"></video>`;
+  }
   if (sw && sw.poster) return `<img src="${escapeHtml(sw.poster)}" alt="" decoding="async" loading="lazy" style="background:#fff;">`;
   const media = mediaExercice(exo);
   if (media && media.img && media.img[0]) {
