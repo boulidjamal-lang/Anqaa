@@ -14900,6 +14900,23 @@ function ouvrirAideTempo(tempo) {
   }
   ouvrirModal('modal-tempo');
 }
+// Pendant la séance : le tempo vaut pour cette séance (il est gardé dans
+// l'historique), sans toucher au programme.
+function modifierTempoSession(ei, valeur, champ) {
+  const e = musculationSessionActive && musculationSessionActive.exercices[ei];
+  if (!e) return;
+  const t = normaliserTempo(valeur);
+  if (t === null) {
+    alert("Le tempo s'écrit avec 4 caractères : des chiffres de 0 à 9, ou X pour « explosif ». Exemples : 3010, 2110, 20X0.");
+    if (champ) champ.value = e.tempo || '';
+    return;
+  }
+  if (t) e.tempo = t; else delete e.tempo;
+  if (champ) champ.value = t;
+  sauvegarderSessionActive();
+  const aide = document.getElementById('tempo-seance-resume-' + ei);
+  if (aide) aide.textContent = t ? resumeTempo(t) : '';
+}
 function modifierTempoProgramme(i, valeur, champ) {
   const pe = programmeEnEdition.exercices[i];
   if (!pe) return;
@@ -16362,8 +16379,13 @@ function renderSessionExerciceBlocHTML(exo, ei) {
           </div>
         </div>
         ${musclesLigneHTML(exerciceComplet)}
-        ${tempoBadgeHTML(exo.tempo)}
       </div>
+    </div>
+    <div class="tempo-ligne" style="margin:8px 0 4px;">
+      <label for="tempo-seance-${ei}">Tempo</label>
+      <input type="text" id="tempo-seance-${ei}" maxlength="7" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="ex : 3010" value="${escapeHtml(exo.tempo || '')}" onchange="modifierTempoSession(${ei}, this.value, this)">
+      <button type="button" class="tempo-aide-btn" onclick="ouvrirAideTempo(document.getElementById('tempo-seance-${ei}').value)" aria-label="Comment fonctionne le tempo ?">${ICONE_INFO_TEMPO}</button>
+      <small id="tempo-seance-resume-${ei}">${exo.tempo ? escapeHtml(resumeTempo(exo.tempo)) : ''}</small>
     </div>
     ${noteExerciceHTML(exo, ei)}
     <div class="serie-table">
