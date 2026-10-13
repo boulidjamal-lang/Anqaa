@@ -979,6 +979,7 @@
     /* Ouverte depuis la feuille « Aliments partagés » (z-index 1100), cette
        modale doit se poser par-dessus, pas derrière. */
     #modal-edit-aliment, #modal-edit-exercice-admin, #modal-fusion-exercice { z-index: 1200; }
+    .feuille.feuille-dessus { z-index: 1150; }
     /* Ouverte depuis #compte-modal (z-index 1000 par défaut), doit se poser
        par-dessus, pas derrière. */
     #modal-creer-compte, #modal-nouveau-mdp { z-index: 1100; }
@@ -3011,8 +3012,8 @@
   <div class="feuille-contenu">
     <div class="feuille-poignee"></div>
     <div class="feuille-entete">
-      <div class="feuille-titre" id="titre-recette-perso"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8" /><path d="M12 19V9" /><path d="m8 13 4-4 4 4" /><path d="M3 11h18" /><path d="m3 11 2.447-4.894A2 2 0 0 1 7.236 5h9.528a2 2 0 0 1 1.789 1.106L21 11" /></svg> Nouvelle recette</div>
-      <button class="feuille-fermer" type="button" onclick="fermerFeuilles()" aria-label="Fermer">&times;</button>
+      <div class="feuille-titre" id="titre-recette-perso"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h20" /><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8" /><path d="m4 8 16-4" /><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8" /></svg> Nouvelle recette</div>
+      <button class="feuille-fermer" type="button" onclick="recetteEditionAdmin ? fermerEditeurRecetteAdmin() : fermerFeuilles()" aria-label="Fermer">&times;</button>
     </div>
 
     <div class="input-group">
@@ -3223,7 +3224,7 @@
       <div class="feuille-titre" id="feuille-admin-recettes-titre">Recettes</div>
       <button class="feuille-fermer" type="button" onclick="fermerFeuilles()" aria-label="Fermer">&times;</button>
     </div>
-    <p class="note" style="margin-top:-4px;">Recettes créées par chaque compte, privées à leur créateur. « Rendre accessible à tous » les ajoute au choix « Recette » de tous les utilisateurs (Repas du jour › Recette). Si elles n'apparaissent pas chez les autres, relance le SQL de Réglages techniques : c'est lui qui leur autorise la lecture.</p>
+    <p class="note" style="margin-top:-4px;">Recettes créées par chaque compte, privées à leur créateur. « Rendre accessible à tous » les ajoute au choix « Recette » de tous les utilisateurs (Repas du jour › Recette). Le crayon modifie la recette, la corbeille la supprime : le changement arrive chez son créateur et chez tous les utilisateurs à leur prochaine synchro. Si elles n'apparaissent pas chez les autres, relance le SQL de Réglages techniques : c'est lui qui leur autorise la lecture.</p>
     <div class="aliments-filtres">
       <input type="text" id="recettes-filter-nom" placeholder="Nom de la recette" oninput="filtrerRecettesAdmin()" autocomplete="off">
       <input type="text" id="recettes-filter-createur" placeholder="Email du créateur" oninput="filtrerRecettesAdmin()" autocomplete="off">
@@ -5862,6 +5863,9 @@ async function chargerRecettesPartagees() {
 }
 const RECETTES_PERSO_KEY = 'elite_recettes_perso_v1';
 let recettePersoEnEdition = null; // { id, nom, portions, ingredients: [{nom, grammes, kcal100, p100, c100, f100}] }
+// Renseigné quand l'admin modifie la recette d'un autre compte depuis
+// Administration › Recettes : { utilisateur } (propriétaire de la recette).
+let recetteEditionAdmin = null;
 
 // Totaux d'une recette : somme des ingrédients (grammes × valeurs/100g),
 // puis répartis sur le nombre de portions.
@@ -6020,8 +6024,10 @@ function modifierPoidsIngredientAliment(mealId, i, j, valeur) {
   updateSummary(day);
 }
 
-function ouvrirCreationRecettePerso(idExistant) {
-  const existante = idExistant ? recettesPerso.find(r => r.id === idExistant) : null;
+function ouvrirCreationRecettePerso(idExistant, recetteAdmin) {
+  recetteEditionAdmin = recetteAdmin ? { utilisateur: recetteAdmin.utilisateur } : null;
+  document.getElementById('feuille-recette-perso').classList.toggle('feuille-dessus', !!recetteAdmin);
+  const existante = recetteAdmin || (idExistant ? recettesPerso.find(r => r.id === idExistant) : null);
   recettePersoEnEdition = existante
     ? JSON.parse(JSON.stringify(existante))
     : { id: identifiantUnique(), nom: '', portions: 1, ingredients: [] };
@@ -6033,7 +6039,8 @@ function ouvrirCreationRecettePerso(idExistant) {
   suggestions.innerHTML = '';
   suggestions.style.display = 'none';
   document.getElementById('btn-supprimer-recperso').classList.toggle('hidden', !existante);
-  document.getElementById('titre-recette-perso').lastChild.textContent = existante ? ' Modifier la recette' : ' Nouvelle recette';
+  document.getElementById('titre-recette-perso').lastChild.textContent = recetteAdmin
+    ? ' Modifier la recette (admin)' : (existante ? ' Modifier la recette' : ' Nouvelle recette');
   renderIngredientsRecettePerso();
   ouvrirFeuille('feuille-recette-perso');
 }
@@ -6173,6 +6180,7 @@ async function validerRecettePerso() {
   recettePersoEnEdition.nom = nom;
   recettePersoEnEdition.portions = portions;
 
+  if (recetteEditionAdmin) { await enregistrerRecetteAdmin(); return; }
   const ok = await enregistrerRecettePersoDistant(recettePersoEnEdition);
   if (!ok) return;
   const idx = recettesPerso.findIndex(r => r.id === recettePersoEnEdition.id);
@@ -6184,6 +6192,11 @@ async function validerRecettePerso() {
 
 async function supprimerRecettePersoEnEdition() {
   if (!recettePersoEnEdition || !recettePersoEnEdition.nom) return;
+  if (recetteEditionAdmin) {
+    const ok = await supprimerRecetteAdmin(recetteEditionAdmin.utilisateur, recettePersoEnEdition.id);
+    if (ok) fermerEditeurRecetteAdmin();
+    return;
+  }
   if (!confirm(`Supprimer la recette « ${recettePersoEnEdition.nom} » ?`)) return;
   const ok = await supprimerRecettePersoDistant(recettePersoEnEdition.id);
   if (!ok) return;
@@ -9619,6 +9632,37 @@ $fn$;
 drop trigger if exists recettes_partage_admin_seul on public.recettes_perso;
 create trigger recettes_partage_admin_seul before insert or update on public.recettes_perso
   for each row execute function public.proteger_partage_recette();
+-- Une recette supprimée (par l'admin ou son créateur) ne revient jamais :
+-- un téléphone resté sur une vieille copie ne peut pas la recréer.
+create table if not exists public.recettes_supprimees (
+  utilisateur text not null,
+  id          text not null,
+  supprime_le timestamptz not null default now(),
+  primary key (utilisateur, id)
+);
+alter table public.recettes_supprimees enable row level security;
+create or replace function public.memoriser_recette_supprimee()
+returns trigger language plpgsql security definer set search_path = public as $fn$
+begin
+  insert into recettes_supprimees (utilisateur, id) values (old.utilisateur, old.id) on conflict do nothing;
+  return old;
+end;
+$fn$;
+drop trigger if exists recettes_memoriser_suppression on public.recettes_perso;
+create trigger recettes_memoriser_suppression after delete on public.recettes_perso
+  for each row execute function public.memoriser_recette_supprimee();
+create or replace function public.bloquer_recette_supprimee()
+returns trigger language plpgsql security definer set search_path = public as $fn$
+begin
+  if exists (select 1 from recettes_supprimees s where s.utilisateur = new.utilisateur and s.id = new.id) then
+    return null;
+  end if;
+  return new;
+end;
+$fn$;
+drop trigger if exists recettes_pas_de_resurrection on public.recettes_perso;
+create trigger recettes_pas_de_resurrection before insert on public.recettes_perso
+  for each row execute function public.bloquer_recette_supprimee();
 
 -- 8) Base CIQUAL : lecture pour tous, écriture réservée à l'admin (l'appli
 --    n'y écrit plus ; un ancien téléphone ne peut plus y ajouter d'aliment).
@@ -17791,11 +17835,13 @@ function rendreRecettesAdmin() {
           <small>${escapeHtml(r.email)} · ${Math.round(t.parPortionKcal)} kcal/portion · P ${Math.round(t.parPortionP)}g · G ${Math.round(t.parPortionC)}g · L ${Math.round(t.parPortionF)}g · ${Number(r.portions) || 1} portion(s)</small>
         </div>
         <div class="aliment-actions">
-          <button type="button" class="bouton-petit${r.partagee ? ' danger' : ''}" onclick="basculerPartageRecetteAdmin(${utilJs}, ${idJs})">
-            ${r.partagee ? 'Retirer du partage' : 'Rendre accessible à tous'}
-          </button>
+          <button type="button" class="bouton-petit" title="Modifier" aria-label="Modifier la recette" onclick="ouvrirEditionRecetteAdmin(${utilJs}, ${idJs})"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></svg></button>
+          <button type="button" class="bouton-petit danger" title="Supprimer" aria-label="Supprimer la recette" onclick="supprimerRecetteAdmin(${utilJs}, ${idJs})"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg></button>
         </div>
       </div>
+      <button type="button" class="btn ${r.partagee ? 'btn-secondaire' : 'btn-primary'}" style="width:100%; min-height:auto; padding:9px 10px; font-size:0.8rem; margin:10px 0 4px;" onclick="basculerPartageRecetteAdmin(${utilJs}, ${idJs})">
+        ${r.partagee ? 'Retirer du partage' : 'Rendre accessible à tous'}
+      </button>
       <button type="button" class="serie-paliers-toggle ${ouvert ? 'ouvert' : ''}" aria-expanded="${ouvert}" onclick="basculerRecetteAdmin(${idJs})">
         <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
         ${ingredients.length} ingrédient${ingredients.length > 1 ? 's' : ''}
@@ -17807,6 +17853,75 @@ function rendreRecettesAdmin() {
 function basculerRecetteAdmin(id) {
   recetteAdminDerouleeId = recetteAdminDerouleeId === id ? null : id;
   rendreRecettesAdmin();
+}
+
+/* Modification / suppression d'une recette de n'importe quel compte. La
+   synchro suit d'elle-même : le serveur est la référence, chaque téléphone
+   recharge ses recettes (et les recettes partagées) depuis Supabase à la
+   connexion et à chaque synchro. Une recette supprimée ne peut plus être
+   recréée par un téléphone resté sur une vieille copie : le serveur garde
+   une trace de la suppression et ignore toute réinsertion (voir le SQL). */
+function recetteAdminTrouvee(utilisateur, id) {
+  return adminRecettesCharges.find(x => x.id === id && x.utilisateur === utilisateur) || null;
+}
+function ouvrirEditionRecetteAdmin(utilisateur, id) {
+  const r = recetteAdminTrouvee(utilisateur, id);
+  if (!r) return;
+  const copie = JSON.parse(JSON.stringify(r));
+  delete copie.email; delete copie.maj; delete copie.partageePar;
+  ouvrirCreationRecettePerso(null, copie);
+}
+function fermerEditeurRecetteAdmin() {
+  const f = document.getElementById('feuille-recette-perso');
+  if (f) { f.classList.remove('show'); f.classList.remove('feuille-dessus'); }
+  recetteEditionAdmin = null;
+  majCoucheOuverte();
+}
+// Après une modification admin : la feuille admin, les recettes partagées
+// et (si c'est une recette de l'admin lui-même) ses propres recettes.
+async function rafraichirApresRecetteAdmin(utilisateur) {
+  await chargerRecettesAdmin();
+  chargerRecettesPartagees();
+  if (sessionUtilisateur && utilisateur === sessionUtilisateur.id) chargerRecettesPerso();
+}
+async function enregistrerRecetteAdmin() {
+  if (!supa || !recetteEditionAdmin) return;
+  const utilisateur = recetteEditionAdmin.utilisateur;
+  const r = recettePersoEnEdition;
+  const avant = recetteAdminTrouvee(utilisateur, r.id);
+  const donnees = Object.assign({}, r, { maj: Date.now() });
+  delete donnees.utilisateur; delete donnees.email; delete donnees.partageePar;
+  // Le partage n'est pas une donnée de l'éditeur : on garde celui du serveur.
+  if (avant && avant.partagee) donnees.partagee = true; else delete donnees.partagee;
+  try {
+    const { data, error } = await supa.from('recettes_perso')
+      .update({ donnees, maj: donnees.maj })
+      .eq('utilisateur', utilisateur).eq('id', r.id).select('id');
+    if (error) throw error;
+    if (!data || !data.length) throw new Error("recette introuvable (déjà supprimée ?)");
+    await consignerAction('recette_modifiee_admin', r.id, r.nom || '', null, { createur: (avant && avant.email) || null });
+    fermerEditeurRecetteAdmin();
+    await rafraichirApresRecetteAdmin(utilisateur);
+  } catch (e) {
+    alert('Modification impossible : ' + e.message);
+  }
+}
+async function supprimerRecetteAdmin(utilisateur, id) {
+  if (!supa) return false;
+  const r = recetteAdminTrouvee(utilisateur, id);
+  const nom = (r && r.nom) || 'cette recette';
+  if (!confirm(`Supprimer « ${nom} »${r && r.email ? ' (' + r.email + ')' : ''} ?\n\nElle disparaît pour son créateur et pour tous ceux qui la voyaient. Les repas déjà notés ne changent pas.`)) return false;
+  try {
+    const { error } = await supa.from('recettes_perso').delete().eq('utilisateur', utilisateur).eq('id', id);
+    if (error) throw error;
+    await consignerAction('recette_supprimee_admin', id, nom, null, { createur: (r && r.email) || null });
+    if (recetteAdminDerouleeId === id) recetteAdminDerouleeId = null;
+    await rafraichirApresRecetteAdmin(utilisateur);
+    return true;
+  } catch (e) {
+    alert('Suppression impossible : ' + e.message);
+    return false;
+  }
 }
 
 // Rend une recette visible/utilisable par tous les comptes (ou retire ce
