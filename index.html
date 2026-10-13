@@ -2522,6 +2522,9 @@
       <button class="btn btn-primary" type="button" onclick="afficherFeuillExercicesAdmin()">
         <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Bibliothèque d'exercices
       </button>
+      <button class="btn btn-primary" type="button" onclick="afficherFeuillRecettesAdmin()">
+        <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11h18" /><path d="M12 3c-1.5 2-2 4-2 5.5A2 2 0 0 0 12 11a2 2 0 0 0 2-2.5c0-1.5-.5-3.5-2-5.5Z" /><path d="M3 11c0 6 3.5 10 9 10s9-4 9-10" /></svg> Recettes
+      </button>
       <button class="btn btn-primary" type="button" onclick="afficherFeuilleCouleursAdmin()">
         <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /></svg> Couleurs de l'application
       </button>
@@ -3118,8 +3121,27 @@
       <input type="text" id="aliments-filter-createur" placeholder="Email du créateur" oninput="filtrerAlimentsAdmin()" autocomplete="off">
       <input type="date" id="aliments-filter-date" onchange="filtrerAlimentsAdmin()">
     </div>
+    <button class="btn btn-secondaire" type="button" style="margin-bottom:12px;" onclick="nettoyerDoublonsAlimentsPartages()">Retirer les aliments copiés de CIQUAL</button>
+    <p class="note" id="note-nettoyage-aliments" style="margin:-4px 0 12px;"></p>
 
     <div id="admin-aliments-feuille-liste"></div>
+  </div>
+</div>
+
+<!-- ============ FEUILLE : recettes personnelles (admin) ============ -->
+<div class="feuille" id="feuille-admin-recettes" role="dialog" aria-modal="true" aria-labelledby="feuille-admin-recettes-titre">
+  <div class="feuille-contenu">
+    <div class="feuille-poignee"></div>
+    <div class="feuille-entete">
+      <div class="feuille-titre" id="feuille-admin-recettes-titre">Recettes</div>
+      <button class="feuille-fermer" type="button" onclick="fermerFeuilles()" aria-label="Fermer">&times;</button>
+    </div>
+    <p class="note" style="margin-top:-4px;">Recettes créées par chaque compte, privées à leur créateur. « Rendre accessible à tous » les ajoute au choix « Recette » de tous les utilisateurs.</p>
+    <div class="aliments-filtres">
+      <input type="text" id="recettes-filter-nom" placeholder="Nom de la recette" oninput="filtrerRecettesAdmin()" autocomplete="off">
+      <input type="text" id="recettes-filter-createur" placeholder="Email du créateur" oninput="filtrerRecettesAdmin()" autocomplete="off">
+    </div>
+    <div id="admin-recettes-feuille-liste"></div>
   </div>
 </div>
 
@@ -3214,7 +3236,7 @@
 
     <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z" /></svg> Palettes enregistrées</div>
     <div class="input-group">
-      <label for="palette-select">Charger une palette déjà enregistrée</label>
+      <label for="palette-select">Charger une palette (prête à l'emploi ou enregistrée)</label>
       <select id="palette-select"><option value="">— Aucune —</option></select>
     </div>
     <div style="display:flex; gap:8px; margin-bottom:16px;">
@@ -5286,6 +5308,7 @@ function ouvrirManuel(mealId) {
   // Un code-barres oublié de la saisie précédente se serait collé au produit
   // suivant : on repart toujours d'une fiche vierge.
   codeCourant = '';
+  sourceCourante = ''; nomSourceCourant = '';
   majCodeCourant();
   // Idem pour l'unité : sans remise à zéro, choisir "eau" (ml) puis annuler
   // et taper "poulet" à la main aurait quand même enregistré des ml.
@@ -5481,6 +5504,8 @@ function fillFromOFF(product) {
   /* Reprendre la quantité de la dernière fois, c'est le vrai gain : la plupart
      du temps on remange la même portion et il n'y a plus rien à taper. */
   if (product.grammes > 0) document.getElementById('man-grams').value = product.grammes;
+  sourceCourante = product.source || '';
+  nomSourceCourant = product.name || '';
   codeCourant = product.code || '';
   majCodeCourant();
   // L'historique et le scan connaissent parfois déjà l'unité ; sinon, le nom
@@ -5595,6 +5620,12 @@ function chercherDansHistorique(q, limite) {
 /* Le code-barres de l'aliment en cours de saisie. Il voyage du scanner ou de
    l'historique jusqu'à l'enregistrement, sinon il serait perdu en route. */
 let codeCourant = '';
+// Base d'où vient l'aliment choisi dans les suggestions (base = CIQUAL,
+// usda, partage, historique, perso, OpenFoodFacts…) et son nom d'origine :
+// tant que le nom n'a pas été changé, c'est un aliment existant, pas une
+// création — il ne doit pas être recopié dans « Aliments partagés ».
+let sourceCourante = '';
+let nomSourceCourant = '';
 
 /* Pareil pour l'unité : une suggestion sélectionnée en saisie manuelle doit
    se souvenir si elle a été détectée comme une boisson, sinon le "g / ml" du
@@ -5686,16 +5717,22 @@ function validerAjoutManuel() {
   // Le code-barres suit l'aliment quand il vient d'OpenFoodFacts ou de
   // l'historique : c'est ce qui permet de retrouver le produit exact plus tard.
   if (codeCourant) item.code = codeCourant;
-  addItemToMeal(activeMealId, item);
+  const dejaEnBase = !!sourceCourante && normaliserRecherche(name) === normaliserRecherche(nomSourceCourant);
+  addItemToMeal(activeMealId, item, { partager: !dejaEnBase });
   if (item.unite === 'ml') ajouterEau(Math.round(g));
   fermerModal('manual-modal');
 }
 
-function addItemToMeal(mealId, item) {
+function addItemToMeal(mealId, item, options) {
   const day = getDay(currentDate);
   day.meals[mealId || 'lunch'].push(item);
   saveData(currentDate);
   invaliderHistorique();
+  // Aliment pris tel quel dans une base existante (CIQUAL, USDA,
+  // OpenFoodFacts, aliments partagés, déjà mangé…) : il n'a rien à faire
+  // dans « Aliments partagés », qui ne doit recevoir que les aliments
+  // réellement créés par les utilisateurs.
+  if (options && options.partager === false) { renderMeals(day); updateSummary(day); return; }
   // Le repas est enregistré avant tout : l'envoi vers la base vient après et
   // ne peut ni ralentir ni faire échouer la saisie.
   enregistrerAlimentDansBase(item);
@@ -5711,6 +5748,23 @@ function addItemToMeal(mealId, item) {
    utilisateur/id/donnees/maj), propres à chaque compte.
    ===================================================================== */
 let recettesPerso = [];
+// Recettes des AUTRES comptes rendues accessibles à tous par l'admin (voir
+// basculerPartageRecetteAdmin) — jamais sauvegardées en local, rechargées à
+// chaque synchro.
+let recettesPartagees = [];
+async function chargerRecettesPartagees() {
+  if (!supa || !sessionUtilisateur) { recettesPartagees = []; return; }
+  try {
+    const { data, error } = await supa.from('recettes_perso').select('id,utilisateur,donnees');
+    if (error) throw error;
+    recettesPartagees = (data || [])
+      .filter(r => r.donnees && r.donnees.partagee && r.utilisateur !== sessionUtilisateur.id)
+      .map(r => Object.assign({}, r.donnees, { id: r.id, partageePar: r.utilisateur }));
+    if (document.getElementById('feuille-choix-recette')?.classList.contains('show')) renderChoixRecette();
+  } catch (e) {
+    console.warn('[Recettes] partagées indisponibles :', e.message);
+  }
+}
 const RECETTES_PERSO_KEY = 'elite_recettes_perso_v1';
 let recettePersoEnEdition = null; // { id, nom, portions, ingredients: [{nom, grammes, kcal100, p100, c100, f100}] }
 
@@ -5816,7 +5870,7 @@ function renderRecettesPerso() {
 // Ajoute une portion de la recette directement au repas actif, sans ouvrir
 // aucune feuille — « reloguer en un clic », comme demandé.
 function loguerPortionRecettePerso(id, mealIdCible) {
-  const r = recettesPerso.find(x => x.id === id);
+  const r = recettesPerso.find(x => x.id === id) || recettesPartagees.find(x => x.id === id);
   if (!r) return;
   const t = totauxRecettePerso(r);
   const item = { name: r.nom, unite: 'g' };
@@ -5839,7 +5893,7 @@ function loguerPortionRecettePerso(id, mealIdCible) {
     item.grams = Math.round(t.grammesParPortion) || 100;
     item.kcal = t.parPortionKcal; item.p = t.parPortionP; item.c = t.parPortionC; item.f = t.parPortionF;
   }
-  addItemToMeal(mealIdCible || activeMealId || repasDuMoment(), item);
+  addItemToMeal(mealIdCible || activeMealId || repasDuMoment(), item, { partager: false });
 }
 
 // Recalcule le poids total et les macros d'un aliment à partir de ses
@@ -6559,7 +6613,7 @@ function ajouterAlimentBarcode() {
     code: currentScannedFood.code || undefined,
     kcal: currentScannedFood.kcal100 * f, p: currentScannedFood.p100 * f,
     c: currentScannedFood.c100 * f, f: currentScannedFood.f100 * f
-  });
+  }, { partager: false });
   // Un produit détecté en ml est une boisson : sa quantité compte aussi
   // pour l'hydratation du jour, sans geste en plus. Compte toute boisson
   // (pas seulement l'eau littérale) — soda, jus, lait apportent aussi de
@@ -8612,12 +8666,15 @@ function renderChoixRecette() {
   const vide = document.getElementById('choix-recette-vide');
   if (!container || !vide) return;
   container.innerHTML = '';
-  if (!recettesPerso.length) {
+  // Les siennes d'abord, puis celles que l'admin a rendues accessibles à
+  // tous — distinguées par un badge, ajoutées au repas exactement pareil.
+  const toutes = recettesPerso.concat(recettesPartagees);
+  if (!toutes.length) {
     vide.classList.remove('hidden');
     return;
   }
   vide.classList.add('hidden');
-  recettesPerso.forEach(r => {
+  toutes.forEach(r => {
     const t = totauxRecettePerso(r);
     const carte = document.createElement('div');
     carte.className = 'choix-recette-carte';
@@ -8627,7 +8684,7 @@ function renderChoixRecette() {
     btn.className = 'off-suggestion';
     const nomEl = document.createElement('div');
     nomEl.className = 'off-nom';
-    nomEl.textContent = r.nom;
+    nomEl.textContent = r.nom + (r.partageePar ? ' · partagée' : '');
     const metaEl = document.createElement('div');
     metaEl.className = 'off-meta';
     metaEl.textContent = `${Math.round(t.parPortionKcal)} kcal · P ${Math.round(t.parPortionP)}g · G ${Math.round(t.parPortionC)}g · L ${Math.round(t.parPortionF)}g — par portion`;
@@ -9284,7 +9341,33 @@ drop trigger if exists exercices_perso_pas_de_resurrection on public.exercices_p
 create trigger exercices_perso_pas_de_resurrection before insert or update on public.exercices_perso_musculation
   for each row execute function public.bloquer_exercice_supprime();
 
--- 4) Photos de progression : bucket privé, chaque compte ne voit et ne
+-- 4) Recettes : privées à leur créateur, sauf celles que l'admin rend
+--    accessibles à tous (donnees.partagee = true). L'écriture reste
+--    réservée au propriétaire ou à l'admin.
+create table if not exists public.recettes_perso (
+  utilisateur text not null,
+  id          text not null,
+  donnees     jsonb not null,
+  maj         bigint not null default 0,
+  primary key (utilisateur, id)
+);
+alter table public.recettes_perso enable row level security;
+drop policy if exists "recettes_perso par compte" on public.recettes_perso;
+drop policy if exists "recettes_perso lecture" on public.recettes_perso;
+drop policy if exists "recettes_perso ecriture" on public.recettes_perso;
+drop policy if exists "recettes_perso modif" on public.recettes_perso;
+drop policy if exists "recettes_perso suppr" on public.recettes_perso;
+create policy "recettes_perso lecture" on public.recettes_perso for select to authenticated
+  using (utilisateur = auth.uid()::text or auth.jwt() ->> 'email' = 'jambou592@gmail.com' or donnees ->> 'partagee' = 'true');
+create policy "recettes_perso ecriture" on public.recettes_perso for insert to authenticated
+  with check ((utilisateur = auth.uid()::text and not est_bloque(utilisateur) and mon_compte_existe()) or auth.jwt() ->> 'email' = 'jambou592@gmail.com');
+create policy "recettes_perso modif" on public.recettes_perso for update to authenticated
+  using ((utilisateur = auth.uid()::text and not est_bloque(utilisateur) and mon_compte_existe()) or auth.jwt() ->> 'email' = 'jambou592@gmail.com')
+  with check ((utilisateur = auth.uid()::text and not est_bloque(utilisateur) and mon_compte_existe()) or auth.jwt() ->> 'email' = 'jambou592@gmail.com');
+create policy "recettes_perso suppr" on public.recettes_perso for delete to authenticated
+  using ((utilisateur = auth.uid()::text and not est_bloque(utilisateur) and mon_compte_existe()) or auth.jwt() ->> 'email' = 'jambou592@gmail.com');
+
+-- 5) Photos de progression : bucket privé, chaque compte ne voit et ne
 --    gère que son propre dossier (<son id>/...).
 insert into storage.buckets (id, name, public)
 values ('photos-progression', 'photos-progression', false)
@@ -11073,6 +11156,7 @@ async function synchroniser(raison) {
     // lecture seule, sans bloquer le rendu si ça échoue.
     chargerExercicesCommunaute(id);
     chargerRecettesPerso();
+    chargerRecettesPartagees();
 
     // Les aliments en attente repartent avec la même occasion réseau.
     viderFileAliments();
@@ -11208,6 +11292,9 @@ function ficheDepuisItem(item) {
 }
 
 function enregistrerAlimentDansBase(item) {
+  // Un aliment issu d'une recette (structure en ingrédients) n'est pas un
+  // aliment unique : il ne rejoint jamais la base partagée.
+  if (item && Array.isArray(item.ingredients) && item.ingredients.length) return;
   const fiche = ficheDepuisItem(item);
   if (!fiche) return;
   const file = fileAliments();
@@ -16612,6 +16699,54 @@ async function chargerAlimentsAdmin() {
 /* Rendu par DOM uniquement. Nom, code-barres et email de créateur sont
    des données saisies par des utilisateurs : elles ne doivent jamais
    traverser innerHTML. */
+/* Aliments partagés qui ne sont en fait que des copies d'aliments de la
+   base CIQUAL (ajoutés tels quels avant la correction de addItemToMeal) :
+   repérés par leur nom exact dans la table CIQUAL, puis retirés du partage
+   comme une suppression admin ordinaire (supprime: true). */
+async function nettoyerDoublonsAlimentsPartages() {
+  const note = document.getElementById('note-nettoyage-aliments');
+  const dire = s => { if (note) note.textContent = s; };
+  if (!supa) { dire('Pas de connexion à Supabase.'); return; }
+  try {
+    dire('Analyse des aliments partagés…');
+    const partages = [];
+    for (let offset = 0; offset < 20000; offset += 500) {
+      const { data, error } = await supa.rpc('admin_aliments', { p_createur: null, p_nom: null, p_date: null, p_offset: offset, p_limite: 500 });
+      if (error) throw error;
+      partages.push(...(data || []));
+      if (!data || data.length < 500) break;
+    }
+    if (!partages.length) { dire('Aucun aliment partagé.'); return; }
+    const s = await detecterSchemaAliments();
+    const table = confSupabase().table;
+    if (!s || !s.nom || !table) throw new Error('table CIQUAL non reconnue');
+    const nomsCiqual = new Set();
+    const noms = [...new Set(partages.map(a => a.nom).filter(Boolean))];
+    for (let i = 0; i < noms.length; i += 100) {
+      dire(`Comparaison avec CIQUAL… ${Math.min(i + 100, noms.length)} / ${noms.length}`);
+      const { data, error } = await supa.from(table).select(s.nom).in(s.nom, noms.slice(i, i + 100));
+      if (error) throw error;
+      (data || []).forEach(r => nomsCiqual.add(normaliserRecherche(r[s.nom])));
+    }
+    const copies = partages.filter(a => nomsCiqual.has(normaliserRecherche(a.nom || '')));
+    if (!copies.length) { dire('Aucune copie de CIQUAL trouvée dans les aliments partagés.'); return; }
+    if (!confirm(`${copies.length} aliment(s) partagé(s) sont des copies exactes d'aliments CIQUAL (ex. « ${copies.slice(0, 3).map(a => a.nom).join(' », « ')} »).\n\nLes retirer des aliments partagés ? Ils restent trouvables dans la base CIQUAL, et les repas déjà notés ne changent pas.`)) { dire(''); return; }
+    const ids = copies.map(a => a.id);
+    for (let i = 0; i < ids.length; i += 200) {
+      const { error } = await supa.from('aliments_partages')
+        .update({ supprime: true, supprime_par: sessionUtilisateur ? sessionUtilisateur.email : 'inconnu', supprime_le: new Date().toISOString() })
+        .in('id', ids.slice(i, i + 200));
+      if (error) throw error;
+    }
+    cacheVider();
+    await consignerAction('aliments_copies_ciqual_retires', null, copies.length + ' aliments', null, null);
+    dire(`${copies.length} copie(s) de CIQUAL retirée(s) des aliments partagés.`);
+    await chargerAlimentsAdmin();
+  } catch (e) {
+    dire('Nettoyage impossible : ' + e.message);
+  }
+}
+
 function rendreAlimentsAdmin(aliments) {
   const conteneur = document.getElementById('admin-aliments-feuille-liste');
   if (!conteneur) return;
@@ -17172,6 +17307,120 @@ async function fusionnerExerciceAdmin(source, cible) {
 }
 
 /* =====================================================================
+   ADMIN — RECETTES PERSONNELLES
+   Toutes les recettes créées par tous les comptes (table recettes_perso).
+   Chacune reste privée à son créateur, sauf si l'admin la rend
+   accessible à tous (drapeau donnees.partagee, voir
+   basculerPartageRecetteAdmin) : elle apparaît alors dans le choix
+   « Recette » de tout le monde, sans copie — une seule source de vérité.
+   ===================================================================== */
+let adminRecettesCharges = [];
+let adminRecettesAffichees = [];
+let recetteAdminDerouleeId = null;
+let minuteurFiltreRecettes = null;
+
+async function afficherFeuillRecettesAdmin() {
+  ['recettes-filter-nom', 'recettes-filter-createur'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  recetteAdminDerouleeId = null;
+  ouvrirFeuille('feuille-admin-recettes');
+  await chargerRecettesAdmin();
+}
+
+async function chargerRecettesAdmin() {
+  const conteneur = document.getElementById('admin-recettes-feuille-liste');
+  if (!conteneur) return;
+  conteneur.innerHTML = '<p class="note">Chargement…</p>';
+  if (!supa) { conteneur.innerHTML = '<p class="note">Pas de connexion à Supabase.</p>'; return; }
+  try {
+    const { data, error } = await supa.from('recettes_perso').select('id,utilisateur,donnees,maj');
+    if (error) throw error;
+    adminRecettesCharges = (data || []).map(r => Object.assign({
+      utilisateur: r.utilisateur,
+      email: (adminComptes[r.utilisateur] && adminComptes[r.utilisateur].email) || String(r.utilisateur).slice(0, 8),
+      maj: r.maj
+    }, r.donnees, { id: r.id }));
+    filtrerRecettesAdmin();
+  } catch (e) {
+    conteneur.innerHTML = '<p class="note">Chargement impossible : ' + escapeHtml(e.message) + '</p>';
+  }
+}
+
+function filtrerRecettesAdmin() {
+  clearTimeout(minuteurFiltreRecettes);
+  minuteurFiltreRecettes = setTimeout(() => {
+    const nom = normaliserRecherche(document.getElementById('recettes-filter-nom')?.value || '');
+    const createur = normaliserRecherche(document.getElementById('recettes-filter-createur')?.value || '');
+    adminRecettesAffichees = adminRecettesCharges.filter(r => {
+      if (nom && !normaliserRecherche(r.nom || '').includes(nom)) return false;
+      if (createur && !normaliserRecherche(r.email || '').includes(createur)) return false;
+      return true;
+    });
+    rendreRecettesAdmin();
+  }, 250);
+}
+
+function rendreRecettesAdmin() {
+  const conteneur = document.getElementById('admin-recettes-feuille-liste');
+  if (!conteneur) return;
+  if (!adminRecettesAffichees.length) { conteneur.innerHTML = '<p class="note">Aucune recette ne correspond.</p>'; return; }
+  conteneur.innerHTML = `<p class="note">${adminRecettesAffichees.length} recette(s)</p>` + adminRecettesAffichees.map(r => {
+    const t = totauxRecettePerso(r);
+    const ouvert = recetteAdminDerouleeId === r.id;
+    const ingredients = r.ingredients || [];
+    const idJs = escapeHtml(JSON.stringify(String(r.id)));
+    const utilJs = escapeHtml(JSON.stringify(String(r.utilisateur)));
+    return `<div class="admin-aliment-card">
+      <div class="aliment-header">
+        <div class="aliment-info">
+          <strong>${escapeHtml(r.nom || 'Sans nom')}${r.partagee ? ' <span style="font-weight:400;color:var(--accent);font-size:0.78rem;">· partagée</span>' : ''}</strong>
+          <small>${escapeHtml(r.email)} · ${Math.round(t.parPortionKcal)} kcal/portion · P ${Math.round(t.parPortionP)}g · G ${Math.round(t.parPortionC)}g · L ${Math.round(t.parPortionF)}g · ${Number(r.portions) || 1} portion(s)</small>
+        </div>
+        <div class="aliment-actions">
+          <button type="button" class="bouton-petit${r.partagee ? ' danger' : ''}" onclick="basculerPartageRecetteAdmin(${utilJs}, ${idJs})">
+            ${r.partagee ? 'Retirer du partage' : 'Rendre accessible à tous'}
+          </button>
+        </div>
+      </div>
+      <button type="button" class="serie-paliers-toggle ${ouvert ? 'ouvert' : ''}" aria-expanded="${ouvert}" onclick="basculerRecetteAdmin(${idJs})">
+        <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+        ${ingredients.length} ingrédient${ingredients.length > 1 ? 's' : ''}
+      </button>${ouvert ? `<div class="choix-recette-ingredients">${ingredients.map(ing => `<div>${escapeHtml(ing.nom)} — ${Math.round(Number(ing.grammes) || 0)} g</div>`).join('')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function basculerRecetteAdmin(id) {
+  recetteAdminDerouleeId = recetteAdminDerouleeId === id ? null : id;
+  rendreRecettesAdmin();
+}
+
+// Rend une recette visible/utilisable par tous les comptes (ou retire ce
+// partage) : un simple drapeau dans ses propres données, lu par la policy
+// de lecture de recettes_perso — pas de copie dans une autre table.
+async function basculerPartageRecetteAdmin(utilisateur, id) {
+  if (!supa) return;
+  const r = adminRecettesCharges.find(x => x.id === id && x.utilisateur === utilisateur);
+  if (!r) return;
+  const nouveauPartage = !r.partagee;
+  const question = nouveauPartage
+    ? `Rendre « ${r.nom} » visible et utilisable par tous les comptes ?`
+    : `Retirer « ${r.nom} » du partage ? Elle redeviendra privée à ${r.email}.`;
+  if (!confirm(question)) return;
+  try {
+    const donnees = Object.assign({}, r, { partagee: nouveauPartage, maj: Date.now() });
+    delete donnees.utilisateur; delete donnees.email; delete donnees.partageePar;
+    const { error } = await supa.from('recettes_perso')
+      .update({ donnees, maj: donnees.maj })
+      .eq('utilisateur', utilisateur).eq('id', id);
+    if (error) throw error;
+    await consignerAction(nouveauPartage ? 'recette_partagee' : 'recette_retiree_du_partage', id, r.nom || '', null, { createur: r.email || null });
+    await chargerRecettesAdmin();
+  } catch (e) {
+    alert('Impossible de modifier le partage : ' + e.message);
+  }
+}
+
+/* =====================================================================
    ADMIN — COULEURS DE L'APPLICATION (voir appliquerCouleursApp plus haut)
    ===================================================================== */
 function remplirFormulaireCouleurs(donnees) {
@@ -17203,22 +17452,65 @@ function afficherFeuilleCouleursAdmin() {
 // enregistrerCouleursAdmin(). Mis en cache localement pour éviter une
 // requête Supabase à chaque sélection dans la liste.
 let palettesCouleursCache = [];
+// Palettes prêtes à l'emploi, toujours proposées (sans Supabase) : un
+// thème clair + un thème sombre chacune, contrastes vérifiés pour le texte.
+const PALETTES_PREDEFINIES = [
+  { nom: 'Anqā (par défaut)', donnees: COULEURS_APP_DEFAUT },
+  { nom: 'Océan', donnees: {
+    clair:  { bg: '#e8f1f8', text: '#0b1b2b', primary: '#0369a1', accent: '#0e7490', danger: '#c62828', icone: '#0b1b2b' },
+    sombre: { bg: '#04111d', text: '#eaf4fb', primary: '#38bdf8', accent: '#22d3ee', danger: '#ff6b6b', icone: '#eaf4fb' } } },
+  { nom: 'Feu', donnees: {
+    clair:  { bg: '#fbf0ea', text: '#1f0f08', primary: '#c2410c', accent: '#b91c1c', danger: '#9f1239', icone: '#1f0f08' },
+    sombre: { bg: '#120805', text: '#fdf1ea', primary: '#fb923c', accent: '#f87171', danger: '#fb7185', icone: '#fdf1ea' } } },
+  { nom: 'Améthyste', donnees: {
+    clair:  { bg: '#f1edf8', text: '#170f24', primary: '#6d28d9', accent: '#be185d', danger: '#c62828', icone: '#170f24' },
+    sombre: { bg: '#0c0714', text: '#f4effb', primary: '#a78bfa', accent: '#f472b6', danger: '#ff6b6b', icone: '#f4effb' } } },
+  { nom: 'Or', donnees: {
+    clair:  { bg: '#f7f3e8', text: '#1c160a', primary: '#a16207', accent: '#4d7c0f', danger: '#c62828', icone: '#1c160a' },
+    sombre: { bg: '#0d0b06', text: '#faf6ea', primary: '#facc15', accent: '#a3e635', danger: '#ff6b6b', icone: '#faf6ea' } } },
+  { nom: 'Graphite', donnees: {
+    clair:  { bg: '#eceef1', text: '#111418', primary: '#334155', accent: '#0f766e', danger: '#c62828', icone: '#111418' },
+    sombre: { bg: '#0a0b0d', text: '#eef1f4', primary: '#cbd5e1', accent: '#2dd4bf', danger: '#ff6b6b', icone: '#eef1f4' } } },
+  { nom: 'Forêt', donnees: {
+    clair:  { bg: '#ebf3ec', text: '#0b1a10', primary: '#166534', accent: '#854d0e', danger: '#c62828', icone: '#0b1a10' },
+    sombre: { bg: '#050d08', text: '#ecf6ee', primary: '#4ade80', accent: '#fbbf24', danger: '#ff6b6b', icone: '#ecf6ee' } } },
+  { nom: 'Rose', donnees: {
+    clair:  { bg: '#fbeef3', text: '#220b15', primary: '#be185d', accent: '#7c3aed', danger: '#b91c1c', icone: '#220b15' },
+    sombre: { bg: '#12060c', text: '#fdeef4', primary: '#f472b6', accent: '#c4b5fd', danger: '#ff6b6b', icone: '#fdeef4' } } },
+  { nom: 'Nuit polaire', donnees: {
+    clair:  { bg: '#e9edf6', text: '#0d1222', primary: '#1d4ed8', accent: '#0891b2', danger: '#c62828', icone: '#0d1222' },
+    sombre: { bg: '#05070f', text: '#e9eefc', primary: '#818cf8', accent: '#67e8f9', danger: '#ff6b6b', icone: '#e9eefc' } } }
+];
 async function chargerPalettesListe() {
   const sel = document.getElementById('palette-select');
   if (!sel) return;
   sel.innerHTML = '<option value="">— Aucune —</option>';
+  const groupePretes = document.createElement('optgroup');
+  groupePretes.label = 'Palettes prêtes à l\'emploi';
+  PALETTES_PREDEFINIES.forEach((p, i) => {
+    const opt = document.createElement('option');
+    opt.value = 'predef:' + i;
+    opt.textContent = p.nom;
+    groupePretes.appendChild(opt);
+  });
+  sel.appendChild(groupePretes);
   palettesCouleursCache = [];
   if (!supa) return;
   try {
     const { data, error } = await supa.from('palettes_couleurs').select('nom, donnees').order('nom');
     if (error) throw error;
     palettesCouleursCache = data || [];
-    palettesCouleursCache.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.nom;
-      opt.textContent = p.nom;
-      sel.appendChild(opt);
-    });
+    if (palettesCouleursCache.length) {
+      const groupe = document.createElement('optgroup');
+      groupe.label = 'Mes palettes enregistrées';
+      palettesCouleursCache.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.nom;
+        opt.textContent = p.nom;
+        groupe.appendChild(opt);
+      });
+      sel.appendChild(groupe);
+    }
   } catch (e) {
     console.warn('[Couleurs] palettes indisponibles :', e.message);
   }
@@ -17227,7 +17519,7 @@ function chargerPaletteSelectionnee() {
   const sel = document.getElementById('palette-select');
   const nom = sel ? sel.value : '';
   if (!nom) return;
-  const p = palettesCouleursCache.find(p => p.nom === nom);
+  const p = nom.startsWith('predef:') ? PALETTES_PREDEFINIES[Number(nom.slice(7))] : palettesCouleursCache.find(p => p.nom === nom);
   if (!p) return;
   remplirFormulaireCouleurs(p.donnees);
   previsualiserCouleursAdmin();
@@ -17236,6 +17528,7 @@ async function supprimerPaletteSelectionnee() {
   const sel = document.getElementById('palette-select');
   const nom = sel ? sel.value : '';
   if (!nom || !supa) return;
+  if (nom.startsWith('predef:')) { alert("Les palettes prêtes à l'emploi ne peuvent pas être supprimées."); return; }
   if (!confirm(`Supprimer la palette « ${nom} » ?`)) return;
   try {
     const { error } = await supa.from('palettes_couleurs').delete().eq('nom', nom);
