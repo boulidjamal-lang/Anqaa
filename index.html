@@ -1460,6 +1460,14 @@
     .photos-avant-apres img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 12px; }
     .fiche-exo-video { border-radius: 14px; overflow: hidden; background: #282a2c; margin-bottom: 6px; }
     .fiche-exo-video video { display: block; width: 100%; max-height: 300px; object-fit: contain; background: #fff; }
+    .palettes-perso { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .palette-perso {
+      display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 0; border-radius: 12px; cursor: pointer;
+      background: var(--verre-creux); color: var(--text); font-family: inherit; font-weight: 700; font-size: 0.74rem; text-align: left;
+    }
+    .palette-perso.choisi { box-shadow: 0 0 0 2px var(--primary) inset; color: var(--primary); }
+    .palette-perso-pastilles { display: inline-flex; flex: none; }
+    .palette-perso-pastilles i { width: 14px; height: 14px; border-radius: 50%; margin-right: -4px; box-shadow: 0 0 0 1.5px var(--bg); }
     .admin-lien-video { display: block; font-size: 0.66rem; color: var(--accent); word-break: break-all; margin-top: 2px; }
     .aide-routine-etapes { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
     .aide-routine-etapes li { font-size: 0.84rem; }
@@ -2057,7 +2065,9 @@
     // cache local, pour éviter un flash des couleurs par défaut avant que
     // ce script-ci n'ait eu le temps de les recharger depuis Supabase.
     try {
-      var cc = JSON.parse(localStorage.getItem('elite_couleurs_app_v1'));
+      // Palette choisie par l'utilisateur dans Réglages d'abord, sinon celle
+      // de l'appli (réglée par l'admin).
+      var cc = JSON.parse(localStorage.getItem('elite_couleurs_perso_v1')) || JSON.parse(localStorage.getItem('elite_couleurs_app_v1'));
       if (cc && (cc.clair || cc.sombre)) {
         var style = document.createElement('style');
         style.id = 'couleurs-perso';
@@ -3633,6 +3643,12 @@
         <button type="button" onclick="choisirTheme('light')" aria-pressed="false">Clair</button>
         <button type="button" onclick="choisirTheme('dark')" aria-pressed="false">Sombre</button>
       </div>
+    </div>
+
+    <div class="input-group">
+      <label>Couleurs</label>
+      <div class="palettes-perso" id="palettes-perso"></div>
+      <small class="note" style="display:block; margin-top:6px;">Ton choix ne change que ton appli, sur tous tes appareils.</small>
     </div>
 
     <div class="slider-control">
@@ -8208,7 +8224,7 @@ function appliquerTheme(t) {
 // Plus de bouton dans l'en-tete (retiré) : seul le choix explicite dans les
 // réglages (choisirTheme, via le segment Clair/Sombre) appelle encore
 // appliquerTheme().
-function choisirTheme(t) { appliquerTheme(t); }
+function choisirTheme(t) { appliquerTheme(t); renderChoixPalettePerso(); }
 
 /* =====================================================================
    COULEURS DE L'APPLICATION — réglage admin (voir afficherFeuilleCouleursAdmin).
@@ -8249,6 +8265,48 @@ function construireCssCouleurs(donnees) {
   };
   return regle('light', donnees && donnees.clair) + regle('dark', donnees && donnees.sombre);
 }
+/* Palette PERSONNELLE (Réglages) : chaque utilisateur peut remplacer les
+   couleurs de l'appli par une des palettes prêtes. Le choix vit dans son
+   profil (synchronisé : il le retrouve sur tous ses appareils) et passe
+   avant les couleurs réglées par l'admin ; « Couleurs de l'appli » (id
+   vide) revient à celles-ci. */
+const COULEURS_PERSO_KEY = 'elite_couleurs_perso_v1';
+function palettePersoActive() {
+  const id = userProfile && userProfile.palette;
+  return id ? (PALETTES_PREDEFINIES.find(p => p.id === id) || null) : null;
+}
+function couleursEffectives() {
+  const p = palettePersoActive();
+  return p ? p.donnees : couleursAppActuelles;
+}
+function appliquerCouleursUtilisateur() {
+  const p = palettePersoActive();
+  try {
+    if (p) localStorage.setItem(COULEURS_PERSO_KEY, JSON.stringify(p.donnees));
+    else localStorage.removeItem(COULEURS_PERSO_KEY);
+  } catch (e) {}
+  appliquerCouleursApp(couleursEffectives());
+  renderChoixPalettePerso();
+}
+function choisirPalettePerso(id) {
+  userProfile.palette = id || '';
+  saveData();
+  appliquerCouleursUtilisateur();
+}
+function renderChoixPalettePerso() {
+  const c = document.getElementById('palettes-perso');
+  if (!c) return;
+  const sombre = document.documentElement.getAttribute('data-theme') === 'dark';
+  const actif = (userProfile && userProfile.palette) || '';
+  const options = [{ id: '', nom: "Couleurs de l'appli", donnees: couleursAppActuelles || COULEURS_APP_DEFAUT }]
+    .concat(PALETTES_PREDEFINIES.filter(p => p.id !== 'anqa' || couleursAppActuelles));
+  c.innerHTML = options.map(p => {
+    const v = (p.donnees && (sombre ? p.donnees.sombre : p.donnees.clair)) || {};
+    const pastilles = [v.bg, v.primary, v.accent].map(col => `<i style="background:${escapeHtml(col || '#888')};"></i>`).join('');
+    return `<button type="button" class="palette-perso${p.id === actif ? ' choisi' : ''}" onclick="choisirPalettePerso('${p.id}')" aria-pressed="${p.id === actif}">
+      <span class="palette-perso-pastilles">${pastilles}</span><span>${escapeHtml(p.nom)}</span></button>`;
+  }).join('');
+}
 // donnees = null remet les couleurs par défaut du code (le tag reste vide).
 function appliquerCouleursApp(donnees) {
   let style = document.getElementById('couleurs-perso');
@@ -8269,7 +8327,8 @@ async function chargerCouleursApp() {
     const { data, error } = await supa.from('theme_couleurs').select('donnees').eq('id', 'app').maybeSingle();
     if (error) throw error;
     couleursAppActuelles = data ? data.donnees : null;
-    appliquerCouleursApp(couleursAppActuelles);
+    appliquerCouleursApp(couleursEffectives());
+    renderChoixPalettePerso();
     try { localStorage.setItem(COULEURS_APP_KEY, JSON.stringify(couleursAppActuelles || {})); } catch (e) {}
   } catch (e) {
     console.warn('[Couleurs] chargement indisponible :', e.message);
@@ -8920,6 +8979,7 @@ function definirSessionUtilisateur(user) {
 function viderDonneesLocales() {
   appData = {};
   userProfile = { height: 175, age: 25, gender: 'm', weight: 70 };
+  try { appliquerCouleursUtilisateur(); } catch (e) {}
   musculationProgrammes = []; musculationHistorique = []; musculationExosPerso = [];
   try {
     localStorage.removeItem(STORAGE_KEY);
@@ -11126,6 +11186,7 @@ async function synchroniser(raison) {
     if (rp.data && (Number(rp.data.maj) || 0) > majProfilLocal) {
       userProfile = Object.assign(userProfile, rp.data.donnees, { maj: Number(rp.data.maj) || 0 });
       appliquerGeminiKeyEffective();
+      appliquerCouleursUtilisateur();
       majUIWithings();
       changementLocal = true;
     } else if (!rp.data || majProfilLocal > (Number(rp.data.maj) || 0)) {
@@ -16150,6 +16211,7 @@ if (window.visualViewport) {
 
 window.addEventListener('load', () => {
   loadData();
+  appliquerCouleursUtilisateur();
   chargerMuscu();
   chargerRecettesPerso();
   // Lancé ici, au tout premier chargement de l'appli — pas seulement en
@@ -17455,29 +17517,29 @@ let palettesCouleursCache = [];
 // Palettes prêtes à l'emploi, toujours proposées (sans Supabase) : un
 // thème clair + un thème sombre chacune, contrastes vérifiés pour le texte.
 const PALETTES_PREDEFINIES = [
-  { nom: 'Anqā (par défaut)', donnees: COULEURS_APP_DEFAUT },
-  { nom: 'Océan', donnees: {
+  { id: 'anqa', nom: 'Anqā (par défaut)', donnees: COULEURS_APP_DEFAUT },
+  { id: 'ocean', nom: 'Océan', donnees: {
     clair:  { bg: '#e8f1f8', text: '#0b1b2b', primary: '#0369a1', accent: '#0e7490', danger: '#c62828', icone: '#0b1b2b' },
     sombre: { bg: '#04111d', text: '#eaf4fb', primary: '#38bdf8', accent: '#22d3ee', danger: '#ff6b6b', icone: '#eaf4fb' } } },
-  { nom: 'Feu', donnees: {
+  { id: 'feu', nom: 'Feu', donnees: {
     clair:  { bg: '#fbf0ea', text: '#1f0f08', primary: '#c2410c', accent: '#b91c1c', danger: '#9f1239', icone: '#1f0f08' },
     sombre: { bg: '#120805', text: '#fdf1ea', primary: '#fb923c', accent: '#f87171', danger: '#fb7185', icone: '#fdf1ea' } } },
-  { nom: 'Améthyste', donnees: {
+  { id: 'amethyste', nom: 'Améthyste', donnees: {
     clair:  { bg: '#f1edf8', text: '#170f24', primary: '#6d28d9', accent: '#be185d', danger: '#c62828', icone: '#170f24' },
     sombre: { bg: '#0c0714', text: '#f4effb', primary: '#a78bfa', accent: '#f472b6', danger: '#ff6b6b', icone: '#f4effb' } } },
-  { nom: 'Or', donnees: {
+  { id: 'or', nom: 'Or', donnees: {
     clair:  { bg: '#f7f3e8', text: '#1c160a', primary: '#a16207', accent: '#4d7c0f', danger: '#c62828', icone: '#1c160a' },
     sombre: { bg: '#0d0b06', text: '#faf6ea', primary: '#facc15', accent: '#a3e635', danger: '#ff6b6b', icone: '#faf6ea' } } },
-  { nom: 'Graphite', donnees: {
+  { id: 'graphite', nom: 'Graphite', donnees: {
     clair:  { bg: '#eceef1', text: '#111418', primary: '#334155', accent: '#0f766e', danger: '#c62828', icone: '#111418' },
     sombre: { bg: '#0a0b0d', text: '#eef1f4', primary: '#cbd5e1', accent: '#2dd4bf', danger: '#ff6b6b', icone: '#eef1f4' } } },
-  { nom: 'Forêt', donnees: {
+  { id: 'foret', nom: 'Forêt', donnees: {
     clair:  { bg: '#ebf3ec', text: '#0b1a10', primary: '#166534', accent: '#854d0e', danger: '#c62828', icone: '#0b1a10' },
     sombre: { bg: '#050d08', text: '#ecf6ee', primary: '#4ade80', accent: '#fbbf24', danger: '#ff6b6b', icone: '#ecf6ee' } } },
-  { nom: 'Rose', donnees: {
+  { id: 'rose', nom: 'Rose', donnees: {
     clair:  { bg: '#fbeef3', text: '#220b15', primary: '#be185d', accent: '#7c3aed', danger: '#b91c1c', icone: '#220b15' },
     sombre: { bg: '#12060c', text: '#fdeef4', primary: '#f472b6', accent: '#c4b5fd', danger: '#ff6b6b', icone: '#fdeef4' } } },
-  { nom: 'Nuit polaire', donnees: {
+  { id: 'nuit', nom: 'Nuit polaire', donnees: {
     clair:  { bg: '#e9edf6', text: '#0d1222', primary: '#1d4ed8', accent: '#0891b2', danger: '#c62828', icone: '#0d1222' },
     sombre: { bg: '#05070f', text: '#e9eefc', primary: '#818cf8', accent: '#67e8f9', danger: '#ff6b6b', icone: '#e9eefc' } } }
 ];
@@ -17576,7 +17638,7 @@ async function enregistrerCouleursAdmin() {
     if (error) throw error;
     couleursAppActuelles = donnees;
     try { localStorage.setItem(COULEURS_APP_KEY, JSON.stringify(donnees)); } catch (e) {}
-    appliquerCouleursApp(donnees);
+    appliquerCouleursApp(couleursEffectives());
     await consignerAction('couleurs_app_modifiees', 'app', 'Couleurs de l\'application', null, null);
     fermerFeuilles();
   } catch (e) {
@@ -17586,7 +17648,7 @@ async function enregistrerCouleursAdmin() {
 // Revient aux dernières couleurs enregistrées (ou aux couleurs par défaut
 // si rien n'a jamais été enregistré), pour effacer un aperçu non sauvegardé.
 function annulerCouleursAdmin() {
-  appliquerCouleursApp(couleursAppActuelles);
+  appliquerCouleursApp(couleursEffectives());
   fermerFeuilles();
 }
 
