@@ -12710,6 +12710,11 @@ function mediaExercice(exo) {
 /* Vignette utilisée dans les listes (bibliothèque, sélecteurs) : la photo
    de EXERCICE_MEDIA si l'exercice y est reconnu, sinon le schéma corps. */
 function medaillonExercice(exo) {
+  // Exercice de la bibliothèque avec une vidéo SmartWorkout : sa vignette
+  // passe avant les anciennes photos, pour que la liste montre la même
+  // démonstration que la fiche. Un exercice personnalisé garde sa photo.
+  const sw = !exo.perso && videoExercice(exo);
+  if (sw && sw.poster) return `<img src="${escapeHtml(sw.poster)}" alt="" decoding="async" loading="lazy" style="background:#fff;">`;
   const media = mediaExercice(exo);
   if (media && media.img && media.img[0]) {
     // Les illustrations workout-guide sont un trait blanc sur fond
@@ -13131,7 +13136,8 @@ function prechargerImagesProgrammes() {
     p.exercices.forEach(pe => {
       const exo = trouverExercice(pe.exerciceId);
       if (!exo) return;
-      const media = mediaExercice(exo);
+      const sw = !exo.perso && videoExercice(exo);
+      const media = sw && sw.poster ? { img: [sw.poster] } : mediaExercice(exo);
       if (!media || !media.img) return;
       media.img.forEach(url => {
         if (!url || imagesExercicesPrechargees.has(url)) return;
@@ -14240,7 +14246,7 @@ function afficherFicheExerciceBiblio(id) {
     <button type="button" onclick="choisirOngletFiche('niveau')" aria-pressed="false">Niveau de force</button>
   </div>
   <div class="fiche-onglet" data-onglet="infos">`;
-  const video = videoExercice(e);
+  const video = !e.perso && videoExercice(e);
   if (video) {
     html += `<div class="fiche-exo-video"><video src="${escapeHtml(video.video)}"${video.poster ? ` poster="${escapeHtml(video.poster)}"` : ''} autoplay muted loop playsinline preload="metadata" aria-label="Démonstration : ${escapeHtml(libelleExercice(e))}"></video></div>
     <p class="note fiche-exo-note-source">Vidéo : <a href="${escapeHtml(video.page)}" target="_blank" rel="noopener" style="color:var(--accent);">SmartWorkout</a></p>`;
