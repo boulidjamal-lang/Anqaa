@@ -1142,6 +1142,17 @@
     .journal-action { font-weight: 700; font-size: 0.85rem; }
     .journal-date { font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; }
     .journal-detail { font-size: 0.74rem; color: var(--text-muted); margin-top: 3px; word-break: break-word; }
+    /* Entrée dépliable : un toucher affiche tout ce que le journal sait. */
+    .journal-entree { cursor: pointer; }
+    .journal-entree .journal-chevron { display: inline-block; width: 0.8em; transition: transform 0.2s; color: var(--text-muted); }
+    .journal-entree.ouvert .journal-chevron { transform: rotate(90deg); }
+    .journal-plus { display: none; margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: var(--verre-creux); font-size: 0.74rem; }
+    .journal-entree.ouvert .journal-plus { display: block; }
+    .journal-ligne { display: grid; grid-template-columns: 112px 1fr; gap: 8px; padding: 3px 0; border-bottom: 1px solid var(--verre-brd); }
+    .journal-ligne:last-child { border-bottom: 0; }
+    .journal-ligne span:first-child { color: var(--text-muted); }
+    .journal-ligne span:last-child { word-break: break-word; }
+    .journal-changement b { font-weight: 700; }
 
     .admin-select-ligne { display: flex; gap: 8px; align-items: stretch; }
     .admin-select-ligne input[type="search"] {
@@ -10629,8 +10640,77 @@ const LIBELLES_ACTION = {
   donnees_importees: '\u2b06 Donn\u00e9es import\u00e9es (fichier)',
   unites_corrigees: '\ud83d\udccf Unit\u00e9s g/ml corrig\u00e9es',
   aliment_supprime: '\ud83c\udf7d Aliment supprim\u00e9',
-  aliment_modifie: '\u270f Aliment modifi\u00e9'
+  aliment_modifie: '\u270f Aliment modifi\u00e9',
+  aliment_valide_vers_base: '\u2705 Aliment valid\u00e9 et ajout\u00e9 \u00e0 la base',
+  aliments_valides_transferes: '\u2705 Aliments valid\u00e9s transf\u00e9r\u00e9s dans la base',
+  aliment_valide: '\u2705 Aliment valid\u00e9',
+  aliment_devalide: '\u21a9 Validation d\u2019aliment retir\u00e9e',
+  aliment_base_modifie: '\u270f Aliment de la base modifi\u00e9',
+  aliment_base_supprime: '\ud83d\uddd1 Aliment de la base supprim\u00e9',
+  aliments_copies_ciqual_retires: '\ud83e\uddf9 Copies d\u2019aliments de la base retir\u00e9es',
+  exercice_base_modifie: '\u270f Exercice de base modifi\u00e9',
+  exercice_modifie: '\u270f Exercice personnalis\u00e9 modifi\u00e9',
+  exercice_base_supprime: '\ud83d\uddd1 Exercice de base supprim\u00e9',
+  exercice_supprime: '\ud83d\uddd1 Exercice personnalis\u00e9 supprim\u00e9',
+  exercice_base_restaure: '\u21a9 Exercice de base restaur\u00e9',
+  exercice_fusionne: '\u21c4 Exercices fusionn\u00e9s',
+  recette_modifiee_admin: '\u270f Recette modifi\u00e9e',
+  recette_supprimee_admin: '\ud83d\uddd1 Recette supprim\u00e9e',
+  recette_partagee: '\ud83c\udf0d Recette partag\u00e9e avec tous',
+  recette_retiree_du_partage: '\ud83d\udd12 Recette retir\u00e9e du partage',
+  couleurs_app_modifiees: '\ud83c\udfa8 Couleurs de l\u2019appli modifi\u00e9es'
 };
+// Libellés des champs de détail (journal et avant/après).
+const LIBELLES_DETAIL = {
+  createur: 'Créateur', resultat: 'Résultat', vers: 'Fusionné vers (id)', versNom: 'Fusionné vers',
+  nom: 'Nom', code_barre: 'Code-barres', kcal100: 'Kcal / 100 g', p100: 'Protéines / 100 g', c100: 'Glucides / 100 g', f100: 'Lipides / 100 g',
+  portions: 'Portions', ingredients: 'Ingrédients', groupe: 'Groupe', materiel: 'Matériel', video: 'Vidéo'
+};
+const VALEURS_DETAIL = { ajoute: 'ajouté à la base', existe: 'déjà présent dans la base (doublon retiré)' };
+function texteValeurJournal(v) {
+  if (v == null || v === '') return '—';
+  if (Array.isArray(v)) return v.map(x => (x && typeof x === 'object') ? (x.nom || JSON.stringify(x)) + (x.grammes != null ? ' (' + x.grammes + ' g)' : '') : String(x)).join(', ') || '—';
+  if (typeof v === 'object') return JSON.stringify(v);
+  return VALEURS_DETAIL[v] || String(v);
+}
+// Avant / après : seulement les champs qui ont réellement changé.
+function changementsJournal(avant, apres) {
+  const cles = [...new Set([...Object.keys(avant || {}), ...Object.keys(apres || {})])];
+  return cles.filter(k => JSON.stringify((avant || {})[k]) !== JSON.stringify((apres || {})[k]))
+    .map(k => [LIBELLES_DETAIL[k] || k, texteValeurJournal((avant || {})[k]) + ' → ' + texteValeurJournal((apres || {})[k])]);
+}
+function lignesDetailJournal(e) {
+  const lignes = [];
+  const ajouter = (l, v) => { if (v != null && v !== '') lignes.push([l, String(v)]); };
+  const d = e.fait_le ? new Date(e.fait_le) : null;
+  ajouter('Date', d && !isNaN(d) ? d.toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '');
+  ajouter('Par', e.fait_par || e.admin_email || e.auteur || e.par || e.admin || '');
+  ajouter('Action', LIBELLES_ACTION[e.action] ? e.action : '');
+  ajouter('Cible', e.cible_libelle);
+  const compte = e.cible_id && typeof adminComptes !== 'undefined' && adminComptes[e.cible_id];
+  ajouter('Compte concerné', compte ? (compte.email || '') : '');
+  ajouter('Identifiant', e.cible_id);
+  ajouter('Motif', e.motif);
+  let det = e.detail;
+  if (typeof det === 'string') { try { const j = JSON.parse(det); if (j && typeof j === 'object') det = j; } catch (_) {} }
+  if (det && typeof det === 'object' && !Array.isArray(det)) {
+    Object.keys(det).forEach(k => {
+      if (k === 'avant' || k === 'apres') return;
+      ajouter(LIBELLES_DETAIL[k] || k, texteValeurJournal(det[k]));
+    });
+    if (det.avant || det.apres) {
+      const ch = changementsJournal(det.avant, det.apres);
+      if (ch.length) ch.forEach(([l, v]) => lignes.push(['Modifié : ' + l, v]));
+      else lignes.push(['Modifications', 'aucune valeur changée']);
+    }
+  } else if (det != null && det !== '') {
+    ajouter('Détail', texteValeurJournal(det));
+  }
+  // Tout autre champ renvoyé par le journal (sauf ceux déjà montrés).
+  const connus = new Set(['id', 'action', 'fait_le', 'fait_par', 'admin_email', 'auteur', 'par', 'admin', 'cible_id', 'cible_libelle', 'motif', 'detail']);
+  Object.keys(e).forEach(k => { if (!connus.has(k) && e[k] != null && e[k] !== '') ajouter(k, texteValeurJournal(e[k])); });
+  return lignes;
+}
 
 /* Construction par DOM : motifs et emails viennent de la base. */
 function rendreJournal(entrees) {
@@ -10653,7 +10733,11 @@ function rendreJournal(entrees) {
     tete.className = 'journal-tete';
     const act = document.createElement('span');
     act.className = 'journal-action';
-    act.textContent = LIBELLES_ACTION[e.action] || e.action;
+    const chevron = document.createElement('span');
+    chevron.className = 'journal-chevron';
+    chevron.textContent = '›';
+    act.appendChild(chevron);
+    act.appendChild(document.createTextNode(' ' + (LIBELLES_ACTION[e.action] || e.action)));
     const date = document.createElement('span');
     date.className = 'journal-date';
     date.textContent = new Date(e.fait_le).toLocaleString('fr-FR', {
@@ -10668,6 +10752,25 @@ function rendreJournal(entrees) {
     if (e.motif) txt += (txt ? ' \u00b7 ' : '') + '\u00ab ' + e.motif + ' \u00bb';
     detail.textContent = txt || '\u2014';
     bloc.appendChild(detail);
+
+    // Détail complet, affiché au toucher (construit par DOM : textContent).
+    const plus = document.createElement('div');
+    plus.className = 'journal-plus';
+    lignesDetailJournal(e).forEach(([l, v]) => {
+      const ligne = document.createElement('div');
+      ligne.className = 'journal-ligne';
+      const a = document.createElement('span'); a.textContent = l;
+      const b = document.createElement('span'); b.textContent = v;
+      ligne.appendChild(a); ligne.appendChild(b);
+      plus.appendChild(ligne);
+    });
+    bloc.appendChild(plus);
+    bloc.setAttribute('role', 'button');
+    bloc.setAttribute('tabindex', '0');
+    bloc.setAttribute('aria-expanded', 'false');
+    const basculer = () => { const o = bloc.classList.toggle('ouvert'); bloc.setAttribute('aria-expanded', o ? 'true' : 'false'); };
+    bloc.addEventListener('click', basculer);
+    bloc.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); basculer(); } });
 
     liste.appendChild(bloc);
   });
@@ -17298,7 +17401,7 @@ async function supprimerAlimentBase(a) {
     const { error } = await supa.from(confSupabase().table).delete().eq(s.cle, a.cle);
     if (error) throw error;
     cacheAliments.clear();
-    await consignerAction('aliment_base_supprime', String(a.cle), a.nom || '', null, null);
+    await consignerAction('aliment_base_supprime', String(a.cle), a.nom || '', null, { avant: { nom: a.nom, code_barre: a.code_barre || '', kcal100: a.kcal100, p100: a.p100, c100: a.c100, f100: a.f100 } });
     chercherBaseAlimentsAdmin();
   } catch (e) {
     alert('Suppression impossible : ' + e.message);
@@ -17367,7 +17470,7 @@ async function validerAlimentPartage(a) {
     const resultat = await insererDansBaseAliments(a);
     await retirerAlimentPartageTransfere(a);
     cacheVider();
-    await consignerAction('aliment_valide_vers_base', a.id, a.nom || '', null, { createur: a.createur || null, resultat });
+    await consignerAction('aliment_valide_vers_base', a.id, a.nom || '', null, { createur: a.createur || null, resultat, kcal100: a.kcal100, p100: a.p100, c100: a.c100, f100: a.f100, code_barre: a.code_barre || null });
     if (resultat === 'existe') alert(`« ${a.nom} » était déjà dans la base d'aliments : le doublon partagé est retiré.`);
     await chargerAlimentsAdmin();
   } catch (e) {
@@ -17567,6 +17670,16 @@ async function sauvegarderEditionAliment() {
       .eq('id', id);
     if (error) throw error;
 
+    {
+      const avant = adminAlimentsCharges.find(x => String(x.id) === String(id)) || {};
+      const champs = ['nom', 'code_barre', 'kcal100', 'p100', 'c100', 'f100'];
+      const pick = o => Object.fromEntries(champs.map(k => [k, o[k] == null ? '' : (typeof o[k] === 'number' ? o[k] : (isFinite(Number(o[k])) && k !== 'nom' && k !== 'code_barre' ? Number(o[k]) : o[k]))]));
+      await consignerAction('aliment_modifie', id, nom, null, {
+        createur: avant.createur || null,
+        avant: pick(avant),
+        apres: pick({ nom, code_barre: val('edit-code-barre').trim(), kcal100: nombre('edit-kcal', 2000), p100: nombre('edit-p100', 200), c100: nombre('edit-c100', 200), f100: nombre('edit-f100', 200) })
+      });
+    }
     cacheVider();
     modal.classList.remove('show');
     majCoucheOuverte();
@@ -17599,7 +17712,11 @@ async function sauvegarderAlimentBase(modal) {
     }
     if (error) throw error;
     cacheAliments.clear();
-    await consignerAction('aliment_base_modifie', modal.dataset.cleBase, nom, null, null);
+    const avantBase = (baseAlimentsAffiches || []).find(x => String(x.cle) === String(modal.dataset.cleBase)) || {};
+    await consignerAction('aliment_base_modifie', modal.dataset.cleBase, nom, null, {
+      avant: { nom: avantBase.nom, code_barre: avantBase.code_barre || '', kcal100: avantBase.kcal100, p100: avantBase.p100, c100: avantBase.c100, f100: avantBase.f100 },
+      apres: { nom, code_barre: val('edit-code-barre').trim(), kcal100: nombre('edit-kcal', 2000), p100: nombre('edit-p100', 200), c100: nombre('edit-c100', 200), f100: nombre('edit-f100', 200) }
+    });
     modal.dataset.cleBase = '';
     modal.classList.remove('show');
     majCoucheOuverte();
@@ -18156,7 +18273,8 @@ async function enregistrerRecetteAdmin() {
       .eq('utilisateur', utilisateur).eq('id', r.id).select('id');
     if (error) throw error;
     if (!data || !data.length) throw new Error("recette introuvable (déjà supprimée ?)");
-    await consignerAction('recette_modifiee_admin', r.id, r.nom || '', null, { createur: (avant && avant.email) || null });
+    const resume = x => ({ nom: x.nom, portions: Number(x.portions) || 1, ingredients: (x.ingredients || []).map(i => ({ nom: i.nom, grammes: Math.round(Number(i.grammes) || 0) })) });
+    await consignerAction('recette_modifiee_admin', r.id, r.nom || '', null, { createur: (avant && avant.email) || null, avant: avant ? resume(avant) : null, apres: resume(r) });
     fermerEditeurRecetteAdmin();
     await rafraichirApresRecetteAdmin(utilisateur);
   } catch (e) {
@@ -18171,7 +18289,7 @@ async function supprimerRecetteAdmin(utilisateur, id) {
   try {
     const { error } = await supa.from('recettes_perso').delete().eq('utilisateur', utilisateur).eq('id', id);
     if (error) throw error;
-    await consignerAction('recette_supprimee_admin', id, nom, null, { createur: (r && r.email) || null });
+    await consignerAction('recette_supprimee_admin', id, nom, null, { createur: (r && r.email) || null, portions: r ? Number(r.portions) || 1 : null, ingredients: r ? (r.ingredients || []).map(i => ({ nom: i.nom, grammes: Math.round(Number(i.grammes) || 0) })) : null });
     if (recetteAdminDerouleeId === id) recetteAdminDerouleeId = null;
     await rafraichirApresRecetteAdmin(utilisateur);
     return true;
