@@ -1085,6 +1085,36 @@
        nette au premier coup d'oeil. */
     .onb-option.choisi { background: var(--verre-fort); color: var(--primary); font-weight: 800; box-shadow: 0 0 0 2px var(--primary) inset; }
     .onb-option.choisi small { color: var(--primary); }
+    /* Assistant « Programme par IA » (7 étapes + récapitulatif). */
+    .ia-prog-tete { display: flex; justify-content: space-between; gap: 10px; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+    .ia-prog-titre { margin: 0 0 12px; font-size: 1.25rem; font-weight: 800; line-height: 1.2; }
+    .ia-prog-facultatif { font-weight: 600; font-size: 0.68rem; color: var(--text-muted); text-transform: none; letter-spacing: 0; }
+    .ia-prog-erreur { color: var(--danger); margin: 8px 2px 0; }
+    .ia-prog-erreur:empty { display: none; }
+    .ia-prog-nav { display: flex; gap: 10px; margin-top: 16px; }
+    .ia-prog-nav .btn { flex: 1; }
+    .ia-prog-puces { grid-template-columns: repeat(4, 1fr); gap: 7px; }
+    .ia-prog-puces--5 { grid-template-columns: repeat(5, 1fr); }
+    #ia-prog-limites { grid-template-columns: repeat(4, 1fr); }
+    .ia-prog-puces .onb-option, .ia-prog-jours .onb-option { padding: 10px 4px; min-height: 42px; font-size: 0.8rem; }
+    .ia-prog-jours { grid-template-columns: repeat(7, 1fr); gap: 5px; }
+    .ia-prog-echelle { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); margin-top: 5px; }
+    .ia-prog-charge { display: grid; grid-template-columns: 1fr 72px 14px 60px; align-items: center; gap: 6px; margin-bottom: 7px; font-size: 0.84rem; font-weight: 700; }
+    .ia-prog-charge input { text-align: center; padding: 9px 4px; }
+    .ia-prog-charge span.x { text-align: center; color: var(--text-muted); }
+    .ia-prog-prio { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--verre-brd); }
+    .ia-prog-prio:last-child { border-bottom: 0; }
+    .ia-prog-prio > span { font-size: 0.86rem; font-weight: 700; }
+    .ia-prog-prio .segment { flex: none; width: 216px; margin: 0; }
+    .ia-prog-prio .segment button { font-size: 0.72rem; padding-left: 2px; padding-right: 2px; }
+    .ia-prog-recap-bloc { background: var(--verre-creux); border-radius: 14px; padding: 11px 13px; margin-bottom: 8px; display: flex; gap: 10px; align-items: flex-start; }
+    .ia-prog-recap-bloc > div { flex: 1; min-width: 0; }
+    .ia-prog-recap-bloc small { display: block; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+    .ia-prog-recap-bloc p { margin: 0; font-size: 0.84rem; line-height: 1.45; }
+    .ia-prog-recap-bloc button { flex: none; background: none; border: 0; padding: 2px 0; font: inherit; font-size: 0.78rem; font-weight: 800; color: var(--primary); cursor: pointer; }
+    .ia-prog-pourquoi { background: var(--verre-creux); border-radius: 16px; padding: 12px 14px; margin-bottom: 14px; }
+    .ia-prog-pourquoi ul { margin: 6px 0 0; padding-left: 18px; font-size: 0.84rem; line-height: 1.5; }
+    .ia-prog-pourquoi li { margin-bottom: 4px; }
     .onb-option strong { display: block; font-size: 0.88rem; }
     .onb-option small {
       display: block; font-weight: 500; font-size: 0.72rem;
@@ -4276,11 +4306,13 @@
     </div>
 
     <div id="ia-programme-formulaire">
+      <div class="ia-prog-tete"><span id="ia-prog-compteur">Étape 1 / 7</span><span id="ia-prog-section">Objectif</span></div>
       <div class="onb-progres"><div class="onb-barre" id="ia-prog-barre"></div></div>
 
-      <!-- Étape 1 : objectif & niveau -->
+      <!-- 1. Objectif -->
       <div class="ia-prog-etape" data-etape="1">
-        <p class="note note-explicative" style="margin-top:0;">L'IA compose un ou plusieurs programmes à partir de la bibliothèque d'exercices de l'appli. Rien n'est ajouté avant ta validation finale.</p>
+        <h3 class="ia-prog-titre">Qu'est-ce que tu vises ?</h3>
+        <p class="note note-explicative" style="margin-top:0;">7 courtes étapes, environ 3 minutes. Seuls l'objectif, l'expérience et les jours sont obligatoires : le reste affine le programme. Rien n'est ajouté avant ta validation.</p>
         <div class="input-group">
           <label>Objectif principal</label>
           <div class="onb-choix" id="ia-prog-objectif">
@@ -4292,109 +4324,194 @@
             <button type="button" class="onb-option" data-valeur="forme">Remise en forme générale</button>
           </div>
         </div>
-        <div class="input-group" style="margin-bottom:0;">
-          <label>Niveau</label>
-          <div class="onb-choix" id="ia-prog-niveau">
-            <button type="button" class="onb-option" data-valeur="debutant">Débutant</button>
-            <button type="button" class="onb-option" data-valeur="intermediaire">Intermédiaire</button>
-            <button type="button" class="onb-option" data-valeur="avance">Avancé</button>
+        <div class="input-group">
+          <label>Pour quand ? <small class="ia-prog-facultatif">facultatif</small></label>
+          <div class="onb-choix ia-prog-puces" id="ia-prog-echeance">
+            <button type="button" class="onb-option" data-valeur="">Pas de date</button>
+            <button type="button" class="onb-option" data-valeur="3 mois">3 mois</button>
+            <button type="button" class="onb-option" data-valeur="6 mois">6 mois</button>
+            <button type="button" class="onb-option" data-valeur="1 an">1 an</button>
           </div>
         </div>
-        <p class="note" id="ia-prog-erreur-1" style="color:var(--danger);"></p>
-        <button class="btn btn-primary" type="button" style="width:100%;" onclick="iaProgSuivant(2)">Continuer</button>
+        <div class="input-group" style="margin-bottom:0;">
+          <label for="ia-prog-phrase">Ton objectif en une phrase <small class="ia-prog-facultatif">facultatif</small></label>
+          <textarea id="ia-prog-phrase" rows="2" placeholder="ex. des épaules plus larges et 10 tractions d'ici l'été"></textarea>
+        </div>
+        <p class="note ia-prog-erreur" id="ia-prog-erreur-1"></p>
+        <div class="ia-prog-nav"><button class="btn btn-primary" type="button" onclick="iaProgSuivant(2)">Continuer</button></div>
       </div>
 
-      <!-- Étape 2 : rythme -->
+      <!-- 2. Expérience et charges -->
       <div class="ia-prog-etape hidden" data-etape="2">
-        <h3 style="margin:0 0 10px; font-size:1.02rem;">Ton rythme</h3>
-        <div style="display:flex; gap:10px;">
-          <div class="input-group" style="flex:1;">
-            <label for="ia-prog-seances">Séances / semaine</label>
-            <input type="number" id="ia-prog-seances" min="1" max="7" value="3" inputmode="numeric">
-          </div>
-          <div class="input-group" style="flex:1;">
-            <label for="ia-prog-duree">Durée/séance (min, facultatif)</label>
-            <input type="number" id="ia-prog-duree" min="15" max="180" step="5" placeholder="ex. 60" inputmode="numeric">
+        <h3 class="ia-prog-titre">Où en es-tu ?</h3>
+        <div class="input-group">
+          <label>Expérience en musculation</label>
+          <div class="onb-choix onb-vertical" id="ia-prog-niveau">
+            <button type="button" class="onb-option" data-valeur="debutant"><strong>Débutant</strong><small>Moins d'un an d'entraînement régulier</small></button>
+            <button type="button" class="onb-option" data-valeur="intermediaire"><strong>Intermédiaire</strong><small>Entre 1 et 3 ans</small></button>
+            <button type="button" class="onb-option" data-valeur="avance"><strong>Avancé</strong><small>Plus de 3 ans</small></button>
           </div>
         </div>
         <div class="input-group" style="margin-bottom:0;">
-          <label>Répartition souhaitée (split)</label>
+          <label>Tes charges actuelles <small class="ia-prog-facultatif">facultatif</small></label>
+          <small class="onb-aide" style="margin:0 0 8px;">Ta meilleure série récente (poids × répétitions) : elle sert à proposer des charges de départ. Tractions : lest en kg, 0 au poids du corps.</small>
+          <div id="ia-prog-charges"></div>
+          <small class="onb-aide" id="ia-prog-charges-auto"></small>
+        </div>
+        <p class="note ia-prog-erreur" id="ia-prog-erreur-2"></p>
+        <div class="ia-prog-nav">
+          <button class="btn btn-secondaire" type="button" onclick="iaProgAller(1)">Retour</button>
+          <button class="btn btn-primary" type="button" onclick="iaProgSuivant(3)">Continuer</button>
+        </div>
+      </div>
+
+      <!-- 3. Rythme -->
+      <div class="ia-prog-etape hidden" data-etape="3">
+        <h3 class="ia-prog-titre">Quand t'entraînes-tu ?</h3>
+        <div class="input-group">
+          <label>Tes jours d'entraînement</label>
+          <div class="onb-choix ia-prog-jours" id="ia-prog-jours"></div>
+        </div>
+        <div class="input-group">
+          <label>Durée d'une séance</label>
+          <div class="onb-choix ia-prog-puces ia-prog-puces--5" id="ia-prog-duree">
+            <button type="button" class="onb-option" data-valeur="30">30 min</button>
+            <button type="button" class="onb-option" data-valeur="45">45 min</button>
+            <button type="button" class="onb-option choisi" data-valeur="60">60 min</button>
+            <button type="button" class="onb-option" data-valeur="75">75 min</button>
+            <button type="button" class="onb-option" data-valeur="90">90 min</button>
+          </div>
+        </div>
+        <div class="input-group" style="margin-bottom:0;">
+          <label>Répartition (split)</label>
           <div class="onb-choix onb-vertical" id="ia-prog-split">
-            <button type="button" class="onb-option" data-valeur="full_body"><strong>Full body</strong><small>Tout le corps à chaque séance — un seul programme</small></button>
+            <button type="button" class="onb-option" data-valeur="full_body"><strong>Full body</strong><small>Tout le corps à chaque séance : un seul programme</small></button>
             <button type="button" class="onb-option" data-valeur="haut_bas"><strong>Haut / Bas</strong><small>2 programmes qui alternent</small></button>
             <button type="button" class="onb-option" data-valeur="ppl"><strong>Push / Pull / Legs</strong><small>3 programmes : pousser, tirer, jambes</small></button>
-            <button type="button" class="onb-option" data-valeur="autre"><strong>Autre / laisse l'IA décider</strong><small>Tu choisis toi-même le nombre de programmes</small></button>
-          </div>
-          <div id="ia-prog-nombre-wrap" class="hidden" style="margin-top:12px;">
-            <label for="ia-prog-nombre">Nombre de programmes à générer</label>
-            <input type="number" id="ia-prog-nombre" min="1" max="6" value="2" inputmode="numeric">
+            <button type="button" class="onb-option" data-valeur="autre"><strong>Laisse l'IA choisir</strong><small>Selon tes jours et ton objectif</small></button>
           </div>
         </div>
-        <p class="note" id="ia-prog-erreur-2" style="color:var(--danger);"></p>
-        <div style="display:flex; gap:10px; margin-top:16px;">
-          <button class="btn btn-secondaire" type="button" style="flex:1;" onclick="iaProgAller(1)">Retour</button>
-          <button class="btn btn-primary" type="button" style="flex:1;" onclick="iaProgSuivant(3)">Continuer</button>
+        <p class="note ia-prog-erreur" id="ia-prog-erreur-3"></p>
+        <div class="ia-prog-nav">
+          <button class="btn btn-secondaire" type="button" onclick="iaProgAller(2)">Retour</button>
+          <button class="btn btn-primary" type="button" onclick="iaProgSuivant(4)">Continuer</button>
         </div>
       </div>
 
-      <!-- Étape 3 : matériel -->
-      <div class="ia-prog-etape hidden" data-etape="3">
-        <h3 style="margin:0 0 10px; font-size:1.02rem;">Matériel disponible</h3>
-        <button type="button" class="onb-option" id="ia-prog-salle-complete" style="width:100%; text-align:center; margin-bottom:10px;">🏋️ Salle complète (tout le matériel)</button>
+      <!-- 4. Matériel -->
+      <div class="ia-prog-etape hidden" data-etape="4">
+        <h3 class="ia-prog-titre">Avec quoi ?</h3>
+        <button type="button" class="onb-option" id="ia-prog-salle-complete" style="width:100%; text-align:center; margin-bottom:10px;">Salle complète (tout le matériel)</button>
         <div class="input-group" style="margin-bottom:0;">
           <div id="ia-prog-materiel" class="onb-choix" style="grid-template-columns:1fr 1fr;"></div>
-          <small class="onb-aide">Rien de coché = tout le matériel de la bibliothèque, comme "Salle complète".</small>
+          <small class="onb-aide">Rien de coché = tout le matériel de la bibliothèque, comme « Salle complète ».</small>
         </div>
-        <div style="display:flex; gap:10px; margin-top:16px;">
-          <button class="btn btn-secondaire" type="button" style="flex:1;" onclick="iaProgAller(2)">Retour</button>
-          <button class="btn btn-primary" type="button" style="flex:1;" onclick="iaProgAller(4)">Continuer</button>
-        </div>
-      </div>
-
-      <!-- Étape 4 : groupes musculaires à prioriser -->
-      <div class="ia-prog-etape hidden" data-etape="4">
-        <h3 style="margin:0 0 6px; font-size:1.02rem;">Zones à prioriser</h3>
-        <p class="note note-explicative" style="margin-top:0;">Facultatif : laisse vide pour un programme équilibré sur tout le corps.</p>
-        <div class="input-group" style="margin-bottom:0;">
-          <div id="ia-prog-groupes" class="onb-choix" style="grid-template-columns:1fr 1fr;"></div>
-        </div>
-        <div style="display:flex; gap:10px; margin-top:16px;">
-          <button class="btn btn-secondaire" type="button" style="flex:1;" onclick="iaProgAller(3)">Retour</button>
-          <button class="btn btn-primary" type="button" style="flex:1;" onclick="iaProgAller(5)">Continuer</button>
+        <div class="ia-prog-nav">
+          <button class="btn btn-secondaire" type="button" onclick="iaProgAller(3)">Retour</button>
+          <button class="btn btn-primary" type="button" onclick="iaProgSuivant(5)">Continuer</button>
         </div>
       </div>
 
-      <!-- Étape 5 : exercices précis -->
+      <!-- 5. Priorités musculaires -->
       <div class="ia-prog-etape hidden" data-etape="5">
-        <h3 style="margin:0 0 10px; font-size:1.02rem;">Exercices précis</h3>
+        <h3 class="ia-prog-titre">Quels muscles mettre en avant ?</h3>
+        <p class="note note-explicative" style="margin-top:0;"><b>Priorité</b> : plus de séries, en début de séance (2 muscles au maximum). <b>Maintenir</b> : le minimum pour ne rien perdre. Tout le reste en <b>Normal</b>.</p>
+        <div id="ia-prog-priorites"></div>
+        <p class="note" id="ia-prog-prio-compte" style="margin:8px 2px 0;"></p>
+        <div class="ia-prog-nav">
+          <button class="btn btn-secondaire" type="button" onclick="iaProgAller(4)">Retour</button>
+          <button class="btn btn-primary" type="button" onclick="iaProgSuivant(6)">Continuer</button>
+        </div>
+      </div>
+
+      <!-- 6. Exercices -->
+      <div class="ia-prog-etape hidden" data-etape="6">
+        <h3 class="ia-prog-titre">Des exercices en tête ?</h3>
         <div class="input-group">
-          <label for="ia-prog-inclure">Exercices à inclure absolument (facultatif)</label>
+          <label for="ia-prog-inclure">À garder absolument <small class="ia-prog-facultatif">facultatif</small></label>
           <textarea id="ia-prog-inclure" rows="2" placeholder="ex. développé couché, tractions, soulevé de terre…"></textarea>
         </div>
+        <div class="input-group" style="margin-bottom:0;">
+          <label for="ia-prog-exclure">À éviter <small class="ia-prog-facultatif">facultatif</small></label>
+          <textarea id="ia-prog-exclure" rows="2" placeholder="ex. squat, rien au sol…"></textarea>
+        </div>
+        <div class="ia-prog-nav">
+          <button class="btn btn-secondaire" type="button" onclick="iaProgAller(5)">Retour</button>
+          <button class="btn btn-primary" type="button" onclick="iaProgSuivant(7)">Continuer</button>
+        </div>
+      </div>
+
+      <!-- 7. Récupération -->
+      <div class="ia-prog-etape hidden" data-etape="7">
+        <h3 class="ia-prog-titre">Ta récupération</h3>
         <div class="input-group">
-          <label for="ia-prog-exclure">Exercices ou mouvements à éviter (facultatif)</label>
-          <textarea id="ia-prog-exclure" rows="2" placeholder="ex. squat (genou fragile), rien au sol…"></textarea>
+          <label>Sommeil, en moyenne</label>
+          <div class="onb-choix ia-prog-puces" id="ia-prog-sommeil">
+            <button type="button" class="onb-option" data-valeur="moins de 6 h">&lt; 6 h</button>
+            <button type="button" class="onb-option" data-valeur="6 à 7 h">6–7 h</button>
+            <button type="button" class="onb-option" data-valeur="7 à 8 h">7–8 h</button>
+            <button type="button" class="onb-option" data-valeur="plus de 8 h">8 h +</button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Stress au quotidien</label>
+          <div class="onb-choix ia-prog-puces ia-prog-puces--5" id="ia-prog-stress">
+            <button type="button" class="onb-option" data-valeur="1">1</button>
+            <button type="button" class="onb-option" data-valeur="2">2</button>
+            <button type="button" class="onb-option" data-valeur="3">3</button>
+            <button type="button" class="onb-option" data-valeur="4">4</button>
+            <button type="button" class="onb-option" data-valeur="5">5</button>
+          </div>
+          <div class="ia-prog-echelle"><span>calme</span><span>très stressé</span></div>
+        </div>
+        <div class="input-group">
+          <label>Une zone qui te gêne ?</label>
+          <div class="onb-choix ia-prog-puces" id="ia-prog-limites">
+            <button type="button" class="onb-option" data-valeur="aucune">Aucune</button>
+            <button type="button" class="onb-option" data-valeur="épaule">Épaule</button>
+            <button type="button" class="onb-option" data-valeur="coude">Coude</button>
+            <button type="button" class="onb-option" data-valeur="poignet">Poignet</button>
+            <button type="button" class="onb-option" data-valeur="bas du dos">Bas du dos</button>
+            <button type="button" class="onb-option" data-valeur="genou">Genou</button>
+            <button type="button" class="onb-option" data-valeur="hanche">Hanche</button>
+            <button type="button" class="onb-option" data-valeur="nuque">Nuque</button>
+          </div>
         </div>
         <div class="input-group" style="margin-bottom:0;">
-          <label for="ia-prog-notes">Autres précisions, blessures, contraintes (facultatif)</label>
-          <textarea id="ia-prog-notes" rows="2" placeholder="ex. épaule droite fragile, séances courtes le matin…"></textarea>
+          <label for="ia-prog-notes">Précisions <small class="ia-prog-facultatif">facultatif</small></label>
+          <textarea id="ia-prog-notes" rows="2" placeholder="ex. épaule droite qui tire au développé, séances courtes le matin…"></textarea>
         </div>
-        <div style="display:flex; gap:10px; margin-top:16px;">
-          <button class="btn btn-secondaire" type="button" style="flex:1;" onclick="iaProgAller(4)">Retour</button>
-          <button class="btn btn-primary" type="button" style="flex:1;" onclick="genererProgrammesIA()">Générer</button>
+        <p class="note note-explicative">L'IA écarte les mouvements qui chargent une zone sensible. Ce n'est pas un avis médical : si une douleur persiste, parles-en à un professionnel de santé.</p>
+        <div class="ia-prog-nav">
+          <button class="btn btn-secondaire" type="button" onclick="iaProgAller(6)">Retour</button>
+          <button class="btn btn-primary" type="button" onclick="iaProgSuivant(8)">Voir le récapitulatif</button>
+        </div>
+      </div>
+
+      <!-- Récapitulatif -->
+      <div class="ia-prog-etape hidden" data-etape="8">
+        <h3 class="ia-prog-titre">On a bien compris ?</h3>
+        <p class="note note-explicative" style="margin-top:0;">Vérifie avant de lancer l'IA. « Modifier » te ramène à l'étape concernée.</p>
+        <div id="ia-prog-recap"></div>
+        <div class="ia-prog-nav">
+          <button class="btn btn-secondaire" type="button" onclick="iaProgAller(7)">Retour</button>
+          <button class="btn btn-primary" type="button" onclick="genererProgrammesIA()">Créer mon programme</button>
         </div>
         <div id="ia-prog-erreur" class="error-box hidden"></div>
       </div>
     </div>
 
-    <div id="ia-prog-loader" class="loader hidden"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 18V5" /><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4" /><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5" /><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77" /><path d="M18 18a4 4 0 0 0 2-7.464" /><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517" /><path d="M6 18a4 4 0 0 1-2-7.464" /><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77" /></svg> L'IA compose le(s) programme(s)…</div>
+    <div id="ia-prog-loader" class="loader hidden"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v4" /><path d="m16.2 7.8 2.9-2.9" /><path d="M18 12h4" /><path d="m16.2 16.2 2.9 2.9" /><path d="M12 18v4" /><path d="m4.9 19.1 2.9-2.9" /><path d="M2 12h4" /><path d="m4.9 4.9 2.9 2.9" /></svg> L'IA compose ton programme…</div>
 
     <div id="ia-prog-resultats" class="hidden">
-      <p class="note note-explicative" style="margin-top:0;">Décoche ce que tu ne veux pas ajouter, puis valide.</p>
+      <div id="ia-prog-pourquoi"></div>
+      <div id="ia-prog-volume"></div>
+      <div class="titre-section" style="margin-top:6px;">Les programmes</div>
+      <p class="note note-explicative" style="margin-top:0;">Décoche ce que tu ne veux pas ajouter, puis valide. Tout reste modifiable ensuite.</p>
       <div id="ia-prog-resultats-liste"></div>
-      <div style="display:flex; gap:8px; margin-top:14px;">
-        <button class="btn btn-secondaire" style="flex:1;" onclick="rebasculerFormulaireIAProgramme()">Refaire les questions</button>
-        <button class="btn btn-primary" style="flex:1;" onclick="ajouterProgrammesIASelectionnes()">Ajouter les programmes</button>
+      <div class="ia-prog-nav">
+        <button class="btn btn-secondaire" type="button" onclick="iaProgRetourRecap()">Modifier mes réponses</button>
+        <button class="btn btn-primary" type="button" onclick="ajouterProgrammesIASelectionnes()">Ajouter</button>
       </div>
     </div>
   </div>
@@ -15161,8 +15278,10 @@ const IA_PROG_OBJECTIFS = {
   muscle: 'Prise de muscle (hypertrophie)', force: 'Force', perte_gras: 'Perte de gras',
   endurance: 'Endurance musculaire', recomposition: 'Recomposition corporelle', forme: 'Remise en forme générale'
 };
-const IA_PROG_NIVEAUX = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
+const IA_PROG_NIVEAUX = { debutant: 'Débutant (moins d\'un an)', intermediaire: 'Intermédiaire (1 à 3 ans)', avance: 'Avancé (plus de 3 ans)' };
 let iaProgrammesProposes = null;
+let iaProgExplication = [];
+let iaProgSeancesSemaine = 3;
 
 function toggleUnique(groupe, bouton) {
   groupe.querySelectorAll('.onb-option').forEach(b => b.classList.remove('choisi'));
@@ -15171,59 +15290,75 @@ function toggleUnique(groupe, bouton) {
 /* Navigation à étapes dédiée (pas onbAller/onbSuivant) : ces fonctions-là
    requêtent TOUTES les .onb-etape de la page pour piloter la modale de
    bienvenue — les réutiliser ici ferait entrer en conflit les deux
-   modales sur un même numéro d'étape. Classe différente (.ia-prog-etape),
-   fonctions différentes, même principe visuel (barre de progression,
-   .onb-choix/.onb-option pour les boutons). */
-const IA_PROG_NB_ETAPES = 5;
+   modales sur un même numéro d'étape. 7 étapes de questions, puis un
+   récapitulatif (étape 8) où chaque bloc ramène à son étape. */
+const IA_PROG_NB_ETAPES = 7;
+const IA_PROG_SECTIONS = ['Objectif', 'Expérience', 'Rythme', 'Matériel', 'Priorités', 'Exercices', 'Récupération', 'Récapitulatif'];
 function iaProgAller(n) {
   document.querySelectorAll('#ia-programme-modal .ia-prog-etape').forEach(e => {
     e.classList.toggle('hidden', Number(e.dataset.etape) !== n);
   });
   const barre = document.getElementById('ia-prog-barre');
-  if (barre) barre.style.width = (n / IA_PROG_NB_ETAPES * 100) + '%';
+  if (barre) barre.style.width = (Math.min(n, IA_PROG_NB_ETAPES) / IA_PROG_NB_ETAPES * 100) + '%';
+  document.getElementById('ia-prog-compteur').textContent = n > IA_PROG_NB_ETAPES ? 'Avant de lancer' : `Étape ${n} / ${IA_PROG_NB_ETAPES}`;
+  document.getElementById('ia-prog-section').textContent = IA_PROG_SECTIONS[n - 1] || '';
+  if (n === 8) rendreRecapIAProgramme();
   const modale = document.querySelector('#ia-programme-modal .modal-content');
   if (modale) modale.scrollTop = 0;
 }
 function iaProgSuivant(cible) {
-  const erreur1 = document.getElementById('ia-prog-erreur-1');
-  if (cible === 2) {
-    const objectifChoisi = document.querySelector('#ia-prog-objectif .onb-option.choisi');
-    const niveauChoisi = document.querySelector('#ia-prog-niveau .onb-option.choisi');
-    if (!objectifChoisi || !niveauChoisi) { erreur1.textContent = 'Choisis un objectif et un niveau.'; return; }
-    erreur1.textContent = '';
-  }
-  const erreur2 = document.getElementById('ia-prog-erreur-2');
-  if (cible === 3) {
-    const splitChoisi = document.querySelector('#ia-prog-split .onb-option.choisi');
-    if (!splitChoisi) { erreur2.textContent = 'Choisis une répartition.'; return; }
-    erreur2.textContent = '';
+  const err = (i, txt) => { document.getElementById('ia-prog-erreur-' + i).textContent = txt; return !txt; };
+  if (cible === 2 && !err(1, document.querySelector('#ia-prog-objectif .choisi') ? '' : 'Choisis un objectif.')) return;
+  if (cible === 3 && !err(2, document.querySelector('#ia-prog-niveau .choisi') ? '' : 'Choisis ton expérience.')) return;
+  if (cible === 4) {
+    const jours = document.querySelectorAll('#ia-prog-jours .choisi').length;
+    if (!err(3, !jours ? "Choisis au moins un jour d'entraînement." : !document.querySelector('#ia-prog-split .choisi') ? 'Choisis une répartition.' : '')) return;
   }
   iaProgAller(cible);
 }
-/* Chaque split impose un nombre de programmes et une structure precise
-   decrite a l'IA (voir genererProgrammesIA) -- "autre" laisse la main sur
-   le nombre de programmes, sans structure imposee. */
+/* Chaque split impose un nombre de programmes et une structure précise
+   décrite à l'IA ; « autre » la laisse choisir selon les jours. */
 const IA_PROG_SPLITS = {
-  full_body: { nombre: 1, structure: "Un seul programme \"Full body\" qui travaille l'ensemble du corps a chaque seance." },
-  haut_bas: { nombre: 2, structure: "Exactement 2 programmes : \"Haut du corps\" (pectoraux, dos, epaules, biceps, triceps) et \"Bas du corps\" (quadriceps, ischio-jambiers, fessiers, mollets), abdos/lombaires repartis sur les deux." },
-  ppl: { nombre: 3, structure: "Exactement 3 programmes : \"Push\" (pectoraux, epaules, triceps), \"Pull\" (dos, biceps) et \"Legs\" (quadriceps, ischio-jambiers, fessiers, mollets)." },
-  autre: { nombre: null, structure: null }
+  full_body: { nombre: 1, nom: 'Full body', structure: "Un seul programme \"Full body\" qui travaille l'ensemble du corps à chaque séance." },
+  haut_bas: { nombre: 2, nom: 'Haut / Bas', structure: "Exactement 2 programmes : \"Haut du corps\" (pectoraux, dos, épaules, biceps, triceps) et \"Bas du corps\" (quadriceps, ischio-jambiers, fessiers, mollets), abdos et lombaires répartis sur les deux." },
+  ppl: { nombre: 3, nom: 'Push / Pull / Legs', structure: "Exactement 3 programmes : \"Push\" (pectoraux, épaules, triceps), \"Pull\" (dos, biceps) et \"Legs\" (quadriceps, ischio-jambiers, fessiers, mollets)." },
+  autre: { nombre: null, nom: "Choisie par l'IA", structure: null }
 };
+const IA_PROG_JOURS = [['lu', 'Lu', 'lundi'], ['ma', 'Ma', 'mardi'], ['me', 'Me', 'mercredi'], ['je', 'Je', 'jeudi'], ['ve', 'Ve', 'vendredi'], ['sa', 'Sa', 'samedi'], ['di', 'Di', 'dimanche']];
+/* Grands mouvements dont on demande la meilleure série récente. `trouve`
+   reconnaît l'exercice correspondant dans l'historique pour pré-remplir. */
+const IA_PROG_CHARGES = [
+  { cle: 'squat', nom: 'Squat à la barre', trouve: e => /squat/i.test(e.nom) && e.materiel === 'barre' && !/sumo|hack|bulgare|front|avant|zercher|smith/i.test(e.nom) },
+  { cle: 'dc', nom: 'Développé couché', trouve: e => /d[ée]velopp[ée] couch[ée]/i.test(e.nom) && e.materiel === 'barre' && !/inclin|d[ée]clin|serr[ée]|sol/i.test(e.nom) },
+  { cle: 'sdt', nom: 'Soulevé de terre', trouve: e => /soulev[ée] de terre/i.test(e.nom) && e.materiel === 'barre' && !/roumain|jambes tendues|sumo|une jambe/i.test(e.nom) },
+  { cle: 'tractions', nom: 'Tractions', trouve: e => /^tractions?\b/i.test(e.nom) && !/assist/i.test(e.nom) }
+];
+const IA_PROG_PRIO = [['maintenir', 'Maintenir'], ['normal', 'Normal'], ['priorite', 'Priorité']];
+let iaProgPriorites = {};
+
 function initAssistantProgrammeIA() {
-  ['ia-prog-objectif', 'ia-prog-niveau', 'ia-prog-split'].forEach(id => {
+  ['ia-prog-objectif', 'ia-prog-niveau', 'ia-prog-split', 'ia-prog-echeance', 'ia-prog-duree', 'ia-prog-sommeil', 'ia-prog-stress'].forEach(id => {
     const groupe = document.getElementById(id);
-    groupe.querySelectorAll('.onb-option').forEach(bouton => {
-      bouton.addEventListener('click', () => toggleUnique(groupe, bouton));
-    });
+    groupe.querySelectorAll('.onb-option').forEach(bouton => bouton.addEventListener('click', () => toggleUnique(groupe, bouton)));
   });
-  const wrapNombre = document.getElementById('ia-prog-nombre-wrap');
-  document.querySelectorAll('#ia-prog-split .onb-option').forEach(bouton => {
-    bouton.addEventListener('click', () => {
-      const split = IA_PROG_SPLITS[bouton.dataset.valeur];
-      wrapNombre.classList.toggle('hidden', split.nombre != null);
-      if (split.nombre != null) document.getElementById('ia-prog-nombre').value = split.nombre;
-    });
-  });
+  // Jours : choix multiple.
+  const zoneJours = document.getElementById('ia-prog-jours');
+  zoneJours.innerHTML = IA_PROG_JOURS.map(j => `<button type="button" class="onb-option" data-valeur="${j[0]}">${j[1]}</button>`).join('');
+  zoneJours.querySelectorAll('.onb-option').forEach(b => b.addEventListener('click', () => b.classList.toggle('choisi')));
+  // Zones gênantes : « Aucune » exclut les autres.
+  const zoneLimites = document.getElementById('ia-prog-limites');
+  zoneLimites.querySelectorAll('.onb-option').forEach(b => b.addEventListener('click', () => {
+    if (b.dataset.valeur === 'aucune') zoneLimites.querySelectorAll('.onb-option').forEach(x => x.classList.toggle('choisi', x === b && !b.classList.contains('choisi')));
+    else { b.classList.toggle('choisi'); zoneLimites.querySelector('[data-valeur="aucune"]').classList.remove('choisi'); }
+  }));
+  // Charges actuelles.
+  document.getElementById('ia-prog-charges').innerHTML = IA_PROG_CHARGES.map(c => `<div class="ia-prog-charge">
+      <span>${c.nom}</span>
+      <input type="number" id="ia-prog-charge-${c.cle}-kg" inputmode="decimal" step="0.5" min="0" placeholder="kg" aria-label="${c.nom} : poids en kg">
+      <span class="x">×</span>
+      <input type="number" id="ia-prog-charge-${c.cle}-reps" inputmode="numeric" step="1" min="1" placeholder="rép." aria-label="${c.nom} : répétitions">
+    </div>`).join('');
+  // Matériel.
   const zoneMateriel = document.getElementById('ia-prog-materiel');
   zoneMateriel.innerHTML = ORDRE_MATERIELS.map(m =>
     `<button type="button" class="onb-option" data-valeur="${m}" style="text-align:center;">${MATERIELS[m].ic} ${MATERIELS[m].label}</button>`
@@ -15232,9 +15367,6 @@ function initAssistantProgrammeIA() {
   zoneMateriel.querySelectorAll('.onb-option').forEach(bouton => {
     bouton.addEventListener('click', () => {
       bouton.classList.toggle('choisi');
-      // Un ajustement individuel fait sortir du "tout coche" explicite --
-      // meme si ca retombe sur tout coche a la main, le bouton se recoche
-      // naturellement grace au test juste en dessous.
       btnSalleComplete.classList.toggle('choisi', [...zoneMateriel.querySelectorAll('.onb-option')].every(b => b.classList.contains('choisi')));
     });
   });
@@ -15243,17 +15375,59 @@ function initAssistantProgrammeIA() {
     zoneMateriel.querySelectorAll('.onb-option').forEach(b => b.classList.toggle('choisi', complet));
     btnSalleComplete.classList.toggle('choisi', complet);
   });
-  const zoneGroupes = document.getElementById('ia-prog-groupes');
-  zoneGroupes.innerHTML = ORDRE_GROUPES.filter(g => g !== 'autres').map(g =>
-    `<button type="button" class="onb-option" data-valeur="${g}" style="text-align:center;">${GROUPES_MUSCULAIRES[g]}</button>`
-  ).join('');
-  zoneGroupes.querySelectorAll('.onb-option').forEach(bouton => {
-    bouton.addEventListener('click', () => bouton.classList.toggle('choisi'));
+}
+/* Priorités : une ligne par muscle suivi, 3 crans. Au-delà de 2
+   « Priorité », la plus ancienne repasse en Normal. */
+function rendrePrioritesIAProgramme() {
+  const groupes = ORDRE_GROUPES.filter(g => ZONES_VOLUME[g]);
+  document.getElementById('ia-prog-priorites').innerHTML = groupes.map(g => `<div class="ia-prog-prio">
+      <span>${escapeHtml(GROUPES_MUSCULAIRES[g])}</span>
+      <div class="segment" role="group" aria-label="${escapeHtml(GROUPES_MUSCULAIRES[g])}">${IA_PROG_PRIO.map(([v, l]) =>
+        `<button type="button" onclick="choisirPrioriteIAProgramme('${g}','${v}')" aria-pressed="${(iaProgPriorites[g] || 'normal') === v}">${l}</button>`).join('')}</div>
+    </div>`).join('');
+  const n = Object.values(iaProgPriorites).filter(v => v === 'priorite').length;
+  document.getElementById('ia-prog-prio-compte').textContent = `${n} / 2 priorités`;
+}
+let iaProgOrdrePriorites = [];
+function choisirPrioriteIAProgramme(g, v) {
+  iaProgOrdrePriorites = iaProgOrdrePriorites.filter(x => x !== g);
+  if (v === 'priorite') {
+    iaProgOrdrePriorites.push(g);
+    while (iaProgOrdrePriorites.length > 2) iaProgPriorites[iaProgOrdrePriorites.shift()] = 'normal';
+  }
+  if (v === 'normal') delete iaProgPriorites[g]; else iaProgPriorites[g] = v;
+  rendrePrioritesIAProgramme();
+}
+/* Pré-remplit les charges vides avec la meilleure série (1RM estimé) des
+   8 dernières semaines sur le mouvement correspondant. */
+function preremplirChargesIAProgramme() {
+  const depuis = shiftDate(todayStr(), -56);
+  const recents = musculationHistorique.filter(h => h.date >= depuis);
+  let auto = 0;
+  IA_PROG_CHARGES.forEach(c => {
+    const kg = document.getElementById(`ia-prog-charge-${c.cle}-kg`);
+    const reps = document.getElementById(`ia-prog-charge-${c.cle}-reps`);
+    if (kg.value || reps.value) return;
+    let best = null;
+    recents.forEach(h => (h.exercices || []).forEach(x => {
+      const exo = trouverExercice(x.exerciceId);
+      if (!exo || !c.trouve({ nom: libelleExercice(exo), materiel: exo.materiel })) return;
+      (x.series || []).forEach(z => {
+        if (!z.fait || z.technique === 'echauffement' || !(Number(z.reps) > 0)) return;
+        const v = unRmEstime(Number(z.poids) || 0, Number(z.reps));
+        if (!best || v > best.v) best = { v, poids: Number(z.poids) || 0, reps: Number(z.reps) };
+      });
+    }));
+    if (best) { kg.value = best.poids; reps.value = best.reps; auto++; }
   });
+  document.getElementById('ia-prog-charges-auto').textContent = auto ? 'Pré-rempli d\'après tes séances des 8 dernières semaines : corrige si besoin.' : '';
 }
 function ouvrirAssistantProgrammeIA() {
   if (!geminiKey) { alert('Ajoute ta clé API Gemini dans Profil.'); return; }
   rebasculerFormulaireIAProgramme();
+  // Construit à l'ouverture : ZONES_VOLUME est déclaré plus bas dans le script.
+  rendrePrioritesIAProgramme();
+  preremplirChargesIAProgramme();
   ouvrirModal('ia-programme-modal');
 }
 function rebasculerFormulaireIAProgramme() {
@@ -15264,74 +15438,147 @@ function rebasculerFormulaireIAProgramme() {
   document.getElementById('ia-prog-erreur').classList.add('hidden');
   iaProgAller(1);
 }
+function iaProgRetourRecap() {
+  rebasculerFormulaireIAProgramme();
+  iaProgAller(8);
+}
+
+/* Toutes les réponses, lues dans le formulaire (une seule source pour le
+   récapitulatif et pour le prompt). */
+function reponsesIAProgramme() {
+  const val = id => { const b = document.querySelector(`#${id} .onb-option.choisi`); return b ? b.dataset.valeur : null; };
+  const libelle = id => { const b = document.querySelector(`#${id} .onb-option.choisi`); return b ? (b.querySelector('strong') || b).textContent.trim() : null; };
+  const jours = [...document.querySelectorAll('#ia-prog-jours .onb-option.choisi')].map(b => IA_PROG_JOURS.find(j => j[0] === b.dataset.valeur));
+  const charges = IA_PROG_CHARGES.map(c => ({
+    nom: c.nom,
+    kg: document.getElementById(`ia-prog-charge-${c.cle}-kg`).value,
+    reps: document.getElementById(`ia-prog-charge-${c.cle}-reps`).value
+  })).filter(c => c.kg !== '' && c.reps !== '');
+  const splitCle = val('ia-prog-split') || 'autre';
+  return {
+    objectif: val('ia-prog-objectif'), objectifLibelle: libelle('ia-prog-objectif'),
+    echeance: val('ia-prog-echeance') || '',
+    phrase: document.getElementById('ia-prog-phrase').value.trim(),
+    niveau: val('ia-prog-niveau'),
+    charges,
+    jours, seances: Math.max(1, jours.length),
+    duree: Number(val('ia-prog-duree')) || null,
+    splitCle, split: IA_PROG_SPLITS[splitCle],
+    materiels: [...document.querySelectorAll('#ia-prog-materiel .onb-option.choisi')].map(b => b.dataset.valeur),
+    priorites: Object.keys(iaProgPriorites).filter(g => iaProgPriorites[g] === 'priorite'),
+    maintenir: Object.keys(iaProgPriorites).filter(g => iaProgPriorites[g] === 'maintenir'),
+    inclure: document.getElementById('ia-prog-inclure').value.trim(),
+    exclure: document.getElementById('ia-prog-exclure').value.trim(),
+    sommeil: val('ia-prog-sommeil'), stress: val('ia-prog-stress'),
+    limites: [...document.querySelectorAll('#ia-prog-limites .onb-option.choisi')].map(b => b.dataset.valeur).filter(v => v !== 'aucune'),
+    notes: document.getElementById('ia-prog-notes').value.trim()
+  };
+}
+function rendreRecapIAProgramme() {
+  const r = reponsesIAProgramme();
+  const noms = gs => gs.map(g => GROUPES_MUSCULAIRES[g]).join(', ');
+  const blocs = [
+    [1, 'Objectif', [r.objectifLibelle || '—', r.echeance ? 'dans ' + r.echeance : '', r.phrase ? '« ' + r.phrase + ' »' : ''].filter(Boolean).join(' · ')],
+    [2, 'Expérience', [IA_PROG_NIVEAUX[r.niveau] || '—', ...r.charges.map(c => `${c.nom} ${c.kg} kg × ${c.reps}`)].join(' · ')],
+    [3, 'Rythme', `${r.jours.map(j => j[1]).join(', ') || '—'} (${r.seances} séance${r.seances > 1 ? 's' : ''}) · ${r.duree ? r.duree + ' min' : '—'} · ${r.split.nom}`],
+    [4, 'Matériel', r.materiels.length && r.materiels.length < ORDRE_MATERIELS.length ? r.materiels.map(m => MATERIELS[m].label).join(', ') : 'Salle complète'],
+    [5, 'Priorités', [r.priorites.length ? 'Priorité : ' + noms(r.priorites) : 'Aucune priorité', r.maintenir.length ? 'Maintenir : ' + noms(r.maintenir) : ''].filter(Boolean).join(' · ')],
+    [6, 'Exercices', [r.inclure ? 'À garder : ' + r.inclure : '', r.exclure ? 'À éviter : ' + r.exclure : ''].filter(Boolean).join(' · ') || 'Pas de préférence'],
+    [7, 'Récupération', [r.sommeil ? 'Sommeil ' + r.sommeil : '', r.stress ? 'stress ' + r.stress + '/5' : '', r.limites.length ? 'gêne : ' + r.limites.join(', ') : 'aucune gêne', r.notes].filter(Boolean).join(' · ')]
+  ];
+  document.getElementById('ia-prog-recap').innerHTML = blocs.map(([n, t, txt]) => `<div class="ia-prog-recap-bloc">
+      <div><small>${t}</small><p>${escapeHtml(txt)}</p></div>
+      <button type="button" onclick="iaProgAller(${n})">Modifier</button>
+    </div>`).join('');
+}
+/* Meilleures séries des 8 dernières semaines (les 12 exercices les plus
+   pratiqués) : l'IA s'en sert pour les charges de départ. */
+function historiqueRecentPourIA() {
+  const depuis = shiftDate(todayStr(), -56);
+  const parExo = {};
+  musculationHistorique.filter(h => h.date >= depuis).forEach(h => (h.exercices || []).forEach(x => {
+    (x.series || []).forEach(z => {
+      if (!z.fait || z.technique === 'echauffement' || !(Number(z.reps) > 0)) return;
+      const v = unRmEstime(Number(z.poids) || 0, Number(z.reps));
+      const o = parExo[x.exerciceId] || (parExo[x.exerciceId] = { n: 0, best: null });
+      o.n++;
+      if (!o.best || v > o.best.v) o.best = { v, poids: Number(z.poids) || 0, reps: Number(z.reps) };
+    });
+  }));
+  return Object.entries(parExo).sort((a, b) => b[1].n - a[1].n).slice(0, 12).map(([id, o]) => {
+    const exo = trouverExercice(id);
+    return exo ? `${libelleExercice(exo)} : ${o.best.poids} kg × ${o.best.reps}` : null;
+  }).filter(Boolean);
+}
 
 async function genererProgrammesIA() {
-  const objectifBtn = document.querySelector('#ia-prog-objectif .onb-option.choisi');
-  const niveauBtn = document.querySelector('#ia-prog-niveau .onb-option.choisi');
+  const r = reponsesIAProgramme();
   const erreurBox = document.getElementById('ia-prog-erreur');
   erreurBox.classList.add('hidden');
-  if (!objectifBtn || !niveauBtn) {
-    // Ne devrait pas arriver (bloque deja au passage etape 1 -> 2), mais au
-    // cas ou l'etape 1 n'a jamais ete validee : on y renvoie plutot que de
-    // planter plus loin avec un objectif/niveau indefini.
-    iaProgAller(1);
-    document.getElementById('ia-prog-erreur-1').textContent = 'Choisis un objectif et un niveau.';
-    return;
-  }
-  const objectif = objectifBtn.dataset.valeur;
-  const niveau = niveauBtn.dataset.valeur;
-  const seances = Math.max(1, Math.min(7, Number(document.getElementById('ia-prog-seances').value) || 3));
-  const duree = Number(document.getElementById('ia-prog-duree').value) || null;
-  const splitBtn = document.querySelector('#ia-prog-split .onb-option.choisi');
-  const split = IA_PROG_SPLITS[splitBtn ? splitBtn.dataset.valeur : 'autre'];
-  const nombreProgrammes = split.nombre != null
-    ? split.nombre
-    : Math.max(1, Math.min(6, Number(document.getElementById('ia-prog-nombre').value) || 1));
-  const materielsChoisis = [...document.querySelectorAll('#ia-prog-materiel .onb-option.choisi')].map(b => b.dataset.valeur);
-  const groupesPrioritaires = [...document.querySelectorAll('#ia-prog-groupes .onb-option.choisi')].map(b => GROUPES_MUSCULAIRES[b.dataset.valeur]);
-  const exercicesInclure = document.getElementById('ia-prog-inclure').value.trim();
-  const exercicesExclure = document.getElementById('ia-prog-exclure').value.trim();
-  const notes = document.getElementById('ia-prog-notes').value.trim();
+  if (!r.objectif) { iaProgAller(1); document.getElementById('ia-prog-erreur-1').textContent = 'Choisis un objectif.'; return; }
+  if (!r.niveau) { iaProgAller(2); document.getElementById('ia-prog-erreur-2').textContent = 'Choisis ton expérience.'; return; }
+  if (!r.jours.length) { iaProgAller(3); document.getElementById('ia-prog-erreur-3').textContent = "Choisis au moins un jour d'entraînement."; return; }
+  const nombreProgrammes = r.split.nombre != null ? r.split.nombre : null;
 
-  // Aucun materiel coche = toute la bibliotheque (pas de filtre).
-  const exosDisponibles = toutesLesExercices().filter(e => !materielsChoisis.length || materielsChoisis.includes(e.materiel));
+  // Aucun matériel coché = toute la bibliothèque (pas de filtre).
+  const exosDisponibles = toutesLesExercices().filter(e => !r.materiels.length || r.materiels.includes(e.materiel));
   if (!exosDisponibles.length) {
     erreurBox.textContent = 'Aucun exercice ne correspond au matériel sélectionné.';
     erreurBox.classList.remove('hidden');
     return;
   }
-  // identifiant|nom|groupe, un par ligne : assez pour que l'IA choisisse
-  // parmi de vrais exercices sans gonfler le prompt avec les champs inutiles
-  // ici (nom anglais, muscles secondaires...).
-  const catalogue = exosDisponibles.map(e => `${e.id}|${e.nom}|${GROUPES_MUSCULAIRES[e.groupe] || e.groupe}`).join('\n');
+  // identifiant|nom|groupe|matériel, un par ligne.
+  const catalogue = exosDisponibles.map(e => `${e.id}|${libelleExercice(e)}|${GROUPES_MUSCULAIRES[e.groupe] || e.groupe}|${MATERIELS[e.materiel] ? MATERIELS[e.materiel].label : e.materiel}`).join('\n');
+  const reperes = ORDRE_GROUPES.filter(g => ZONES_VOLUME[g]).map(g => {
+    const z = ZONES_VOLUME[g];
+    return `${GROUPES_MUSCULAIRES[g]} : maintien ${z.mv}, croissance dès ${z.mev}, zone idéale ${z.mav} à ${z.mrv - 1}, plafond ${z.mrv}`;
+  }).join('\n');
+  const histo = historiqueRecentPourIA();
+  const poidsCorps = dernierPoidsConnu(todayStr());
+  const profil = [
+    userProfile.gender === 'f' ? 'femme' : userProfile.gender ? 'homme' : '',
+    userProfile.age ? userProfile.age + ' ans' : '',
+    userProfile.height ? userProfile.height + ' cm' : '',
+    poidsCorps ? poidsCorps + ' kg' : ''
+  ].filter(Boolean).join(', ');
 
-  const prompt = `Tu es un coach sportif expert en musculation. Compose ${nombreProgrammes} programme${nombreProgrammes > 1 ? 's' : ''} d'entraînement sur mesure, STRICTEMENT à partir de la liste d'exercices disponibles ci-dessous. N'invente JAMAIS un exercice hors de cette liste : utilise uniquement les identifiants fournis, tels quels.
+  const prompt = `Tu es un coach de musculation expérimenté. Compose ${nombreProgrammes ? nombreProgrammes + ' programme' + (nombreProgrammes > 1 ? 's' : '') : 'le nombre de programmes le plus adapté (1 à 4)'} d'entraînement sur mesure, STRICTEMENT à partir de la liste d'exercices disponibles ci-dessous. N'invente JAMAIS un exercice hors de cette liste : utilise uniquement les identifiants fournis, tels quels.
 
-Besoin de la personne :
-- Objectif : ${IA_PROG_OBJECTIFS[objectif]}
-- Niveau : ${IA_PROG_NIVEAUX[niveau]}
-- Séances par semaine visées : ${seances}
-- Durée par séance : ${duree ? duree + ' minutes' : 'non précisée'}
-- Matériel disponible : ${materielsChoisis.length ? materielsChoisis.map(m => MATERIELS[m].label).join(', ') : 'tout le matériel listé ci-dessous'}
-${split.structure ? '- Répartition (split) imposée : ' + split.structure : ''}
-${groupesPrioritaires.length ? '- Zones à prioriser cette fois : ' + groupesPrioritaires.join(', ') : ''}
-${exercicesInclure ? '- Exercices que la personne veut absolument avoir dans le/les programme(s) (reprends l\'exercice de la liste ci-dessous qui correspond le mieux à chacun) : ' + exercicesInclure : ''}
-${exercicesExclure ? '- Exercices ou mouvements à NE JAMAIS inclure : ' + exercicesExclure : ''}
-${notes ? '- Autres précisions, contraintes ou blessures à prendre en compte : ' + notes : ''}
+La personne :
+${profil ? '- Profil : ' + profil : ''}
+- Objectif : ${IA_PROG_OBJECTIFS[r.objectif]}${r.echeance ? ', d\'ici ' + r.echeance : ''}${r.phrase ? '. En ses mots : « ' + r.phrase + ' »' : ''}
+- Expérience : ${IA_PROG_NIVEAUX[r.niveau]}
+${r.charges.length ? '- Meilleures séries actuelles : ' + r.charges.map(c => `${c.nom} ${c.kg} kg × ${c.reps}${c.nom === 'Tractions' ? ' (lest ; 0 = poids du corps)' : ''}`).join(' ; ') : ''}
+${histo.length ? '- Meilleures séries des 8 dernières semaines dans son suivi :\n  ' + histo.join('\n  ') : ''}
+- Jours d'entraînement : ${r.jours.map(j => j[2]).join(', ')} (${r.seances} séance${r.seances > 1 ? 's' : ''} par semaine)
+- Durée par séance : ${r.duree ? r.duree + ' minutes' : 'non précisée'}
+- Matériel : ${r.materiels.length ? r.materiels.map(m => MATERIELS[m].label).join(', ') : 'salle complète'}
+${r.split.structure ? '- Répartition (split) imposée : ' + r.split.structure : '- Répartition : à toi de choisir la plus adaptée aux jours et à l\'objectif.'}
+${r.priorites.length ? '- Muscles en PRIORITÉ (plus de séries, placés en début de séance) : ' + r.priorites.map(g => GROUPES_MUSCULAIRES[g]).join(', ') : ''}
+${r.maintenir.length ? '- Muscles à seulement MAINTENIR (volume minimal) : ' + r.maintenir.map(g => GROUPES_MUSCULAIRES[g]).join(', ') : ''}
+${r.inclure ? '- Exercices à garder absolument (prends ceux de la liste qui correspondent le mieux) : ' + r.inclure : ''}
+${r.exclure ? '- Exercices ou mouvements à NE JAMAIS inclure : ' + r.exclure : ''}
+${r.sommeil ? '- Sommeil : ' + r.sommeil + ' par nuit' : ''}${r.stress ? ' ; stress ' + r.stress + '/5' : ''}
+${r.limites.length ? '- Zones sensibles à ménager : ' + r.limites.join(', ') + ' (évite les mouvements qui les chargent fortement, préfère des variantes plus sûres)' : ''}
+${r.notes ? '- Précisions : ' + r.notes : ''}
 
-Exercices disponibles (identifiant|nom|groupe musculaire principal), un par ligne :
+Repères de volume hebdomadaire (séries de travail par muscle et par semaine ; une série compte 1 pour le muscle principal de l'exercice et 0,5 pour ses muscles secondaires, multipliée par le nombre de fois où le programme est fait dans la semaine) :
+${reperes}
+Vise la zone idéale pour les muscles en priorité, au moins la croissance pour les autres, le maintien pour ceux à maintenir, et ne dépasse jamais le plafond. Adapte à l'expérience, au sommeil et au stress (moins de volume si sommeil court ou stress élevé), et à la durée de séance (environ 2 à 3 minutes par série, repos compris).
+
+Exercices disponibles (identifiant|nom|groupe musculaire principal|matériel), un par ligne :
 ${catalogue}
 
 Réponds UNIQUEMENT avec un JSON (sans texte autour, sans markdown) de cette forme exacte :
-{"programmes":[{"nom": string (court, évocateur, en français), "exercices": [{"exerciceId": string (un identifiant EXACT de la liste ci-dessus), "series": number (entre 2 et 5), "reps": number (répétitions cibles par série, entre 4 et 20)}]}]}
+{"explication": [string, ...] (2 à 4 phrases courtes en français, tutoiement, qui expliquent les choix : répartition, priorités, volume, précautions), "programmes":[{"nom": string (court, évocateur, en français), "exercices": [{"exerciceId": string (un identifiant EXACT de la liste), "series": number (2 à 5), "reps": number (répétitions cibles, 4 à 20), "poids": number ou null (charge de départ conseillée en kg par série, déduite des séries actuelles quand c'est possible, pour les haltères le poids d'UN haltère ; null si tu ne peux pas l'estimer)}]}]}
 
 Règles :
-- Génère exactement ${nombreProgrammes} programme${nombreProgrammes > 1 ? 's' : ''}.
-- Chaque programme doit avoir entre 4 et 10 exercices, cohérents avec l'objectif et le niveau.
-${split.structure ? '- Respecte EXACTEMENT la répartition (split) imposée ci-dessus, y compris le nombre et le rôle de chaque programme.' : "- Si plusieurs programmes sont demandés, ils doivent se compléter (répartition des groupes musculaires par séance) plutôt que se répéter."}
-- N'utilise que des exerciceId présents dans la liste fournie ci-dessus.
-- Respecte STRICTEMENT les exercices à éviter listés ci-dessus : aucun d'eux (ni un équivalent évident) ne doit apparaître dans la réponse.
-- Si des exercices à inclure absolument sont listés ci-dessus, place-les dans le ou les programmes les plus pertinents.`;
+${nombreProgrammes ? '- Génère exactement ' + nombreProgrammes + ' programme' + (nombreProgrammes > 1 ? 's' : '') + '.' : '- Génère entre 1 et 4 programmes, cohérents avec ' + r.seances + ' séance(s) par semaine.'}
+- Chaque programme a entre 4 et 10 exercices, tenant dans la durée de séance.
+${r.split.structure ? '- Respecte EXACTEMENT la répartition imposée, y compris le nombre et le rôle de chaque programme.' : '- Si plusieurs programmes, ils se complètent au lieu de se répéter.'}
+- N'utilise que des exerciceId présents dans la liste.
+- Aucun exercice à éviter (ni un équivalent évident) ne doit apparaître.
+- Les charges de départ restent prudentes : mieux vaut commencer un peu léger.`;
 
   document.getElementById('ia-programme-formulaire').classList.add('hidden');
   document.getElementById('ia-prog-loader').classList.remove('hidden');
@@ -15343,16 +15590,16 @@ ${split.structure ? '- Respecte EXACTEMENT la répartition (split) imposée ci-d
       .map(p => ({
         nom: String(p.nom || 'Programme IA').slice(0, 80),
         exercices: (Array.isArray(p.exercices) ? p.exercices : [])
-          // Ecarte silencieusement tout identifiant hors liste plutot que de
-          // planter : un programme avec quelques exercices en moins reste
-          // utilisable, un exerciceId invalide casserait son affichage.
+          // Un identifiant hors liste est écarté plutôt que de tout casser.
           .filter(e => e && idsValides.has(e.exerciceId))
           .map(e => {
             const n = Math.max(2, Math.min(5, Math.round(Number(e.series)) || 3));
             const reps = Math.max(4, Math.min(20, Math.round(Number(e.reps)) || 10));
+            const poidsBrut = Number(e.poids);
+            const poids = Number.isFinite(poidsBrut) && poidsBrut > 0 ? Math.round(poidsBrut * 2) / 2 : null;
             return {
               exerciceId: e.exerciceId,
-              series: Array.from({ length: n }, () => ({ poids: null, reps, technique: null })),
+              series: Array.from({ length: n }, () => ({ poids, reps, technique: null })),
               supersetSuivant: false
             };
           })
@@ -15367,6 +15614,8 @@ ${split.structure ? '- Respecte EXACTEMENT la répartition (split) imposée ci-d
       return;
     }
     iaProgrammesProposes = programmes;
+    iaProgExplication = (reponse && Array.isArray(reponse.explication) ? reponse.explication : []).map(x => String(x)).filter(Boolean).slice(0, 5);
+    iaProgSeancesSemaine = r.seances;
     rendrePreviewProgrammesIA();
     document.getElementById('ia-prog-resultats').classList.remove('hidden');
   } catch (e) {
@@ -15377,21 +15626,51 @@ ${split.structure ? '- Respecte EXACTEMENT la répartition (split) imposée ci-d
   }
 }
 
+/* Séries par semaine et par muscle si l'on suit les programmes cochés :
+   chacun revient (séances par semaine ÷ nombre de programmes) fois, une
+   série compte 1 pour le muscle principal et 0,5 pour les secondaires —
+   la même règle que les jauges de la séance. */
+function rendreVolumeIAProgramme() {
+  const c = document.getElementById('ia-prog-volume');
+  const retenus = iaProgrammesProposes.filter((p, i) => { const cb = document.getElementById('ia-prog-check-' + i); return !cb || cb.checked; });
+  if (!retenus.length) { c.innerHTML = ''; return; }
+  const freq = iaProgSeancesSemaine / retenus.length;
+  const vol = {};
+  retenus.forEach(p => p.exercices.forEach(e => {
+    const exo = trouverExercice(e.exerciceId);
+    if (!exo) return;
+    const n = e.series.length * freq;
+    if (ZONES_VOLUME[exo.groupe]) vol[exo.groupe] = (vol[exo.groupe] || 0) + n;
+    (exo.secondaires || []).forEach(g => { if (g !== exo.groupe && ZONES_VOLUME[g]) vol[g] = (vol[g] || 0) + n * 0.5; });
+  }));
+  Object.keys(vol).forEach(g => { vol[g] = Math.round(vol[g] * 2) / 2; });
+  const groupes = Object.keys(vol).filter(g => vol[g] > 0).sort((a, b) => vol[b] - vol[a]);
+  const total = groupes.reduce((t, g) => t + vol[g], 0);
+  const freqTxt = Math.abs(freq - Math.round(freq)) < 0.05 ? String(Math.round(freq)) : formatSeries(Math.round(freq * 10) / 10);
+  c.innerHTML = `<div class="titre-section">Séries par semaine <span style="float:right; color:var(--text);">${formatSeries(total)}</span></div>
+    <p class="note" style="margin:0 0 8px;">${iaProgSeancesSemaine} séance${iaProgSeancesSemaine > 1 ? 's' : ''} par semaine : chaque programme revient ${freqTxt} fois.</p>
+    ${groupes.map(g => ligneZoneHTML(g, vol[g], true)).join('')}`;
+}
 function rendrePreviewProgrammesIA() {
+  document.getElementById('ia-prog-pourquoi').innerHTML = iaProgExplication.length
+    ? `<div class="ia-prog-pourquoi"><div class="fiche-bloc-titre" style="margin:0;">Pourquoi ce programme</div><ul>${iaProgExplication.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ul></div>`
+    : '';
   const c = document.getElementById('ia-prog-resultats-liste');
   c.innerHTML = iaProgrammesProposes.map((p, i) => {
     const lignes = p.exercices.map(e => {
       const exo = trouverExercice(e.exerciceId);
-      return `<li>${escapeHtml(exo ? libelleExercice(exo) : e.exerciceId)} — ${e.series.length}×${e.series[0].reps}</li>`;
+      const charge = e.series[0].poids != null ? ` · ${formatSeries(e.series[0].poids)} kg` : '';
+      return `<li>${escapeHtml(exo ? libelleExercice(exo) : e.exerciceId)} — ${e.series.length}×${e.series[0].reps}${charge}</li>`;
     }).join('');
     return `<label class="fitness-card" style="display:block; margin-bottom:10px; cursor:pointer;">
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-        <input type="checkbox" id="ia-prog-check-${i}" checked style="width:20px; height:20px; flex:none;">
+        <input type="checkbox" id="ia-prog-check-${i}" checked onchange="rendreVolumeIAProgramme()" style="width:20px; height:20px; flex:none;">
         <strong style="flex:1;">${escapeHtml(p.nom)}</strong>
       </div>
       <ul style="margin:0; padding-left:34px; font-size:0.82rem; color:var(--text-muted); line-height:1.6;">${lignes}</ul>
     </label>`;
   }).join('');
+  rendreVolumeIAProgramme();
 }
 
 function ajouterProgrammesIASelectionnes() {
