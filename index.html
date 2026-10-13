@@ -3146,7 +3146,7 @@
       <div class="feuille-titre" id="feuille-admin-recettes-titre">Recettes</div>
       <button class="feuille-fermer" type="button" onclick="fermerFeuilles()" aria-label="Fermer">&times;</button>
     </div>
-    <p class="note" style="margin-top:-4px;">Recettes créées par chaque compte, privées à leur créateur. « Rendre accessible à tous » les ajoute au choix « Recette » de tous les utilisateurs.</p>
+    <p class="note" style="margin-top:-4px;">Recettes créées par chaque compte, privées à leur créateur. « Rendre accessible à tous » les ajoute au choix « Recette » de tous les utilisateurs (Repas du jour › Recette). Si elles n'apparaissent pas chez les autres, relance le SQL de Réglages techniques : c'est lui qui leur autorise la lecture.</p>
     <div class="aliments-filtres">
       <input type="text" id="recettes-filter-nom" placeholder="Nom de la recette" oninput="filtrerRecettesAdmin()" autocomplete="off">
       <input type="text" id="recettes-filter-createur" placeholder="Email du créateur" oninput="filtrerRecettesAdmin()" autocomplete="off">
@@ -5771,7 +5771,9 @@ let recettesPartagees = [];
 async function chargerRecettesPartagees() {
   if (!supa || !sessionUtilisateur) { recettesPartagees = []; return; }
   try {
-    const { data, error } = await supa.from('recettes_perso').select('id,utilisateur,donnees');
+    // Filtre côté serveur : seulement les recettes partagées (l'admin, qui
+    // peut tout lire, ne rapatrie pas toutes les recettes de tout le monde).
+    const { data, error } = await supa.from('recettes_perso').select('id,utilisateur,donnees').eq('donnees->>partagee', 'true');
     if (error) throw error;
     recettesPartagees = (data || [])
       .filter(r => r.donnees && r.donnees.partagee && r.utilisateur !== sessionUtilisateur.id)
@@ -8818,7 +8820,12 @@ function depuisFeuille(mode) {
   fermerFeuilleRepas();
   if (mode === 'manuel') ouvrirManuel(mealId);
   else if (mode === 'photo') ouvrirPhoto(mealId);
-  else if (mode === 'recette') { repasFeuille = mealId; renderChoixRecette(); ouvrirFeuille('feuille-choix-recette'); }
+  else if (mode === 'recette') {
+    repasFeuille = mealId; renderChoixRecette(); ouvrirFeuille('feuille-choix-recette');
+    // Rechargées à chaque ouverture : une recette que l'admin vient de
+    // partager apparaît tout de suite, sans attendre la prochaine synchro.
+    chargerRecettesPartagees();
+  }
   else ouvrirBarcode(mealId);
 }
 
@@ -8954,6 +8961,7 @@ function definirSessionUtilisateur(user) {
     fermerModal('compte-modal');
     verifierStatutCompte();
     chargerMonPseudo();
+    chargerRecettesPartagees();
     // La gate de connexion vient de se refermer : c'est le bon moment pour
     // éventuellement proposer l'installation, jamais avant (elle empilerait
     // sa pop-up sur la modale de connexion, obligatoire tant qu'elle est ouverte).
@@ -17477,6 +17485,7 @@ async function basculerPartageRecetteAdmin(utilisateur, id) {
     if (error) throw error;
     await consignerAction(nouveauPartage ? 'recette_partagee' : 'recette_retiree_du_partage', id, r.nom || '', null, { createur: r.email || null });
     await chargerRecettesAdmin();
+    chargerRecettesPartagees();
   } catch (e) {
     alert('Impossible de modifier le partage : ' + e.message);
   }
