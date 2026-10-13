@@ -880,7 +880,10 @@
     .tour-voile { position: fixed; inset: 0; background: transparent; pointer-events: auto; touch-action: none; }
     .tour-spot {
       position: fixed; pointer-events: none; border-radius: 16px;
-      box-shadow: 0 0 0 9999px rgba(6, 10, 18, 0.74);
+      /* Liseré + halo de la couleur de l'appli autour de l'élément montré :
+         visible même en thème sombre, où le voile seul se confond avec le
+         fond déjà sombre de la page. */
+      box-shadow: 0 0 0 2px var(--primary), 0 0 18px 4px color-mix(in srgb, var(--primary) 45%, transparent), 0 0 0 9999px rgba(6, 10, 18, 0.74);
       transition: left 0.28s cubic-bezier(0.16, 1, 0.3, 1), top 0.28s cubic-bezier(0.16, 1, 0.3, 1),
         width 0.28s cubic-bezier(0.16, 1, 0.3, 1), height 0.28s cubic-bezier(0.16, 1, 0.3, 1);
       z-index: 9001;
@@ -891,8 +894,18 @@
       -webkit-backdrop-filter: blur(var(--verre-flou)) saturate(var(--verre-sat));
       backdrop-filter: blur(var(--verre-flou)) saturate(var(--verre-sat));
       border-radius: 20px; padding: 16px 18px; box-shadow: var(--ombre-haute);
-      transition: left 0.28s cubic-bezier(0.16, 1, 0.3, 1), top 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: left 0.28s cubic-bezier(0.16, 1, 0.3, 1), top 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease;
     }
+    /* Thème sombre : voile plus dense et bulle opaque, bordée, pour que le
+       texte de la page ne transparaisse pas à travers. */
+    :root[data-theme="dark"] .tour-spot {
+      box-shadow: 0 0 0 2px var(--primary), 0 0 22px 6px color-mix(in srgb, var(--primary) 55%, transparent), 0 0 0 9999px rgba(0, 0, 0, 0.84);
+    }
+    :root[data-theme="dark"] .tour-bulle {
+      background: #1a1e27; -webkit-backdrop-filter: none; backdrop-filter: none;
+      border: 1px solid rgba(255, 255, 255, 0.14); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+    }
+    :root[data-theme="dark"] .tour-bulle p { color: #c3c8d2; }
     .tour-barre-piste { height: 3px; background: var(--verre-brd); border-radius: 99px; overflow: hidden; margin-bottom: 10px; }
     .tour-barre { height: 100%; width: 0; background: var(--primary); border-radius: 99px; transition: width 0.3s; }
     .tour-compteur {
@@ -8740,7 +8753,9 @@ const TOUR_MUSCU = [
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-num-btn', titre: 'Le type de série', texte: "Touche le numéro d'une série pour la marquer : Échauffement (W, jamais comptée dans les jauges), Dégressif, Pyramidal ou Échec." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .tempo-ligne', titre: 'Le tempo', texte: "Quatre chiffres pour la vitesse de chaque phase : descente, pause en bas, montée, pause en haut (X = explosif). Le (i) explique tout, avec des exemples." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-ligne button:last-child', titre: 'Cocher une série', texte: "Coche chaque série faite : le minuteur de repos démarre, les jauges et le corps se mettent à jour. Seules les séries proches de l'échec comptent dans le volume." },
-  { titre: 'Terminer la séance', texte: "En fin de séance, « Terminer » l'enregistre : elle rejoint ton historique avec tes records (1RM, charge, volume, répétitions) et compte dans la dépense de ta journée." },
+  { ecran: 'seance', siSession: true, cible: '#seance-vue-active [onclick="terminerSeance()"]', titre: 'Terminer la séance',
+    texte: () => "Ta dernière série faite, touche « Terminer la séance » : elle rejoint ton historique avec tes records (1RM, charge, volume, répétitions) et compte dans la dépense de ta journée."
+      + (musculationSessionActive && musculationSessionActive.demo ? " Ici, rien n'est enregistré : la démonstration se ferme à l'étape suivante." : '') },
   { ecran: 'stats', avant: () => { choisirOngletStats('muscu'); }, cible: '#muscu-soustabs-nav', titre: 'Tes statistiques', texte: "Aperçu, Zones (volume de la semaine et des 8 dernières), Force (ton niveau par exercice), Progression (courbe par exercice) et Programmes." },
   { ecran: 'seance', cible: '[onclick="ouvrirGymbro()"]', titre: 'Gymbro', texte: "Compare tes séances avec celles d'un ami grâce à son nom d'utilisateur." },
   { titre: 'Bon entraînement !', texte: "Tu peux revoir cette visite à tout moment depuis Profil › Réglages." }
@@ -8801,6 +8816,16 @@ function afficherEtapeTour() {
   const etape = tourListe[tourEtape];
   if (!etape) { fermerTourGuide(); return; }
   const gen = ++tourGeneration;
+  // Changement d'écran, de feuille ou ouverture / fermeture de la séance de
+  // démonstration : la bulle s'efface le temps que l'écran se pose, puis
+  // réapparaît à sa nouvelle place (au lieu de sauter d'un endroit à l'autre).
+  const demoActive = !!(musculationSessionActive && musculationSessionActive.demo);
+  const changement = (etape.ecran && etape.ecran !== ecranActif)
+    || (etape.siSession ? !musculationSessionActive : demoActive)
+    || !!etape.feuille !== !!document.querySelector('.feuille.show')
+    || !!etape.fab !== !!fabOuvert;
+  const bulleTour = document.getElementById('tour-bulle');
+  if (changement && bulleTour) bulleTour.style.opacity = '0';
   if (etape.ecran && etape.ecran !== ecranActif) allerA(etape.ecran);
   if (etape.fab) { if (!fabOuvert) ouvrirFab(); }
   else if (fabOuvert) fermerFab();
@@ -8824,7 +8849,9 @@ function afficherEtapeTour() {
   // centrée, sans projecteur, plutôt qu'un cadre sur un élément invisible.
   if (etape.siSession && !musculationSessionActive) cible = null;
   if (cible && !(cible.offsetWidth || cible.offsetHeight)) cible = null;
-  if (cible) cible.scrollIntoView({ block: 'center', behavior: 'auto' });
+  // Même écran : défilement doux jusqu'à la cible (la bulle attend qu'il
+  // soit fini, voir attendreMiseEnPageStable).
+  if (cible) cible.scrollIntoView({ block: 'center', behavior: changement ? 'auto' : 'smooth' });
   attendreMiseEnPageStable(cible, gen, () => {
     // Une étape suivante peut avoir démarré entre-temps (clics rapides) :
     // une bulle qui se replace alors sur une cible qu'on a déjà quittée
@@ -8882,6 +8909,7 @@ function positionnerTourEtape(cible, etape) {
   document.getElementById('tour-texte').textContent = typeof etape.texte === 'function' ? etape.texte() : etape.texte;
   document.getElementById('tour-precedent').style.visibility = tourEtape === 0 ? 'hidden' : 'visible';
   document.getElementById('tour-suivant').textContent = tourEtape === n - 1 ? 'Terminer' : 'Suivant';
+  bulle.style.opacity = '1';
 
   // Pas de cible (intro/outro) : voile uni, bulle centrée.
   if (!cible) {
