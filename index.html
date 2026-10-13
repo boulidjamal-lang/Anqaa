@@ -16457,6 +16457,11 @@ function renderCorpsSession() {
         if (ZONES_VOLUME[g] && !principaux.includes(g) && !secondaires.includes(g)) secondaires.push(g);
       });
     });
+    // Chaque groupe trié par séries de la semaine, du plus au moins travaillé
+    // (à égalité, l'ordre des exercices de la séance est gardé).
+    const parSeries = (a, b) => (zonesSemaineSession[b] || 0) - (zonesSemaineSession[a] || 0);
+    principaux.sort(parSeries);
+    secondaires.sort(parSeries);
     zones.innerHTML = principaux.map(g => ligneZoneHTML(g, zonesSemaineSession[g] || 0, true)).join('')
       + secondaires.map(g => ligneZoneHTML(g, zonesSemaineSession[g] || 0, true, true)).join('');
   }
