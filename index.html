@@ -8977,6 +8977,56 @@ async function deconnexionCompte() {
    techniques). Tant que ce SQL n'est pas passé, l'appli le dit
    clairement au lieu d'échouer en silence.
    ===================================================================== */
+/* Noms d'utilisateur refusés. Comparaison sur une forme « normalisée » :
+   minuscules, sans point ni tiret bas, chiffres façon leet remplacés par
+   les lettres qu'ils imitent (0→o, 1→i, 3→e, 4→a, 5→s, 7→t, 8→b), lettres
+   répétées réduites à une seule (cooonnard → conard). Deux listes :
+   - PARTIEL : refusé s'il apparaît n'importe où dans le nom (mots longs,
+     sans risque de bloquer un nom innocent) ;
+   - EXACT : refusé seulement si c'est le nom entier, ou un de ses
+     morceaux séparés par . ou _, ou le nom sans ses chiffres (mots courts
+     qui existent à l'intérieur de mots innocents : « con » dans
+     « constant », « pute » dans « computer », « nique » dans « unique »…).
+   Les mêmes listes sont injectées dans le SQL (SQL_GYMBRO_PHOTOS) : le
+   serveur refuse aussi, même si on contourne l'appli. */
+const PSEUDOS_INTERDITS_PARTIEL = [
+  'connard', 'connasse', 'salope', 'salaud', 'encule', 'batard', 'putain', 'niquer', 'niquetamere', 'tamere', 'fdp', 'filsdepute',
+  'pouffiasse', 'poufiasse', 'grognasse', 'branleur', 'branlette', 'suceur', 'suceuse', 'couille', 'nichon', 'enfoire', 'abruti',
+  'negre', 'negro', 'bougnoul', 'youpin', 'chinetoque', 'bamboula', 'gouine', 'travelo', 'tarlouze', 'tapette', 'pedophile', 'violeur',
+  'hitler', 'siegheil', 'heilhitler', 'nazisme', 'terroriste', 'inceste', 'merdeux', 'tafiole', 'sale arabe', 'salearabe', 'salenoir', 'salejuif',
+  'fuck', 'fack', 'fvck', 'phuck', 'fukyou', 'fckyou', 'bitch', 'biatch', 'cunt', 'nigger', 'nigga', 'faggot', 'whore', 'slut', 'pussy', 'asshole', 'bastard', 'rapist', 'tranny', 'porno', 'motherfucker', 'dickhead', 'jerkoff', 'cumshot', 'blowjob'
+];
+const PSEUDOS_INTERDITS_EXACT = [
+  'con', 'conne', 'pute', 'pd', 'pede', 'pedale', 'ntm', 'nique', 'bite', 'zizi', 'chatte', 'cul', 'chier', 'merde', 'catin', 'trainee', 'mongol', 'mongole',
+  'debile', 'attarde', 'cretin', 'raton', 'bicot', 'nazi', 'nazis', 'pedo', 'viol', 'sexe', 'sex', 'xxx', 'porn', 'retard', 'fag', 'dick', 'cock',
+  'fck', 'fuk', 'kkk', 'kike', 'spic', 'chink', 'dyke', 'rape', 'shit', 'tits', 'anus', 'penis', 'vagin',
+  'admin', 'administrateur', 'moderateur', 'modo', 'support', 'anqa', 'anqaa', 'claude', 'root', 'system', 'systeme', 'officiel', 'official', 'staff', 'equipe', 'team'
+];
+function formeNormaliseePseudo(s) {
+  return String(s || '').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[0134578@$]/g, ch => ({ 0: 'o', 1: 'i', 3: 'e', 4: 'a', 5: 's', 7: 't', 8: 'b', '@': 'a', $: 's' })[ch])
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/(.)\1+/g, '$1');
+}
+// Garde-fou : un mot partiel trop court une fois normalisé bloquerait des
+// noms innocents (« kkk » deviendrait « k »).
+const PSEUDOS_PARTIEL_NORM = PSEUDOS_INTERDITS_PARTIEL.map(formeNormaliseePseudo).filter(m => m.length >= 4);
+const PSEUDOS_EXACT_NORM = PSEUDOS_INTERDITS_EXACT.map(formeNormaliseePseudo);
+function pseudoInterdit(p) {
+  const brut = String(p || '').toLowerCase();
+  const formes = new Set([
+    formeNormaliseePseudo(brut),
+    formeNormaliseePseudo(brut.replace(/[0-9]/g, '')),
+    ...brut.split(/[._]+/).map(formeNormaliseePseudo)
+  ]);
+  for (const f of formes) {
+    if (!f) continue;
+    if (PSEUDOS_EXACT_NORM.includes(f)) return true;
+    if (PSEUDOS_PARTIEL_NORM.some(m => m && f.includes(m))) return true;
+  }
+  return false;
+}
 const SQL_GYMBRO_PHOTOS = `-- Nom d'utilisateur, Gymbro et photos de progression.
 -- À exécuter une fois dans l'éditeur SQL de Supabase, APRÈS le SQL des
 -- politiques de sécurité (RLS). Idempotent : relancer ne casse rien.
@@ -8990,6 +9040,51 @@ create table if not exists public.pseudos (
   cree_le         timestamptz not null default now()
 );
 create unique index if not exists pseudos_pseudo_unique on public.pseudos (lower(pseudo));
+-- Deux noms qui ne diffèrent que par des points ou tirets bas comptent
+-- comme le même nom (jamal.fit = jamal_fit = jamalfit), pour éviter les
+-- usurpations. (Si cette ligne échoue, deux comptes ont déjà des noms
+-- de ce genre : renommer l'un d'eux puis relancer.)
+create unique index if not exists pseudos_pseudo_norm_unique on public.pseudos (regexp_replace(lower(pseudo), '[._]', '', 'g'));
+
+-- Noms offensants, dégradants ou réservés : mêmes listes et même
+-- normalisation que dans l'appli (voir pseudoInterdit), vérifiées par le
+-- serveur à chaque création ou modification.
+create or replace function public.forme_normalisee_pseudo(s text)
+returns text language sql immutable as $fn$
+  select regexp_replace(regexp_replace(translate(lower(coalesce(s, '')), '0134578@$', 'oieastbas'), '[^a-z0-9]', '', 'g'), '(.)\\1+', '\\1', 'g');
+$fn$;
+create or replace function public.pseudo_acceptable(p text)
+returns boolean language plpgsql immutable as $fn$
+declare
+  partiel text[] := array[${PSEUDOS_PARTIEL_NORM.map(m => "'" + m + "'").join(',')}];
+  exact   text[] := array[${PSEUDOS_EXACT_NORM.map(m => "'" + m + "'").join(',')}];
+  formes  text[];
+  f text; m text;
+begin
+  formes := array[public.forme_normalisee_pseudo(p), public.forme_normalisee_pseudo(regexp_replace(lower(p), '[0-9]', '', 'g'))]
+            || array(select public.forme_normalisee_pseudo(x) from regexp_split_to_table(lower(p), '[._]+') as x);
+  foreach f in array formes loop
+    continue when f = '';
+    if f = any(exact) then return false; end if;
+    foreach m in array partiel loop
+      if position(m in f) > 0 then return false; end if;
+    end loop;
+  end loop;
+  return true;
+end;
+$fn$;
+create or replace function public.verifier_pseudo()
+returns trigger language plpgsql as $fn$
+begin
+  if not public.pseudo_acceptable(new.pseudo) then
+    raise exception 'pseudo_interdit' using errcode = 'P0001';
+  end if;
+  return new;
+end;
+$fn$;
+drop trigger if exists pseudos_verifier on public.pseudos;
+create trigger pseudos_verifier before insert or update of pseudo on public.pseudos
+  for each row execute function public.verifier_pseudo();
 do $$ begin
   alter table public.pseudos add constraint pseudo_format check (pseudo ~ '^[a-z0-9_.]{3,20}$');
 exception when duplicate_object then null; end $$;
@@ -9010,7 +9105,8 @@ create policy "pseudo perso suppr" on public.pseudos for delete to authenticated
 -- être connecté ; ne renvoie qu'un oui/non, jamais la liste des noms).
 create or replace function public.pseudo_disponible(p text)
 returns boolean language sql stable security definer set search_path = public as $$
-  select not exists (select 1 from pseudos where lower(pseudo) = lower(p));
+  select public.pseudo_acceptable(p)
+     and not exists (select 1 from pseudos where regexp_replace(lower(pseudo), '[._]', '', 'g') = regexp_replace(lower(p), '[._]', '', 'g'));
 $$;
 grant execute on function public.pseudo_disponible(text) to anon, authenticated;
 
@@ -9071,6 +9167,7 @@ function normaliserPseudo(v) { return String(v || '').trim().toLowerCase().repla
 function erreurFormatPseudo(p) {
   if (!p) return "Choisis un nom d'utilisateur.";
   if (!PSEUDO_REGEX.test(p)) return '3 à 20 caractères : lettres minuscules, chiffres, point ou tiret bas (sans espace ni accent).';
+  if (pseudoInterdit(p)) return "Ce nom d'utilisateur n'est pas autorisé (offensant, dégradant ou réservé). Choisis-en un autre.";
   return '';
 }
 async function chargerMonPseudo() {
@@ -9112,7 +9209,8 @@ async function enregistrerPseudo(brut) {
     majUIPseudo();
     return '';
   } catch (e) {
-    if (e && (e.code === '23505' || /duplicate|unique/i.test(e.message || ''))) return 'Ce nom d\'utilisateur est déjà pris.';
+    if (e && /pseudo_interdit/.test(e.message || '')) return "Ce nom d'utilisateur n'est pas autorisé (offensant, dégradant ou réservé). Choisis-en un autre.";
+    if (e && (e.code === '23505' || /duplicate|unique/i.test(e.message || ''))) return 'Ce nom d\'utilisateur est déjà pris (ou un nom presque identique, à un point ou tiret bas près).';
     if (estErreurSqlManquant(e)) { monPseudoIndispo = true; majUIPseudo(); return MESSAGE_SQL_MANQUANT; }
     return 'Erreur : ' + (e.message || e);
   }
