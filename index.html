@@ -3208,14 +3208,14 @@
     </div>
     <p class="note" style="margin:-4px 0 12px;">Seulement les aliments à valider. Un aliment créé par un utilisateur reste visible par lui seul ; « Valider » l'ajoute à la base d'aliments commune (bouton « Base d'aliments ») et le retire d'ici. La corbeille le refuse.</p>
     <div id="aliments-transfert-anciens"></div>
-    <button class="btn btn-secondaire" type="button" style="margin-bottom:12px;" onclick="nettoyerDoublonsAlimentsPartages()">Retirer les aliments copiés de CIQUAL</button>
+    <button class="btn btn-secondaire" type="button" style="margin-bottom:12px;" onclick="nettoyerDoublonsAlimentsPartages()">Retirer les copies d'aliments de la base</button>
     <p class="note" id="note-nettoyage-aliments" style="margin:-4px 0 12px;"></p>
 
     <div id="admin-aliments-feuille-liste"></div>
   </div>
 </div>
 
-<!-- ============ FEUILLE : base d'aliments CIQUAL / USDA (admin) ============ -->
+<!-- ============ FEUILLE : base d'aliments / USDA (admin) ============ -->
 <div class="feuille" id="feuille-admin-base" role="dialog" aria-modal="true" aria-labelledby="feuille-admin-base-titre">
   <div class="feuille-contenu">
     <div class="feuille-poignee"></div>
@@ -3223,7 +3223,7 @@
       <div class="feuille-titre" id="feuille-admin-base-titre">Base d'aliments</div>
       <button class="feuille-fermer" type="button" onclick="fermerFeuilles()" aria-label="Fermer">&times;</button>
     </div>
-    <p class="note" style="margin-top:-4px;">La base commune : CIQUAL (modifiable ici) et USDA (consultation). Un aliment partagé que tu valides arrive ici, marqué « Ajouté par un utilisateur ».</p>
+    <p class="note" style="margin-top:-4px;">La base d'aliments commune (modifiable ici) et USDA (consultation). Un aliment partagé que tu valides arrive ici, marqué « Ajouté par un utilisateur ».</p>
     <div class="aliments-filtres">
       <input type="text" id="base-filter-nom" placeholder="Chercher un aliment (2 lettres min.)" oninput="filtrerBaseAliments()" autocomplete="off">
     </div>
@@ -4347,7 +4347,7 @@ const GEMINI_CLE_DEFAUT = '';
 // Table Ciqual fixe : elle ne change jamais d'un appareil à l'autre, ça n'a
 // donc pas sa place dans un champ de réglages que quelqu'un pourrait modifier
 // par erreur et perdre l'accès à toute la base d'aliments.
-const SUPA_TABLE_DEFAUT = 'ciqual_aliments';
+const SUPA_TABLE_DEFAUT = 'aliments_base';   // ex-« ciqual_aliments », renommée (voir le SQL, section 8)
 
 /* =====================================================================
  BALANCE WITHINGS — récupération automatique du poids
@@ -8632,7 +8632,7 @@ const TOUR_ETAPES = [
   { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: 'Calories consommées, objectif du jour, et répartition entre protéines, glucides et lipides. Touche la carte pour voir le détail de ta dépense estimée.' },
   { ecran: 'repas', cible: '.ajout-rapide', titre: 'Ajouter à un repas', texte: "Recette, aliment, photo ou code-barres : choisis comment ajouter, puis pour quel repas. Les options sont détaillées juste après." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-recette', titre: 'Option 1 : Recette', texte: 'Une de tes recettes enregistrées, ajoutée en un tap avec ses macros déjà calculées.' },
-  { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-manuel', titre: 'Option 2 : Saisie manuelle', texte: "Recherche dans la base d'aliments : CIQUAL, aliments ajoutés par la communauté, et en premier ce que tu manges le plus souvent." },
+  { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-manuel', titre: 'Option 2 : Saisie manuelle', texte: "Recherche dans la base d'aliments (avec les aliments ajoutés par la communauté), et en premier ce que tu manges le plus souvent." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-photo', titre: 'Option 3 : Photo ou description', texte: "Décris ou prends en photo ce que tu manges : l'IA estime les quantités et les macros à ta place." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-barcode', titre: 'Option 4 : Code-barres', texte: "Scanne ou saisis le code d'un produit emballé : ses infos nutritionnelles sont récupérées automatiquement." },
   { ecran: 'repas', cible: '#bloc-eau', titre: "Suivi de l'eau", texte: 'Touche +250 ml, +500 ml ou +1 L à chaque fois que tu bois.' },
@@ -9680,17 +9680,31 @@ drop trigger if exists recettes_pas_de_resurrection on public.recettes_perso;
 create trigger recettes_pas_de_resurrection before insert on public.recettes_perso
   for each row execute function public.bloquer_recette_supprimee();
 
--- 8) Base CIQUAL : lecture pour tous, écriture réservée à l'admin (l'appli
---    n'y écrit plus ; un ancien téléphone ne peut plus y ajouter d'aliment).
+-- 8) Base d'aliments (ex-« ciqual_aliments », renommée « aliments_base ») :
+--    lecture pour tous, écriture réservée à l'admin (l'appli n'y écrit
+--    plus ; un ancien téléphone ne peut plus y ajouter d'aliment).
+do $$ begin
+  if to_regclass('public.aliments_base') is null and exists (
+       select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace
+       where n.nspname = 'public' and c.relname = 'ciqual_aliments' and c.relkind = 'r') then
+    alter table public.ciqual_aliments rename to aliments_base;
+  end if;
+end $$;
 do $$ declare r record; begin
-  if to_regclass('public.ciqual_aliments') is not null then
-    execute 'alter table public.ciqual_aliments enable row level security';
-    for r in select policyname from pg_policies where schemaname = 'public' and tablename = 'ciqual_aliments' loop
-      execute format('drop policy %I on public.ciqual_aliments', r.policyname);
+  if to_regclass('public.aliments_base') is not null then
+    execute 'alter table public.aliments_base enable row level security';
+    for r in select policyname from pg_policies where schemaname = 'public' and tablename = 'aliments_base' loop
+      execute format('drop policy %I on public.aliments_base', r.policyname);
     end loop;
-    execute 'create policy "ciqual lecture" on public.ciqual_aliments for select to anon, authenticated using (true)';
-    execute 'create policy "ciqual admin" on public.ciqual_aliments for all to authenticated '
+    execute 'create policy "base lecture" on public.aliments_base for select to anon, authenticated using (true)';
+    execute 'create policy "base admin" on public.aliments_base for all to authenticated '
          || 'using (auth.jwt() ->> ''email'' = ''jambou592@gmail.com'') with check (auth.jwt() ->> ''email'' = ''jambou592@gmail.com'')';
+    -- Ancien nom gardé en lecture seule, le temps que tous les téléphones
+    -- aient la nouvelle version de l'appli (mêmes droits que la table).
+    if to_regclass('public.ciqual_aliments') is null then
+      execute 'create view public.ciqual_aliments with (security_invoker = true) as select * from public.aliments_base';
+      execute 'grant select on public.ciqual_aliments to anon, authenticated';
+    end if;
   end if;
 end $$;`;
 
@@ -17148,18 +17162,18 @@ async function nettoyerDoublonsAlimentsPartages() {
     if (!partages.length) { dire('Aucun aliment partagé.'); return; }
     const s = await detecterSchemaAliments();
     const table = confSupabase().table;
-    if (!s || !s.nom || !table) throw new Error('table CIQUAL non reconnue');
+    if (!s || !s.nom || !table) throw new Error("base d'aliments non reconnue");
     const nomsCiqual = new Set();
     const noms = [...new Set(partages.map(a => a.nom).filter(Boolean))];
     for (let i = 0; i < noms.length; i += 100) {
-      dire(`Comparaison avec CIQUAL… ${Math.min(i + 100, noms.length)} / ${noms.length}`);
+      dire(`Comparaison avec la base d'aliments… ${Math.min(i + 100, noms.length)} / ${noms.length}`);
       const { data, error } = await supa.from(table).select(s.nom).in(s.nom, noms.slice(i, i + 100));
       if (error) throw error;
       (data || []).forEach(r => nomsCiqual.add(normaliserRecherche(r[s.nom])));
     }
     const copies = partages.filter(a => nomsCiqual.has(normaliserRecherche(a.nom || '')));
-    if (!copies.length) { dire('Aucune copie de CIQUAL trouvée dans les aliments partagés.'); return; }
-    if (!confirm(`${copies.length} aliment(s) partagé(s) sont des copies exactes d'aliments CIQUAL (ex. « ${copies.slice(0, 3).map(a => a.nom).join(' », « ')} »).\n\nLes retirer des aliments partagés ? Ils restent trouvables dans la base CIQUAL, et les repas déjà notés ne changent pas.`)) { dire(''); return; }
+    if (!copies.length) { dire("Aucune copie d'un aliment de la base trouvée dans les aliments partagés."); return; }
+    if (!confirm(`${copies.length} aliment(s) partagé(s) sont des copies exactes d'aliments de la base d'aliments (ex. « ${copies.slice(0, 3).map(a => a.nom).join(' », « ')} »).\n\nLes retirer des aliments partagés ? Ils restent trouvables dans la base d'aliments, et les repas déjà notés ne changent pas.`)) { dire(''); return; }
     const ids = copies.map(a => a.id);
     for (let i = 0; i < ids.length; i += 200) {
       const { error } = await supa.from('aliments_partages')
@@ -17169,7 +17183,7 @@ async function nettoyerDoublonsAlimentsPartages() {
     }
     cacheVider();
     await consignerAction('aliments_copies_ciqual_retires', null, copies.length + ' aliments', null, null);
-    dire(`${copies.length} copie(s) de CIQUAL retirée(s) des aliments partagés.`);
+    dire(`${copies.length} copie(s) d'aliments de la base retirée(s) des aliments partagés.`);
     await chargerAlimentsAdmin();
   } catch (e) {
     dire('Nettoyage impossible : ' + e.message);
@@ -17199,7 +17213,7 @@ function afficherFeuilleBaseAliments() {
   const champ = document.getElementById('base-filter-nom');
   if (champ) champ.value = '';
   document.getElementById('admin-base-liste').innerHTML = '';
-  document.getElementById('base-aliments-compteur').textContent = nbAlimentsBase ? nbAlimentsBase.toLocaleString('fr-FR') + ' aliments dans CIQUAL.' : '';
+  document.getElementById('base-aliments-compteur').textContent = nbAlimentsBase ? nbAlimentsBase.toLocaleString('fr-FR') + ' aliments dans la base.' : '';
   ouvrirFeuille('feuille-admin-base');
   if (champ) setTimeout(() => champ.focus(), 80);
 }
@@ -17264,7 +17278,7 @@ function rendreBaseAliments(ciqual, usda) {
     c.appendChild(tete);
     conteneur.appendChild(c);
   };
-  titre(`CIQUAL — ${ciqual.length}${ciqual.length >= 40 ? '+' : ''} résultat(s)`);
+  titre(`Base d'aliments — ${ciqual.length}${ciqual.length >= 40 ? '+' : ''} résultat(s)`);
   if (!ciqual.length) { const p = document.createElement('p'); p.className = 'note'; p.textContent = 'Aucun aliment trouvé.'; conteneur.appendChild(p); }
   ciqual.forEach(a => carte(a, true));
   titre(`USDA (consultation) — ${usda.length} résultat(s)`);
