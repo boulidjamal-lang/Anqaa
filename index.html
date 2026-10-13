@@ -3771,9 +3771,12 @@
       <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
         <div style="min-width:0;">
           <div style="font-weight:700; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg> Découverte</div>
-          <div style="font-weight:700; font-size:0.88rem; margin-top:4px;">Visite guidée de l'application</div>
+          <div style="font-weight:700; font-size:0.88rem; margin-top:4px;">Visites guidées</div>
         </div>
-        <button class="btn btn-secondaire" id="btn-revoir-tutoriel" style="width:auto; flex:none; white-space:nowrap;" onclick="demarrerTourGuide()">Revoir</button>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
+        <button class="btn btn-secondaire" id="btn-revoir-tutoriel" style="min-height:auto; padding:10px 8px; font-size:0.8rem;" onclick="demarrerTourGuide()">L'application</button>
+        <button class="btn btn-secondaire" id="btn-visite-muscu" style="min-height:auto; padding:10px 8px; font-size:0.8rem;" onclick="demarrerTourGuide('muscu')">Musculation</button>
       </div>
     </div>
 
@@ -8697,34 +8700,55 @@ function initFabDeplacable() {
    ce champ est synchronisé comme le reste du profil.
    ===================================================================== */
 const TOUR_ETAPES = [
-  { titre: 'Bienvenue sur Anqā', texte: "Un tour rapide pour découvrir l'essentiel. Tu peux le quitter à tout moment, et le revoir plus tard depuis Profil > Réglages (engrenage)." },
-  { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: 'Calories consommées, objectif du jour, et répartition entre protéines, glucides et lipides. Touche la carte pour voir le détail de ta dépense estimée.' },
-  { ecran: 'repas', cible: '.ajout-rapide', titre: 'Ajouter à un repas', texte: "Recette, aliment, photo ou code-barres : choisis comment ajouter, puis pour quel repas. Les options sont détaillées juste après." },
-  { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-recette', titre: 'Option 1 : Recette', texte: 'Une de tes recettes enregistrées, ajoutée en un tap avec ses macros déjà calculées.' },
-  { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-manuel', titre: 'Option 2 : Saisie manuelle', texte: "Recherche dans la base d'aliments (avec les aliments ajoutés par la communauté), et en premier ce que tu manges le plus souvent." },
-  { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-photo', titre: 'Option 3 : Photo ou description', texte: "Décris ou prends en photo ce que tu manges : l'IA estime les quantités et les macros à ta place." },
-  { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-barcode', titre: 'Option 4 : Code-barres', texte: "Scanne ou saisis le code d'un produit emballé : ses infos nutritionnelles sont récupérées automatiquement." },
-  { ecran: 'repas', cible: '#bloc-eau', titre: "Suivi de l'eau", texte: 'Touche +250 ml, +500 ml ou +1 L à chaque fois que tu bois.' },
-  { ecran: 'repas', cible: '#carte-pas-seances', titre: 'Pas et sport', texte: 'Tes pas du jour et tes séances de sport hors musculation (course, natation…), comptés dans ta dépense.' },
-  { ecran: 'repas', cible: '#carte-bilan-jour', titre: 'Bilan de la journée', texte: 'Une analyse IA de ta nutrition et de ton activité du jour.' },
-  { ecran: 'repas', cible: '#fab', titre: 'Le bouton de navigation', texte: "Ce bouton flottant permet de changer d'écran à tout moment — il remplace la barre d'onglets classique." },
-  { fab: true, cible: '#nav-seance', titre: 'Onglet Activité', texte: "Tes programmes de musculation, et le suivi d'une séance en cours." },
-  { ecran: 'seance', cible: '[onclick="ouvrirCreationProgramme()"]', titre: 'Créer un programme', texte: "Construis un programme avec tes exercices, séries et charges cibles. Tu le relances ensuite en un tap à chaque séance, avec le suivi automatique de tes performances." },
-  { ecran: 'seance', cible: '[onclick="demarrerSeanceLibre()"]', titre: 'Séance libre', texte: "Entraîne-toi sans programme préparé à l'avance : ajoute tes exercices au fil de la séance, tu pourras l'enregistrer comme programme à la fin." },
-  { ecran: 'seance', cible: '[onclick="ouvrirBibliotheque()"]', titre: "Bibliothèque d'exercices", texte: "Parcours toute la base d'exercices, filtrée par groupe musculaire et par matériel, avec photo et instructions pour chacun." },
-  { fab: true, cible: '#nav-stats', titre: 'Onglet Statistiques', texte: 'Ton poids, ta nutrition et tes progrès en musculation, dans le temps.' },
-  { ecran: 'stats', cible: '#periode-poids-bloc', titre: 'Choisir une période', texte: 'Fais glisser ces curseurs pour analyser la période de ton choix.' },
-  { fab: true, cible: '#nav-reglages', titre: 'Onglet Profil', texte: 'Ton compte, ton objectif, tes infos et tes mesures corporelles. L\'engrenage en haut à droite ouvre les réglages (thème, densité, visite guidée).' },
-  { ecran: 'reglages', cible: '#carte-objectif', titre: 'Ton objectif', texte: "Maintien, sèche, masse ou recomposition : change-le ici, l'historique passé n'est jamais réécrit." },
-  { ecran: 'reglages', cible: '.btn-engrenage', titre: 'Réglages', texte: 'Thème, densité d\'affichage, installation et « Revoir la visite guidée » sont derrière cet engrenage.' },
-  { titre: "C'est tout !", texte: 'Explore le reste à ton rythme. Bonne utilisation 🙂' }
+  { titre: 'Bienvenue sur Anqā', texte: "Un tour rapide de l'appli : la nutrition, l'activité, les statistiques et ton profil. Tu peux le quitter à tout moment et le revoir depuis Profil › Réglages (engrenage). Une visite dédiée à la musculation existe aussi." },
+  { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: "Calories consommées, ce qu'il te reste et la répartition protéines / glucides / lipides. Touche la carte pour voir le détail de ta dépense du jour." },
+  { ecran: 'repas', cible: '.ajout-rapide', titre: 'Ajouter à un repas', texte: "Quatre façons d'ajouter : une recette, un aliment, une photo ou un code-barres. Le repas visé est demandé juste après." },
+  { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-recette', titre: 'Recette', texte: "Tes recettes enregistrées, et celles partagées par l'équipe : une portion s'ajoute en un toucher, macros déjà calculées." },
+  { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-manuel', titre: 'Aliment', texte: "Recherche dans la base d'aliments, avec en premier ce que tu manges souvent. Un aliment introuvable ? Saisis-le : il reste à toi, et rejoint la base commune une fois validé." },
+  { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-photo', titre: 'Photo ou description', texte: "Prends en photo ou décris ton assiette : l'IA estime les aliments, les quantités et les macros." },
+  { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-barcode', titre: 'Code-barres', texte: "Scanne un produit emballé : ses valeurs nutritionnelles sont récupérées toutes seules." },
+  { ecran: 'repas', cible: '#bloc-eau', titre: "L'eau", texte: 'Un toucher sur +250 ml, +500 ml ou +1 L à chaque fois que tu bois.' },
+  { ecran: 'repas', cible: '[onclick*="note-suggestions"]', titre: 'Idées recettes', texte: "Des idées de repas qui complètent tes macros du jour. Astuce : les titres qui portent un (i) cachent une explication, touche-les pour l'afficher." },
+  { ecran: 'repas', cible: '#carte-pas-seances', titre: 'Pas et autres sports', texte: "Tes pas et tes séances hors musculation (course, vélo, natation…) : ils comptent dans ta dépense. Tes séances de musculation terminées s'y ajoutent seules." },
+  { ecran: 'repas', cible: '#carte-bilan-jour', titre: 'Bilan de la journée', texte: "Une analyse de ta journée par l'IA : nutrition, activité et séance du jour." },
+  { ecran: 'repas', cible: '#fab', titre: 'Le bouton de navigation', texte: "Ce bouton flottant change d'écran. Garde le doigt appuyé dessus pour le déplacer où tu veux." },
+  { fab: true, cible: '#nav-seance', titre: 'Activité', texte: 'Tes programmes de musculation, tes séances et la bibliothèque d’exercices. La visite « Musculation » détaille tout cet écran.' },
+  { fab: true, cible: '#nav-stats', titre: 'Statistiques', texte: 'Poids, composition, nutrition et musculation, sur la période de ton choix.' },
+  { ecran: 'stats', cible: '#stats-onglets-nav', titre: 'Trois catégories', texte: 'Poids, Nutrition et Musculation. Dans Musculation : zones de volume, force, progression par exercice et programmes.' },
+  { ecran: 'stats', cible: '#periode-poids-bloc', titre: 'Choisir une période', texte: 'Fais glisser les curseurs pour analyser la période qui t’intéresse.' },
+  { fab: true, cible: '#nav-reglages', titre: 'Profil', texte: 'Ton compte, ton objectif, tes informations et tes mesures corporelles.' },
+  { ecran: 'reglages', cible: '#carte-objectif', titre: 'Ton objectif', texte: "Maintien, sèche, prise de masse ou recomposition : il règle tes calories et tes macros. En changer ne réécrit jamais ton historique." },
+  { ecran: 'reglages', cible: '.btn-engrenage', titre: 'Réglages', texte: "Thème clair ou sombre, palette de couleurs, densité d'affichage, installation sur l'écran d'accueil, et les deux visites guidées." },
+  { titre: "C'est parti !", texte: "Tu connais l'essentiel. Pour tout savoir sur les programmes, les séances et les jauges de volume, lance la visite « Musculation » depuis les Réglages." }
 ];
+/* Visite dédiée à la musculation. Les étapes « siSession » montrent un
+   élément de la séance en cours : sans séance lancée, la bulle s'affiche
+   simplement au centre, avec la même explication. */
+const TOUR_MUSCU = [
+  { titre: 'La musculation dans Anqā', texte: "Programmes, séances, suivi du volume par muscle, records et progression : voici comment tout s'enchaîne." },
+  { ecran: 'seance', cible: '#programmes-liste-container', titre: 'Tes programmes', texte: "Un programme = une liste d'exercices avec leurs séries, charges et répétitions cibles. Touche-en un pour le lancer, ou ⋯ pour le dupliquer ou le supprimer." },
+  { ecran: 'seance', cible: '[onclick="ouvrirCreationProgramme()"]', titre: 'Créer un programme', texte: "Ajoute tes exercices, règle les séries, les techniques (dégressif, pyramidal…), les supersets et le tempo de chaque exercice." },
+  { ecran: 'seance', cible: '[onclick="ouvrirAssistantProgrammeIA()"]', titre: "Programme par l'IA", texte: "Donne ton objectif, tes jours disponibles et ton matériel : l'IA te propose un programme complet, que tu peux ensuite modifier." },
+  { ecran: 'seance', cible: '[onclick="demarrerSeanceLibre()"]', titre: 'Séance libre', texte: "Pas de programme ? Ajoute tes exercices au fil de la séance. À la fin, tu peux l'enregistrer comme programme." },
+  { ecran: 'seance', cible: '[onclick="ouvrirBibliotheque()"]', titre: "Bibliothèque d'exercices", texte: "Plus de 800 exercices, filtrés par muscle et par matériel. Chaque fiche a trois onglets : Instructions (vidéo, muscles, étapes), Résumé (tes records et ta courbe) et Historique." },
+  { ecran: 'seance', siSession: true, cible: '#session-haut', titre: 'Le volume de ta semaine', texte: "En haut de la séance : une jauge par muscle travaillé, qui compte tes séries de travail de la semaine (MV maintien, MEV croissance, MAV zone idéale, MRV plafond). Le corps se colore pareil ; touche-le pour l'agrandir." },
+  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-prec', titre: 'Ta séance précédente', texte: "La colonne « Préc. » rappelle ce que tu as fait la dernière fois. Touche-la pour reprendre ces valeurs, puis essaie de faire un peu mieux." },
+  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-num-btn', titre: 'Le type de série', texte: "Touche le numéro d'une série pour la marquer : Échauffement (W, jamais comptée dans les jauges), Dégressif, Pyramidal ou Échec." },
+  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .tempo-ligne', titre: 'Le tempo', texte: "Quatre chiffres pour la vitesse de chaque phase : descente, pause en bas, montée, pause en haut (X = explosif). Le (i) explique tout, avec des exemples." },
+  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-ligne button:last-child', titre: 'Cocher une série', texte: "Coche chaque série faite : le minuteur de repos démarre, les jauges et le corps se mettent à jour. Seules les séries proches de l'échec comptent dans le volume." },
+  { titre: 'Terminer la séance', texte: "En fin de séance, « Terminer » l'enregistre : elle rejoint ton historique avec tes records (1RM, charge, volume, répétitions) et compte dans la dépense de ta journée." },
+  { ecran: 'stats', avant: () => { choisirOngletStats('muscu'); }, cible: '#muscu-soustabs-nav', titre: 'Tes statistiques', texte: "Aperçu, Zones (volume de la semaine et des 8 dernières), Force (ton niveau par exercice), Progression (courbe par exercice) et Programmes." },
+  { ecran: 'seance', cible: '[onclick="ouvrirGymbro()"]', titre: 'Gymbro', texte: "Compare tes séances avec celles d'un ami grâce à son nom d'utilisateur." },
+  { titre: 'Bon entraînement !', texte: "Tu peux revoir cette visite à tout moment depuis Profil › Réglages." }
+];
+let tourListe = TOUR_ETAPES;
 let tourActif = false;
 let tourEtape = 0;
 let tourResizeHandler = null;
 let tourGeneration = 0;
 
-function demarrerTourGuide() {
+function demarrerTourGuide(type) {
+  tourListe = type === 'muscu' ? TOUR_MUSCU : TOUR_ETAPES;
   fermerFeuilles();
   document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
   document.body.classList.remove('couche-ouverte');
@@ -8739,7 +8763,7 @@ function demarrerTourGuide() {
 }
 
 function afficherEtapeTour() {
-  const etape = TOUR_ETAPES[tourEtape];
+  const etape = tourListe[tourEtape];
   if (!etape) { fermerTourGuide(); return; }
   const gen = ++tourGeneration;
   if (etape.ecran && etape.ecran !== ecranActif) allerA(etape.ecran);
@@ -8756,7 +8780,12 @@ function afficherEtapeTour() {
   } else if (document.querySelector('.feuille.show')) {
     fermerFeuilles();
   }
-  const cible = etape.cible ? document.querySelector(etape.cible) : null;
+  if (etape.avant) { try { etape.avant(); } catch (e) {} }
+  let cible = etape.cible ? document.querySelector(etape.cible) : null;
+  // Étape de séance sans séance en cours, ou élément masqué/absent : bulle
+  // centrée, sans projecteur, plutôt qu'un cadre sur un élément invisible.
+  if (etape.siSession && !musculationSessionActive) cible = null;
+  if (cible && !(cible.offsetWidth || cible.offsetHeight)) cible = null;
   if (cible) cible.scrollIntoView({ block: 'center', behavior: 'auto' });
   attendreMiseEnPageStable(cible, gen, () => {
     // Une étape suivante peut avoir démarré entre-temps (clics rapides) :
@@ -8808,7 +8837,7 @@ function attendreMiseEnPageStable(el, gen, cb, essai, dernierSig, pareilles) {
 function positionnerTourEtape(cible, etape) {
   const spot = document.getElementById('tour-spot');
   const bulle = document.getElementById('tour-bulle');
-  const n = TOUR_ETAPES.length;
+  const n = tourListe.length;
   document.getElementById('tour-compteur').textContent = `Étape ${tourEtape + 1} / ${n}`;
   document.getElementById('tour-barre').style.width = ((tourEtape + 1) / n * 100) + '%';
   document.getElementById('tour-titre').textContent = etape.titre;
@@ -8849,7 +8878,7 @@ function positionnerTourEtape(cible, etape) {
 }
 
 function tourSuivant() {
-  if (tourEtape >= TOUR_ETAPES.length - 1) { fermerTourGuide(); return; }
+  if (tourEtape >= tourListe.length - 1) { fermerTourGuide(); return; }
   tourEtape++;
   afficherEtapeTour();
 }
