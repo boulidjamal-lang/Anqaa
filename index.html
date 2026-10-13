@@ -16072,11 +16072,15 @@ let zonesSemaineSession = {};
 function renderCorpsSession() {
   const cible = document.getElementById('session-corps');
   if (!cible || !musculationSessionActive) return;
-  const seance = ajouterSeriesParGroupe({}, musculationSessionActive.exercices);
-  const groupes = Object.keys(seance).sort((a, b) => seance[b] - seance[a]);
-  cible.innerHTML = corpsSVG(couleursSeance(seance), 'Muscles travaillés pendant cette séance') +
+  // Même source que les jauges à côté : les séries de travail de toute la
+  // semaine (séance en cours comprise), chaque muscle dans la couleur de sa
+  // zone. Un muscle déjà travaillé cette semaine est donc coloré dès le
+  // début de la séance, pas seulement après la première série cochée.
+  const semaine = zonesSemaineSession || {};
+  const groupes = Object.keys(semaine).filter(g => semaine[g] > 0).sort((a, b) => semaine[b] - semaine[a]);
+  cible.innerHTML = corpsSVG(couleursZones(semaine), 'Zone atteinte cette semaine par chaque muscle') +
     (groupes.length
-      ? `<div class="corps-puces">${groupes.map(g => `<span>${escapeHtml(GROUPES_MUSCULAIRES[g])} <b>${formatSeries(seance[g])}</b></span>`).join('')}</div>`
+      ? `<div class="corps-puces">${groupes.map(g => `<span>${escapeHtml(GROUPES_MUSCULAIRES[g])} <b>${formatSeries(semaine[g])}</b></span>`).join('')}</div>`
       : '<p class="note" style="margin:6px 0 0; text-align:center;">Coche une série : le muscle travaillé se colore.</p>');
   // Jauges de volume de la semaine, une par muscle principal de la séance
   // (au lieu d'une sous chaque exercice), dans l'ordre des exercices.
