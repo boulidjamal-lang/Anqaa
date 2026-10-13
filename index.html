@@ -1539,6 +1539,10 @@
     .stats-onglets-nav { margin-bottom: 14px; }
     #ecran-stats .stats-tab { max-height: 0; overflow: hidden; transition: max-height 0.28s ease; }
     #ecran-stats .stats-tab.stats-tab-actif { max-height: none; overflow: visible; }
+    .stats-periodes { margin-bottom: 4px; }
+    .stats-periodes button { padding-left: 2px; padding-right: 2px; }
+    .stats-periode-resume { margin: 2px 2px 12px; font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-align: center; }
+    .stats-bilan { margin-top: 18px; }
     /* Deuxième niveau d'onglets, à l'intérieur de l'onglet Musculation : même
        mécanique (jamais display:none, voir plus haut), classe différente pour
        ne pas être recapturé par le sélecteur de choisirOngletStats ci-dessus
@@ -1546,7 +1550,8 @@
        Nutrition/Muscu). Sans ça, 7 sections s'empilaient d'un coup sur cet
        onglet (chiffres clés, 3 graphiques, records, stats par programme,
        historique) : beaucoup trop à digérer en un seul écran. */
-    .muscu-soustabs-nav { margin: 4px 0 16px; display: grid; grid-template-columns: repeat(3, 1fr); }
+    .muscu-soustabs-nav { margin: 4px 0 16px; display: grid; grid-template-columns: repeat(4, 1fr); }
+    .muscu-soustabs-nav button { padding-left: 2px; padding-right: 2px; }
     #ecran-stats .stats-soustab { max-height: 0; overflow: hidden; transition: max-height 0.28s ease; }
     #ecran-stats .stats-soustab.stats-soustab-actif { max-height: none; overflow: visible; }
 
@@ -2530,60 +2535,30 @@
   <section id="ecran-stats" class="ecran" role="region" aria-label="Statistiques">
     <h2 class="titre-ecran"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg></span> Statistiques</h2>
 
-    <div class="bloc-verre" id="periode-poids-bloc">
-      <h3 style="margin-top:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M8 13h.01" /><path d="M12 13h.01" /><path d="M16 13h.01" /><path d="M8 17h.01" /><path d="M12 17h.01" /><path d="M16 17h.01" /></svg> Période analysée</h3>
+    <!-- Organisation : d'abord la catégorie (Corps, Nutrition, Activité,
+         Muscu), puis une seule période pour tout l'écran, en pastilles
+         (7 j … Tout) ; « Perso » ouvre les curseurs pour une plage précise.
+         Le bilan IA de la période, en bas, couvre toutes les catégories. -->
+    <div class="segment stats-onglets-nav" id="stats-onglets-nav" role="group" aria-label="Catégorie de statistiques">
+      <button type="button" onclick="choisirOngletStats('poids')" aria-pressed="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></svg> Corps</button>
+      <button type="button" onclick="choisirOngletStats('nutrition')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg> Nutrition</button>
+      <button type="button" onclick="choisirOngletStats('activite')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Activité</button>
+      <button type="button" onclick="choisirOngletStats('muscu')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Muscu</button>
+    </div>
+    <div class="segment stats-periodes" id="stats-periode" role="group" aria-label="Période analysée"></div>
+    <p class="stats-periode-resume" id="stats-periode-resume"></p>
+    <div class="bloc-verre hidden" id="periode-poids-bloc">
+      <h3 style="margin-top:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M8 13h.01" /><path d="M12 13h.01" /><path d="M16 13h.01" /><path d="M8 17h.01" /><path d="M12 17h.01" /><path d="M16 17h.01" /></svg> Période personnalisée</h3>
       <div class="plage">
         <div class="plage-piste"><div class="plage-remplie" id="plage-remplie"></div></div>
-        <input type="range" id="slider-start" min="0" max="179" value="150" aria-label="Début de la période" oninput="mettreAJourStats()">
-        <input type="range" id="slider-end" min="0" max="179" value="179" aria-label="Fin de la période" oninput="mettreAJourStats()">
+        <input type="range" id="slider-start" min="0" max="364" value="334" aria-label="Début de la période" oninput="majToutesStats()">
+        <input type="range" id="slider-end" min="0" max="364" value="364" aria-label="Fin de la période" oninput="majToutesStats()">
       </div>
       <div class="plage-bornes">
         <span><small>Du</small> <span id="start-date-label">-</span></span>
         <span><small>au</small> <span id="end-date-label">-</span></span>
       </div>
       <div class="plage-duree" id="plage-duree"></div>
-    </div>
-
-    <div class="bloc-verre hidden" id="periode-nutrition-bloc">
-      <h3 style="margin-top:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M8 13h.01" /><path d="M12 13h.01" /><path d="M16 13h.01" /><path d="M8 17h.01" /><path d="M12 17h.01" /><path d="M16 17h.01" /></svg> Période analysée (nutrition)</h3>
-      <div class="plage">
-        <div class="plage-piste"><div class="plage-remplie" id="nutrition-plage-remplie"></div></div>
-        <input type="range" id="nutrition-slider-start" min="0" max="179" value="150" aria-label="Début de la période (nutrition)" oninput="mettreAJourStatsNutrition()">
-        <input type="range" id="nutrition-slider-end" min="0" max="179" value="179" aria-label="Fin de la période (nutrition)" oninput="mettreAJourStatsNutrition()">
-      </div>
-      <div class="plage-bornes">
-        <span><small>Du</small> <span id="nutrition-start-date-label">-</span></span>
-        <span><small>au</small> <span id="nutrition-end-date-label">-</span></span>
-      </div>
-      <div class="plage-duree" id="nutrition-plage-duree"></div>
-    </div>
-
-    <!-- Séances de musculation indépendantes des repas (rythme différent :
-         quelques fois par semaine contre trois fois par jour). Ce bloc occupe
-         la même position que les blocs Poids et Nutrition ci-dessus : les
-         trois ne sont jamais visibles en même temps (voir choisirOngletStats),
-         un seul remplace les autres selon l'onglet actif au lieu de s'empiler. -->
-    <div class="bloc-verre hidden" id="periode-muscu-bloc">
-      <h3 style="margin-top:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M8 13h.01" /><path d="M12 13h.01" /><path d="M16 13h.01" /><path d="M8 17h.01" /><path d="M12 17h.01" /><path d="M16 17h.01" /></svg> Période analysée (séances)</h3>
-      <div class="plage">
-        <div class="plage-piste"><div class="plage-remplie" id="muscu-plage-remplie"></div></div>
-        <input type="range" id="muscu-slider-start" min="0" max="179" value="0" aria-label="Début de la période (séances)" oninput="mettreAJourStatsMuscu()">
-        <input type="range" id="muscu-slider-end" min="0" max="179" value="179" aria-label="Fin de la période (séances)" oninput="mettreAJourStatsMuscu()">
-      </div>
-      <div class="plage-bornes">
-        <span><small>Du</small> <span id="muscu-start-date-label">-</span></span>
-        <span><small>au</small> <span id="muscu-end-date-label">-</span></span>
-      </div>
-      <div class="plage-duree" id="muscu-plage-duree"></div>
-    </div>
-
-    <!-- Navigation des onglets : commune aux 3 onglets. La période ci-dessus
-         (poids, nutrition ou séances) change selon l'onglet actif — voir
-         choisirOngletStats, qui bascule laquelle des trois est visible. -->
-    <div class="segment stats-onglets-nav" id="stats-onglets-nav" role="group" aria-label="Catégorie de statistiques">
-      <button type="button" onclick="choisirOngletStats('poids')" aria-pressed="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></svg> Poids</button>
-      <button type="button" onclick="choisirOngletStats('nutrition')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg> Nutrition</button>
-      <button type="button" onclick="choisirOngletStats('muscu')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Muscu</button>
     </div>
 
     <div class="stats-tab stats-tab-actif" data-tab="poids">
@@ -2609,67 +2584,39 @@
       <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.4 13.7A6.5 6.5 0 1 0 6.28 6.6c-1.1 3.13-.78 3.9-3.18 6.08A3 3 0 0 0 5 18c4 0 8.4-1.8 11.4-4.3" /><path d="m18.5 6 1.754 3.5a6.48 6.48 0 0 1-1.854 8.2C15.4 20.2 11 22 7 22a3 3 0 0 1-2.68-1.66L2.4 16.5" /><circle cx="12.5" cy="8.5" r="2.5" /></svg> Macronutriments</div>
       <div class="chart-container"><canvas id="macrosChart"></canvas></div>
 
-      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" /></svg> Pas quotidiens</div>
-      <div class="chart-container"><canvas id="stepsChart"></canvas></div>
-
       <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg> Eau bue (vs objectif)</div>
       <div class="chart-container"><canvas id="eauChart"></canvas></div>
+    </div>
+
+    <div class="stats-tab" data-tab="activite">
+      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" /></svg> Pas quotidiens</div>
+      <div class="chart-container"><canvas id="stepsChart"></canvas></div>
 
       <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Activités (minutes par sport)</div>
       <div class="chart-container"><canvas id="workoutChart"></canvas></div>
 
-      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg> Bilan de la période</div>
-      <div class="analysis-card">
-        <p class="note note-explicative">Utilise la période choisie ci-dessus (curseurs « Période analysée »).</p>
-        <button class="btn btn-analysis" onclick="lancerAnalysePeriode()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" /></svg> Analyser ma période</button>
-        <div id="analysis-loader-stats" class="loader hidden"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 18V5" /><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4" /><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5" /><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77" /><path d="M18 18a4 4 0 0 0 2-7.464" /><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517" /><path d="M6 18a4 4 0 0 1-2-7.464" /><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77" /></svg> Analyse de la période…</div>
-        <div id="analysis-box-stats" class="analysis-output hidden"></div>
-      </div>
+      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg> Séances de musculation par mois</div>
+      <div class="chart-container"><canvas id="muscuParMoisChart"></canvas></div>
     </div>
 
-    <!-- ========== MUSCULATION ==========
-         Période indépendante de celle des repas : les séances n'ont pas le
-         même rythme que les repas (quelques fois par semaine contre trois
-         fois par jour). Son sélecteur de période vit désormais tout en haut
-         de l'écran (periode-muscu-bloc), à la place de celui de nutrition
-         quand cet onglet est actif — voir choisirOngletStats. Par défaut sur
-         tout l'historique disponible (rien ne change tant qu'on n'y touche
-         pas). -->
     <div class="stats-tab" data-tab="muscu">
       <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Musculation</div>
       <div class="stats-grille" id="muscu-stats-totaux"></div>
 
-      <!-- Sous-onglets : les 4 sections ci-dessous (chacune déjà dense -- un
-           graphique + une liste) ne s'affichent plus toutes empilées, une
-           seule à la fois (voir choisirSousOngletMuscu). Même mécanique que
-           les onglets Poids/Nutrition/Muscu plus haut : jamais display:none
-           sur un conteneur de canvas, seul max-height/overflow varie, et le
-           .chart-container garde sa hauteur fixe propre quoi qu'il arrive. -->
       <div class="segment muscu-soustabs-nav" id="muscu-soustabs-nav" role="group" aria-label="Détail musculation">
-        <button type="button" onclick="choisirSousOngletMuscu('apercu')" aria-pressed="true">Aperçu</button>
-        <button type="button" onclick="choisirSousOngletMuscu('zones')" aria-pressed="false">Zones</button>
-        <button type="button" onclick="choisirSousOngletMuscu('force')" aria-pressed="false">Force</button>
+        <button type="button" onclick="choisirSousOngletMuscu('semaine')" aria-pressed="true">Semaine</button>
         <button type="button" onclick="choisirSousOngletMuscu('progression')" aria-pressed="false">Progression</button>
+        <button type="button" onclick="choisirSousOngletMuscu('seances')" aria-pressed="false">Séances</button>
         <button type="button" onclick="choisirSousOngletMuscu('programmes')" aria-pressed="false">Programmes</button>
-        <button type="button" onclick="choisirSousOngletMuscu('historique')" aria-pressed="false">Historique</button>
       </div>
 
-      <div class="stats-soustab stats-soustab-actif" data-soustab="apercu">
-        <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg> Séances par mois</div>
-        <div class="chart-container"><canvas id="muscuParMoisChart"></canvas></div>
-
-        <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Séances par groupe musculaire</div>
-        <div class="chart-container"><canvas id="muscuGroupeChart"></canvas></div>
-      </div>
-
-      <div class="stats-soustab" data-soustab="zones">
+      <!-- Semaine : jauges de volume et corps de la semaine en cours (une
+           zone est hebdomadaire : ne suit pas la période choisie). -->
+      <div class="stats-soustab stats-soustab-actif" data-soustab="semaine">
         <div id="muscu-zones-container"></div>
       </div>
 
-      <div class="stats-soustab" data-soustab="force">
-        <div id="muscu-force-container"></div>
-      </div>
-
+      <!-- Progression : courbe et records par exercice, puis niveau de force. -->
       <div class="stats-soustab" data-soustab="progression">
         <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6" /><path d="m22 7-8.5 8.5-5-5L2 17" /></svg> Progression par exercice</div>
         <div class="input-group" style="margin-bottom:12px;">
@@ -2681,19 +2628,31 @@
 
         <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2" /><path d="M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2" /><path d="M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3" /><path d="M4 22h16" /><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z" /><path d="M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3" /></svg> Records personnels</div>
         <div id="muscu-stats-records"></div>
+        <div id="muscu-force-container"></div>
+      </div>
+
+      <div class="stats-soustab" data-soustab="seances">
+        <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M8 13h.01" /><path d="M12 13h.01" /><path d="M16 13h.01" /><path d="M8 17h.01" /><path d="M12 17h.01" /><path d="M16 17h.01" /></svg> Historique des séances</div>
+        <div id="muscu-historique-container"></div>
+
+        <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Séances par groupe musculaire</div>
+        <div class="chart-container"><canvas id="muscuGroupeChart"></canvas></div>
       </div>
 
       <div class="stats-soustab" data-soustab="programmes">
         <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg> Statistiques par programme</div>
         <div id="muscu-stats-programmes"></div>
       </div>
+    </div>
 
-      <!-- Plus de fenêtre fixe (30 j) dans le titre : la période affichée ici
-           est désormais celle du curseur « Période analysée (séances) »
-           ci-dessus, visible juste au-dessus (Du … au …). -->
-      <div class="stats-soustab" data-soustab="historique">
-        <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M8 13h.01" /><path d="M12 13h.01" /><path d="M16 13h.01" /><path d="M8 17h.01" /><path d="M12 17h.01" /><path d="M16 17h.01" /></svg> Historique des séances</div>
-        <div id="muscu-historique-container"></div>
+    <!-- Bilan IA : commun à toutes les catégories, sur la période choisie. -->
+    <div class="stats-bilan">
+      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg> Bilan de la période</div>
+      <div class="analysis-card">
+        <p class="note note-explicative">Sur la période choisie en haut : nutrition, poids, activité et séances de musculation.</p>
+        <button class="btn btn-analysis" onclick="lancerAnalysePeriode()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" /></svg> Analyser ma période</button>
+        <div id="analysis-loader-stats" class="loader hidden"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 18V5" /><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4" /><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5" /><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77" /><path d="M18 18a4 4 0 0 0 2-7.464" /><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517" /><path d="M6 18a4 4 0 0 1-2-7.464" /><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77" /></svg> Analyse de la période…</div>
+        <div id="analysis-box-stats" class="analysis-output hidden"></div>
       </div>
     </div>
   </section>
@@ -7208,7 +7167,10 @@ async function lancerAnalysePeriode() {
   /* Le prompt ne contenait que deux moyennes : Gemini n'avait rien à analyser
      et comblait les blancs. On lui donne le bilan complet de la période. */
   const b = bilanPeriode(s, e);
-  if (!b.joursRemplis) {
+  const bm = bornesMuscuIso();
+  const seancesPeriode = musculationHistorique.filter(h => h.date >= bm.debut && h.date <= bm.fin);
+  const seriesPeriode = seancesPeriode.reduce((n, h) => n + h.exercices.reduce((m, x) => m + x.series.filter(z => z.fait).length, 0), 0);
+  if (!b.joursRemplis && !seancesPeriode.length) {
     loader.classList.add('hidden');
     box.textContent = "Aucune journée renseignée sur cette période : rien à analyser.";
     box.classList.remove('hidden');
@@ -7225,8 +7187,9 @@ Protéines : ${b.protParKg == null ? 'inconnu' : (Math.round(b.protParKg * 10) /
 Poids : ${nf(b.poidsDebut)} kg <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg> ${nf(b.poidsFin)} kg (tendance lissée sur 7 jours, ${b.pesees} pesées).
 Variation réelle : ${b.deltaPoids == null ? 'inconnue' : (Math.round(b.deltaPoids * 10) / 10) + ' kg'} ; variation prédite par la balance énergétique : ${b.deltaPrevu == null ? 'inconnue' : (Math.round(b.deltaPrevu * 10) / 10) + ' kg'}.
 Activité : ${b.minutesParSemaine} min de sport par semaine sur ${b.joursSport} jours actifs, ${b.moyPas} pas par jour.
+Musculation : ${seancesPeriode.length} séance${seancesPeriode.length > 1 ? 's' : ''} sur la période, ${seriesPeriode} séries faites.
 
-Commente d'abord la cohérence entre la prévision et la variation réelle de poids, puis la régularité du suivi, puis donne exactement deux conseils concrets et chiffrés. Si trop de jours ne sont pas renseignés, dis-le au lieu de conclure sur des moyennes fragiles.`;
+Commente d'abord la cohérence entre la prévision et la variation réelle de poids, puis la régularité du suivi (repas et séances), puis donne exactement deux conseils concrets et chiffrés. Si trop de jours ne sont pas renseignés, dis-le au lieu de conclure sur des moyennes fragiles.`;
   try {
     const res = await geminiGenerate([{ text: prompt }]);
     loader.classList.add('hidden');
@@ -7353,6 +7316,8 @@ function parseJsonObject(text) {
 }
 
 // --- STATISTIQUES & GRAPHIQUES ---
+// Profondeur des graphiques Corps / Nutrition / Activité (période « 1 an »).
+const JOURS_STATS = 365;
 function buildMasterArrays() {
   globalMasterLabels = []; globalMasterConsumed = []; globalMasterTarget = [];
   globalMasterProtein = []; globalMasterCarbs = []; globalMasterFat = [];
@@ -7365,7 +7330,7 @@ function buildMasterArrays() {
     globalMasterWorkoutData[sportKey] = [];
   });
 
-  const DAYS = 180;
+  const DAYS = JOURS_STATS;
   for (let i = DAYS - 1; i >= 0; i--) {
     const ds = shiftDate(todayStr(), -i);
     const d = appData[ds];
@@ -7675,38 +7640,62 @@ function prepareStats() {
   const start = document.getElementById('slider-start');
   const end = document.getElementById('slider-end');
   start.max = end.max = globalMasterLabels.length - 1;
-  if (!start.dataset.touche) {
-    start.value = Math.max(0, globalMasterLabels.length - 30);
-    end.value = globalMasterLabels.length - 1;
-  }
-  // Curseur indépendant pour la Musculation : même grille de dates (les 180
-  // derniers jours calendaires), mais une plage à part — par défaut la
-  // totalité de l'historique disponible, pour ne rien masquer tant qu'on
-  // n'a pas volontairement resserré la période.
-  const mStart = document.getElementById('muscu-slider-start');
-  const mEnd = document.getElementById('muscu-slider-end');
-  if (mStart && mEnd) {
-    mStart.max = mEnd.max = globalMasterLabels.length - 1;
-    if (!mStart.dataset.touche) {
-      mStart.value = 0;
-      mEnd.value = globalMasterLabels.length - 1;
+  appliquerPeriodeStats();
+  majToutesStats();
+}
+/* Une seule période pour tout l'écran Statistiques, choisie en pastilles.
+   Les curseurs « Perso » (slider-start / slider-end) restent la source de
+   vérité pour Corps, Nutrition et Activité ; Musculation suit les mêmes
+   dates, sauf « Tout » qui y couvre tout l'historique des séances (pas
+   seulement l'année affichée par les graphiques). */
+const PERIODES_STATS = [['7', '7 j', 7], ['30', '30 j', 30], ['90', '3 m', 91], ['180', '6 m', 182], ['365', '1 an', 365], ['tout', 'Tout', 0], ['perso', 'Perso', 0]];
+const STATS_PERIODE_LS = 'mc_stats_periode';
+let periodeStats = (() => {
+  try { const v = localStorage.getItem(STATS_PERIODE_LS); return PERIODES_STATS.some(x => x[0] === v) ? v : '30'; } catch (e) { return '30'; }
+})();
+function appliquerPeriodeStats() {
+  const a = document.getElementById('slider-start');
+  const b = document.getElementById('slider-end');
+  if (!a || !b || !globalMasterLabels.length) return;
+  const n = globalMasterLabels.length;
+  if (periodeStats !== 'perso') {
+    let debut;
+    if (periodeStats === 'tout') {
+      // Premier jour avec quelque chose de noté (repas, pesée, pas, sport).
+      debut = globalMasterLabels.findIndex((_, i) => globalMasterRempli[i] || globalMasterWeight[i] != null || globalMasterSteps[i] > 0 || globalMasterSportMin[i] > 0);
+      if (debut < 0) debut = 0;
+    } else {
+      debut = Math.max(0, n - PERIODES_STATS.find(x => x[0] === periodeStats)[2]);
     }
+    a.value = String(debut);
+    b.value = String(n - 1);
   }
-  // Curseur indépendant pour la Nutrition, comme pour la Musculation : même
-  // grille de dates, plage à part. Par défaut les 30 derniers jours, comme
-  // Poids (c'était leur réglage commun avant la séparation des deux périodes).
-  const nStart = document.getElementById('nutrition-slider-start');
-  const nEnd = document.getElementById('nutrition-slider-end');
-  if (nStart && nEnd) {
-    nStart.max = nEnd.max = globalMasterLabels.length - 1;
-    if (!nStart.dataset.touche) {
-      nStart.value = Math.max(0, globalMasterLabels.length - 30);
-      nEnd.value = globalMasterLabels.length - 1;
-    }
+  rendrePeriodesStats();
+}
+function rendrePeriodesStats() {
+  const c = document.getElementById('stats-periode');
+  if (c && !c.children.length) {
+    c.innerHTML = PERIODES_STATS.map(p => `<button type="button" onclick="choisirPeriodeStats('${p[0]}')" aria-pressed="false">${p[1]}</button>`).join('');
   }
+  if (c) [...c.children].forEach((btn, i) => btn.setAttribute('aria-pressed', String(PERIODES_STATS[i][0] === periodeStats)));
+  const bloc = document.getElementById('periode-poids-bloc');
+  if (bloc) bloc.classList.toggle('hidden', periodeStats !== 'perso');
+}
+function choisirPeriodeStats(cle) {
+  periodeStats = cle;
+  try { localStorage.setItem(STATS_PERIODE_LS, cle); } catch (e) {}
+  appliquerPeriodeStats();
+  majToutesStats();
+}
+function majToutesStats() {
   mettreAJourStats();
-  mettreAJourStatsMuscu();
   mettreAJourStatsNutrition();
+  mettreAJourStatsMuscu();
+}
+/* Dates de la période pour la musculation (ISO). */
+function bornesMuscuIso() {
+  const { s: i, e: j } = bornesPlage();
+  return { debut: periodeStats === 'tout' ? '0000-01-01' : dateIsoPourIndexStats(i), fin: dateIsoPourIndexStats(j) };
 }
 /* =====================================================================
    ÉCRAN STATISTIQUES — navigation par onglets (Poids / Nutrition /
@@ -7720,13 +7709,7 @@ function choisirOngletStats(nom) {
   document.querySelectorAll('#ecran-stats .stats-tab').forEach(t => {
     t.classList.toggle('stats-tab-actif', t.dataset.tab === nom);
   });
-  majSegment('stats-onglets-nav', ['poids', 'nutrition', 'muscu'], nom);
-  // Les trois sélecteurs de période (poids, nutrition, séances) occupent la
-  // même position en haut de l'écran : un seul visible à la fois, celui qui
-  // correspond à l'onglet actif remplace les autres au lieu de s'y ajouter.
-  document.getElementById('periode-poids-bloc').classList.toggle('hidden', nom !== 'poids');
-  document.getElementById('periode-nutrition-bloc').classList.toggle('hidden', nom !== 'nutrition');
-  document.getElementById('periode-muscu-bloc').classList.toggle('hidden', nom !== 'muscu');
+  majSegment('stats-onglets-nav', ['poids', 'nutrition', 'activite', 'muscu'], nom);
 }
 // Deuxième niveau d'onglets, à l'intérieur de l'onglet Musculation (voir
 // commentaire sur .stats-soustab dans le CSS) : classe différente de
@@ -7735,7 +7718,7 @@ function choisirSousOngletMuscu(nom) {
   document.querySelectorAll('#ecran-stats .stats-soustab').forEach(t => {
     t.classList.toggle('stats-soustab-actif', t.dataset.soustab === nom);
   });
-  majSegment('muscu-soustabs-nav', ['apercu', 'zones', 'force', 'progression', 'programmes', 'historique'], nom);
+  majSegment('muscu-soustabs-nav', ['semaine', 'progression', 'seances', 'programmes'], nom);
 }
 
 /* Les curseurs émettent « input » à chaque pixel. Sans temporisation, glisser
@@ -7773,6 +7756,17 @@ function mettreAJourStats() {
     const n = e - s + 1;
     duree.textContent = n === 1 ? '1 jour' : n + ' jours';
   }
+  const resume = document.getElementById('stats-periode-resume');
+  if (resume) {
+    const n = e - s + 1;
+    // Date lisible, avec l'année quand elle n'est pas l'année en cours.
+    const jour = idx => {
+      const d = new Date(dateIsoPourIndexStats(idx) + 'T12:00:00');
+      return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', ...(d.getFullYear() !== new Date().getFullYear() ? { year: 'numeric' } : {}) });
+    };
+    resume.textContent = `Du ${jour(s)} au ${jour(e)} · ${n === 1 ? '1 jour' : n + ' jours'}`
+      + (periodeStats === 'tout' ? ' (séances : tout l’historique)' : '');
+  }
 
   // Les chiffres clés ne coûtent rien à recalculer : pas besoin d'attendre
   // le rendu des graphiques, ni que l'écran soit visible.
@@ -7787,20 +7781,7 @@ function mettreAJourStats() {
 
 let statsNutritionTimer = null;
 function mettreAJourStatsNutrition() {
-  const { s, e, max } = bornesPlageNutrition();
-  document.getElementById('nutrition-start-date-label').textContent = globalMasterLabels[s] || '-';
-  document.getElementById('nutrition-end-date-label').textContent = globalMasterLabels[e] || '-';
-
-  const remplie = document.getElementById('nutrition-plage-remplie');
-  if (remplie && max > 0) {
-    remplie.style.left = (s / max * 100) + '%';
-    remplie.style.right = (100 - e / max * 100) + '%';
-  }
-  const duree = document.getElementById('nutrition-plage-duree');
-  if (duree) {
-    const n = e - s + 1;
-    duree.textContent = n === 1 ? '1 jour' : n + ' jours';
-  }
+  const { s, e } = bornesPlageNutrition();
 
   // Même logique que pour Poids : les chiffres clés ne coûtent rien à
   // recalculer, pas besoin d'attendre le rendu des graphiques.
@@ -7811,59 +7792,23 @@ function mettreAJourStatsNutrition() {
   statsNutritionTimer = setTimeout(() => renderChartsNutrition(s, e), 120);
 }
 
-/* --- Curseur de période INDÉPENDANT pour la Musculation ---
-   Même grille de 180 jours calendaires que le curseur des repas
-   (globalMasterLabels), mais une paire de poignées à part : les séances
-   n'ont pas le même rythme que les repas, pas de raison de forcer la même
-   fenêtre de temps sur les deux. */
 // globalMasterLabels ne contient que des libellés d'affichage ("24/07"),
 // pas de date ISO exploitable pour filtrer musculationHistorique (dates au
 // format YYYY-MM-DD) : on la recalcule avec la même base que
-// buildMasterArrays (180 jours calendaires se terminant aujourd'hui).
+// buildMasterArrays (JOURS_STATS jours calendaires se terminant aujourd'hui).
 function dateIsoPourIndexStats(idx) {
-  return shiftDate(todayStr(), -(179 - idx));
+  return shiftDate(todayStr(), -((globalMasterLabels.length || JOURS_STATS) - 1 - idx));
 }
-function bornesPlageMuscu() {
-  const a = document.getElementById('muscu-slider-start');
-  const b = document.getElementById('muscu-slider-end');
-  let s = Number(a.value), e = Number(b.value);
-  if (s > e) {
-    if (document.activeElement === a) { e = s; b.value = String(e); }
-    else { s = e; a.value = String(s); }
-  }
-  return { s, e, max: Number(a.max) || 1 };
-}
-function bornesPlageNutrition() {
-  const a = document.getElementById('nutrition-slider-start');
-  const b = document.getElementById('nutrition-slider-end');
-  let s = Number(a.value), e = Number(b.value);
-  if (s > e) {
-    if (document.activeElement === a) { e = s; b.value = String(e); }
-    else { s = e; a.value = String(s); }
-  }
-  return { s, e, max: Number(a.max) || 1 };
-}
+// Corps, Nutrition, Activité et Musculation partagent la même période.
+function bornesPlageMuscu() { return bornesPlage(); }
+function bornesPlageNutrition() { return bornesPlage(); }
 let statsMuscuTimer = null;
 function mettreAJourStatsMuscu() {
-  const startEl = document.getElementById('muscu-slider-start');
-  if (!startEl) return; // Écran Statistiques pas encore construit au premier chargement.
-  const { s, e, max } = bornesPlageMuscu();
-  document.getElementById('muscu-start-date-label').textContent = globalMasterLabels[s] || '-';
-  document.getElementById('muscu-end-date-label').textContent = globalMasterLabels[e] || '-';
-  const remplie = document.getElementById('muscu-plage-remplie');
-  if (remplie && max > 0) {
-    remplie.style.left = (s / max * 100) + '%';
-    remplie.style.right = (100 - e / max * 100) + '%';
-  }
-  const duree = document.getElementById('muscu-plage-duree');
-  if (duree) {
-    const n = e - s + 1;
-    duree.textContent = n === 1 ? '1 jour' : n + ' jours';
-  }
+  if (!document.getElementById('slider-start')) return; // Écran Statistiques pas encore construit au premier chargement.
   clearTimeout(statsMuscuTimer);
   const ecran = document.getElementById('ecran-stats');
   if (!ecran || !ecran.classList.contains('actif')) return;
-  statsMuscuTimer = setTimeout(() => renderStatsMuscu(dateIsoPourIndexStats(s), dateIsoPourIndexStats(e)), 120);
+  statsMuscuTimer = setTimeout(() => { const b = bornesMuscuIso(); renderStatsMuscu(b.debut, b.fin); }, 120);
 }
 
 /* =====================================================================
@@ -8767,8 +8712,8 @@ const TOUR_ETAPES = [
   { ecran: 'repas', cible: '#fab', titre: 'Le bouton de navigation', texte: "Ce bouton flottant change d'écran. Garde le doigt appuyé dessus pour le déplacer où tu veux." },
   { fab: true, cible: '#nav-seance', titre: 'Activité', texte: 'Tes programmes de musculation, tes séances et la bibliothèque d’exercices. La visite « Musculation » détaille tout cet écran.' },
   { fab: true, cible: '#nav-stats', titre: 'Statistiques', texte: 'Poids, composition, nutrition et musculation, sur la période de ton choix.' },
-  { ecran: 'stats', cible: '#stats-onglets-nav', titre: 'Trois catégories', texte: 'Poids, Nutrition et Musculation. Dans Musculation : zones de volume, force, progression par exercice et programmes.' },
-  { ecran: 'stats', cible: '#periode-poids-bloc', titre: 'Choisir une période', texte: 'Fais glisser les curseurs pour analyser la période qui t’intéresse.' },
+  { ecran: 'stats', cible: '#stats-onglets-nav', titre: 'Quatre catégories', texte: 'Corps (poids et composition), Nutrition, Activité (pas, sports, séances) et Muscu (semaine, progression, séances, programmes).' },
+  { ecran: 'stats', cible: '#stats-periode', titre: 'Choisir une période', texte: "Une seule période pour tout l'écran : 7 jours, 30 jours, 3 mois… ou « Perso » pour la régler aux curseurs. Le bilan IA, en bas, l'analyse en entier." },
   { fab: true, cible: '#nav-reglages', titre: 'Profil', texte: 'Ton compte, ton objectif, tes informations et tes mesures corporelles.' },
   { ecran: 'reglages', cible: '#carte-objectif', titre: 'Ton objectif', texte: "Maintien, sèche, prise de masse ou recomposition : il règle tes calories et tes macros. En changer ne réécrit jamais ton historique." },
   { ecran: 'reglages', cible: '.btn-engrenage', titre: 'Réglages', texte: "Thème clair ou sombre, palette de couleurs, densité d'affichage, installation sur l'écran d'accueil, et les deux visites guidées." },
@@ -8814,7 +8759,7 @@ const TOUR_MUSCU = [
     texte: () => "Ta dernière série faite, touche « Terminer la séance » : elle rejoint ton historique avec tes records (1RM, charge, volume, répétitions) et compte dans la dépense de ta journée."
       + (musculationSessionActive && musculationSessionActive.demo ? " Ici, rien n'est enregistré : la démonstration se ferme à l'étape suivante." : '') },
   // C. Après la séance
-  { ecran: 'stats', avant: () => { choisirOngletStats('muscu'); }, cible: '#muscu-soustabs-nav', titre: 'Tes statistiques', texte: "Statistiques › Musculation : Aperçu, Zones (volume de la semaine et des 8 dernières), Force (ton niveau par exercice), Progression (courbe par exercice) et Programmes." },
+  { ecran: 'stats', avant: () => { choisirOngletStats('muscu'); }, cible: '#muscu-soustabs-nav', titre: 'Tes statistiques', texte: "Statistiques › Muscu : Semaine (jauges et corps de la semaine, 8 dernières semaines), Progression (courbe, records et niveau de force par exercice), Séances (historique) et Programmes." },
   { titre: 'Bon entraînement !', texte: "Tu peux revoir cette visite à tout moment depuis Profil › Réglages." }
 ];
 let tourListe = TOUR_ETAPES;
@@ -14340,13 +14285,8 @@ function tooltipMuscu(c) {
    lui-même plutôt que de perdre le filtre déjà choisi ; et si le curseur
    n'existe pas encore (tout premier chargement), tout l'historique. */
 function renderStatsMuscu(dateDebut, dateFin) {
-  if (dateDebut === undefined) {
-    const startEl = document.getElementById('muscu-slider-start');
-    if (startEl && globalMasterLabels.length) {
-      const { s, e } = bornesPlageMuscu();
-      dateDebut = dateIsoPourIndexStats(s);
-      dateFin = dateIsoPourIndexStats(e);
-    }
+  if (dateDebut === undefined && document.getElementById('slider-start') && globalMasterLabels.length) {
+    ({ debut: dateDebut, fin: dateFin } = bornesMuscuIso());
   }
   const historiqueFiltre = (dateDebut && dateFin)
     ? musculationHistorique.filter(h => h.date >= dateDebut && h.date <= dateFin)
@@ -17326,34 +17266,8 @@ window.addEventListener('load', () => {
   const el = document.getElementById('slider-end');
   if (sl && el) {
     sl.max = el.max = globalMasterLabels.length - 1;
-    sl.value = Math.max(0, globalMasterLabels.length - 30);
-    el.value = globalMasterLabels.length - 1;
-    sl.addEventListener('change', () => { sl.dataset.touche = '1'; });
-    el.addEventListener('change', () => { sl.dataset.touche = '1'; });
-    mettreAJourStats();
-  }
-  // Même chose pour le curseur indépendant de la Musculation, par défaut
-  // sur tout l'historique (voir prepareStats).
-  const mSl = document.getElementById('muscu-slider-start');
-  const mEl = document.getElementById('muscu-slider-end');
-  if (mSl && mEl) {
-    mSl.max = mEl.max = globalMasterLabels.length - 1;
-    mSl.value = 0;
-    mEl.value = globalMasterLabels.length - 1;
-    mSl.addEventListener('change', () => { mSl.dataset.touche = '1'; });
-    mEl.addEventListener('change', () => { mSl.dataset.touche = '1'; });
-    mettreAJourStatsMuscu();
-  }
-  // Même chose pour le curseur indépendant de la Nutrition.
-  const nSl = document.getElementById('nutrition-slider-start');
-  const nEl = document.getElementById('nutrition-slider-end');
-  if (nSl && nEl) {
-    nSl.max = nEl.max = globalMasterLabels.length - 1;
-    nSl.value = Math.max(0, globalMasterLabels.length - 30);
-    nEl.value = globalMasterLabels.length - 1;
-    nSl.addEventListener('change', () => { nSl.dataset.touche = '1'; });
-    nEl.addEventListener('change', () => { nSl.dataset.touche = '1'; });
-    mettreAJourStatsNutrition();
+    appliquerPeriodeStats();
+    majToutesStats();
   }
 
   const lim = limiteIA();
