@@ -1832,6 +1832,10 @@
        s'adapte à la largeur, sans dépasser 12 px. */
     .zone-barre { display: grid; gap: 3px; align-items: center; }
     .zone-barre span { width: 100%; max-width: 12px; aspect-ratio: 1; border-radius: 50%; }
+    /* Muscle secondaire de la séance : petites pastilles, ligne plus discrète. */
+    .zone-ligne--secondaire .zone-barre span { max-width: 6px; }
+    .zone-ligne--secondaire .zone-ligne-tete { font-size: 0.72rem; font-weight: 600; }
+    .zone-ligne--secondaire .zone-ligne-note { display: none; }
     .zone-ligne-note { font-size: 0.68rem; color: var(--text-muted); margin-top: 4px; }
     .zones-legende { display: grid; gap: 8px; margin: 4px 0 16px; }
     .zones-legende-item { background: var(--verre-creux); border-left: 3px solid; border-radius: 10px; padding: 8px 11px; font-size: 0.8rem; }
@@ -16017,10 +16021,10 @@ function phraseProchaineZone(groupe, series) {
   }
   return 'Plafond récupérable atteint : au-delà, fatigue excessive et risque de régression';
 }
-function ligneZoneHTML(groupe, series, compacte) {
+function ligneZoneHTML(groupe, series, compacte, secondaire) {
   const cle = cleZoneVolume(groupe, series);
   const info = ZONES_INFO[cle];
-  return `<div class="zone-ligne${compacte ? ' zone-ligne--compacte' : ''}">
+  return `<div class="zone-ligne${compacte ? ' zone-ligne--compacte' : ''}${secondaire ? ' zone-ligne--secondaire' : ''}">
     <div class="zone-ligne-tete"><span>${escapeHtml(GROUPES_MUSCULAIRES[groupe])}</span>
       <span style="color:${info.couleur};">${info.court} · ${formatSeries(series)} série${series >= 2 ? 's' : ''}</span></div>
     ${barreZoneHTML(groupe, series)}
@@ -16384,12 +16388,22 @@ function renderCorpsSession() {
   // (au lieu d'une sous chaque exercice), dans l'ordre des exercices.
   const zones = document.getElementById('session-zones');
   if (zones) {
-    const vus = [];
+    // Muscles principaux des exercices (grosses pastilles), puis leurs
+    // muscles secondaires qui ne sont le principal d'aucun exercice de la
+    // séance (petites pastilles).
+    const principaux = [], secondaires = [];
     musculationSessionActive.exercices.forEach(e => {
       const exo = trouverExercice(e.exerciceId);
-      if (exo && ZONES_VOLUME[exo.groupe] && !vus.includes(exo.groupe)) vus.push(exo.groupe);
+      if (exo && ZONES_VOLUME[exo.groupe] && !principaux.includes(exo.groupe)) principaux.push(exo.groupe);
     });
-    zones.innerHTML = vus.map(g => ligneZoneHTML(g, zonesSemaineSession[g] || 0, true)).join('');
+    musculationSessionActive.exercices.forEach(e => {
+      const exo = trouverExercice(e.exerciceId);
+      (exo && exo.secondaires || []).forEach(g => {
+        if (ZONES_VOLUME[g] && !principaux.includes(g) && !secondaires.includes(g)) secondaires.push(g);
+      });
+    });
+    zones.innerHTML = principaux.map(g => ligneZoneHTML(g, zonesSemaineSession[g] || 0, true)).join('')
+      + secondaires.map(g => ligneZoneHTML(g, zonesSemaineSession[g] || 0, true, true)).join('');
   }
 }
 function basculerCorpsSession() {
