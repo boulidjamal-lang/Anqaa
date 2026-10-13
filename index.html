@@ -1808,6 +1808,21 @@
     .zones-table td b { display: block; font-size: 0.62rem; }
     /* Carte du corps */
     .corps-carte { background: var(--verre-creux); border-radius: 16px; padding: 10px 12px; margin-bottom: 14px; }
+    /* Haut de la séance en cours : petite silhouette sans fond à gauche,
+       jauges de volume de la semaine à droite. Un appui sur la silhouette
+       l'agrandit (et repasse les jauges en dessous). */
+    .session-haut { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+    .session-corps-mini { flex: 0 0 92px; background: transparent; border: 0; padding: 0; cursor: zoom-in; color: inherit; font-family: inherit; transition: flex-basis 0.25s ease; }
+    .session-corps-mini .corps-svg { margin: 0; max-width: none; width: 100%; }
+    .session-corps-mini .corps-puces, .session-corps-mini .note { display: none; }
+    .session-zones { flex: 1; min-width: 0; }
+    .session-zones .zone-ligne { margin: 0 0 9px; }
+    .session-zones .zone-ligne:last-child { margin-bottom: 0; }
+    .session-haut.agrandi { flex-direction: column; align-items: stretch; }
+    .session-haut.agrandi .session-corps-mini { flex-basis: auto; cursor: zoom-out; }
+    .session-haut.agrandi .session-corps-mini .corps-svg { max-width: 380px; margin: 0 auto; }
+    .session-haut.agrandi .session-corps-mini .corps-puces { display: flex; }
+    .session-haut.agrandi .session-corps-mini .note { display: block; }
     .corps-carte summary { font-weight: 800; font-size: 0.8rem; cursor: pointer; }
     .corps-svg { display: block; width: 100%; max-width: 380px; height: auto; margin: 8px auto 0; }
     .corps-puces { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-top: 6px; }
@@ -2356,10 +2371,10 @@
         <span style="font-size:0.78rem; font-weight:700; color:var(--danger); display:flex; align-items:center; gap:5px; white-space:nowrap;"><span class="bandeau-seance-flottant-pastille" aria-hidden="true"><svg class="icone-ui icone-pleine" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg></span> En cours</span>
       </div>
       <p class="note" id="session-chrono" style="margin:2px 0 14px; font-weight:700;"></p>
-      <details class="corps-carte" open>
-        <summary>Répartition musculaire de la séance</summary>
-        <div id="session-corps"></div>
-      </details>
+      <div class="session-haut" id="session-haut">
+        <button type="button" class="session-corps-mini" id="session-corps" onclick="basculerCorpsSession()" aria-label="Agrandir la silhouette des muscles travaillés" aria-expanded="false"></button>
+        <div class="session-zones" id="session-zones"></div>
+      </div>
       <div id="session-exercices-container"></div>
       <button class="btn btn-secondaire" style="margin-bottom:14px;" onclick="ouvrirPickerExercices('session')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Ajouter un exercice</button>
       <div class="input-group">
@@ -15797,6 +15812,27 @@ function renderCorpsSession() {
     (groupes.length
       ? `<div class="corps-puces">${groupes.map(g => `<span>${escapeHtml(GROUPES_MUSCULAIRES[g])} <b>${formatSeries(seance[g])}</b></span>`).join('')}</div>`
       : '<p class="note" style="margin:6px 0 0; text-align:center;">Coche une série : le muscle travaillé se colore.</p>');
+  // Jauges de volume de la semaine, une par muscle principal de la séance
+  // (au lieu d'une sous chaque exercice), dans l'ordre des exercices.
+  const zones = document.getElementById('session-zones');
+  if (zones) {
+    const vus = [];
+    musculationSessionActive.exercices.forEach(e => {
+      const exo = trouverExercice(e.exerciceId);
+      if (exo && ZONES_VOLUME[exo.groupe] && !vus.includes(exo.groupe)) vus.push(exo.groupe);
+    });
+    zones.innerHTML = vus.map(g => ligneZoneHTML(g, zonesSemaineSession[g] || 0, true)).join('');
+  }
+}
+function basculerCorpsSession() {
+  const haut = document.getElementById('session-haut');
+  if (!haut) return;
+  const agrandi = haut.classList.toggle('agrandi');
+  const btn = document.getElementById('session-corps');
+  if (btn) {
+    btn.setAttribute('aria-expanded', agrandi ? 'true' : 'false');
+    btn.setAttribute('aria-label', agrandi ? 'Réduire la silhouette' : 'Agrandir la silhouette des muscles travaillés');
+  }
 }
 function basculerNoteExerciceSession(ei) {
   const e = musculationSessionActive && musculationSessionActive.exercices[ei];
@@ -15888,7 +15924,6 @@ function renderSessionExerciceBlocHTML(exo, ei) {
       ${lignesSeries}
     </div>
     <button type="button" class="btn-ajouter-serie" onclick="ajouterSerieSession(${ei})">Ajouter une série</button>
-    ${exerciceComplet && ZONES_VOLUME[exerciceComplet.groupe] ? ligneZoneHTML(exerciceComplet.groupe, zonesSemaineSession[exerciceComplet.groupe] || 0, true) : ''}
   </div>`;
 }
 function musclesLigneHTML(exo) {
