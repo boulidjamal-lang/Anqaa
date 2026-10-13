@@ -2012,6 +2012,33 @@
     .session-exo-nom-ligne { display: flex; align-items: center; gap: 8px; min-width: 0; }
     .session-exo-nom { font-weight: 800; font-size: 0.92rem; }
 
+    /* Séances longues : un exercice peut être replié sur une seule ligne
+       (nom + séries faites), et se redéplie d'un toucher. */
+    .session-repli-barre { display: flex; justify-content: flex-end; gap: 14px; margin: 0 2px 8px; }
+    .session-repli-barre button {
+      background: none; border: 0; padding: 4px 0; font: inherit; font-size: 0.76rem; font-weight: 700;
+      color: var(--primary); cursor: pointer;
+    }
+    .session-exo-chevron {
+      flex: none; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
+      background: none; border: 0; padding: 0; color: var(--text-muted); cursor: pointer; border-radius: 8px;
+    }
+    .session-exo-chevron svg { width: 18px; height: 18px; transition: transform 0.2s; }
+    .session-exo-bloc--replie { padding-top: 10px; padding-bottom: 10px; }
+    .session-exo-bloc--replie .session-exo-entete { margin-bottom: 0; align-items: center; }
+    .session-exo-replie-btn {
+      flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; background: none; border: 0;
+      padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer;
+    }
+    .session-exo-replie-btn .session-exo-nom { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .session-exo-replie-btn .session-exo-chevron svg { transform: rotate(-90deg); }
+    .session-exo-progression {
+      flex: none; font-size: 0.74rem; font-weight: 700; color: var(--text-muted);
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .session-exo-progression--fini { color: var(--primary); }
+    .session-exo-progression svg { width: 14px; height: 14px; color: inherit; }
+
     /* Dans un superset, les exercices restent à l'intérieur d'un même cadre
        (celui du bloc superset plus bas) : leur donner aussi un fond de carte
        créerait une carte dans une carte. On les sépare juste par un filet
@@ -2461,6 +2488,10 @@
       <div class="session-haut" id="session-haut">
         <button type="button" class="session-corps-mini" id="session-corps" onclick="basculerCorpsSession()" aria-label="Agrandir la silhouette des muscles travaillés" aria-expanded="false"></button>
         <div class="session-zones" id="session-zones"></div>
+      </div>
+      <div class="session-repli-barre hidden" id="session-repli-barre">
+        <button type="button" onclick="replierTousExercicesSession(true)">Tout replier</button>
+        <button type="button" onclick="replierTousExercicesSession(false)">Tout déplier</button>
       </div>
       <div id="session-exercices-container"></div>
       <button class="btn btn-secondaire" style="margin-bottom:14px;" onclick="ouvrirPickerExercices('session')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Ajouter un exercice</button>
@@ -16376,6 +16407,8 @@ function renderSessionModal() {
   zonesSemaineSession = seriesSemaine(lundiDeLaSemaine(todayStr()), true);
   renderCorpsSession();
   const c = document.getElementById('session-exercices-container');
+  const barreRepli = document.getElementById('session-repli-barre');
+  if (barreRepli) barreRepli.classList.toggle('hidden', s.exercices.length < 2);
   if (!s.exercices.length) {
     c.innerHTML = '<div class="vide">Ajoute un premier exercice pour commencer.</div>';
   } else {
@@ -16437,6 +16470,23 @@ function basculerCorpsSession() {
     btn.setAttribute('aria-expanded', agrandi ? 'true' : 'false');
     btn.setAttribute('aria-label', agrandi ? 'Réduire la silhouette' : 'Agrandir la silhouette des muscles travaillés');
   }
+}
+const ICONE_CHEVRON_EXO = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>';
+/* Replier un exercice le réduit à une ligne (nom + séries faites) : pratique
+   sur une longue séance pour ne garder ouverts que ceux en cours. L'état est
+   gardé avec la séance en cours, mais pas dans l'historique. */
+function basculerRepliExerciceSession(ei) {
+  const e = musculationSessionActive && musculationSessionActive.exercices[ei];
+  if (!e) return;
+  e.replie = !e.replie;
+  sauvegarderSessionActive();
+  renderSessionModal();
+}
+function replierTousExercicesSession(replier) {
+  if (!musculationSessionActive) return;
+  musculationSessionActive.exercices.forEach(e => { e.replie = replier; });
+  sauvegarderSessionActive();
+  renderSessionModal();
 }
 function basculerNoteExerciceSession(ei) {
   const e = musculationSessionActive && musculationSessionActive.exercices[ei];
@@ -16504,14 +16554,30 @@ function renderSessionExerciceBlocHTML(exo, ei) {
       </div>
     </div>${barreRepos}${blocPaliersHTML(ei, si, set)}`;
   }).join('');
+  const nomExo = escapeHtml(exerciceComplet ? libelleExercice(exerciceComplet) : exo.nom);
+  if (exo.replie) {
+    const faites = exo.series.filter(x => x.fait).length;
+    const fini = exo.series.length > 0 && faites === exo.series.length;
+    return `<div class="session-exo-bloc session-exo-bloc--replie">
+    <div class="session-exo-entete">
+      <span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet) : ''}</span>
+      <button type="button" class="session-exo-replie-btn" onclick="basculerRepliExerciceSession(${ei})" aria-expanded="false" aria-label="Déplier ${nomExo}">
+        <span class="session-exo-nom">${nomExo}</span>
+        <span class="session-exo-progression${fini ? ' session-exo-progression--fini' : ''}">${fini ? '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>' : ''}${faites}/${exo.series.length} série${exo.series.length > 1 ? 's' : ''}</span>
+        <span class="session-exo-chevron" aria-hidden="true">${ICONE_CHEVRON_EXO}</span>
+      </button>
+    </div>
+  </div>`;
+  }
   return `<div class="session-exo-bloc">
     <div class="session-exo-entete">
       <span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet) : ''}</span>
       <div style="flex:1; min-width:0;">
         <div class="session-exo-titre">
           <div class="session-exo-nom-ligne">
+            <button type="button" class="session-exo-chevron" onclick="basculerRepliExerciceSession(${ei})" aria-expanded="true" aria-label="Replier cet exercice" title="Replier cet exercice">${ICONE_CHEVRON_EXO}</button>
             <button type="button" class="session-exo-nom" style="background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-align:left;"
-                    onclick="afficherFicheExerciceBiblio('${exo.exerciceId}')">${escapeHtml(exerciceComplet ? libelleExercice(exerciceComplet) : exo.nom)}</button>
+                    onclick="afficherFicheExerciceBiblio('${exo.exerciceId}')">${nomExo}</button>
           </div>
           <div style="display:flex; gap:4px; align-items:center;">
             <button type="button" class="btn-icone${exo.notes ? ' btn-note-active' : ''}" onclick="basculerNoteExerciceSession(${ei})" aria-label="Note sur cet exercice" title="Note sur cet exercice"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" /></svg></button>
