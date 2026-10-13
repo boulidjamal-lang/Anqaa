@@ -1587,6 +1587,9 @@
 
     /* --- CHIFFRES CLÉS DE LA PÉRIODE --- */
     .grille-cles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .cle-evol { font-size: 0.68rem; font-weight: 800; margin-top: 3px; color: var(--text-muted); }
+    .cle-evol.hausse { color: var(--primary); }
+    .cle-evol.baisse { color: #ff9f0a; }
     .cle {
       background: var(--verre-creux); border: 0;
       border-radius: 15px; padding: 13px 14px;
@@ -1985,6 +1988,15 @@
       cursor: pointer; min-height: 42px;
     }
     .menu-technique-popup button:last-child { border-bottom: none; }
+    .menu-rir { padding: 8px 10px 4px; background: var(--verre-creux); }
+    .menu-rir-titre { font-size: 0.64rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+    .menu-rir-choix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .menu-technique-popup .menu-rir-choix button { min-height: 34px; padding: 6px 0; text-align: center; border: 0; border-radius: 9px; background: var(--verre-fort); font-weight: 800; }
+    .menu-technique-popup .menu-rir-choix button[aria-pressed="true"] { background: var(--primary); color: #fff; }
+    .menu-technique-popup .menu-rir-effacer { min-height: 34px; padding: 6px 0; text-align: center; font-size: 0.74rem; color: var(--text-muted); border: 0; }
+    .serie-num-wrap { position: relative; display: inline-flex; }
+    .serie-rir { position: absolute; right: -9px; bottom: -6px; font-size: 0.56rem; font-weight: 800; padding: 1px 4px; border-radius: 6px;
+      background: var(--primary); color: #fff; line-height: 1.2; pointer-events: none; }
     .menu-technique-popup button:hover, .menu-technique-popup button:focus-visible { background: color-mix(in srgb, var(--primary) 14%, transparent); }
     .serie-table input {
       width: 100%; min-height: 34px; padding: 5px 4px; text-align: center;
@@ -2157,6 +2169,19 @@
     .fh-agrandir svg { width: 20px; height: 20px; }
     .fh-courbe { position: relative; height: 220px; border-radius: 12px; margin: 6px 0 14px; transition: height 0.25s ease; }
     .fh-courbe.grand { height: 380px; }
+    .courbe-pe { position: fixed; inset: 0; z-index: 4000; background: var(--bg); display: flex; flex-direction: column; gap: 8px;
+      padding: calc(env(safe-area-inset-top, 0px) + 10px) calc(env(safe-area-inset-right, 0px) + 14px) calc(env(safe-area-inset-bottom, 0px) + 10px) calc(env(safe-area-inset-left, 0px) + 14px); }
+    .courbe-pe.hidden { display: none; }
+    .courbe-pe-tete { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .courbe-pe-tete b { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #courbe-pe-reglages .fh-periodes { margin-bottom: 6px; }
+    .courbe-pe-zone { position: relative; flex: 1; min-height: 0; }
+    .courbe-pe-astuce { margin: 0; font-size: 0.7rem; color: var(--text-muted); text-align: center; }
+    @media (orientation: landscape) {
+      #courbe-pe-reglages { display: flex; gap: 10px; align-items: center; }
+      #courbe-pe-reglages .fh-periodes { margin: 0; flex: none; width: 280px; }
+      .courbe-pe-astuce { display: none; }
+    }
     .fh-vide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
     .fh-vide span { background: var(--verre-fort); border-radius: 10px; padding: 6px 12px; font-size: 0.85rem; }
 
@@ -2170,8 +2195,35 @@
     /* Tempo : saisie dans le programme, rappel en séance et dans l'historique. */
     .tempo-ligne { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
     .tempo-ligne label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); margin: 0; }
-    .tempo-ligne input { width: 92px; text-align: center; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; padding: 8px 10px; }
+    .tempo-ligne input { width: 80px; text-align: center; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; padding: 8px 10px; }
     .tempo-ligne small { color: var(--text-muted); font-size: 0.72rem; flex-basis: 100%; }
+    .tempo-ligne .plage-groupe { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+    .tempo-ligne input.plage-input { width: 70px; letter-spacing: 1px; }
+    .zones-reglage-entete, .zones-reglage-ligne { display: grid; grid-template-columns: minmax(0, 1fr) repeat(4, 46px) 26px; gap: 5px; align-items: center; }
+    .zones-reglage-entete { font-size: 0.64rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+    .zones-reglage-entete span:not(:first-child) { text-align: center; }
+    .zones-reglage-ligne { padding: 5px 0; border-bottom: 1px solid var(--verre-brd); }
+    .zones-reglage-ligne > span { font-size: 0.82rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .zones-reglage-ligne input[type="number"], .increment-ligne input[type="number"] { padding: 7px 2px; text-align: center; font-weight: 800; font-size: 0.85rem; }
+    .zones-reglage-ligne.perso > span { color: var(--primary); }
+    .zones-reglage-ligne button { background: none; border: 0; color: var(--text-muted); cursor: pointer; padding: 0; font-size: 1rem; }
+    .increment-ligne { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--verre-brd); font-size: 0.86rem; font-weight: 700; }
+    .increment-ligne input { width: 84px; text-align: center; padding: 8px 4px; font-weight: 800; }
+    .alerte-volume-seance { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 10px; padding: 9px 11px; border-radius: 12px;
+      background: color-mix(in srgb, #ff9f0a 16%, transparent); font-size: 0.76rem; line-height: 1.4; }
+    .alerte-volume-seance svg { width: 17px; height: 17px; flex: none; color: #ff9f0a; margin-top: 1px; }
+    .btn-partage-stats { margin: 4px 0 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .partage-apercu { background: var(--verre-creux); border-radius: 16px; padding: 10px; display: flex; justify-content: center; margin-bottom: 10px; }
+    .partage-apercu img { width: 100%; max-width: 260px; aspect-ratio: 9 / 16; border-radius: 12px; display: block; }
+    .partage-option { display: flex; align-items: center; gap: 10px; font-size: 0.86rem; font-weight: 700; padding: 6px 2px; cursor: pointer; }
+    .partage-option input { width: 20px; height: 20px; }
+    .progression-bandeau { display: flex; align-items: center; gap: 8px; margin: 2px 0 10px; padding: 9px 11px; border-radius: 12px;
+      background: color-mix(in srgb, var(--primary) 14%, transparent); font-size: 0.78rem; line-height: 1.35; }
+    .progression-bandeau svg { width: 18px; height: 18px; flex: none; color: var(--primary); }
+    .progression-bandeau span { flex: 1; }
+    .progression-bandeau--fait { background: var(--verre-creux); color: var(--text-muted); }
+    .progression-ok { flex: none; border: 0; border-radius: 999px; padding: 7px 12px; font: inherit; font-size: 0.74rem; font-weight: 800; background: var(--primary); color: #fff; cursor: pointer; }
+    .progression-non { flex: none; border: 0; background: none; color: var(--text-muted); font-size: 1.2rem; line-height: 1; cursor: pointer; padding: 2px 4px; }
     .tempo-aide-btn { background: none; border: 0; padding: 4px; color: var(--text-muted); cursor: pointer; display: inline-flex; }
     .tempo-aide-btn svg { width: 18px; height: 18px; }
     .tempo-badge { display: inline-flex; align-items: center; gap: 6px; margin: 6px 0 2px; padding: 4px 10px; border-radius: 999px; border: 0; cursor: pointer;
@@ -2632,6 +2684,7 @@
     <div class="stats-tab" data-tab="muscu">
       <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Musculation</div>
       <div class="stats-grille" id="muscu-stats-totaux"></div>
+      <button type="button" class="btn btn-secondaire btn-partage-stats" onclick="ouvrirPartageStats()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v13" /><path d="m16 6-4-4-4 4" /><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /></svg> Partager mon bilan</button>
 
       <div class="segment muscu-soustabs-nav" id="muscu-soustabs-nav" role="group" aria-label="Détail musculation">
         <button type="button" onclick="choisirSousOngletMuscu('semaine')" aria-pressed="true">Semaine</button>
@@ -2932,10 +2985,33 @@
   <button type="button" role="menuitem" onclick="choisirTechniqueMenu('degressif')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg> Dégressif</button>
   <button type="button" role="menuitem" onclick="choisirTechniqueMenu('pyramidal')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /></svg> Pyramidal</button>
   <button type="button" role="menuitem" onclick="choisirTechniqueMenu('echec')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4" /></svg> Échec</button>
+  <div class="menu-rir hidden" id="menu-rir">
+    <div class="menu-rir-titre">Reps en réserve (RIR)</div>
+    <div class="menu-rir-choix">
+      <button type="button" onclick="choisirRirMenu(0)">0</button>
+      <button type="button" onclick="choisirRirMenu(1)">1</button>
+      <button type="button" onclick="choisirRirMenu(2)">2</button>
+      <button type="button" onclick="choisirRirMenu(3)">3</button>
+      <button type="button" onclick="choisirRirMenu(4)">4</button>
+      <button type="button" onclick="choisirRirMenu(6)">5+</button>
+    </div>
+    <button type="button" class="menu-rir-effacer" onclick="choisirRirMenu(null)">Pas de RIR</button>
+  </div>
 </div>
 <div class="menu-technique-popup hidden" id="menu-programme-popup" role="menu">
   <button type="button" role="menuitem" onclick="choisirOptionProgramme('dupliquer')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg> Dupliquer</button>
   <button type="button" role="menuitem" onclick="choisirOptionProgramme('supprimer')" style="color:var(--danger);"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg> Supprimer</button>
+</div>
+
+<!-- Courbe d'un exercice en plein écran (voir agrandirCourbeFiche) -->
+<div id="courbe-plein-ecran" class="courbe-pe hidden" role="dialog" aria-modal="true" aria-labelledby="courbe-pe-titre">
+  <div class="courbe-pe-tete">
+    <b id="courbe-pe-titre"></b>
+    <button type="button" class="close-modal" onclick="fermerCourbePleinEcran()" aria-label="Fermer le plein écran">&times;</button>
+  </div>
+  <div id="courbe-pe-reglages"></div>
+  <div class="courbe-pe-zone"><canvas id="courbe-pe-canvas"></canvas></div>
+  <p class="courbe-pe-astuce">Tourne ton téléphone pour élargir la courbe · variation en % depuis la première séance affichée</p>
 </div>
 
 <!-- ============ NAVIGATION : tout passe par le bouton flottant ============ -->
@@ -3822,6 +3898,14 @@
       </div>
     </div>
 
+    <div class="bloc-verre" style="padding:15px; margin-bottom:16px;">
+      <div style="font-weight:700; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px;">Musculation</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
+        <button class="btn btn-secondaire" style="min-height:auto; padding:10px 8px; font-size:0.8rem;" onclick="ouvrirReglagesMuscu('zones')">Zones de volume</button>
+        <button class="btn btn-secondaire" style="min-height:auto; padding:10px 8px; font-size:0.8rem;" onclick="ouvrirReglagesMuscu('increments')">Incréments de charge</button>
+      </div>
+    </div>
+
     <div class="bloc-verre hidden" id="bloc-installer-app" style="padding:15px; margin-bottom:16px;">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
         <div style="min-width:0;">
@@ -3855,6 +3939,47 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ================= PARTAGE DU BILAN (image façon story) ================= -->
+<div id="partage-stats-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-partage-stats">
+  <div class="modal-content" style="max-width:440px;">
+    <div class="modal-entete">
+      <h3 id="titre-partage-stats">Partager mon bilan</h3>
+      <button class="close-modal" onclick="fermerModal('partage-stats-modal')" aria-label="Fermer">&times;</button>
+    </div>
+    <div class="partage-apercu"><img id="partage-stats-img" alt="Aperçu de l'image à partager"></div>
+    <label class="partage-option"><input type="checkbox" id="partage-masquer-charges" onchange="genererImagePartage()"> Masquer les charges (kg)</label>
+    <div class="ia-prog-nav">
+      <button type="button" class="btn btn-secondaire" onclick="enregistrerImagePartage()">Enregistrer</button>
+      <button type="button" class="btn btn-primary" id="btn-partager-stats" onclick="partagerImageStats()">Partager</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= RÉGLAGES MUSCULATION : zones de volume, incréments ================= -->
+<div id="muscu-reglages-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-muscu-reglages">
+  <div class="modal-content" style="max-width:520px;">
+    <div class="modal-entete">
+      <h3 id="titre-muscu-reglages">Réglages musculation</h3>
+      <button class="close-modal" onclick="fermerModal('muscu-reglages-modal')" aria-label="Fermer">&times;</button>
+    </div>
+    <div class="segment" id="muscu-reglages-onglets" role="group" aria-label="Section" style="margin-bottom:14px;">
+      <button type="button" onclick="choisirOngletReglagesMuscu('zones')" aria-pressed="true">Zones de volume</button>
+      <button type="button" onclick="choisirOngletReglagesMuscu('increments')" aria-pressed="false">Charges</button>
+    </div>
+    <div id="muscu-reglages-zones">
+      <p class="note note-explicative" style="margin-top:0;">Séries de travail par semaine à partir desquelles chaque zone commence. Les valeurs par défaut conviennent à la plupart des gens : ajuste un muscle si ton expérience te dit qu'il progresse avec moins, ou récupère mal avec plus.</p>
+      <div class="zones-reglage-entete"><span>Muscle</span><span>MV</span><span>MEV</span><span>MAV</span><span>MRV</span><span></span></div>
+      <div id="zones-reglage-liste"></div>
+      <p class="note ia-prog-erreur" id="zones-reglage-erreur"></p>
+      <button type="button" class="btn btn-secondaire" style="margin-top:10px;" onclick="reinitialiserZonesPerso()">Revenir aux valeurs par défaut</button>
+    </div>
+    <div id="muscu-reglages-increments" class="hidden">
+      <p class="note note-explicative" style="margin-top:0;">De combien augmenter la charge quand la séance te propose de progresser (haut de la plage de répétitions atteint sur toutes les séries). Pour les haltères : le poids d'un haltère.</p>
+      <div id="increments-reglage-liste"></div>
+    </div>
   </div>
 </div>
 
@@ -5475,7 +5600,7 @@ let bilanForce = false;
 function fermerModal(id) {
   if (id === 'compte-modal' && connexionObligatoire) return;
   if (id === 'modal-bienvenue' && bilanForce) return;
-  if (id === 'fiche-exercice-modal') arreterAnimationFiche();
+  if (id === 'fiche-exercice-modal') { arreterAnimationFiche(); if (typeof fermerCourbePleinEcran === 'function') fermerCourbePleinEcran(); }
   // Sinon, fermer la séance/le programme en cours d'édition sans avoir
   // choisi d'option laissait le petit menu de type de série flotter,
   // orphelin, par-dessus tout le reste de l'appli.
@@ -7687,6 +7812,18 @@ function afficherChiffresClesPoids(s, e) {
   return b;
 }
 
+/* Évolution par rapport à la période précédente de même durée : « ▲ +12 % »
+   (ou en points pour un pourcentage). null si rien à comparer. */
+function variationPeriode(actuel, precedent, enPoints) {
+  if (actuel == null || precedent == null || !Number.isFinite(actuel) || !Number.isFinite(precedent)) return null;
+  if (enPoints) {
+    const d = Math.round(actuel - precedent);
+    return d === 0 ? { txt: '= stable vs période préc.', cls: 'eq' } : { txt: (d > 0 ? '▲ +' : '▼ ') + d + ' pts vs période préc.', cls: d > 0 ? 'hausse' : 'baisse' };
+  }
+  if (precedent === 0) return actuel > 0 ? { txt: '▲ nouveau vs période préc.', cls: 'hausse' } : null;
+  const pct = Math.round((actuel - precedent) / Math.abs(precedent) * 100);
+  return pct === 0 ? { txt: '= stable vs période préc.', cls: 'eq' } : { txt: (pct > 0 ? '▲ +' : '▼ ') + pct + ' % vs période préc.', cls: pct > 0 ? 'hausse' : 'baisse' };
+}
 function afficherChiffresClesNutrition(s, e) {
   const g = document.getElementById('grille-cles-nutrition');
   if (!g) return;
@@ -7701,27 +7838,31 @@ function afficherChiffresClesNutrition(s, e) {
     return b;
   }
 
+  // Période précédente de même durée, si elle tient dans les données chargées.
+  const n = e - s + 1;
+  const bp = s - n >= 0 && periodeStats !== 'tout' ? bilanPeriode(s - n, s - 1) : null;
+  const prec = bp && bp.joursRemplis ? bp : null;
   const cartes = [
     { lbl: 'Jours renseignés', val: b.joursRemplis + ' / ' + b.jours,
       sous: b.joursRemplis < b.jours * 0.6 ? 'Trop de trous : les moyennes ci-dessous sont fragiles.' : 'Suivi régulier, les moyennes sont fiables.' },
     { lbl: 'Calories / jour', val: b.moyConso + ' kcal',
-      sous: 'Objectif moyen : ' + b.moyCible + ' kcal' },
+      sous: 'Objectif moyen : ' + b.moyCible + ' kcal', evol: prec && variationPeriode(b.moyConso, prec.moyConso) },
     { lbl: 'Écart moyen', val: fmtSigne(b.ecartMoyen, ' kcal', 0),
       cls: Math.abs(b.ecartMoyen) <= 150 ? 'pos' : 'att',
       sous: b.ecartMoyen < 0 ? 'En déficit sur la période' : b.ecartMoyen > 0 ? 'En surplus sur la période' : 'À l’équilibre' },
     { lbl: 'Dans la cible', val: b.partCible + ' %',
       cls: b.partCible >= 70 ? 'pos' : b.partCible >= 40 ? 'att' : 'neg',
-      sous: b.dansLaCible + ' jours à ± 10 % de l’objectif' },
+      sous: b.dansLaCible + ' jours à ± 10 % de l’objectif', evol: prec && variationPeriode(b.partCible, prec.partCible, true) },
     { lbl: 'Protéines', val: b.protParKg == null ? '—' : (Math.round(b.protParKg * 10) / 10).toString().replace('.', ',') + ' g/kg',
       cls: b.protParKg == null ? '' : (b.protParKg >= 1.6 ? 'pos' : 'att'),
-      sous: b.protParKg == null ? '' : (b.protParKg >= 1.6 ? 'Suffisant pour préserver le muscle' : 'En dessous de 1,6 g/kg, la masse maigre trinque') },
+      sous: b.protParKg == null ? '' : (b.protParKg >= 1.6 ? 'Suffisant pour préserver le muscle' : 'En dessous de 1,6 g/kg, la masse maigre trinque'), evol: prec && variationPeriode(b.protParKg, prec.protParKg) },
     { lbl: 'Entraînement', val: b.minutesParSemaine + ' min/sem.',
       cls: b.minutesParSemaine >= 150 ? 'pos' : '',
-      sous: b.joursSport + ' jours actifs' + (b.minutesParSemaine >= 150 ? ' — recommandation OMS atteinte' : '') },
-    { lbl: 'Pas / jour', val: b.moyPas.toLocaleString('fr-FR'), sous: 'Moyenne sur les jours renseignés' },
+      sous: b.joursSport + ' jours actifs' + (b.minutesParSemaine >= 150 ? ' — recommandation OMS atteinte' : ''), evol: prec && variationPeriode(b.minutesParSemaine, prec.minutesParSemaine) },
+    { lbl: 'Pas / jour', val: b.moyPas.toLocaleString('fr-FR'), sous: 'Moyenne sur les jours renseignés', evol: prec && variationPeriode(b.moyPas, prec.moyPas) },
     { lbl: 'Eau / jour', val: b.moyEau.toLocaleString('fr-FR') + ' ml',
       cls: b.moyEau >= b.moyEauObjectif ? 'pos' : '',
-      sous: 'Objectif moyen sur la période : ' + b.moyEauObjectif.toLocaleString('fr-FR') + ' ml/jour' }
+      sous: 'Objectif moyen sur la période : ' + b.moyEauObjectif.toLocaleString('fr-FR') + ' ml/jour', evol: prec && variationPeriode(b.moyEau, prec.moyEau) }
   ];
 
   g.innerHTML = '';
@@ -7731,6 +7872,7 @@ function afficherChiffresClesNutrition(s, e) {
     const l = document.createElement('div'); l.className = 'cle-lbl'; l.textContent = c.lbl;
     const v = document.createElement('div'); v.className = 'cle-val' + (c.cls ? ' ' + c.cls : ''); v.textContent = c.val;
     el.appendChild(l); el.appendChild(v);
+    if (c.evol) { const ev = document.createElement('div'); ev.className = 'cle-evol ' + c.evol.cls; ev.textContent = c.evol.txt; el.appendChild(ev); }
     if (c.sous) { const sx = document.createElement('div'); sx.className = 'cle-sous'; sx.textContent = c.sous; el.appendChild(sx); }
     g.appendChild(el);
   });
@@ -8857,7 +8999,7 @@ const TOUR_MUSCU = [
       + (musculationSessionActive && musculationSessionActive.demo ? " Ceci est une séance de démonstration : rien n'y est enregistré." : '') },
   { ecran: 'seance', siSession: true, cible: '#session-haut', titre: 'Le volume de ta semaine', texte: "Une jauge par muscle : tes séries de travail de la semaine (MV maintien, MEV croissance, MAV zone idéale, MRV plafond). Grosses pastilles pour les muscles principaux de la séance, petites pour les secondaires. Le corps se colore pareil ; touche-le pour l'agrandir." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-prec', titre: 'Ta séance précédente', texte: "La colonne « Préc. » rappelle ce que tu as fait la dernière fois sur cette série. Touche-la pour reprendre ces valeurs, puis essaie de faire un peu mieux." },
-  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-num-btn', titre: 'Le type de série', texte: "Touche le numéro d'une série pour la marquer : Échauffement (W, jamais comptée dans les jauges), Dégressif, Pyramidal ou Échec." },
+  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-num-btn', titre: 'Le type de série', texte: "Touche le numéro d'une série pour la marquer (Échauffement W, jamais comptée dans les jauges, Dégressif, Pyramidal, Échec) ou noter tes répétitions en réserve (RIR) : une série à 5+ en réserve ne compte pas dans le volume." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .tempo-ligne', titre: 'Le tempo', texte: "Quatre chiffres pour la vitesse de chaque phase : descente, pause en bas, montée, pause en haut (X = explosif). Le (i) explique tout, avec des exemples." },
   { ecran: 'seance', siSession: true, titre: 'Cocher une série',
     // Démonstration : la 2e série est vraiment cochée, pour montrer la case
@@ -14137,7 +14279,7 @@ async function chargerBaseOverrides() {
 function dernierePerfExercice(exerciceId) {
   for (const h of musculationHistorique) {
     const exo = h.exercices.find(x => x.exerciceId === exerciceId && x.series.some(s => s.fait));
-    if (exo) return { date: h.date, series: exo.series };
+    if (exo) return { date: h.date, series: exo.series, plage: exo.plage || null };
   }
   return null;
 }
@@ -14223,6 +14365,7 @@ function construireExercicesSession(programme) {
     return {
       exerciceId: pe.exerciceId, nom: exo ? exo.nom : 'Exercice', series,
       supersetSuivant: !!pe.supersetSuivant, replie: true,
+      ...(pe.plage ? { plage: pe.plage } : {}),
       ...(pe.tempo ? { tempo: pe.tempo } : {})
     };
   });
@@ -14410,7 +14553,14 @@ function renderStatsMuscu(dateDebut, dateFin) {
     : musculationHistorique;
 
   muscuContexteActuel = { historique: historiqueFiltre, admin: false };
-  renderStatsTotauxMuscu(historiqueFiltre, 'muscu-stats-totaux');
+  // Période précédente de même durée (pas pour « Tout »).
+  let precedent = null, jours = null;
+  if (dateDebut && dateFin && dateDebut > '0001') {
+    jours = Math.round((new Date(dateFin + 'T12:00:00') - new Date(dateDebut + 'T12:00:00')) / 86400000) + 1;
+    const finPrec = shiftDate(dateDebut, -1), debutPrec = shiftDate(dateDebut, -jours);
+    precedent = musculationHistorique.filter(h => h.date >= debutPrec && h.date <= finPrec);
+  }
+  renderStatsTotauxMuscu(historiqueFiltre, 'muscu-stats-totaux', precedent, jours);
   renderChartSeancesParMois(historiqueFiltre, 'muscuParMoisChart', 'muscuParMoisChartInstance', dateDebut, dateFin);
   initialiserSelectProgression(historiqueFiltre, 'muscu-exo-select', 'muscu-progression-vide');
   renderStatsRecordsMuscu(historiqueFiltre, 'muscu-stats-records');
@@ -14452,7 +14602,8 @@ function renderZonesMuscu(idCible) {
 
   html += `<div class="titre-section">Les 4 zones d'entraînement</div>
     <p class="note" style="margin:0 0 8px;">Les zones indiquent si tu en fais trop peu, si tu t'entraînes efficacement ou si tu ajoutes des séries qui apportent de moins en moins. Mêmes repères pour tous : ce qui change avec l'expérience, c'est la vitesse de progression et les muscles que tu priorises.</p>
-    ${legendeZonesHTML()}`;
+    ${legendeZonesHTML()}
+    <button type="button" class="btn btn-secondaire" style="margin:4px 0 14px;" onclick="ouvrirReglagesMuscu('zones')">${userProfile.zonesPerso ? 'Modifier mes zones personnalisées' : 'Personnaliser les zones par muscle'}</button>`;
 
   // Tableau des 8 dernières semaines : zone + nombre de séries par muscle.
   const semaines = [];
@@ -14498,24 +14649,33 @@ function renderForceMuscu(idCible) {
    les ids des éléments cibles : c'est ce qui permet de les réutiliser telles
    quelles pour le compte consulté dans le panneau Administration (voir plus
    bas), sans dupliquer la logique de calcul. */
-function renderStatsTotauxMuscu(historique, idCible) {
+// `precedent` (facultatif) : séances de la période précédente de même durée,
+// pour afficher l'évolution de chaque total ; `jours` : durée de la période.
+function renderStatsTotauxMuscu(historique, idCible, precedent, jours) {
   const c = document.getElementById(idCible);
   if (!c) return;
-  const nbSeances = historique.length;
-  const volumeTotal = historique.reduce((v, h) => v + volumeSeance(h), 0);
-  const dureeTotale = historique.reduce((d, h) => d + (h.dureeMin || 0), 0);
-  const seriesTotales = historique.reduce((n, h) => n + h.exercices.reduce((nn, e) => nn + e.series.length, 0), 0);
+  const totaux = h => ({
+    seances: h.length,
+    volume: h.reduce((v, x) => v + volumeSeance(x), 0),
+    duree: h.reduce((d, x) => d + (x.dureeMin || 0), 0),
+    series: h.reduce((n, x) => n + x.exercices.reduce((nn, e) => nn + e.series.filter(z => z.fait !== false).length, 0), 0)
+  });
+  const t = totaux(historique);
+  const p = precedent ? totaux(precedent) : null;
   const ilYA28j = shiftDate(todayStr(), -28);
   const seancesRecentes = historique.filter(h => h.date >= ilYA28j).length;
+  const parSemaine = jours ? Math.round(t.seances / (jours / 7) * 10) / 10 : null;
   const cellules = [
-    ['Séances au total', String(nbSeances)],
-    ['Volume total soulevé', Math.round(volumeTotal).toLocaleString('fr-FR') + ' kg'],
-    ['Temps total', dureeTotale >= 60 ? (Math.round(dureeTotale / 6) / 10) + ' h' : dureeTotale + ' min'],
-    ['Séries au total', String(seriesTotales)],
-    ['4 dernières semaines', seancesRecentes + ' séance(s)'],
-    ['Dernière séance', historique[0] ? formatDateDisplay(historique[0].date) : '—']
+    ['Séances', String(t.seances), p && variationPeriode(t.seances, p.seances)],
+    ['Volume soulevé', Math.round(t.volume).toLocaleString('fr-FR') + ' kg', p && variationPeriode(t.volume, p.volume)],
+    ['Temps', t.duree >= 60 ? (Math.round(t.duree / 6) / 10).toString().replace('.', ',') + ' h' : t.duree + ' min', p && variationPeriode(t.duree, p.duree)],
+    ['Séries', String(t.series), p && variationPeriode(t.series, p.series)],
+    parSemaine != null && jours >= 14
+      ? ['Régularité', String(parSemaine).replace('.', ',') + ' séance' + (parSemaine >= 2 ? 's' : '') + ' / sem.', p && variationPeriode(parSemaine, Math.round(p.seances / (jours / 7) * 10) / 10)]
+      : ['4 dernières semaines', seancesRecentes + ' séance(s)', null],
+    ['Dernière séance', historique[0] ? formatDateDisplay(historique[0].date) : '—', null]
   ];
-  c.innerHTML = cellules.map(([l, v]) => `<div><small>${l}</small><div class="stats-valeur">${v}</div></div>`).join('');
+  c.innerHTML = cellules.map(([l, v, ev]) => `<div><small>${l}</small><div class="stats-valeur">${v}</div>${ev ? `<div class="cle-evol ${ev.cls}">${ev.txt}</div>` : ''}</div>`).join('');
 }
 
 /* Les instances de graphiques vivent dans des variables globales nommées
@@ -15072,6 +15232,8 @@ function renderProgrammeExercicesEnEdition() {
         <label for="tempo-prog-${i}">Tempo</label>
         <input type="text" id="tempo-prog-${i}" maxlength="7" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="3010" value="${escapeHtml(pe.tempo || '')}" onchange="modifierTempoProgramme(${i}, this.value, this)">
         <button type="button" class="tempo-aide-btn" onclick="ouvrirAideTempo(document.getElementById('tempo-prog-${i}').value)" aria-label="Comment fonctionne le tempo ?">${ICONE_INFO_TEMPO}</button>
+        <span class="plage-groupe"><label for="plage-prog-${i}">Reps</label>
+        <input type="text" class="plage-input" id="plage-prog-${i}" maxlength="5" inputmode="numeric" autocomplete="off" placeholder="8-12" value="${escapeHtml(pe.plage || '')}" onchange="modifierPlageProgramme(${i}, this.value, this)"></span>
         <small id="tempo-resume-${i}">${pe.tempo ? escapeHtml(resumeTempo(pe.tempo)) : ''}</small>
       </div>
       <div class="serie-table">
@@ -15083,6 +15245,101 @@ function renderProgrammeExercicesEnEdition() {
   }).join('');
 }
 /* --- Tempo (4 caractères : chiffres de 0 à 9, ou X = explosif) ------- */
+/* --- Plage de répétitions visée (« 8-12 », ou une valeur seule « 10 ») ---
+   Sert d'objectif en séance et de déclencheur de progression : quand toutes
+   les séries de travail ont atteint le haut de la plage, on propose
+   d'augmenter la charge de l'incrément du matériel. */
+function normaliserPlage(v) {
+  const t = String(v == null ? '' : v).trim();
+  if (!t) return '';
+  const m = t.match(/^(\d{1,2})\s*(?:(?:-|–|—|à|a)\s*(\d{1,2}))?$/i);
+  if (!m) return null;
+  let a = Number(m[1]), b = m[2] ? Number(m[2]) : a;
+  if (a < 1 || b < 1) return null;
+  if (b < a) [a, b] = [b, a];
+  return a === b ? String(a) : a + '-' + b;
+}
+function lirePlageReps(plage) {
+  const t = normaliserPlage(plage);
+  if (!t) return null;
+  const [a, b] = t.split('-').map(Number);
+  return { min: a, max: b || a };
+}
+function textePlage(plage) {
+  const p = lirePlageReps(plage);
+  return p ? (p.min === p.max ? String(p.min) : p.min + '–' + p.max) : '';
+}
+/* Incrément de charge par matériel, réglable (Réglages › Musculation). */
+const INCREMENTS_DEFAUT = { barre: 2.5, haltere: 2, machine: 5, poulie: 2.5, poids_corps: 2.5, kettlebell: 4, elastique: 0, autre: 2.5 };
+function incrementCharge(materiel) {
+  const perso = (typeof userProfile !== 'undefined' && userProfile && userProfile.incrementsCharge) || {};
+  const v = Number(perso[materiel]);
+  if (perso[materiel] != null && perso[materiel] !== '' && Number.isFinite(v) && v >= 0) return v;
+  return INCREMENTS_DEFAUT[materiel] != null ? INCREMENTS_DEFAUT[materiel] : 2.5;
+}
+/* Séries de travail (cochées, hors échauffement, avec des répétitions). */
+function seriesDeTravailBrutes(series) {
+  return (series || []).filter(z => z.fait && z.technique !== 'echauffement' && Number(z.reps) > 0);
+}
+/* Proposition de progression pour un exercice de la séance en cours : la
+   dernière fois, toutes les séries de travail ont atteint le haut de la
+   plage → +incrément. Rien si pas de plage, déjà appliquée ou écartée. */
+function suggestionChargeSession(exo) {
+  const plage = lirePlageReps(exo.plage);
+  if (!plage || exo.suggestionVue) return null;
+  const prec = dernierePerfExercice(exo.exerciceId);
+  const travail = prec ? seriesDeTravailBrutes(prec.series) : [];
+  if (!travail.length || !travail.every(z => Number(z.reps) >= plage.max)) return null;
+  const complet = trouverExercice(exo.exerciceId);
+  const inc = incrementCharge(complet ? complet.materiel : 'autre');
+  if (!inc) return null;
+  return { increment: inc, max: plage.max };
+}
+function appliquerSuggestionCharge(ei) {
+  const exo = musculationSessionActive && musculationSessionActive.exercices[ei];
+  const sug = exo && suggestionChargeSession(exo);
+  if (!sug) return;
+  exo.series.forEach(z => {
+    if (z.fait || z.technique === 'echauffement') return;
+    z.poids = Math.round(((Number(z.poids) || 0) + sug.increment) * 100) / 100;
+  });
+  exo.suggestionVue = true;
+  sauvegarderSessionActive();
+  renderSessionModal();
+}
+function ignorerSuggestionCharge(ei) {
+  const exo = musculationSessionActive && musculationSessionActive.exercices[ei];
+  if (!exo) return;
+  exo.suggestionVue = true;
+  sauvegarderSessionActive();
+  renderSessionModal();
+}
+function modifierPlageProgramme(i, valeur, champ) {
+  const pe = programmeEnEdition.exercices[i];
+  if (!pe) return;
+  const t = normaliserPlage(valeur);
+  if (t === null) {
+    alert('La plage de répétitions s\'écrit « 8-12 » (de 8 à 12) ou avec une seule valeur, par exemple « 10 ».');
+    if (champ) champ.value = pe.plage || '';
+    return;
+  }
+  if (t) pe.plage = t; else delete pe.plage;
+  if (champ) champ.value = t;
+  sauvegarderProgrammeEnEdition();
+}
+function modifierPlageSession(ei, valeur, champ) {
+  const exo = musculationSessionActive && musculationSessionActive.exercices[ei];
+  if (!exo) return;
+  const t = normaliserPlage(valeur);
+  if (t === null) {
+    alert('La plage de répétitions s\'écrit « 8-12 » (de 8 à 12) ou avec une seule valeur, par exemple « 10 ».');
+    if (champ) champ.value = exo.plage || '';
+    return;
+  }
+  if (t) exo.plage = t; else delete exo.plage;
+  sauvegarderSessionActive();
+  renderSessionModal();
+}
 const ICONE_INFO_TEMPO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>';
 // « 3-0-1-0 », « 3 0 1 0 », « 30x0 » -> « 3010 », « 30X0 » ; null si invalide.
 function normaliserTempo(v) {
@@ -15570,7 +15827,7 @@ Exercices disponibles (identifiant|nom|groupe musculaire principal|matériel), u
 ${catalogue}
 
 Réponds UNIQUEMENT avec un JSON (sans texte autour, sans markdown) de cette forme exacte :
-{"explication": [string, ...] (2 à 4 phrases courtes en français, tutoiement, qui expliquent les choix : répartition, priorités, volume, précautions), "programmes":[{"nom": string (court, évocateur, en français), "exercices": [{"exerciceId": string (un identifiant EXACT de la liste), "series": number (2 à 5), "reps": number (répétitions cibles, 4 à 20), "poids": number ou null (charge de départ conseillée en kg par série, déduite des séries actuelles quand c'est possible, pour les haltères le poids d'UN haltère ; null si tu ne peux pas l'estimer)}]}]}
+{"explication": [string, ...] (2 à 4 phrases courtes en français, tutoiement, qui expliquent les choix : répartition, priorités, volume, précautions), "programmes":[{"nom": string (court, évocateur, en français), "exercices": [{"exerciceId": string (un identifiant EXACT de la liste), "series": number (2 à 5), "reps": number (répétitions cibles, 4 à 20), "poids": number ou null (charge de départ conseillée en kg par série, déduite des séries actuelles quand c'est possible, pour les haltères le poids d'UN haltère ; null si tu ne peux pas l'estimer), "plage": string (plage de répétitions visée, par exemple "8-12" ; "reps" doit en être le bas)}]}]}
 
 Règles :
 ${nombreProgrammes ? '- Génère exactement ' + nombreProgrammes + ' programme' + (nombreProgrammes > 1 ? 's' : '') + '.' : '- Génère entre 1 et 4 programmes, cohérents avec ' + r.seances + ' séance(s) par semaine.'}
@@ -15597,10 +15854,12 @@ ${r.split.structure ? '- Respecte EXACTEMENT la répartition imposée, y compris
             const reps = Math.max(4, Math.min(20, Math.round(Number(e.reps)) || 10));
             const poidsBrut = Number(e.poids);
             const poids = Number.isFinite(poidsBrut) && poidsBrut > 0 ? Math.round(poidsBrut * 2) / 2 : null;
+            const plage = normaliserPlage(e.plage);
             return {
               exerciceId: e.exerciceId,
               series: Array.from({ length: n }, () => ({ poids, reps, technique: null })),
-              supersetSuivant: false
+              supersetSuivant: false,
+              ...(plage ? { plage } : {})
             };
           })
       }))
@@ -15660,7 +15919,7 @@ function rendrePreviewProgrammesIA() {
     const lignes = p.exercices.map(e => {
       const exo = trouverExercice(e.exerciceId);
       const charge = e.series[0].poids != null ? ` · ${formatSeries(e.series[0].poids)} kg` : '';
-      return `<li>${escapeHtml(exo ? libelleExercice(exo) : e.exerciceId)} — ${e.series.length}×${e.series[0].reps}${charge}</li>`;
+      return `<li>${escapeHtml(exo ? libelleExercice(exo) : e.exerciceId)} — ${e.series.length}×${e.plage ? escapeHtml(textePlage(e.plage)) : e.series[0].reps}${charge}</li>`;
     }).join('');
     return `<label class="fitness-card" style="display:block; margin-bottom:10px; cursor:pointer;">
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
@@ -15961,7 +16220,7 @@ function rendreHistoriqueFiche() {
   </div>
   <div class="fh-barre">
     ${METRIQUES_FICHE.map(m => `<button type="button" class="fh-chip" onclick="basculerMetriqueFiche('${m[0]}')" aria-pressed="${ficheHisto.metriques.includes(m[0])}"><i style="background:${m[2]}"></i>${m[1]}</button>`).join('')}
-    <button type="button" class="fh-agrandir" onclick="agrandirCourbeFiche()" aria-label="Agrandir la courbe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6" /><path d="M9 21H3v-6" /><path d="m21 3-7 7" /><path d="m3 21 7-7" /></svg></button>
+    <button type="button" class="fh-agrandir" onclick="agrandirCourbeFiche()" aria-label="Afficher la courbe en plein écran"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6" /><path d="M9 21H3v-6" /><path d="m21 3-7 7" /><path d="m3 21 7-7" /></svg></button>
   </div>
   <p class="note" style="margin:2px 0 0;">Variation en % depuis la première séance affichée</p>
   <div class="fh-courbe${ficheHisto.grand ? ' grand' : ''}" id="fiche-histo-courbe"><canvas id="fiche-histo-canvas"></canvas>${seances.length ? '' : '<div class="fh-vide"><span>Pas de données sur cette période</span></div>'}</div>`;
@@ -15982,6 +16241,10 @@ function dessinerCourbeFiche() {
   const canvas = document.getElementById('fiche-histo-canvas');
   if (!canvas || !ficheHisto || typeof Chart === 'undefined') return;
   if (!canvas.offsetParent) return; // onglet masqué : redessiné à l'ouverture
+  ficheHistoChart = creerCourbeFiche(canvas, false);
+}
+/* Courbe de progression d'un exercice (fiche, ou plein écran). */
+function creerCourbeFiche(canvas, pleinEcran) {
   const seances = seancesFicheHisto();
   const mesures = seances.map(o => mesuresExercice(o.e));
   const c = graphiqueCouleursMuscu();
@@ -15996,7 +16259,7 @@ function dessinerCourbeFiche() {
       tension: 0.3, borderWidth: 2, pointRadius: seances.length > 1 ? 3 : 5, pointHoverRadius: 6, spanGaps: true
     };
   });
-  ficheHistoChart = new Chart(canvas, {
+  return new Chart(canvas, {
     type: 'line',
     data: { labels: seances.map(o => { const d = new Date(o.h.date + 'T12:00:00'); return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }); }), datasets },
     options: {
@@ -16010,9 +16273,9 @@ function dessinerCourbeFiche() {
         })
       },
       scales: {
-        x: { ticks: { color: c.texte, font: { size: 9 }, maxTicksLimit: 6 }, grid: { display: false }, border: { display: false } },
+        x: { ticks: { color: c.texte, font: { size: pleinEcran ? 11 : 9 }, maxTicksLimit: pleinEcran ? 12 : 6 }, grid: { display: false }, border: { display: false } },
         y: {
-          ticks: { color: c.texte, font: { size: 9 }, callback: v => (v > 0 ? '+' : '') + formatNombreFr(v) + '%' },
+          ticks: { color: c.texte, font: { size: pleinEcran ? 11 : 9 }, callback: v => (v > 0 ? '+' : '') + formatNombreFr(v) + '%' },
           grid: { color: c.grille, drawTicks: false }, border: { display: false },
           suggestedMin: -1, suggestedMax: 1
         }
@@ -16024,19 +16287,55 @@ function choisirPeriodeFiche(p) {
   if (!ficheHisto) return;
   ficheHisto.periode = p;
   rendreHistoriqueFiche();
+  rendreCourbePleinEcran();
 }
 function basculerMetriqueFiche(m) {
   if (!ficheHisto) return;
   const l = ficheHisto.metriques;
   ficheHisto.metriques = l.includes(m) ? l.filter(x => x !== m) : l.concat(m);
   rendreHistoriqueFiche();
+  rendreCourbePleinEcran();
 }
+/* Plein écran : la courbe occupe tout l'écran, avec les mêmes périodes et
+   courbes à afficher. Sur Android, l'écran passe en paysage tout seul ;
+   ailleurs, une astuce invite à tourner le téléphone. */
+let courbePleinEcranChart = null;
 function agrandirCourbeFiche() {
   if (!ficheHisto) return;
-  ficheHisto.grand = !ficheHisto.grand;
-  const el = document.getElementById('fiche-histo-courbe');
-  if (el) el.classList.toggle('grand', ficheHisto.grand);
-  setTimeout(() => { if (ficheHistoChart) ficheHistoChart.resize(); }, 260);
+  const pe = document.getElementById('courbe-plein-ecran');
+  pe.classList.remove('hidden');
+  document.body.classList.add('couche-ouverte');
+  const exo = trouverExercice(ficheHisto.id);
+  document.getElementById('courbe-pe-titre').textContent = exo ? libelleExercice(exo) : '';
+  try {
+    const el = document.documentElement;
+    if (el.requestFullscreen && !document.fullscreenElement) {
+      el.requestFullscreen().then(() => {
+        if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {});
+      }).catch(() => {});
+    }
+  } catch (e) {}
+  rendreCourbePleinEcran();
+}
+function rendreCourbePleinEcran() {
+  const pe = document.getElementById('courbe-plein-ecran');
+  if (!pe || pe.classList.contains('hidden') || !ficheHisto) return;
+  document.getElementById('courbe-pe-reglages').innerHTML = `<div class="segment fh-periodes" role="group" aria-label="Période">
+      ${PERIODES_FICHE.map(p => `<button type="button" onclick="choisirPeriodeFiche('${p[0]}')" aria-pressed="${p[0] === ficheHisto.periode}">${p[1]}</button>`).join('')}
+    </div>
+    <div class="fh-barre">${METRIQUES_FICHE.map(m => `<button type="button" class="fh-chip" onclick="basculerMetriqueFiche('${m[0]}')" aria-pressed="${ficheHisto.metriques.includes(m[0])}"><i style="background:${m[2]}"></i>${m[1]}</button>`).join('')}</div>`;
+  if (courbePleinEcranChart) { courbePleinEcranChart.destroy(); courbePleinEcranChart = null; }
+  const canvas = document.getElementById('courbe-pe-canvas');
+  if (canvas && typeof Chart !== 'undefined') courbePleinEcranChart = creerCourbeFiche(canvas, true);
+}
+function fermerCourbePleinEcran() {
+  const pe = document.getElementById('courbe-plein-ecran');
+  if (!pe || pe.classList.contains('hidden')) return;
+  pe.classList.add('hidden');
+  if (!document.querySelector('.modal.show')) document.body.classList.remove('couche-ouverte');
+  if (courbePleinEcranChart) { courbePleinEcranChart.destroy(); courbePleinEcranChart = null; }
+  try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
+  try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); } catch (e) {}
 }
 function ouvrirSeanceDepuisFiche(idSeance) {
   fermerModal('fiche-exercice-modal');
@@ -16162,7 +16461,7 @@ function apercuProgramme(programmeId) {
    tous les niveaux — ce qui change avec l'expérience, c'est la vitesse de
    progression et les muscles qu'on choisit de prioriser.
    ===================================================================== */
-const ZONES_VOLUME = {
+const ZONES_VOLUME_DEFAUT = {
   pectoraux: { mv: 4, mev: 8, mav: 12, mrv: 22 },
   dos: { mv: 6, mev: 10, mav: 14, mrv: 25 },
   epaules: { mv: 6, mev: 8, mav: 16, mrv: 26 },
@@ -16178,6 +16477,18 @@ const ZONES_VOLUME = {
   avant_bras: { mv: 2, mev: 4, mav: 10, mrv: 20 },
   trapezes: { mv: 2, mev: 4, mav: 12, mrv: 26 }
 };
+/* Seuils en vigueur : ceux par défaut, remplacés muscle par muscle par les
+   réglages de la personne (userProfile.zonesPerso, synchronisé avec le
+   profil). Un Proxy pour que tout le code existant (ZONES_VOLUME[g],
+   Object.values…) lise les seuils personnalisés sans rien changer. */
+const ZONES_VOLUME = new Proxy(ZONES_VOLUME_DEFAUT, {
+  get(defauts, g) {
+    const d = defauts[g];
+    if (!d || typeof g !== 'string') return d;
+    const perso = typeof userProfile !== 'undefined' && userProfile && userProfile.zonesPerso && userProfile.zonesPerso[g];
+    return perso ? { ...d, ...perso } : d;
+  }
+});
 const ZONES_INFO = {
   sous: { abbr: 'Bas', nom: 'Sous le volume de maintien', court: 'Sous le maintien', desc: 'Pas assez pour conserver ta masse musculaire', couleur: '#4f7cff' },
   mv: { abbr: 'MV', nom: 'Volume de maintien', court: 'Maintien (MV)', desc: 'Le minimum pour conserver ta masse musculaire actuelle (récupération, deload)', couleur: '#34c759' },
@@ -16228,6 +16539,8 @@ function reference1RMExercice(exerciceId, dateRef, historique, exercicesCourants
 }
 function estSerieDeTravail(x, ref) {
   if (!x || !x.fait || x.technique === 'echauffement') return false;
+  // RIR noté pendant la séance : il remplace l'estimation par le 1RM.
+  if (x.rir != null && x.rir !== '' && Number.isFinite(Number(x.rir))) return Number(x.rir) <= RIR_MAX_SERIE_TRAVAIL;
   const p = Number(x.poids) || 0, r = Number(x.reps) || 0;
   if (!(p > 0) || !(r > 0) || !(ref > 0) || p >= ref) return true;
   const repsPossibles = 30 * (ref / p - 1);
@@ -16272,10 +16585,232 @@ function seriesSemaine(lundi, inclureSessionActive, historique) {
   return acc;
 }
 
+/* --- Partage du bilan musculation en image (1080 × 1920, format story) ---
+   Dessinée sur un canvas à partir de la période choisie dans les stats :
+   totaux, muscles les plus travaillés, records de la période. « Masquer les
+   charges » retire tout chiffre en kg. */
+let partageBlob = null;
+function ouvrirPartageStats() {
+  ouvrirModal('partage-stats-modal');
+  const peutPartager = !!(navigator.canShare && navigator.share);
+  document.getElementById('btn-partager-stats').classList.toggle('hidden', !peutPartager);
+  genererImagePartage();
+}
+function donneesPartageStats() {
+  const { debut, fin } = bornesMuscuIso();
+  const seances = musculationHistorique.filter(h => h.date >= debut && h.date <= fin);
+  const avant = musculationHistorique.filter(h => h.date < debut);
+  const vol = {};
+  const cache = new Map();
+  seances.forEach(h => ajouterSeriesParGroupe(vol, h.exercices, { date: h.date, historique: musculationHistorique, cache }));
+  const muscles = Object.keys(vol).filter(g => vol[g] > 0).sort((a, b) => vol[b] - vol[a]).slice(0, 5).map(g => ({ g, n: vol[g] }));
+  // Records : meilleur 1RM estimé de la période, battu par rapport à avant.
+  const ids = [...new Set(seances.flatMap(h => h.exercices.map(e => e.exerciceId)))];
+  const records = ids.map(id => {
+    const b = meilleur1RM(id, seances);
+    const a = meilleur1RM(id, avant);
+    const exo = trouverExercice(id);
+    return b && exo ? { nom: libelleExercice(exo), valeur: b.valeur, poids: b.poids, reps: b.reps, record: !a || b.valeur > a.valeur, gain: a ? (b.valeur / a.valeur - 1) * 100 : null } : null;
+  }).filter(Boolean).sort((x, y) => (y.record - x.record) || (y.valeur - x.valeur)).slice(0, 3);
+  const totalSeries = seances.reduce((n, h) => n + h.exercices.reduce((m, e) => m + e.series.filter(z => z.fait !== false).length, 0), 0);
+  return {
+    periode: (document.getElementById('stats-periode-resume') || {}).textContent || '',
+    seances: seances.length, series: totalSeries,
+    volume: seances.reduce((v, h) => v + volumeSeance(h), 0),
+    duree: seances.reduce((d, h) => d + (h.dureeMin || 0), 0),
+    muscles, records
+  };
+}
+function chargerLogoPartage() {
+  return new Promise(resolve => {
+    const el = document.querySelector('.logo-anqa');
+    const m = el && getComputedStyle(el).getPropertyValue('--logo-anqa-img').match(/url\(["']?(data:[^"')]+)["']?\)/);
+    if (!m) { resolve(null); return; }
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = m[1];
+  });
+}
+async function genererImagePartage() {
+  const d = donneesPartageStats();
+  const masquer = document.getElementById('partage-masquer-charges').checked;
+  const W = 1080, H = 1920;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const x = cv.getContext('2d');
+  const police = getComputedStyle(document.body).fontFamily || 'sans-serif';
+  const primaire = (getComputedStyle(document.documentElement).getPropertyValue('--primary') || '#14b566').trim();
+  // Le canvas normalise la couleur (« #rrggbb ») : on peut y ajouter une opacité.
+  x.fillStyle = primaire; const primaireHex = /^#[0-9a-f]{6}$/i.test(x.fillStyle) ? x.fillStyle : '#14b566';
+  // Version éclaircie pour le texte coloré, lisible sur le fond sombre.
+  const clair = '#' + [1, 3, 5].map(i => Math.round(parseInt(primaireHex.slice(i, i + 2), 16) * 0.55 + 255 * 0.45).toString(16).padStart(2, '0')).join('');
+  const f = (taille, poids) => `${poids || 700} ${taille}px ${police}`;
+  // Fond
+  const fond = x.createLinearGradient(0, 0, W, H);
+  fond.addColorStop(0, '#0d1117'); fond.addColorStop(1, '#151b26');
+  x.fillStyle = fond; x.fillRect(0, 0, W, H);
+  const halo = x.createRadialGradient(W * 0.85, 140, 20, W * 0.85, 140, 700);
+  halo.addColorStop(0, primaireHex + '55'); halo.addColorStop(1, 'transparent');
+  x.fillStyle = halo; x.fillRect(0, 0, W, H);
+  // En-tête
+  const logo = await chargerLogoPartage();
+  if (logo) x.drawImage(logo, 80, 90, 92, 108);
+  x.fillStyle = '#ffffff'; x.font = f(64, 800); x.textBaseline = 'middle';
+  x.fillText('Anqā', logo ? 196 : 80, 146);
+  x.fillStyle = 'rgba(255,255,255,0.6)'; x.font = f(34, 600);
+  x.fillText('Mon bilan musculation', 80, 270);
+  x.fillStyle = '#ffffff'; x.font = f(40, 800);
+  x.fillText(d.periode.replace(/\s*\(.*\)$/, ''), 80, 326);
+  // Totaux (2 × 2)
+  const cartes = [
+    ['Séances', String(d.seances)],
+    ['Séries', String(d.series)],
+    masquer ? ['Temps', d.duree >= 60 ? (Math.round(d.duree / 6) / 10).toString().replace('.', ',') + ' h' : d.duree + ' min'] : ['Volume', Math.round(d.volume).toLocaleString('fr-FR') + ' kg'],
+    masquer ? ['Par semaine', String(Math.round(d.seances / Math.max(1, (parseInt((d.periode.match(/(\d+) jours?/) || [])[1], 10) || 7) / 7) * 10) / 10).replace('.', ',')] : ['Temps', d.duree >= 60 ? (Math.round(d.duree / 6) / 10).toString().replace('.', ',') + ' h' : d.duree + ' min']
+  ];
+  const rond = (rx, ry, rw, rh, r) => { x.beginPath(); x.moveTo(rx + r, ry); x.arcTo(rx + rw, ry, rx + rw, ry + rh, r); x.arcTo(rx + rw, ry + rh, rx, ry + rh, r); x.arcTo(rx, ry + rh, rx, ry, r); x.arcTo(rx, ry, rx + rw, ry, r); x.closePath(); };
+  cartes.forEach(([lbl, val], i) => {
+    const cx = 80 + (i % 2) * 470, cy = 400 + Math.floor(i / 2) * 230;
+    x.fillStyle = 'rgba(255,255,255,0.06)'; rond(cx, cy, 450, 200, 36); x.fill();
+    x.fillStyle = 'rgba(255,255,255,0.55)'; x.font = f(30, 700); x.fillText(lbl.toUpperCase(), cx + 40, cy + 58);
+    x.fillStyle = '#ffffff'; x.font = f(val.length > 9 ? 56 : 72, 800); x.fillText(val, cx + 40, cy + 135);
+  });
+  // Muscles les plus travaillés
+  let y = 880;
+  x.fillStyle = 'rgba(255,255,255,0.55)'; x.font = f(30, 800);
+  x.fillText('MUSCLES LES PLUS TRAVAILLÉS', 80, y);
+  y += 58;
+  const max = Math.max(1, ...d.muscles.map(m => m.n));
+  if (!d.muscles.length) { x.fillStyle = 'rgba(255,255,255,0.5)'; x.font = f(34, 600); x.fillText('Pas encore de séance sur la période', 80, y + 10); y += 80; }
+  d.muscles.forEach(m => {
+    x.fillStyle = '#ffffff'; x.font = f(36, 700); x.fillText(GROUPES_MUSCULAIRES[m.g], 80, y);
+    x.textAlign = 'right'; x.fillStyle = 'rgba(255,255,255,0.7)'; x.fillText(formatSeries(m.n) + ' séries', W - 80, y); x.textAlign = 'left';
+    x.fillStyle = 'rgba(255,255,255,0.08)'; rond(80, y + 30, W - 160, 18, 9); x.fill();
+    x.fillStyle = primaire; rond(80, y + 30, Math.max(18, (W - 160) * m.n / max), 18, 9); x.fill();
+    y += 92;
+  });
+  // Records
+  y += 30;
+  x.fillStyle = 'rgba(255,255,255,0.55)'; x.font = f(30, 800);
+  x.fillText(d.records.some(r => r.record) ? 'RECORDS DE LA PÉRIODE' : 'MEILLEURES SÉRIES', 80, y);
+  y += 40;
+  d.records.forEach(r => {
+    if (y + 124 > H - 130) return; // plus de place : on s'arrête avant le pied
+    x.fillStyle = 'rgba(255,255,255,0.06)'; rond(80, y, W - 160, 124, 30); x.fill();
+    x.fillStyle = '#ffffff'; x.font = f(34, 700);
+    let nom = r.nom; while (x.measureText(nom).width > W - 260 && nom.length > 4) nom = nom.slice(0, -2);
+    x.fillText(nom === r.nom ? nom : nom + '…', 120, y + 48);
+    x.fillStyle = r.record ? clair : 'rgba(255,255,255,0.65)'; x.font = f(30, 800);
+    const detail = masquer
+      ? (r.record ? (r.gain != null ? `Record battu · +${Math.round(r.gain)} %` : 'Premier record') : 'Meilleure série')
+      : `${formatSeries(r.poids)} kg × ${r.reps}` + (r.record ? (r.gain != null ? `  ·  record +${Math.round(r.gain)} %` : '  ·  premier record') : '');
+    x.fillText(detail, 120, y + 92);
+    y += 140;
+  });
+  // Pied
+  x.fillStyle = 'rgba(255,255,255,0.4)'; x.font = f(28, 600); x.textAlign = 'center';
+  x.fillText('Suivi avec Anqā', W / 2, H - 70); x.textAlign = 'left';
+  const url = cv.toDataURL('image/png');
+  document.getElementById('partage-stats-img').src = url;
+  partageBlob = await new Promise(res => cv.toBlob(res, 'image/png'));
+}
+async function partagerImageStats() {
+  if (!partageBlob) await genererImagePartage();
+  const fichier = new File([partageBlob], 'bilan-anqa.png', { type: 'image/png' });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [fichier] })) await navigator.share({ files: [fichier], title: 'Mon bilan Anqā' });
+    else enregistrerImagePartage();
+  } catch (e) { /* partage annulé */ }
+}
+function enregistrerImagePartage() {
+  const a = document.createElement('a');
+  a.href = document.getElementById('partage-stats-img').src;
+  a.download = 'bilan-anqa.png';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+/* --- Réglages musculation : zones de volume et incréments de charge --- */
+function enregistrerProfilMuscu() {
+  userProfile.maj = Date.now();
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(userProfile)); } catch (e) {}
+  if (typeof planifierSync === 'function') planifierSync();
+  // Tout ce qui affiche des jauges se redessine avec les nouveaux seuils.
+  if (musculationSessionActive) renderSessionModal();
+  const ecran = document.getElementById('ecran-stats');
+  if (ecran && ecran.classList.contains('actif')) renderZonesMuscu('muscu-zones-container');
+}
+function ouvrirReglagesMuscu(onglet) {
+  rendreReglagesZones();
+  rendreReglagesIncrements();
+  choisirOngletReglagesMuscu(onglet || 'zones');
+  ouvrirModal('muscu-reglages-modal');
+}
+function choisirOngletReglagesMuscu(nom) {
+  majSegment('muscu-reglages-onglets', ['zones', 'increments'], nom);
+  document.getElementById('muscu-reglages-zones').classList.toggle('hidden', nom !== 'zones');
+  document.getElementById('muscu-reglages-increments').classList.toggle('hidden', nom !== 'increments');
+}
+function rendreReglagesZones() {
+  const perso = userProfile.zonesPerso || {};
+  document.getElementById('zones-reglage-liste').innerHTML = ORDRE_GROUPES.filter(g => ZONES_VOLUME_DEFAUT[g]).map(g => {
+    const z = ZONES_VOLUME[g];
+    return `<div class="zones-reglage-ligne${perso[g] ? ' perso' : ''}">
+      <span title="${escapeHtml(GROUPES_MUSCULAIRES[g])}">${escapeHtml(GROUPES_MUSCULAIRES[g])}</span>
+      ${ORDRE_ZONES.map(k => `<input type="number" inputmode="numeric" min="0" max="40" step="1" value="${z[k]}" aria-label="${escapeHtml(GROUPES_MUSCULAIRES[g])} : ${ZONES_INFO[k].abbr}" onchange="modifierZonePerso('${g}','${k}',this.value)">`).join('')}
+      ${perso[g] ? `<button type="button" onclick="reinitialiserZonesPerso('${g}')" aria-label="Valeurs par défaut pour ${escapeHtml(GROUPES_MUSCULAIRES[g])}" title="Valeurs par défaut">↺</button>` : '<span></span>'}
+    </div>`;
+  }).join('');
+}
+function modifierZonePerso(g, cle, valeur) {
+  const err = document.getElementById('zones-reglage-erreur');
+  const z = { ...ZONES_VOLUME[g], [cle]: Math.round(Number(valeur)) };
+  if (!(z.mv >= 1 && z.mv < z.mev && z.mev < z.mav && z.mav < z.mrv && z.mrv <= 40)) {
+    err.textContent = `${GROUPES_MUSCULAIRES[g]} : les seuils doivent aller en augmentant (MV < MEV < MAV < MRV), de 1 à 40 séries.`;
+    rendreReglagesZones();
+    return;
+  }
+  err.textContent = '';
+  const d = ZONES_VOLUME_DEFAUT[g];
+  userProfile.zonesPerso = userProfile.zonesPerso || {};
+  if (ORDRE_ZONES.every(k => z[k] === d[k])) delete userProfile.zonesPerso[g];
+  else userProfile.zonesPerso[g] = { mv: z.mv, mev: z.mev, mav: z.mav, mrv: z.mrv };
+  if (!Object.keys(userProfile.zonesPerso).length) delete userProfile.zonesPerso;
+  rendreReglagesZones();
+  enregistrerProfilMuscu();
+}
+function reinitialiserZonesPerso(g) {
+  if (g) {
+    if (userProfile.zonesPerso) delete userProfile.zonesPerso[g];
+    if (userProfile.zonesPerso && !Object.keys(userProfile.zonesPerso).length) delete userProfile.zonesPerso;
+  } else {
+    if (!userProfile.zonesPerso) return;
+    if (!confirm('Revenir aux valeurs par défaut pour tous les muscles ?')) return;
+    delete userProfile.zonesPerso;
+  }
+  document.getElementById('zones-reglage-erreur').textContent = '';
+  rendreReglagesZones();
+  enregistrerProfilMuscu();
+}
+function rendreReglagesIncrements() {
+  document.getElementById('increments-reglage-liste').innerHTML = ORDRE_MATERIELS.map(m => `<div class="increment-ligne">
+      <span>${MATERIELS[m].ic} ${escapeHtml(MATERIELS[m].label)}</span>
+      <span style="display:flex; align-items:center; gap:6px;"><input type="number" inputmode="decimal" min="0" max="50" step="0.25" value="${incrementCharge(m)}" aria-label="Incrément ${escapeHtml(MATERIELS[m].label)} en kg" onchange="modifierIncrementCharge('${m}', this.value)"> kg</span>
+    </div>`).join('') + '<p class="note" style="margin:8px 2px 0;">0 = pas de proposition pour ce matériel.</p>';
+}
+function modifierIncrementCharge(m, valeur) {
+  const v = Number(valeur);
+  if (!Number.isFinite(v) || v < 0 || v > 50) { rendreReglagesIncrements(); return; }
+  userProfile.incrementsCharge = userProfile.incrementsCharge || {};
+  if (v === INCREMENTS_DEFAUT[m]) delete userProfile.incrementsCharge[m]; else userProfile.incrementsCharge[m] = v;
+  if (!Object.keys(userProfile.incrementsCharge).length) delete userProfile.incrementsCharge;
+  enregistrerProfilMuscu();
+}
 /* Barre segmentée façon "jauge" : un segment par série jusqu'un peu au-delà
    du MRV, chaque segment prenant la couleur de la zone qu'il représente ;
    seuls les segments déjà atteints sont allumés. */
-const NB_PASTILLES_ZONES = Math.max(...Object.values(ZONES_VOLUME).map(z => z.mrv + 2));
+// Repère par séance : au-delà, le gain de chaque série supplémentaire s'effondre.
+const SERIES_MAX_SEANCE = 10;
+function nbPastillesZones() { return Math.min(42, Math.max(...Object.values(ZONES_VOLUME).map(z => z.mrv + 2))); }
 function barreZoneHTML(groupe, series) {
   const z = ZONES_VOLUME[groupe];
   const total = z.mrv + 2;
@@ -16288,7 +16823,7 @@ function barreZoneHTML(groupe, series) {
   // Même grille pour tous les muscles (le plus grand nombre de pastilles) :
   // les pastilles ont toutes la même taille, et un muscle au plafond plus
   // bas (lombaires…) a simplement une jauge plus courte.
-  return `<div class="zone-barre" aria-hidden="true" style="grid-template-columns:repeat(${NB_PASTILLES_ZONES}, 1fr);">${segs}</div>`;
+  return `<div class="zone-barre" aria-hidden="true" style="grid-template-columns:repeat(${nbPastillesZones()}, 1fr);">${segs}</div>`;
 }
 function phraseProchaineZone(groupe, series) {
   const z = ZONES_VOLUME[groupe];
@@ -16601,7 +17136,7 @@ function ajouterExerciceASession(id) {
   const series = derniere && derniere.series.length
     ? derniere.series.map(s => ({ poids: s.poids, reps: s.reps, fait: false, technique: s.technique || null }))
     : [{ poids: null, reps: null, fait: false, technique: null }, { poids: null, reps: null, fait: false, technique: null }, { poids: null, reps: null, fait: false, technique: null }];
-  musculationSessionActive.exercices.push({ exerciceId: id, nom: exo.nom, series, supersetSuivant: false });
+  musculationSessionActive.exercices.push({ exerciceId: id, nom: exo.nom, series, supersetSuivant: false, ...(derniere && derniere.plage ? { plage: derniere.plage } : {}) });
   sauvegarderSessionActive();
   renderSessionModal();
 }
@@ -16703,7 +17238,17 @@ function renderCorpsSession() {
     const parSeries = (a, b) => (zonesSemaineSession[b] || 0) - (zonesSemaineSession[a] || 0);
     principaux.sort(parSeries);
     secondaires.sort(parSeries);
-    zones.innerHTML = principaux.map(g => ligneZoneHTML(g, zonesSemaineSession[g] || 0, true)).join('')
+    // Volume de CETTE séance par muscle (séries de travail, mêmes règles) :
+    // au-delà d'une dizaine de séries pour un muscle dans une même séance,
+    // chaque série en plus rapporte de moins en moins.
+    const seance = {};
+    ajouterSeriesParGroupe(seance, musculationSessionActive.exercices, { date: todayStr(), historique: musculationHistorique, cache: new Map() });
+    const tropCharges = Object.keys(seance).filter(g => seance[g] > SERIES_MAX_SEANCE).sort((a, b) => seance[b] - seance[a]);
+    const alerte = tropCharges.length ? `<div class="alerte-volume-seance" role="note">
+        <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
+        <span><b>${tropCharges.map(g => `${escapeHtml(GROUPES_MUSCULAIRES[g])} (${formatSeries(seance[g])})`).join(', ')}</b> : plus de ${SERIES_MAX_SEANCE} séries dans cette séance. Au-delà, chaque série rapporte peu : répartis-les sur la semaine.</span>
+      </div>` : '';
+    zones.innerHTML = alerte + principaux.map(g => ligneZoneHTML(g, zonesSemaineSession[g] || 0, true)).join('')
       + secondaires.map(g => ligneZoneHTML(g, zonesSemaineSession[g] || 0, true, true)).join('');
   }
 }
@@ -16767,6 +17312,26 @@ function reprendrePrecedenteSession(ei, si) {
   sauvegarderSessionActive();
   renderSessionModal();
 }
+/* Bandeau de progression sous le tempo : proposition de charge (la dernière
+   fois, haut de la plage atteint partout), ou, une fois toutes les séries
+   de la séance cochées au haut de la plage, le conseil pour la prochaine. */
+function blocProgressionHTML(exo, ei) {
+  const sug = suggestionChargeSession(exo);
+  const icone = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6" /><path d="m22 7-8.5 8.5-5-5L2 17" /></svg>';
+  if (sug) {
+    return `<div class="progression-bandeau">${icone}
+      <span>La dernière fois, toutes tes séries ont atteint ${sug.max} répétitions : <b>monte de ${formatSeries(sug.increment)} kg</b>.</span>
+      <button type="button" class="progression-ok" onclick="appliquerSuggestionCharge(${ei})">Appliquer</button>
+      <button type="button" class="progression-non" onclick="ignorerSuggestionCharge(${ei})" aria-label="Ignorer la suggestion">&times;</button>
+    </div>`;
+  }
+  const plage = lirePlageReps(exo.plage);
+  const travail = exo.series.filter(z => z.technique !== 'echauffement');
+  if (plage && travail.length && travail.every(z => z.fait && Number(z.reps) >= plage.max)) {
+    return `<div class="progression-bandeau progression-bandeau--fait">${icone}<span>Haut de la plage atteint sur toutes les séries : la prochaine fois, on te proposera de monter la charge.</span></div>`;
+  }
+  return '';
+}
 function renderSessionExerciceBlocHTML(exo, ei) {
   const exerciceComplet = trouverExercice(exo.exerciceId);
   const precedente = dernierePerfExercice(exo.exerciceId);
@@ -16792,10 +17357,10 @@ function renderSessionExerciceBlocHTML(exo, ei) {
     <div class="serie-ligne-fenetre">
       <button type="button" class="serie-ligne-suppr" onclick="retirerSerieSession(${ei},${si})" aria-label="Supprimer cette série"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg> Supprimer</button>
       <div class="serie-ligne serie-ligne--5col">
-        ${boutonNumeroSerie(si, set.technique, `ouvrirMenuTechniqueSession(this,${ei},${si})`)}
+        ${boutonNumeroSerie(si, set.technique, `ouvrirMenuTechniqueSession(this,${ei},${si})`, set.rir)}
         ${celluleFrec}
         <input type="number" inputmode="decimal" step="0.5" value="${set.poids ?? ''}" placeholder="—" onchange="modifierSerieSession(${ei},${si},'poids',this.value)">
-        <input type="number" inputmode="numeric" step="1" value="${set.reps ?? ''}" placeholder="—" onchange="modifierSerieSession(${ei},${si},'reps',this.value)">
+        <input type="number" inputmode="numeric" step="1" value="${set.reps ?? ''}" placeholder="${exo.plage && set.technique !== 'echauffement' ? escapeHtml(textePlage(exo.plage)) : '—'}" onchange="modifierSerieSession(${ei},${si},'reps',this.value)">
         <button type="button" class="serie-check ${set.fait ? 'faite' : ''}" onclick="basculerSerieSession(${ei},${si})" aria-label="Marquer la série comme faite"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></button>
       </div>
     </div>${barreRepos}${blocPaliersHTML(ei, si, set)}`;
@@ -16838,8 +17403,11 @@ function renderSessionExerciceBlocHTML(exo, ei) {
       <label for="tempo-seance-${ei}">Tempo</label>
       <input type="text" id="tempo-seance-${ei}" maxlength="7" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="3010" value="${escapeHtml(exo.tempo || '')}" onchange="modifierTempoSession(${ei}, this.value, this)">
       <button type="button" class="tempo-aide-btn" onclick="ouvrirAideTempo(document.getElementById('tempo-seance-${ei}').value)" aria-label="Comment fonctionne le tempo ?">${ICONE_INFO_TEMPO}</button>
+      <span class="plage-groupe"><label for="plage-seance-${ei}">Reps</label>
+      <input type="text" class="plage-input" id="plage-seance-${ei}" maxlength="5" inputmode="numeric" autocomplete="off" placeholder="8-12" value="${escapeHtml(exo.plage || '')}" onchange="modifierPlageSession(${ei}, this.value, this)"></span>
       <small id="tempo-seance-resume-${ei}">${exo.tempo ? escapeHtml(resumeTempo(exo.tempo)) : ''}</small>
     </div>
+    ${blocProgressionHTML(exo, ei)}
     ${noteExerciceHTML(exo, ei)}
     <div class="serie-table">
       <div class="serie-entete serie-entete--5col"><span>Série</span><span>Préc.</span><span>Kg</span><span>Reps</span><span><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></span></div>
@@ -16925,14 +17493,15 @@ function retirerPalierSession(ei, si, pi) {
    pastille affiche sa lettre (D/P/É) et sa couleur plutôt que le numéro.
    ouvrirMenuJs est absent (undefined) pour un rendu en lecture seule
    (détail d'une séance déjà terminée). */
-function boutonNumeroSerie(si, technique, ouvrirMenuJs) {
+function boutonNumeroSerie(si, technique, ouvrirMenuJs, rir) {
   const libelle = technique && TECHNIQUE_LABELS[technique] ? TECHNIQUE_LABELS[technique] : 'Normale';
   const contenu = (technique && TECHNIQUE_LETTRES[technique]) || (si + 1);
   if (!ouvrirMenuJs) {
     return `<span class="serie-num-btn" data-technique="${technique || ''}" aria-label="Série ${si + 1} — ${libelle}">${contenu}</span>`;
   }
-  return `<button type="button" class="serie-num-btn" data-technique="${technique || ''}" onclick="${ouvrirMenuJs}"
-    aria-label="Série ${si + 1} — ${libelle} — appuyer pour changer le type">${contenu}</button>`;
+  const aRir = rir != null && rir !== '';
+  return `<span class="serie-num-wrap"><button type="button" class="serie-num-btn" data-technique="${technique || ''}" onclick="${ouvrirMenuJs}"
+    aria-label="Série ${si + 1} — ${libelle}${aRir ? ` — ${rir > 5 ? '5 ou plus' : rir} en réserve` : ''} — appuyer pour changer le type ou le RIR">${contenu}</button>${aRir ? `<span class="serie-rir" aria-hidden="true">R${rir > 5 ? '5+' : rir}</span>` : ''}</span>`;
 }
 
 /* Menu du type de série : un seul élément partagé (#menu-technique-popup),
@@ -16941,10 +17510,19 @@ function boutonNumeroSerie(si, technique, ouvrirMenuJs) {
    (session ou programme), pas une fonction générique passée en chaîne : on
    ne peut pas sérialiser une closure dans un attribut onclick. */
 let menuTechniqueSur = null;
-function ouvrirMenuTechnique(boutonEl, appliquer) {
+let menuRirSur = null;
+// rir (facultatif, séance seulement) : { valeur, appliquer } pour noter les
+// répétitions en réserve de la série dans le même menu.
+function ouvrirMenuTechnique(boutonEl, appliquer, rir) {
   const menu = document.getElementById('menu-technique-popup');
   if (!menu) return;
   menuTechniqueSur = appliquer;
+  menuRirSur = rir ? rir.appliquer : null;
+  const blocRir = document.getElementById('menu-rir');
+  if (blocRir) {
+    blocRir.classList.toggle('hidden', !rir);
+    blocRir.querySelectorAll('.menu-rir-choix button').forEach(b => b.setAttribute('aria-pressed', String(!!rir && rir.valeur != null && Number(b.getAttribute('onclick').match(/\d+/)[0]) === Number(rir.valeur))));
+  }
   const r = boutonEl.getBoundingClientRect();
   const largeurMenu = 168;
   menu.style.top = (r.bottom + 4) + 'px';
@@ -16952,14 +17530,22 @@ function ouvrirMenuTechnique(boutonEl, appliquer) {
   // recale plutôt que de le laisser sortir de l'écran.
   menu.style.left = Math.min(r.left, window.innerWidth - largeurMenu - 8) + 'px';
   menu.classList.remove('hidden');
+  // Pas la place en dessous (série en bas d'écran) : on l'ouvre au-dessus.
+  const h = menu.offsetHeight;
+  if (r.bottom + 4 + h > window.innerHeight - 8) menu.style.top = Math.max(8, r.top - 4 - h) + 'px';
 }
 function fermerMenuTechnique() {
   const menu = document.getElementById('menu-technique-popup');
   if (menu) menu.classList.add('hidden');
   menuTechniqueSur = null;
+  menuRirSur = null;
 }
 function choisirTechniqueMenu(valeur) {
   if (menuTechniqueSur) menuTechniqueSur(valeur);
+  fermerMenuTechnique();
+}
+function choisirRirMenu(valeur) {
+  if (menuRirSur) menuRirSur(valeur);
   fermerMenuTechnique();
 }
 // Menu « ⋯ » d'un programme (Dupliquer / Supprimer) : même mécanique que le
@@ -17032,7 +17618,10 @@ function initSwipeSeries(conteneurId) {
     const ligne = e.target.closest('.serie-ligne');
     if (!ligne) return;
     document.querySelectorAll('.serie-ligne.ouverte').forEach(l => { if (l !== ligne) refermerLigneSerie(l); });
-    try { ligne.setPointerCapture(e.pointerId); } catch (err) {}
+    // Pas de capture du pointeur ici : elle redirigerait le « click » vers la
+    // ligne entière, et les boutons qu'elle contient (numéro de série, coche,
+    // « Préc. ») ne recevraient plus le toucher. On capture seulement une fois
+    // le geste reconnu comme un glissement horizontal (pointermove).
     swipeEtat = {
       ligne, startX: e.clientX, startY: e.clientY, dx: 0, horizontal: false,
       pointerId: e.pointerId, dejaOuverte: ligne.classList.contains('ouverte')
@@ -17049,6 +17638,7 @@ function initSwipeSeries(conteneurId) {
       if (Math.abs(dy) > Math.abs(dx0)) { swipeEtat = null; return; }
       swipeEtat.horizontal = true;
       swipeEtat.ligne.classList.add('en-glissement');
+      try { swipeEtat.ligne.setPointerCapture(e.pointerId); } catch (err) {}
     }
     const base = swipeEtat.dejaOuverte ? -SWIPE_REVEAL : 0;
     swipeEtat.dx = Math.min(0, Math.max(-SWIPE_REVEAL - 24, base + dx0));
@@ -17072,12 +17662,22 @@ function refermerLigneSerie(ligne) {
   ligne.classList.remove('ouverte');
 }
 function ouvrirMenuTechniqueSession(boutonEl, ei, si) {
+  const serie = () => musculationSessionActive && musculationSessionActive.exercices[ei] && musculationSessionActive.exercices[ei].series[si];
   ouvrirMenuTechnique(boutonEl, (valeur) => {
-    const set = musculationSessionActive.exercices[ei] && musculationSessionActive.exercices[ei].series[si];
+    const set = serie();
     if (!set) return;
     set.technique = valeur;
     sauvegarderSessionActive();
     renderSessionModal();
+  }, {
+    valeur: serie() ? serie().rir : null,
+    appliquer: (valeur) => {
+      const set = serie();
+      if (!set) return;
+      if (valeur == null) delete set.rir; else set.rir = valeur;
+      sauvegarderSessionActive();
+      renderSessionModal();
+    }
   });
 }
 function ouvrirMenuTechniqueProgramme(boutonEl, i, si) {
@@ -17216,7 +17816,8 @@ function terminerSeance() {
     exercices: s.exercices.map(e => ({
       exerciceId: e.exerciceId, nom: e.nom, series: e.series.filter(x => x.fait || x.poids || x.reps),
       supersetSuivant: !!e.supersetSuivant, ...(e.notes && e.notes.trim() ? { notes: e.notes.trim() } : {}),
-      ...(e.tempo ? { tempo: e.tempo } : {})
+      ...(e.tempo ? { tempo: e.tempo } : {}),
+      ...(e.plage ? { plage: e.plage } : {})
     })).filter(e => e.series.length)
   };
   // Construit AVANT d'ajouter cette séance à l'historique : dernierePerfExercice,
