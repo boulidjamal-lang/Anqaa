@@ -2025,6 +2025,7 @@
     }
     .session-exo-chevron svg { width: 18px; height: 18px; transition: transform 0.2s; }
     .session-exo-bloc--replie { padding-top: 10px; padding-bottom: 10px; }
+    .session-exo-vignette-btn { flex: none; background: none; border: 0; padding: 0; cursor: pointer; display: block; }
     .session-exo-bloc--replie .session-exo-entete { margin-bottom: 0; align-items: center; }
     .session-exo-replie-btn {
       flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; background: none; border: 0;
@@ -16576,7 +16577,7 @@ function renderSessionExerciceBlocHTML(exo, ei) {
   }
   return `<div class="session-exo-bloc">
     <div class="session-exo-entete">
-      <span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet) : ''}</span>
+      <button type="button" class="session-exo-vignette-btn" onclick="basculerRepliExerciceSession(${ei})" aria-label="Replier cet exercice"><span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet) : ''}</span></button>
       <div style="flex:1; min-width:0;">
         <div class="session-exo-titre">
           <div class="session-exo-nom-ligne">
