@@ -2429,10 +2429,12 @@
 
     <div id="seance-vue-accueil">
       <div class="titre-depliant titre-section" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-seance-libre')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-seance-libre')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg> Mes programmes<svg class="icone-ui info-depliant" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg></div>
+      <div id="seance-lancer">
       <div id="programmes-liste-container"></div>
       <div style="display:flex; gap:8px; margin-top:12px; margin-bottom:6px;">
         <button class="btn btn-primary" style="flex:1; min-height:auto; padding:10px 8px; font-size:0.78rem;" onclick="ouvrirCreationProgramme()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Créer un programme</button>
         <button class="btn btn-secondaire" style="flex:1; min-height:auto; padding:10px 8px; font-size:0.78rem;" onclick="demarrerSeanceLibre()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z" /></svg> Séance libre</button>
+      </div>
       </div>
       <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-bottom:6px;" onclick="ouvrirAssistantProgrammeIA()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /><path d="M20 3v4" /><path d="M22 5h-4" /><path d="M4 17v2" /><path d="M5 18H3" /></svg> Créer un programme avec l'IA</button>
       <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-bottom:6px; background:transparent;" onclick="ouvrirModal('aide-routine-modal')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg> Comment créer une routine ?</button>
@@ -2449,11 +2451,13 @@
     </div>
 
     <div id="seance-vue-active" class="hidden">
+      <div id="session-entete">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:2px;">
         <h3 id="titre-session-modal" style="margin:0; font-size:1.05rem; font-weight:800;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Séance</h3>
         <span style="font-size:0.78rem; font-weight:700; color:var(--danger); display:flex; align-items:center; gap:5px; white-space:nowrap;"><span class="bandeau-seance-flottant-pastille" aria-hidden="true"><svg class="icone-ui icone-pleine" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg></span> En cours</span>
       </div>
       <p class="note" id="session-chrono" style="margin:2px 0 14px; font-weight:700;"></p>
+      </div>
       <div class="session-haut" id="session-haut">
         <button type="button" class="session-corps-mini" id="session-corps" onclick="basculerCorpsSession()" aria-label="Agrandir la silhouette des muscles travaillés" aria-expanded="false"></button>
         <div class="session-zones" id="session-zones"></div>
@@ -8742,26 +8746,43 @@ const TOUR_ETAPES = [
    élément de la séance en cours : sans séance lancée, une séance de
    démonstration est ouverte le temps de ces étapes (voir assurerSeanceDemo). */
 const TOUR_MUSCU = [
-  { titre: 'La musculation dans Anqā', texte: "Programmes, séances, suivi du volume par muscle, records et progression : voici comment tout s'enchaîne." },
-  { ecran: 'seance', cible: '#programmes-liste-container', titre: 'Tes programmes', texte: "Un programme = une liste d'exercices avec leurs séries, charges et répétitions cibles. Touche-en un pour le lancer, ou ⋯ pour le dupliquer ou le supprimer." },
+  // A. Écran Activité : préparer ses séances
+  { titre: 'La musculation dans Anqā', texte: "Trois temps : préparer tes séances sur l'écran Activité, faire une séance (avec une démonstration), puis suivre ta progression dans les statistiques." },
+  { ecran: 'seance', cible: '#programmes-liste-container', titre: 'Tes programmes', texte: "Un programme = une liste d'exercices avec leurs séries, charges et répétitions cibles. Le ⋯ d'un programme permet de le modifier, le dupliquer ou le supprimer." },
   { ecran: 'seance', cible: '[onclick="ouvrirCreationProgramme()"]', titre: 'Créer un programme', texte: "Ajoute tes exercices, règle les séries, les techniques (dégressif, pyramidal…), les supersets et le tempo de chaque exercice." },
   { ecran: 'seance', cible: '[onclick="ouvrirAssistantProgrammeIA()"]', titre: "Programme par l'IA", texte: "Donne ton objectif, tes jours disponibles et ton matériel : l'IA te propose un programme complet, que tu peux ensuite modifier." },
-  { ecran: 'seance', cible: '[onclick="demarrerSeanceLibre()"]', titre: 'Séance libre', texte: "Pas de programme ? Ajoute tes exercices au fil de la séance. À la fin, tu peux l'enregistrer comme programme." },
   { ecran: 'seance', cible: '[onclick="ouvrirBibliotheque()"]', titre: "Bibliothèque d'exercices", texte: "Plus de 800 exercices, filtrés par muscle et par matériel. Chaque fiche a trois onglets : Instructions (vidéo, muscles, étapes), Résumé (tes records et ta courbe) et Historique." },
-  { ecran: 'seance', siSession: true, cible: '#titre-session-modal', titre: 'Pendant une séance',
-    texte: () => (musculationSessionActive && musculationSessionActive.demo
-      ? "Quand tu touches un programme (ou « Séance libre »), l'écran Activité passe en mode séance : le nom de la séance, un chrono, et tes exercices à remplir. Pour la suite, voici une séance de démonstration : rien n'y est enregistré."
-      : "Quand tu touches un programme (ou « Séance libre »), l'écran Activité passe en mode séance : le nom de la séance, un chrono, et tes exercices à remplir. Voici ta séance en cours.") },
-  { ecran: 'seance', siSession: true, cible: '#session-haut', titre: 'Le volume de ta semaine', texte: "En haut de la séance : une jauge par muscle travaillé, qui compte tes séries de travail de la semaine (MV maintien, MEV croissance, MAV zone idéale, MRV plafond). Le corps se colore pareil ; touche-le pour l'agrandir." },
-  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-prec', titre: 'Ta séance précédente', texte: "La colonne « Préc. » rappelle ce que tu as fait la dernière fois. Touche-la pour reprendre ces valeurs, puis essaie de faire un peu mieux." },
+  { ecran: 'seance', cible: '[onclick="ouvrirGymbro()"]', titre: 'Gymbro', texte: "Compare tes séances avec celles d'un ami grâce à son nom d'utilisateur." },
+  { ecran: 'seance', cible: '#seance-lancer', titre: 'Lancer une séance',
+    texte: () => (musculationSessionActive && !musculationSessionActive.demo
+      ? "Touche un programme, ou « Séance libre » pour choisir tes exercices au fil de l'eau. Suivant : on passe à ta séance en cours."
+      : "Touche un programme, ou « Séance libre » pour choisir tes exercices au fil de l'eau. Suivant : on lance une séance de démonstration.") },
+  // B. Pendant la séance (démonstration si aucune séance n'est en cours)
+  { ecran: 'seance', siSession: true, cible: '#session-entete', titre: 'En-tête de la séance',
+    texte: () => "Le nom de la séance et le chrono, qui tourne depuis le début."
+      + (musculationSessionActive && musculationSessionActive.demo ? " Ceci est une séance de démonstration : rien n'y est enregistré." : '') },
+  { ecran: 'seance', siSession: true, cible: '#session-haut', titre: 'Le volume de ta semaine', texte: "Une jauge par muscle : tes séries de travail de la semaine (MV maintien, MEV croissance, MAV zone idéale, MRV plafond). Grosses pastilles pour les muscles principaux de la séance, petites pour les secondaires. Le corps se colore pareil ; touche-le pour l'agrandir." },
+  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-prec', titre: 'Ta séance précédente', texte: "La colonne « Préc. » rappelle ce que tu as fait la dernière fois sur cette série. Touche-la pour reprendre ces valeurs, puis essaie de faire un peu mieux." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-num-btn', titre: 'Le type de série', texte: "Touche le numéro d'une série pour la marquer : Échauffement (W, jamais comptée dans les jauges), Dégressif, Pyramidal ou Échec." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .tempo-ligne', titre: 'Le tempo', texte: "Quatre chiffres pour la vitesse de chaque phase : descente, pause en bas, montée, pause en haut (X = explosif). Le (i) explique tout, avec des exemples." },
-  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-ligne button:last-child', titre: 'Cocher une série', texte: "Coche chaque série faite : le minuteur de repos démarre, les jauges et le corps se mettent à jour. Seules les séries proches de l'échec comptent dans le volume." },
+  { ecran: 'seance', siSession: true, titre: 'Cocher une série',
+    // Démonstration : la 2e série est vraiment cochée, pour montrer la case
+    // validée et le minuteur de repos qui démarre juste en dessous.
+    avant: () => {
+      const d = musculationSessionActive;
+      if (d && d.demo && d.exercices[0] && d.exercices[0].series[1] && !d.exercices[0].series[1].fait) basculerSerieSession(0, 1);
+    },
+    cible: () => (musculationSessionActive && musculationSessionActive.demo
+      ? '#session-exercices-container .serie-table'
+      : '#session-exercices-container .serie-ligne button:last-child'),
+    texte: () => (musculationSessionActive && musculationSessionActive.demo
+      ? "Ici, la 2e série vient d'être cochée : la case passe au vert et le minuteur de repos démarre en dessous. Les jauges et le corps se mettent à jour. Seules les séries proches de l'échec comptent dans le volume."
+      : "Coche chaque série faite : le minuteur de repos démarre, les jauges et le corps se mettent à jour. Seules les séries proches de l'échec comptent dans le volume.") },
   { ecran: 'seance', siSession: true, cible: '#seance-vue-active [onclick="terminerSeance()"]', titre: 'Terminer la séance',
     texte: () => "Ta dernière série faite, touche « Terminer la séance » : elle rejoint ton historique avec tes records (1RM, charge, volume, répétitions) et compte dans la dépense de ta journée."
       + (musculationSessionActive && musculationSessionActive.demo ? " Ici, rien n'est enregistré : la démonstration se ferme à l'étape suivante." : '') },
-  { ecran: 'stats', avant: () => { choisirOngletStats('muscu'); }, cible: '#muscu-soustabs-nav', titre: 'Tes statistiques', texte: "Aperçu, Zones (volume de la semaine et des 8 dernières), Force (ton niveau par exercice), Progression (courbe par exercice) et Programmes." },
-  { ecran: 'seance', cible: '[onclick="ouvrirGymbro()"]', titre: 'Gymbro', texte: "Compare tes séances avec celles d'un ami grâce à son nom d'utilisateur." },
+  // C. Après la séance
+  { ecran: 'stats', avant: () => { choisirOngletStats('muscu'); }, cible: '#muscu-soustabs-nav', titre: 'Tes statistiques', texte: "Statistiques › Musculation : Aperçu, Zones (volume de la semaine et des 8 dernières), Force (ton niveau par exercice), Progression (courbe par exercice) et Programmes." },
   { titre: 'Bon entraînement !', texte: "Tu peux revoir cette visite à tout moment depuis Profil › Réglages." }
 ];
 let tourListe = TOUR_ETAPES;
@@ -8848,7 +8869,8 @@ function afficherEtapeTour() {
   // séance seulement (sinon elle masquerait l'accueil de l'écran Activité).
   if (etape.siSession) assurerSeanceDemo(); else retirerSeanceDemo();
   if (etape.avant) { try { etape.avant(); } catch (e) {} }
-  let cible = etape.cible ? document.querySelector(etape.cible) : null;
+  const selCible = typeof etape.cible === 'function' ? etape.cible() : etape.cible;
+  let cible = selCible ? document.querySelector(selCible) : null;
   // Étape de séance sans séance en cours, ou élément masqué/absent : bulle
   // centrée, sans projecteur, plutôt qu'un cadre sur un élément invisible.
   if (etape.siSession && !musculationSessionActive) cible = null;
