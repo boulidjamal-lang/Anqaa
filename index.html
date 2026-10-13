@@ -1815,8 +1815,10 @@
     .zone-ligne--compacte { margin: 12px 0 0; }
     .zone-ligne-tete { display: flex; justify-content: space-between; gap: 8px; font-size: 0.78rem; font-weight: 700; margin-bottom: 5px; }
     .zone-ligne-tete span:last-child { text-align: right; }
-    .zone-barre { display: flex; gap: 2px; height: 12px; }
-    .zone-barre span { flex: 1; border-radius: 2px; }
+    /* Une pastille ronde par série (au lieu de bâtonnets) ; leur taille
+       s'adapte à la largeur, sans dépasser 12 px. */
+    .zone-barre { display: flex; gap: 3px; align-items: center; }
+    .zone-barre span { flex: 1 1 0; min-width: 0; max-width: 12px; aspect-ratio: 1; border-radius: 50%; }
     .zone-ligne-note { font-size: 0.68rem; color: var(--text-muted); margin-top: 4px; }
     .zones-legende { display: grid; gap: 8px; margin: 4px 0 16px; }
     .zones-legende-item { background: var(--verre-creux); border-left: 3px solid; border-radius: 10px; padding: 8px 11px; font-size: 0.8rem; }
