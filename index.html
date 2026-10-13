@@ -4121,8 +4121,8 @@
         <span>2–3 jours : <i>Full body</i> (tout le corps à chaque séance). 4 jours : <i>Haut / Bas</i>. 5–6 jours : <i>Push / Pull / Legs</i>. Crée un programme par type de séance (ex. « Haut A », « Bas A »).</span></li>
       <li><b>4 à 7 exercices par séance.</b>
         <span>Commence par les gros mouvements polyarticulaires (squat, développé, rowing, soulevé de terre, tractions), quand tu es frais ; termine par l'isolation (curl, élévations latérales, extensions…).</span></li>
-      <li><b>Vise la zone de croissance pour chaque muscle.</b>
-        <span>Environ 10 à 20 séries par muscle et par semaine, réparties sur 2 séances ou plus ; 2 à 4 séries par exercice. Le suivi est automatique dans Statistiques › Muscu › Zones, et sous chaque exercice pendant la séance.</span></li>
+      <li><b>Vise le volume maximal adaptatif (MAV) pour chaque muscle.</b>
+        <span>Commence ton cycle près du volume minimal effectif (MEV), puis monte vers le MAV sans dépasser le volume maximal récupérable (MRV) : environ 10 à 20 séries par muscle et par semaine, réparties sur 2 séances ou plus ; 2 à 4 séries par exercice. Le suivi est automatique dans Statistiques › Muscu › Zones, et en haut de l'écran pendant la séance.</span></li>
       <li><b>Choisis ta fourchette de répétitions.</b>
         <span>5–8 pour la force sur les gros mouvements, 8–12 pour la prise de muscle, 12–20 pour l'isolation. Arrête chaque série à 1–3 répétitions de l'échec.</span></li>
       <li><b>Repose-toi assez.</b>
@@ -15273,11 +15273,11 @@ const ZONES_VOLUME = {
   trapezes: { mv: 2, mev: 4, mav: 12, mrv: 26 }
 };
 const ZONES_INFO = {
-  sous: { abbr: 'Bas', nom: 'Sous le minimum', desc: "Pas assez pour entretenir le muscle", couleur: '#4f7cff' },
-  mv: { abbr: 'MV', nom: 'Zone de maintenance', desc: 'Suffit souvent à conserver ta masse musculaire', couleur: '#34c759' },
-  mev: { abbr: 'MEV', nom: 'Zone de croissance', desc: 'La croissance commence ici, avec le plus de gain par série', couleur: '#ffd60a' },
-  mav: { abbr: 'MAV', nom: 'Volume élevé', desc: 'Plus de croissance par semaine, moins de gain par série supplémentaire', couleur: '#ff9f0a' },
-  mrv: { abbr: 'MRV', nom: 'Volume très élevé', desc: 'La croissance reste possible, mais les séries en plus apportent peu', couleur: '#ff453a' }
+  sous: { abbr: 'Bas', nom: 'Sous le volume de maintien', court: 'Sous le maintien', desc: 'Pas assez pour conserver ta masse musculaire', couleur: '#4f7cff' },
+  mv: { abbr: 'MV', nom: 'Volume de maintien', court: 'Maintien (MV)', desc: 'Le minimum pour conserver ta masse musculaire actuelle (récupération, deload)', couleur: '#34c759' },
+  mev: { abbr: 'MEV', nom: 'Volume minimal effectif', court: 'Minimal effectif (MEV)', desc: 'Le seuil le plus bas qui commence à stimuler une nouvelle croissance', couleur: '#ffd60a' },
+  mav: { abbr: 'MAV', nom: 'Volume maximal adaptatif', court: 'Maximal adaptatif (MAV)', desc: "La zone idéale (« zone d'or ») : la meilleure progression en force et en volume", couleur: '#ff9f0a' },
+  mrv: { abbr: 'MRV', nom: 'Volume maximal récupérable', court: 'Maximal récupérable (MRV)', desc: 'Le plafond que ton corps peut encaisser : au-delà, fatigue excessive, surmenage et régression', couleur: '#ff453a' }
 };
 const ORDRE_ZONES = ['mv', 'mev', 'mav', 'mrv'];
 
@@ -15342,18 +15342,24 @@ function phraseProchaineZone(groupe, series) {
   const z = ZONES_VOLUME[groupe];
   if (series < z.mev) {
     const manque = Math.ceil(z.mev - series);
-    return manque + ' série' + (manque > 1 ? 's' : '') + ' pour atteindre la zone de croissance';
+    return manque + ' série' + (manque > 1 ? 's' : '') + ' pour atteindre le volume minimal effectif (MEV)';
   }
-  if (series < z.mav) return 'Zone de croissance atteinte — le meilleur gain par série';
-  if (series < z.mrv) return 'Volume élevé : encore ' + Math.ceil(z.mrv - series) + ' série(s) avant le volume très élevé';
-  return 'Au-delà du volume récupérable : surveille la fatigue';
+  if (series < z.mav) {
+    const manque = Math.ceil(z.mav - series);
+    return 'La croissance commence : encore ' + manque + ' série' + (manque > 1 ? 's' : '') + ' pour la zone idéale (MAV)';
+  }
+  if (series < z.mrv) {
+    const reste = Math.ceil(z.mrv - series);
+    return 'Zone idéale : encore ' + reste + ' série' + (reste > 1 ? 's' : '') + ' avant le plafond récupérable (MRV)';
+  }
+  return 'Plafond récupérable atteint : au-delà, fatigue excessive et risque de régression';
 }
 function ligneZoneHTML(groupe, series, compacte) {
   const cle = cleZoneVolume(groupe, series);
   const info = ZONES_INFO[cle];
   return `<div class="zone-ligne${compacte ? ' zone-ligne--compacte' : ''}">
     <div class="zone-ligne-tete"><span>${escapeHtml(GROUPES_MUSCULAIRES[groupe])}</span>
-      <span style="color:${info.couleur};">${info.nom} · ${formatSeries(series)} série${series >= 2 ? 's' : ''}</span></div>
+      <span style="color:${info.couleur};">${info.court} · ${formatSeries(series)} série${series >= 2 ? 's' : ''}</span></div>
     ${barreZoneHTML(groupe, series)}
     <div class="zone-ligne-note">${escapeHtml(phraseProchaineZone(groupe, series))}</div>
   </div>`;
