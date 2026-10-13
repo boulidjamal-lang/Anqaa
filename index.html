@@ -15276,19 +15276,12 @@ function afficherFicheExerciceBiblio(id, options) {
     // plupart des applis du genre — ce n'est déjà pas un vrai GIF chez
     // elles non plus, juste un fondu entre deux images fixes.
     const illustration = estIllustrationVectorielle(media.img[0]);
-    const gifExerciseDb = estGifExerciseDb(media.img[0]);
     html += `<div class="fiche-exo-image" id="fiche-exo-image"${illustration ? ' style="background:#14171d;"' : ''}>
       <img src="${escapeHtml(media.img[0])}" class="actif" alt="${escapeHtml(libelleExercice(e))}">
       ${media.img[1] ? `<img src="${escapeHtml(media.img[1])}" alt="">` : ''}
       ${media.img[1] ? `<button type="button" class="fiche-exo-anim-btn" id="fiche-exo-anim-btn" onclick="basculerPauseFiche()" aria-label="Pause"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="14" y="3" width="5" height="18" rx="1" /><rect x="5" y="3" width="5" height="18" rx="1" /></svg></button>` : ''}
     </div>
-    <p class="note fiche-exo-note-source">${e.img
-      ? "Photo ajoutée pour cet exercice personnalisé."
-      : (illustration
-        ? "Illustration d'après Everkinetic, adaptée par Bryl Lim (CC BY-SA 4.0)."
-        : (gifExerciseDb
-          ? "GIF animé par ExerciseDB (AscendAPI, exercisedb.dev), usage non commercial."
-          : "Photo et instructions : base d'exercices libre (domaine public), instructions traduites en français."))}</p>`;
+`;
   } else {
     html += `<div class="fiche-exo-image"><div class="schema-repli">${svgSilhouetteGroupe(e.groupe)}</div></div>
     <p class="note fiche-exo-note-source">Pas de photo pour cet exercice précis : schéma du groupe musculaire ciblé.</p>`;
