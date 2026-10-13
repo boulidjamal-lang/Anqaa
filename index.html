@@ -9051,7 +9051,8 @@ function pseudoInterdit(p) {
   }
   return false;
 }
-const SQL_GYMBRO_PHOTOS = `-- Nom d'utilisateur, Gymbro et photos de progression.
+const SQL_GYMBRO_PHOTOS = `-- Nom d'utilisateur, Gymbro, photos de progression et protection des
+-- exercices supprimés.
 -- À exécuter une fois dans l'éditeur SQL de Supabase, APRÈS le SQL des
 -- politiques de sécurité (RLS). Idempotent : relancer ne casse rien.
 
@@ -9153,7 +9154,39 @@ returns table(donnees jsonb) language sql stable security definer set search_pat
 $$;
 grant execute on function public.gymbro_seances(text, date) to authenticated;
 
--- 3) Photos de progression : bucket privé, chaque compte ne voit et ne
+-- 3) Exercices supprimés ou fusionnés par l'admin : ils ne peuvent plus
+--    être recréés par le cache d'un téléphone (même avec une ancienne
+--    version de l'appli). La ligne renvoyée est simplement ignorée.
+create table if not exists public.exercices_base_overrides (
+  id          text primary key,
+  donnees     jsonb not null default '{}'::jsonb,
+  maj         bigint not null default 0,
+  modifie_par text
+);
+alter table public.exercices_base_overrides enable row level security;
+do $$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'exercices_base_overrides') then
+    create policy "corrections lisibles" on public.exercices_base_overrides for select to authenticated using (true);
+    create policy "corrections admin" on public.exercices_base_overrides for all to authenticated
+      using (auth.jwt() ->> 'email' = 'jambou592@gmail.com') with check (auth.jwt() ->> 'email' = 'jambou592@gmail.com');
+  end if;
+end $$;
+create or replace function public.bloquer_exercice_supprime()
+returns trigger language plpgsql security definer set search_path = public as $fn$
+begin
+  if exists (select 1 from exercices_base_overrides o
+             where o.id = new.id
+               and (coalesce((o.donnees ->> 'supprime')::boolean, false) or o.donnees ? 'fusionneVers')) then
+    return null;
+  end if;
+  return new;
+end;
+$fn$;
+drop trigger if exists exercices_perso_pas_de_resurrection on public.exercices_perso_musculation;
+create trigger exercices_perso_pas_de_resurrection before insert or update on public.exercices_perso_musculation
+  for each row execute function public.bloquer_exercice_supprime();
+
+-- 4) Photos de progression : bucket privé, chaque compte ne voit et ne
 --    gère que son propre dossier (<son id>/...).
 insert into storage.buckets (id, name, public)
 values ('photos-progression', 'photos-progression', false)
@@ -10933,12 +10966,14 @@ async function synchroniser(raison) {
     // Musculation : programmes, séances et exercices personnalisés, chacun
     // dans sa propre table (voir synchroniserMuscu) — jamais mélangés à
     // ceux d'un autre compte, chaque ligne restant scopée à `id` ci-dessus.
+    // Corrections admin d'abord (suppressions, fusions) : la synchro qui
+    // suit doit déjà savoir quels exercices ne plus jamais renvoyer.
+    await chargerBaseOverrides();
     await synchroniserMuscu(id);
     // Les exercices personnalisés des AUTRES comptes, eux, doivent être
     // visibles ici (comme les aliments partagés) : chargement à part, en
     // lecture seule, sans bloquer le rendu si ça échoue.
     chargerExercicesCommunaute(id);
-    chargerBaseOverrides();
     chargerRecettesPerso();
 
     // Les aliments en attente repartent avec la même occasion réseau.
@@ -12755,7 +12790,7 @@ function idUnique(prefixe) {
 function toutesLesExercices() {
   const mesIds = new Set(musculationExosPerso.map(e => e.id));
   return EXERCICES_BASE.concat(musculationExosPerso).concat(exercicesCommunaute.filter(e => !mesIds.has(e.id)))
-    .filter(e => !REDIRECTIONS_EXERCICES[e.id]);
+    .filter(e => !REDIRECTIONS_EXERCICES[e.id] && !EXERCICES_SUPPRIMES.has(e.id));
 }
 function trouverExercice(id) { return toutesLesExercices().find(e => e.id === id) || EXERCICES_RETIRES.find(e => e.id === id); }
 /* Beaucoup de salles n'affichent les machines qu'en anglais sur leur
@@ -12919,6 +12954,11 @@ function appliquerOverridesBase(lignes) {
     // pour que les séances qui l'utilisent encore s'affichent.
     if (d.fusionneVers) REDIRECTIONS_EXERCICES[r.id] = d.fusionneVers;
     else delete REDIRECTIONS_EXERCICES[r.id];
+    // Pierre tombale : un exercice supprimé ou fusionné ne doit JAMAIS être
+    // renvoyé au serveur par le cache d'un téléphone (voir
+    // syncCollectionMusculation) — c'est ce qui le faisait « revenir ».
+    if (d.supprime || d.fusionneVers) EXERCICES_SUPPRIMES.add(r.id);
+    else EXERCICES_SUPPRIMES.delete(r.id);
     const idx = EXERCICES_BASE.findIndex(e => e.id === r.id);
     if (d.supprime || d.fusionneVers) {
       if (idx !== -1) {
@@ -12951,13 +12991,14 @@ function appliquerOverridesBase(lignes) {
    synchro renvoie la version corrigée. Rien n'est supprimé : les séries,
    charges et dates restent identiques, seul l'exercice change. */
 const REDIRECTIONS_EXERCICES = {};
+const EXERCICES_SUPPRIMES = new Set();
 function cibleFusion(id) {
   let v = id, n = 0;
   while (REDIRECTIONS_EXERCICES[v] && n++ < 10) v = REDIRECTIONS_EXERCICES[v];
   return v;
 }
 function appliquerRedirectionsExercices() {
-  if (!Object.keys(REDIRECTIONS_EXERCICES).length) return;
+  if (!Object.keys(REDIRECTIONS_EXERCICES).length && !EXERCICES_SUPPRIMES.size) return;
   const maintenant = Date.now();
   const rediriger = liste => {
     let change = false;
@@ -12978,10 +13019,13 @@ function appliquerRedirectionsExercices() {
   const sess = !!(musculationSessionActive && rediriger(musculationSessionActive.exercices));
   const edit = !!(programmeEnEdition && rediriger(programmeEnEdition.exercices));
   // Exercice personnalisé fusionné : il quitte aussi la liste de son créateur.
+  // Exercice personnalisé supprimé ou fusionné par l'admin : il quitte
+  // aussi le cache du téléphone de son créateur, et sa ligne serveur est
+  // (re)supprimée au cas où un vieux cache l'aurait déjà renvoyée.
   const persoAvant = musculationExosPerso.length;
-  musculationExosPerso.filter(e => REDIRECTIONS_EXERCICES[e.id]).forEach(e => { try { ajouterSuppressionMuscu('exercices_perso_musculation', e.id); } catch (err) {} });
-  musculationExosPerso = musculationExosPerso.filter(e => !REDIRECTIONS_EXERCICES[e.id]);
-  exercicesCommunaute = exercicesCommunaute.filter(e => !REDIRECTIONS_EXERCICES[e.id]);
+  musculationExosPerso.filter(e => EXERCICES_SUPPRIMES.has(e.id)).forEach(e => { try { ajouterSuppressionMuscu('exercices_perso_musculation', e.id); } catch (err) {} });
+  musculationExosPerso = musculationExosPerso.filter(e => !EXERCICES_SUPPRIMES.has(e.id));
+  exercicesCommunaute = exercicesCommunaute.filter(e => !EXERCICES_SUPPRIMES.has(e.id));
   if (prog) sauvegarderProgrammes();
   if (hist) sauvegarderHistorique();
   if (sess) sauvegarderSessionActive();
@@ -13066,7 +13110,9 @@ async function syncCollectionMusculation(nomTable, utilisateurId, collectionLoca
   if (error) throw error;
   const distants = new Map();
   let changement = false;
+  const bloque = id => nomTable === 'exercices_perso_musculation' && EXERCICES_SUPPRIMES.has(id);
   (data || []).forEach(r => {
+    if (bloque(r.id)) return;
     const m = Number(r.maj) || 0;
     distants.set(r.id, m);
     const idxLocal = collectionLocale.findIndex(x => x.id === r.id);
@@ -13079,6 +13125,7 @@ async function syncCollectionMusculation(nomTable, utilisateurId, collectionLoca
   });
   const aPousser = collectionLocale
     .filter(x => {
+      if (bloque(x.id)) return false;
       const m = Number(x.maj) || 0;
       if (!distants.has(x.id)) return true;
       return m > distants.get(x.id);
@@ -16923,8 +16970,15 @@ async function supprimerExerciceAdmin(exo) {
       appliquerOverridesBase([{ id: exo.id, donnees }]);
       await consignerAction('exercice_base_supprime', exo.id, exo.nom || '', null, null);
     } else {
+      // Pierre tombale d'abord, PUIS suppression de la ligne : sans elle, le
+      // téléphone du créateur renvoyait l'exercice à sa prochaine synchro.
+      const donnees = { supprime: true };
+      const { error: e1 } = await supa.from('exercices_base_overrides')
+        .upsert({ id: exo.id, donnees, maj: Date.now(), modifie_par: sessionUtilisateur ? sessionUtilisateur.email : 'inconnu' }, { onConflict: 'id' });
+      if (e1) throw e1;
       const { error } = await supa.from('exercices_perso_musculation').delete().eq('id', exo.id);
       if (error) throw error;
+      appliquerOverridesBase([{ id: exo.id, donnees }]);
       await consignerAction('exercice_supprime', exo.id, exo.nom || '', null, { createur: exo.email || null });
     }
     await chargerExercicesAdmin();
