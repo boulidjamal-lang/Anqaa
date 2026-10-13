@@ -2085,6 +2085,31 @@
       margin-left: 6px; vertical-align: middle; white-space: nowrap;
     }
     .exo-en-programme-technique { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+    /* Tempo : saisie dans le programme, rappel en séance et dans l'historique. */
+    .tempo-ligne { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+    .tempo-ligne label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); margin: 0; }
+    .tempo-ligne input { width: 92px; text-align: center; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; padding: 8px 10px; }
+    .tempo-ligne small { color: var(--text-muted); font-size: 0.72rem; flex-basis: 100%; }
+    .tempo-aide-btn { background: none; border: 0; padding: 4px; color: var(--text-muted); cursor: pointer; display: inline-flex; }
+    .tempo-aide-btn svg { width: 18px; height: 18px; }
+    .tempo-badge { display: inline-flex; align-items: center; gap: 6px; margin: 6px 0 2px; padding: 4px 10px; border-radius: 999px; border: 0; cursor: pointer;
+      background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--text); font-family: inherit; font-size: 0.74rem; }
+    .tempo-badge b { letter-spacing: 2px; }
+    .tempo-badge svg { width: 14px; height: 14px; opacity: 0.7; }
+    .tempo-phases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 0 4px; }
+    .tempo-phases div { background: var(--verre-creux); border-radius: 12px; padding: 8px 4px; text-align: center; }
+    .tempo-phases b { display: block; font-size: 1.3rem; }
+    .tempo-phases small { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .tempo-etape { display: grid; grid-template-columns: 30px 1fr; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--verre-brd); }
+    .tempo-etape:last-child { border-bottom: 0; }
+    .tempo-etape > span { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem;
+      background: color-mix(in srgb, var(--primary) 18%, transparent); color: var(--primary); }
+    .tempo-etape b { display: block; font-size: 0.9rem; margin-bottom: 2px; }
+    .tempo-etape p { margin: 0; font-size: 0.8rem; color: var(--text-muted); line-height: 1.45; }
+    .tempo-exemple { display: flex; gap: 12px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--verre-brd); font-size: 0.8rem; }
+    .tempo-exemple:last-child { border-bottom: 0; }
+    .tempo-exemple b { letter-spacing: 2px; min-width: 52px; }
+    #modal-tempo { z-index: 1250; }
     .exo-en-programme-technique select {
       flex: 1; min-width: 110px; padding: 8px 10px; min-height: 38px;
       background: var(--verre); border: 1px solid transparent; color: var(--text);
@@ -4191,6 +4216,30 @@
 </div>
 
 <!-- ================= SÉANCE — Fiche d'un exercice (bibliothèque) ================= -->
+<!-- ================= LE TEMPO D'UNE RÉPÉTITION (aide) ================= -->
+<div id="modal-tempo" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-tempo">
+  <div class="modal-content" style="max-width:460px;">
+    <div class="modal-entete">
+      <h3 id="titre-tempo">Le tempo d'une répétition</h3>
+      <button class="close-modal" onclick="fermerModal('modal-tempo')" aria-label="Fermer">&times;</button>
+    </div>
+    <div id="tempo-decodage"></div>
+    <p class="note" style="margin:0 0 6px;">Quatre caractères qui fixent combien de secondes dure chaque moment d'une répétition, toujours dans le même ordre. Régler le tempo, c'est choisir combien de temps le muscle travaille sous la charge, et garder un mouvement propre même quand la fatigue arrive.</p>
+    <div class="tempo-etape"><span>1</span><div><b>Freinage de la charge (phase excentrique)</b><p>Le muscle s'allonge en retenant le poids : la descente au développé couché ou au squat, le retour vers le bas à la traction. Ralentir ce moment est l'un des leviers les plus efficaces pour stimuler le muscle.</p></div></div>
+    <div class="tempo-etape"><span>2</span><div><b>Arrêt en position étirée</b><p>Une pause là où le muscle est le plus long (barre près de la poitrine, bas du squat). Elle supprime l'effet ressort : la remontée vient vraiment du muscle, pas de l'élan.</p></div></div>
+    <div class="tempo-etape"><span>3</span><div><b>Poussée ou tirage (phase concentrique)</b><p>Le muscle se raccourcit et déplace la charge : remonter la barre, se hisser à la traction. On la fait souvent rapide, mais toujours contrôlée.</p></div></div>
+    <div class="tempo-etape"><span>4</span><div><b>Arrêt en position contractée</b><p>Une pause muscle serré, en fin de mouvement. Utile surtout sur les exercices d'isolation pour bien sentir le muscle travailler.</p></div></div>
+    <div class="tempo-etape"><span>X</span><div><b>X : aussi vite que possible</b><p>À la place d'un chiffre, X veut dire « le plus vite possible », en gardant le contrôle et une technique propre. Il sert surtout pour la phase de poussée, quand on cherche de la puissance.</p></div></div>
+    <p class="note" style="margin:14px 0 4px; font-weight:800; letter-spacing:0.8px; text-transform:uppercase; font-size:0.7rem;">Quelques tempos utiles</p>
+    <div class="tempo-exemple"><b>2010</b><span>Le réglage de base pour la prise de muscle : descente sur 2 s, remontée franche.</span></div>
+    <div class="tempo-exemple"><b>3010</b><span>Descente plus lente : idéal pour apprendre un mouvement ou travailler le contrôle.</span></div>
+    <div class="tempo-exemple"><b>3110</b><span>Avec un temps d'arrêt en bas : pas d'élan possible, charge souvent un peu plus légère.</span></div>
+    <div class="tempo-exemple"><b>4010</b><span>Descente très lente : beaucoup de temps sous tension, efficace avec des charges modérées.</span></div>
+    <div class="tempo-exemple"><b>20X0</b><span>Descente contrôlée puis remontée explosive : pour la force et la vitesse.</span></div>
+    <div class="tempo-exemple"><b>2012</b><span>Pause de 2 s muscle contracté : pour l'isolation (curl, élévations, leg extension).</span></div>
+  </div>
+</div>
+
 <div id="fiche-exercice-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-fiche-exercice">
   <div class="modal-content" style="max-width:420px;">
     <div class="modal-entete">
@@ -13940,7 +13989,8 @@ function construireExercicesSession(programme) {
     }
     return {
       exerciceId: pe.exerciceId, nom: exo ? exo.nom : 'Exercice', series,
-      supersetSuivant: !!pe.supersetSuivant
+      supersetSuivant: !!pe.supersetSuivant,
+      ...(pe.tempo ? { tempo: pe.tempo } : {})
     };
   });
 }
@@ -14681,6 +14731,7 @@ function voirDetailHistorique(id) {
           <button type="button" class="hd-exo-courbe" onclick="ouvrirHistoriqueExercice('${idJs(e.exerciceId)}')" aria-label="Historique et courbe de l'exercice">${ICONE_COURBE}</button>
         </div>
         ${badges}
+        ${e.tempo ? `<div class="hd-date" style="margin:6px 0 0;">TEMPO <b style="letter-spacing:2px; color:var(--text);">${escapeHtml(e.tempo)}</b></div>` : ''}
         ${tableSeriesHTML(e)}
         ${e.notes ? `<p class="hd-note">Note : ${escapeHtml(e.notes)}</p>` : ''}
       </div>`;
@@ -14789,6 +14840,12 @@ function renderProgrammeExercicesEnEdition() {
       ${dernierDeLaListe ? '' : `<div class="exo-en-programme-technique">
         <button type="button" class="filtre-chip" aria-pressed="${pe.supersetSuivant ? 'true' : 'false'}" onclick="toggleSupersetProgramme(${i})"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg> Superset avec le suivant</button>
       </div>`}
+      <div class="tempo-ligne">
+        <label for="tempo-prog-${i}">Tempo</label>
+        <input type="text" id="tempo-prog-${i}" maxlength="7" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="ex : 3010" value="${escapeHtml(pe.tempo || '')}" onchange="modifierTempoProgramme(${i}, this.value, this)">
+        <button type="button" class="tempo-aide-btn" onclick="ouvrirAideTempo(document.getElementById('tempo-prog-${i}').value)" aria-label="Comment fonctionne le tempo ?">${ICONE_INFO_TEMPO}</button>
+        <small id="tempo-resume-${i}">${pe.tempo ? escapeHtml(resumeTempo(pe.tempo)) : ''}</small>
+      </div>
       <div class="serie-table">
         <div class="serie-entete serie-entete--3col"><span>Série</span><span>Poids (kg)</span><span>Répétitions</span></div>
         ${lignesSeries}
@@ -14797,6 +14854,68 @@ function renderProgrammeExercicesEnEdition() {
     </div>`;
   }).join('');
 }
+/* --- Tempo (4 caractères : chiffres de 0 à 9, ou X = explosif) ------- */
+const ICONE_INFO_TEMPO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>';
+// « 3-0-1-0 », « 3 0 1 0 », « 30x0 » -> « 3010 », « 30X0 » ; null si invalide.
+function normaliserTempo(v) {
+  const t = String(v || '').toUpperCase().replace(/[\s\-\/.]/g, '');
+  if (!t) return '';
+  return /^[0-9X]{4}$/.test(t) ? t : null;
+}
+function phasesTempo(t) {
+  const lib = c => c === 'X' ? 'explosif' : c + ' s';
+  return { descente: lib(t[0]), basse: lib(t[1]), montee: lib(t[2]), haute: lib(t[3]) };
+}
+// Temps sous tension d'une répétition (X compté comme ~0,5 s).
+function dureeRepTempo(t) {
+  return [...t].reduce((n, c) => n + (c === 'X' ? 0.5 : Number(c)), 0);
+}
+function resumeTempo(t) {
+  const p = phasesTempo(t);
+  return `Descente ${p.descente} · pause ${p.basse} · montée ${p.montee} · pause ${p.haute}`;
+}
+function tempoBadgeHTML(tempo) {
+  if (!tempo) return '';
+  const t = escapeHtml(tempo);
+  return `<button type="button" class="tempo-badge" onclick="ouvrirAideTempo('${t}')" title="${escapeHtml(resumeTempo(tempo))}">Tempo <b>${t}</b>${ICONE_INFO_TEMPO}</button>`;
+}
+function ouvrirAideTempo(tempo) {
+  const zone = document.getElementById('tempo-decodage');
+  if (zone) {
+    const t = normaliserTempo(tempo);
+    if (t) {
+      const p = phasesTempo(t);
+      const d = dureeRepTempo(t);
+      zone.innerHTML = `<p class="note" style="margin:0;">Ton tempo <b style="letter-spacing:2px;">${escapeHtml(t)}</b> :</p>
+        <div class="tempo-phases">
+          <div><b>${escapeHtml(t[0])}</b><small>Descente</small></div>
+          <div><b>${escapeHtml(t[1])}</b><small>Pause bas</small></div>
+          <div><b>${escapeHtml(t[2])}</b><small>Montée</small></div>
+          <div><b>${escapeHtml(t[3])}</b><small>Pause haut</small></div>
+        </div>
+        <p class="note" style="margin:0 0 12px;">Environ ${formatNombreFr(d, 1)} s par répétition, soit ${formatNombreFr(d * 10, 0)} s pour une série de 10.</p>`;
+    } else {
+      zone.innerHTML = '';
+    }
+  }
+  ouvrirModal('modal-tempo');
+}
+function modifierTempoProgramme(i, valeur, champ) {
+  const pe = programmeEnEdition.exercices[i];
+  if (!pe) return;
+  const t = normaliserTempo(valeur);
+  if (t === null) {
+    alert("Le tempo s'écrit avec 4 caractères : des chiffres de 0 à 9, ou X pour « explosif ». Exemples : 3010, 2110, 20X0.");
+    if (champ) champ.value = pe.tempo || '';
+    return;
+  }
+  if (t) pe.tempo = t; else delete pe.tempo;
+  if (champ) champ.value = t;
+  sauvegarderProgrammeEnEdition();
+  const aide = document.getElementById('tempo-resume-' + i);
+  if (aide) aide.textContent = t ? resumeTempo(t) : '';
+}
+
 function modifierSerieProgramme(i, si, champ, valeur) {
   const pe = programmeEnEdition.exercices[i];
   const s = pe && pe.series[si];
@@ -16243,6 +16362,7 @@ function renderSessionExerciceBlocHTML(exo, ei) {
           </div>
         </div>
         ${musclesLigneHTML(exerciceComplet)}
+        ${tempoBadgeHTML(exo.tempo)}
       </div>
     </div>
     ${noteExerciceHTML(exo, ei)}
@@ -16620,7 +16740,8 @@ function terminerSeance() {
     date: todayStr(), debut: s.debut, fin, dureeMin, notes: s.notes || '', maj: fin,
     exercices: s.exercices.map(e => ({
       exerciceId: e.exerciceId, nom: e.nom, series: e.series.filter(x => x.fait || x.poids || x.reps),
-      supersetSuivant: !!e.supersetSuivant, ...(e.notes && e.notes.trim() ? { notes: e.notes.trim() } : {})
+      supersetSuivant: !!e.supersetSuivant, ...(e.notes && e.notes.trim() ? { notes: e.notes.trim() } : {}),
+      ...(e.tempo ? { tempo: e.tempo } : {})
     })).filter(e => e.series.length)
   };
   // Construit AVANT d'ajouter cette séance à l'historique : dernierePerfExercice,
@@ -16755,7 +16876,8 @@ function fermerBilanSeance() {
     exercices: entree.exercices.map(e => ({
       exerciceId: e.exerciceId,
       series: e.series.map(s => ({ poids: s.poids, reps: s.reps, technique: s.technique || null })),
-      supersetSuivant: !!e.supersetSuivant
+      supersetSuivant: !!e.supersetSuivant,
+      ...(e.tempo ? { tempo: e.tempo } : {})
     }))
   };
   sauvegarderProgrammeEnEdition();
