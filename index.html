@@ -9717,7 +9717,82 @@ do $$ declare r record; begin
       execute 'grant select on public.ciqual_aliments to anon, authenticated';
     end if;
   end if;
-end $$;`;
+end $$;
+
+-- 9) Journal des actions des utilisateurs (aliments, recettes, exercices
+--    personnalisés). Écrit uniquement par le serveur (déclencheurs) :
+--    l'appli ne peut ni y écrire ni le falsifier. Lisible par l'admin seul.
+create table if not exists public.journal_utilisateurs (
+  id            bigserial primary key,
+  fait_le       timestamptz not null default now(),
+  utilisateur   text,
+  email         text,
+  action        text not null,
+  cible_id      text,
+  cible_libelle text,
+  detail        jsonb
+);
+create index if not exists journal_utilisateurs_date on public.journal_utilisateurs (fait_le desc);
+alter table public.journal_utilisateurs enable row level security;
+drop policy if exists "journal utilisateurs admin" on public.journal_utilisateurs;
+create policy "journal utilisateurs admin" on public.journal_utilisateurs for select to authenticated
+  using (auth.jwt() ->> 'email' = 'jambou592@gmail.com');
+
+create or replace function public.journaliser_utilisateur()
+returns trigger language plpgsql security definer set search_path = public as $fn$
+declare
+  v_email text := auth.jwt() ->> 'email';
+  v_uid   text := auth.uid()::text;
+  v_ligne jsonb;
+  v_avant jsonb;
+  v_action text;
+begin
+  -- Les actions de l'admin sont déjà dans son propre journal.
+  if v_uid is null or coalesce(v_email, '') = 'jambou592@gmail.com' then
+    return coalesce(new, old);
+  end if;
+  if tg_table_name = 'aliments_partages' then
+    if tg_op <> 'INSERT' then return new; end if;
+    insert into journal_utilisateurs (utilisateur, email, action, cible_id, cible_libelle, detail)
+    values (v_uid, v_email, 'u_aliment_cree', (to_jsonb(new) ->> 'id'), new.nom,
+            jsonb_build_object('kcal100', new.kcal100, 'p100', new.p100, 'c100', new.c100, 'f100', new.f100,
+                               'code_barre', nullif(new.code_barre, '')));
+    return new;
+  end if;
+  -- recettes_perso / exercices_perso_musculation (même schéma)
+  v_ligne := case when tg_op = 'DELETE' then old.donnees else new.donnees end;
+  if tg_op = 'UPDATE' then
+    v_avant := old.donnees;
+    -- Une synchro qui renvoie la même chose n'est pas une action.
+    if (old.donnees - 'maj' - 'partagee') = (new.donnees - 'maj' - 'partagee') then return new; end if;
+  end if;
+  v_action := (case when tg_table_name = 'recettes_perso' then 'u_recette_' else 'u_exercice_' end)
+           || (case tg_op when 'INSERT' then 'creee' when 'UPDATE' then 'modifiee' else 'supprimee' end);
+  insert into journal_utilisateurs (utilisateur, email, action, cible_id, cible_libelle, detail)
+  values (v_uid, v_email, v_action, coalesce(new.id, old.id), v_ligne ->> 'nom',
+          case
+            when tg_table_name = 'recettes_perso' then
+              jsonb_strip_nulls(jsonb_build_object(
+                'avant', case when v_avant is not null then jsonb_build_object('nom', v_avant -> 'nom', 'portions', v_avant -> 'portions', 'ingredients', v_avant -> 'ingredients') end,
+                'apres', case when tg_op <> 'DELETE' then jsonb_build_object('nom', v_ligne -> 'nom', 'portions', v_ligne -> 'portions', 'ingredients', v_ligne -> 'ingredients') end,
+                'ingredients', case when tg_op = 'DELETE' then v_ligne -> 'ingredients' end))
+            else
+              jsonb_strip_nulls(jsonb_build_object(
+                'avant', case when v_avant is not null then jsonb_build_object('nom', v_avant -> 'nom', 'groupe', v_avant -> 'groupe', 'materiel', v_avant -> 'materiel') end,
+                'apres', case when tg_op <> 'DELETE' then jsonb_build_object('nom', v_ligne -> 'nom', 'groupe', v_ligne -> 'groupe', 'materiel', v_ligne -> 'materiel') end))
+          end);
+  return coalesce(new, old);
+end;
+$fn$;
+drop trigger if exists journal_aliments_partages on public.aliments_partages;
+create trigger journal_aliments_partages after insert on public.aliments_partages
+  for each row execute function public.journaliser_utilisateur();
+drop trigger if exists journal_recettes on public.recettes_perso;
+create trigger journal_recettes after insert or update or delete on public.recettes_perso
+  for each row execute function public.journaliser_utilisateur();
+drop trigger if exists journal_exercices_perso on public.exercices_perso_musculation;
+create trigger journal_exercices_perso after insert or update or delete on public.exercices_perso_musculation
+  for each row execute function public.journaliser_utilisateur();`;
 
 function copierSqlGymbro() {
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -10620,7 +10695,20 @@ async function ouvrirJournalAdmin(cibleId) {
       p_limite: 100
     });
     if (error) throw error;
-    rendreJournal(data || []);
+    const admin = (data || []).map(e => Object.assign({ origine: 'admin' }, e));
+    // Actions des utilisateurs (journal écrit par le serveur, voir le SQL).
+    let utilisateurs = [];
+    try {
+      let req = supa.from('journal_utilisateurs').select('*').order('fait_le', { ascending: false }).limit(150);
+      if (cibleId) req = req.eq('utilisateur', cibleId);
+      const r = await req;
+      if (r.error) throw r.error;
+      utilisateurs = (r.data || []).map(e => Object.assign({ origine: 'utilisateur', fait_par: e.email }, e));
+    } catch (e2) {
+      console.warn('[Journal] actions utilisateurs indisponibles :', e2.message);
+    }
+    journalEntrees = admin.concat(utilisateurs).sort((a, b) => String(b.fait_le).localeCompare(String(a.fait_le)));
+    rendreJournal(journalEntrees);
   } catch (e) {
     liste.innerHTML = '';
     const p = document.createElement('p');
@@ -10631,7 +10719,20 @@ async function ouvrirJournalAdmin(cibleId) {
   }
 }
 
+let journalEntrees = [];
+let journalFiltre = 'tout';
+function filtrerJournal(f) {
+  journalFiltre = f;
+  rendreJournal(journalEntrees);
+}
 const LIBELLES_ACTION = {
+  u_aliment_cree: '\ud83c\udf7d Aliment cr\u00e9\u00e9 (en attente de validation)',
+  u_recette_creee: '\ud83c\udf72 Recette cr\u00e9\u00e9e',
+  u_recette_modifiee: '\u270f Recette modifi\u00e9e',
+  u_recette_supprimee: '\ud83d\uddd1 Recette supprim\u00e9e',
+  u_exercice_creee: '\ud83c\udfcb Exercice personnalis\u00e9 cr\u00e9\u00e9',
+  u_exercice_modifiee: '\u270f Exercice personnalis\u00e9 modifi\u00e9',
+  u_exercice_supprimee: '\ud83d\uddd1 Exercice personnalis\u00e9 supprim\u00e9',
   suspendre: '\u23f8 Compte suspendu',
   reactiver: '\u25b6 Compte r\u00e9activ\u00e9',
   supprimer: '\ud83d\uddd1 Compte supprim\u00e9',
@@ -10684,7 +10785,7 @@ function lignesDetailJournal(e) {
   const ajouter = (l, v) => { if (v != null && v !== '') lignes.push([l, String(v)]); };
   const d = e.fait_le ? new Date(e.fait_le) : null;
   ajouter('Date', d && !isNaN(d) ? d.toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '');
-  ajouter('Par', e.fait_par || e.admin_email || e.auteur || e.par || e.admin || '');
+  ajouter('Par', (e.fait_par || e.admin_email || e.auteur || e.par || e.admin || '') + (e.origine === 'utilisateur' ? ' (utilisateur)' : ''));
   ajouter('Action', LIBELLES_ACTION[e.action] ? e.action : '');
   ajouter('Cible', e.cible_libelle);
   const compte = e.cible_id && typeof adminComptes !== 'undefined' && adminComptes[e.cible_id];
@@ -10707,7 +10808,7 @@ function lignesDetailJournal(e) {
     ajouter('Détail', texteValeurJournal(det));
   }
   // Tout autre champ renvoyé par le journal (sauf ceux déjà montrés).
-  const connus = new Set(['id', 'action', 'fait_le', 'fait_par', 'admin_email', 'auteur', 'par', 'admin', 'cible_id', 'cible_libelle', 'motif', 'detail']);
+  const connus = new Set(['id', 'action', 'fait_le', 'fait_par', 'admin_email', 'auteur', 'par', 'admin', 'cible_id', 'cible_libelle', 'motif', 'detail', 'origine', 'email', 'utilisateur']);
   Object.keys(e).forEach(k => { if (!connus.has(k) && e[k] != null && e[k] !== '') ajouter(k, texteValeurJournal(e[k])); });
   return lignes;
 }
@@ -10717,10 +10818,28 @@ function rendreJournal(entrees) {
   const liste = document.getElementById('journal-liste');
   liste.innerHTML = '';
 
+  // Filtre Tout / Mes actions / Utilisateurs
+  const seg = document.createElement('div');
+  seg.className = 'segment';
+  seg.id = 'journal-filtre';
+  seg.style.marginBottom = '10px';
+  [['tout', 'Tout'], ['admin', 'Mes actions'], ['utilisateur', 'Utilisateurs']].forEach(([v, l]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = l;
+    b.setAttribute('aria-pressed', journalFiltre === v ? 'true' : 'false');
+    b.addEventListener('click', () => filtrerJournal(v));
+    seg.appendChild(b);
+  });
+  liste.appendChild(seg);
+  entrees = (entrees || []).filter(e => journalFiltre === 'tout' || (e.origine || 'admin') === journalFiltre);
+
   if (!entrees.length) {
     const p = document.createElement('p');
     p.className = 'note';
-    p.textContent = 'Aucune action enregistr\u00e9e pour le moment.';
+    p.textContent = journalFiltre === 'utilisateur'
+      ? 'Aucune action d\u2019utilisateur enregistr\u00e9e (le SQL du journal utilisateurs a-t-il \u00e9t\u00e9 ex\u00e9cut\u00e9 ?).'
+      : 'Aucune action enregistr\u00e9e pour le moment.';
     liste.appendChild(p);
     return;
   }
@@ -10749,6 +10868,7 @@ function rendreJournal(entrees) {
     const detail = document.createElement('div');
     detail.className = 'journal-detail';
     let txt = e.cible_libelle || '';
+    if (e.origine === 'utilisateur' && e.email) txt += (txt ? ' \u00b7 ' : '') + 'par ' + e.email;
     if (e.motif) txt += (txt ? ' \u00b7 ' : '') + '\u00ab ' + e.motif + ' \u00bb';
     detail.textContent = txt || '\u2014';
     bloc.appendChild(detail);
