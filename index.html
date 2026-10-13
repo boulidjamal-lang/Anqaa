@@ -344,35 +344,87 @@
 
     /* =====================================================================
        ÉCRAN DE CHARGEMENT
-       Le dragon de la marque s'envole et crache un souffle de feu qui
-       embrase le nom « Anqā » : un clip video courte duree (~5 s, genere),
-       plutot qu'une animation CSS -- bien plus difficile a egaler en pur
-       CSS/SVG pour un rendu aussi realiste.
+       L'aigle de la marque, puis le nom « Anqā » tracé lettre par lettre
+       en calligraphie (repris de la version Anqa d'origine).
        ===================================================================== */
     #splash-screen {
       position: fixed; inset: 0; z-index: 9999;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       background: #06070a; color: #f4f7fb; overflow: hidden;
-      animation: fadeOutCinematic 5.6s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+      animation: fadeOutCinematic 3s cubic-bezier(0.77, 0, 0.175, 1) forwards;
     }
 
-    .spl-video {
-      width: min(82vw, 340px); height: auto; display: block;
-    }
 
-    /* La video fait 5,04 s ; le fondu de sortie n'entame qu'une fois la
-       lecture terminee (voir aussi l'ecoute de l'evenement "ended" plus bas,
-       qui declenche hideSplash des que la video finit, sans attendre ce
-       delai si elle se termine un peu plus tot ou plus tard que prevu). */
+    /* L'ecran reste 3 s : le cycle de pose dure 2,6 s (montee, verrouillage,
+       descente complets), le fondu de sortie n'entame qu'apres, sur les
+       0,4 s restantes (voir fadeOutCinematic plus bas, calee sur la meme
+       duree). Avant, l'ecran disparaissait a 1,75 s : le mouvement etait
+       coupe en pleine descente, la descente ne se voyait jamais. */
+    :root { --spl-duree: 2.6s; }
+
+  .spl-scene {
+    position:relative; width:min(28vw,90px); height:min(34vw,110px);
+    animation:spl-pousse var(--spl-duree) cubic-bezier(.33,0,.2,1) infinite;
+  }
+  /* Le sol encaisse a l'arrachage puis rend l'effort au verrouillage.
+     Trois pixels : on le sent sans le remarquer. */
+  @keyframes spl-pousse {
+    0%,100% { transform:translateY(2px)  scaleY(.995); }
+    14%     { transform:translateY(3px)  scaleY(.99); }
+    43%     { transform:translateY(-3px) scaleY(1.005); }
+    70%     { transform:translateY(0)    scaleY(1); }
+  }
+
+/* ---- LE LOGO ----
+     L'aigle de la marque, meme silhouette que celle de la barre du haut
+     (masque CSS sur le meme dessin), plutot qu'une figure humaine animee :
+     c'est l'embleme Anqa qui ouvre l'application. Le contour lumineux vert
+     rythme le meme battement que spl-pousse. */
+  .spl-aigle {
+    position:absolute; inset:0;
+    background-color:#f4f7fb;
+    -webkit-mask-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMzcgMTYwIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDE2MCkgc2NhbGUoMC4xLC0wLjEpIj48cGF0aCBkPSJNMTE5MCAxNTY0IGMtNDUgLTQ2IC0xMzYgLTExMSAtMjI4IC0xNjMgLTQxIC0yMiAtNzYgLTQxIC03OCAtNDEgLTIKMCAxMyAyMyAzMyA1MSBsMzYgNTEgLTU3IC0zMiAtNTcgLTMyIDM2IDY0IGMxOSAzNiAzNSA2OCAzNSA3MSAwIDQgLTMwIC0xNQotNjcgLTQyIC0zOCAtMjcgLTkwIC02MSAtMTE4IC03NyBsLTUwIC0yOCAyOCAzMyBjMTUgMTkgMzcgNTEgNDcgNzIgbDIwIDM4Ci03NSAtNDUgYy00MiAtMjQgLTEwNCAtNTggLTEzOCAtNzUgLTM0IC0xNyAtOTMgLTUyIC0xMzIgLTc2IC02NCAtNDEgLTY3IC00MgotNDEgLTE0IDE3IDE3IDI1IDMxIDE5IDMxIC0yMSAwIC0xODkgLTE3NiAtMjI2IC0yMzcgLTQwIC02NSAtNTcgLTEyNiAtMzkKLTEzNyA2IC0zIC0xMiAtMjkgLTQyIC01OSAtOTQgLTk0IC0xMjMgLTIzMyAtNzIgLTM0MiAyMSAtNDUgNzQgLTExMCA4MiAtMTAyCjIgMiAtMSAxOSAtNiAzOCAtNiAxOCAtMTAgNDggLTEwIDY1IDAgMzAgMiAzMSA1MyAzNyAyOSAzIDY5IDEzIDg5IDIzIDMyIDE1CjQxIDE1IDY5IDMgNjggLTI3IDEyOSAtMTAwIDEyOSAtMTUyIDAgLTQzIC01MSAtMTI3IC0xMDEgLTE2NyAtNDIgLTMzIC00NwotNDAgLTMzIC00OCAxMyAtNyAwIC0xNiAtNjIgLTQwIGwtNzkgLTMxIDUwIC0xIDUwIC0xIC01NSAtNTAgLTU1IC01MSA2NSA1CmMzNiAzIDkxIDE0IDEyMiAyNSAzMiAxMSA1OCAxOCA1OCAxNiAwIC0xNSAtMzYgLTcwIC02OCAtMTA2IGwtMzcgLTQxIDY5IDYKYzgyIDggMTc1IDQ4IDIzMyAxMDEgMjIgMjAgNDMgMzYgNDYgMzYgNSAwIC02IC01NCAtMTggLTgyIC0xMCAtMjQgMjAgLTI0IDg1CjEgNjcgMjYgMTE0IDYyIDE1OCAxMjQgbDM2IDUwIDE1IC0zMiBjOCAtMTcgMjAgLTMwIDI1IC0yOCA2IDIgMjggMjUgNDggNTIKMzggNTAgNzAgMTQwIDg1IDIzNSBsOSA1NSAyMiAtNjQgYzEyIC0zNiAyMiAtNzUgMjIgLTg4IDAgLTM0IDE1IC0yOCAzNSAxNAoyOCA1OCA0NSAxMzMgNDUgMTk4IGwxIDYwIDI2IC0zMCAyNiAtMzAgLTYgNjkgYy01IDQ5IC0xNyA5MiAtNDEgMTQzIC0xOSA0MAotMzMgNzMgLTMxIDczIDIgMCAyNCAtOSA1MCAtMjAgMjYgLTExIDUxIC0yMCA1NiAtMjAgMTEgMCAtMjMgNjkgLTYzIDEyOApsLTI5IDQzIDI4IC03IGMxNSAtNCAzNiAtMTEgNDYgLTE2IDEwIC01IDIxIC04IDIzIC01IDUgNCAtNjggNzcgLTEwMSAxMDEKLTE5IDE0IC0xOSAxNSAxMCAyMSA4MiAxNyAxNDcgNzEgMTY5IDE0MiBsNyAyMiAtNDcgLTIwIGMtMjYgLTEyIC03NCAtMjMKLTEwOCAtMjYgbC02MSAtNCA0NyAyNiBjMjYgMTQgNjMgNDEgODIgNTkgMzcgMzggNzYgMTI4IDc2IDE3NyBsMCAzMSAtNTMgLTQ2CmMtNTEgLTQzIC0xODIgLTEyNiAtMjAxIC0xMjYgLTUgMCAxMCAyMCAzMiA0NCA1NCA1OCA4MyAxMTcgODkgMTgyIDMgMzAgNCA1NAoyIDU0IC0yIDAgLTIwIC0xNyAtMzkgLTM2eiBtLTU2IC0xMDQgYy00NyAtNzEgLTEyOCAtMTE5IC00MjQgLTI1MCAtOTIgLTQyCi0yNDIgLTEyMSAtMjM3IC0xMjYgMiAtMiA0MyAxMiA5MiAzMSA0OCAxOSAxODcgNjcgMzA4IDEwNiAxMzEgNDIgMjU3IDkwIDMxMwoxMTggNTIgMjcgOTQgNDUgOTQgNDEgMCAtNCAtMjUgLTMxIC01NSAtNTggLTYzIC01OCAtMTQ4IC05NSAtMzE1IC0xMzcgLTU4Ci0xNSAtMTA5IC0zMSAtMTE1IC0zNyAtNyAtNyAtNCAtOCAxMCAtNSAxMSA0IDk5IDEzIDE5NSAyMiA5NiA4IDE5OCAxOCAyMjUKMjEgbDUwIDUgLTIzIC0yMCBjLTM2IC0zMiAtODYgLTQyIC0yMjkgLTQ4IC0xMzQgLTYgLTE2NSAtMTUgLTk1IC0yOCA0NCAtOAoxMjkgLTQ3IDE2NiAtNzYgMjYgLTIxIDgyIC0xMDYgNzQgLTExNCAtMiAtMiAtMzkgMTMgLTgxIDM1IC00MiAyMiAtOTYgNDMKLTExOSA0NiBsLTQzIDYgNTIgLTI2IGMyOCAtMTUgNTcgLTM0IDYzIC00MSAxMSAtMTMgNCAtMTUgLTQ0IC0xNSAtNTQgMCAtMTcwCi0zMSAtMTkxIC01MSAtNSAtNSAxMCAtMyAzNCA2IDI1IDggNzcgMTUgMTIxIDE1IDYyIDAgODIgLTQgMTAzIC0yMCAyNSAtMjAKODEgLTExOSA3MiAtMTI4IC0yIC0zIC0xNSAyIC0yOCAxMSAtNTYgMzYgLTIyNyA2NCAtMjI3IDM3IDAgLTUgMTcgLTEwIDM4Ci0xMCA0OSAwIDE1MSAtNDkgMTg1IC04OSAzMyAtMzkgMzkgLTYyIDM1IC0xMjcgbC0zIC00OSAtMTkgMzcgYy00MyA4OCAtMTM2CjE2MyAtMjMxIDE4NiAtNzEgMTggLTEyNSAyMyAtMTI1IDEyIDAgLTUgOSAtMTAgMjAgLTEwIDM2IDAgMTMxIC00MiAxNjcgLTczCjQ3IC00MSA2MyAtODIgNjMgLTE1OCBsMCAtNjIgLTMwIDYwIGMtMzUgNzAgLTk2IDEzMSAtMTY3IDE2NiAtNjkgMzUgLTEwNyA0MwotNTMgMTIgMTAwIC01OCAxNjMgLTE0MCAxOTkgLTI1OCAxOSAtNjQgMjAgLTY5IDQgLTEwMiAtOSAtMTkgLTIwIC0zNSAtMjMKLTM1IC0xNCAwIC00OCA3OCAtNTUgMTI1IC0xMSA4MCAtNTMgMTQ4IC0xMTYgMTg5IC0yMCAxNCAtODEgMzkgLTEzNSA1NyBsLTk4CjMyIDU0IDE0IGM0NyAxMiAxMzAgNTUgMTMwIDY3IDAgMiAtMjcgLTcgLTYwIC0yMCAtNDIgLTE3IC05MyAtMjcgLTE3MiAtMzQKLTYyIC01IC0xMjggLTEzIC0xNDYgLTE5IC0yMyAtNyAtMzIgLTcgLTMwIDAgMiA2IDggMTEgMTMgMTEgNiAwIDIxIDUgMzUgMTAKMTQgNiA2NSAxMyAxMTMgMTggODEgNiA5MSAxMCAxMjAgMzggbDMxIDMyIC0zOSAtMTEgYy0yMSAtNiAtNjEgLTggLTg4IC01Ci0zMSA1IC00NyAzIC00MyAtMyA0IC02IC0xNSAtMTAgLTQ2IC0xMCAtMjkgMCAtNjYgLTQgLTgxIC0xMCAtMzYgLTE0IC0zMwotMTUgLTQ2IDE3IC03IDE1IC00MCA0NiAtNzQgNjkgbC02MiA0MiAtMjcgLTI2IGMtMzcgLTM2IC02OSAtMTAzIC03OCAtMTY2Ci03IC01MSAtOCAtNTEgLTkgLTExIC0zIDExOCAxMDYgMjg0IDE4OCAyODQgMjEgMCA2MSAtNzUgNjEgLTExNiAwIC0xNiA1IC0zNgoxMSAtNDQgNyAtMTEgOCAyIDMgNDQgbC03IDU5IDIzIC0xNiBjMTcgLTExIDM2IC0xNCA3MSAtMTAgMzYgNCA1NSAxIDczIC0xMQoxNiAtMTAgNDYgLTE2IDgxIC0xNiA0OSAwIDYwIDQgODUgMjggMTUgMTYgMzQgNDggNDEgNzEgMTUgNTAgMjAgNTMgMTIzIDgwCjQzIDExIDg0IDI1IDkwIDMyIDggOSA0IDEwIC0xNyA1IC0xOCAtNCAtMjYgLTMgLTIzIDMgNCA2IC01IDYgLTI1IDEgLTQ4IC0xNAotMTc5IC0yNCAtMTc5IC0xNCAwIDUgMjcgMjYgNjAgNDggMTIyIDc4IDM3IDQ2IC0xMDUgLTM5IC05OSAtNjEgLTE3NiAtOTUKLTIxMiAtOTUgLTEzIDAgLTEwIDcgMTMgMzEgMjMgMjUgMjQgMjkgOCAyMSAtMTIgLTcgLTMzIC0yNSAtNDcgLTQyIC0zMiAtMzcKLTQyIC0zOCAtNjEgLTIgLTE3IDMxIC0yMiAxMiAtNSAtMjEgMTAgLTIxIDEwIC0yMSAtNSAtMyAtMjEgMjYgLTIwIDM5IDUgODcKMjQgNDggMjAgNjIgLTYgMjIgLTE3IC0yNSAtMTkgLTI2IC0yNiAtOCAtNSAxNiAtOSAxMSAtMTQgLTIyIC00IC0yNCAtMTEgLTQzCi0xNiAtNDMgLTE4IDAgLTggNzIgMTUgMTE5IDI3IDUyIDczIDExMiA4NCAxMDggNCAtMSAzMiAxNyA2MiA0MCAzMCAyMiAxMTMKNzQgMTg1IDExMyA3MiA0MCAxMzkgODAgMTUwIDg5IDExIDggNyAxIC0xMCAtMTggLTE2IC0xOCAtNjQgLTU5IC0xMDUgLTkxCi05MSAtNzEgLTE3OSAtMTUxIC0xMzUgLTEyMiAxNyAxMCA5MSA1MyAxNjUgOTUgNzQgNDEgMTU0IDg5IDE3OCAxMDcgMzIgMjMKNDEgMjYgMzMgMTIgLTE3IC0zMiAtNzUgLTc3IC0xNzMgLTEzNiAtMTAzIC02MiAtMTc3IC0xMTYgLTk3IC03MiAyNSAxNCA5NAo0NCAxNTQgNjYgNTkgMjIgMTE0IDQ1IDEyMiA1MSA3IDcgMTYgMTAgMTggNyA1IC01IC0xOCAtMzAgLTUwIC01NCAtNDAgLTMwCjI0MSAxMTYgMjkwIDE1MCAyNyAyMCA1MSAzNiA1MyAzNiAxIDAgLTEwIC0xOCAtMjQgLTQweiBtLTUzNCAtNDk1IGMwIC0xMiAtOQotMzAgLTIwIC00MCAtMzUgLTMxIC0xMDAgLTE2IC0xMDAgMjQgMSAxNCAyIDE0IDEzIDAgMzIgLTQyIDkyIC0xOSA4NSAzMiAtNAoyMyAtMiAyNiA5IDE4IDcgLTcgMTMgLTIxIDEzIC0zNHogbTMwIC0yMCBjMCAtOSAtMTEgLTI3IC0yNSAtNDAgLTE5IC0xOSAtMzQKLTI1IC02NyAtMjQgbC00MyAyIDQyIDYgYzQ0IDggODMgMzQgODMgNTggMCA3IDIgMTMgNSAxMyAzIDAgNSAtNyA1IC0xNXoKbS0zNjggLTE2MiBjMTEgLTEyIDE5IC0yNSAxNyAtMzAgLTIgLTQgLTI2IDE0IC01NCA0MSAtNDMgNDMgLTQ1IDQ3IC0xNyAzMAoxOCAtMTAgNDIgLTI5IDU0IC00MXogbTI0MyAtMzAgYy0xMTUgLTEwIC0xODUgLTI2IC0yNTAgLTU3IC03OSAtMzggLTEzNSAtNTQKLTEzNSAtMzcgMCA2IDEwIDExIDIzIDExIDEyIDAgNDcgMTIgNzcgMjYgMTAwIDQ4IDE2MCA2MyAyNDUgNjIgNDQgLTEgNjIgLTMKNDAgLTV6IG0xNjIgLTIxMCBjMjQgLTIzIDQ0IC01MyA0NCAtNjUgMSAtMTggMiAtMTkgNiAtNSAzIDEwIC01IDM0IC0xNyA1NAotMjYgNDUgLTIxIDUxIDE2IDE5IDI2IC0yMiAyOSAtMzAgMjcgLTc2IC02IC0xMzAgLTE0NSAtMzA2IC0yODkgLTM2NiAtMzUKLTE1IC0zNiAtMTUgLTI4IDggNCAxMyAxMyA0MiAxOSA2NSA3IDMwIDI0IDU0IDU4IDgzIDI2IDIzIDQ3IDQ2IDQ3IDUyIDAgNQotMTYgLTQgLTM1IC0yMSAtMzYgLTMxIC0xMjggLTgyIC0xNzUgLTk2IC0xNSAtNSAtMiAxMCAzNSAzNyAxMjMgOTMgMTg1IDE3NgoxODUgMjQ4IDAgMTcgNCAyOSA5IDI2IDE3IC0xMSAzMCAtMTAwIDIxIC0xMzkgLTQgLTIwIC02IC0zNyAtNCAtMzcgMTEgMCAzNAo2NCAzNSA5NyAwIDM2IDEgMzYgMTAgMTMgNiAtMTQgOCAtNTAgNSAtODAgLTUgLTUzIC00IC01NCA5IC0yNSAyMSA0NCAxOCAxMTkKLTUgMTY0IC0xMCAyMSAtNDAgNTcgLTY2IDgwIGwtNDcgNDEgNDkgLTE3IGMyOCAtMTAgNjcgLTM2IDkxIC02MHogbTE3OSAtNjUKYzU0IC0xMDYgOSAtMjM2IC0xMTEgLTMxOCBsLTQzIC0zMCAtNCA2MSBjLTIgMzcgMSA2NCA4IDcwIDIyIDE4IDY2IDEzMSA3MQoxODIgNSA0NyAtMSA4NiAtMjIgMTQyIC0xNSAzNyA3NiAtNTggMTAxIC0xMDd6IG0tMzM2IC00MCBjMCAtNDQgLTQ2IC0xMDMKLTk3IC0xMjQgLTQ5IC0yMSAtNTAgLTE3IC0xMSAyNCA0MiA0MyA3NyAxMTMgNzggMTU3IGwxIDMwIDE0IC0yNSBjOCAtMTQgMTQKLTQyIDE1IC02MnoiLz48L2c+PC9zdmc+");
+    mask-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMzcgMTYwIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDE2MCkgc2NhbGUoMC4xLC0wLjEpIj48cGF0aCBkPSJNMTE5MCAxNTY0IGMtNDUgLTQ2IC0xMzYgLTExMSAtMjI4IC0xNjMgLTQxIC0yMiAtNzYgLTQxIC03OCAtNDEgLTIKMCAxMyAyMyAzMyA1MSBsMzYgNTEgLTU3IC0zMiAtNTcgLTMyIDM2IDY0IGMxOSAzNiAzNSA2OCAzNSA3MSAwIDQgLTMwIC0xNQotNjcgLTQyIC0zOCAtMjcgLTkwIC02MSAtMTE4IC03NyBsLTUwIC0yOCAyOCAzMyBjMTUgMTkgMzcgNTEgNDcgNzIgbDIwIDM4Ci03NSAtNDUgYy00MiAtMjQgLTEwNCAtNTggLTEzOCAtNzUgLTM0IC0xNyAtOTMgLTUyIC0xMzIgLTc2IC02NCAtNDEgLTY3IC00MgotNDEgLTE0IDE3IDE3IDI1IDMxIDE5IDMxIC0yMSAwIC0xODkgLTE3NiAtMjI2IC0yMzcgLTQwIC02NSAtNTcgLTEyNiAtMzkKLTEzNyA2IC0zIC0xMiAtMjkgLTQyIC01OSAtOTQgLTk0IC0xMjMgLTIzMyAtNzIgLTM0MiAyMSAtNDUgNzQgLTExMCA4MiAtMTAyCjIgMiAtMSAxOSAtNiAzOCAtNiAxOCAtMTAgNDggLTEwIDY1IDAgMzAgMiAzMSA1MyAzNyAyOSAzIDY5IDEzIDg5IDIzIDMyIDE1CjQxIDE1IDY5IDMgNjggLTI3IDEyOSAtMTAwIDEyOSAtMTUyIDAgLTQzIC01MSAtMTI3IC0xMDEgLTE2NyAtNDIgLTMzIC00NwotNDAgLTMzIC00OCAxMyAtNyAwIC0xNiAtNjIgLTQwIGwtNzkgLTMxIDUwIC0xIDUwIC0xIC01NSAtNTAgLTU1IC01MSA2NSA1CmMzNiAzIDkxIDE0IDEyMiAyNSAzMiAxMSA1OCAxOCA1OCAxNiAwIC0xNSAtMzYgLTcwIC02OCAtMTA2IGwtMzcgLTQxIDY5IDYKYzgyIDggMTc1IDQ4IDIzMyAxMDEgMjIgMjAgNDMgMzYgNDYgMzYgNSAwIC02IC01NCAtMTggLTgyIC0xMCAtMjQgMjAgLTI0IDg1CjEgNjcgMjYgMTE0IDYyIDE1OCAxMjQgbDM2IDUwIDE1IC0zMiBjOCAtMTcgMjAgLTMwIDI1IC0yOCA2IDIgMjggMjUgNDggNTIKMzggNTAgNzAgMTQwIDg1IDIzNSBsOSA1NSAyMiAtNjQgYzEyIC0zNiAyMiAtNzUgMjIgLTg4IDAgLTM0IDE1IC0yOCAzNSAxNAoyOCA1OCA0NSAxMzMgNDUgMTk4IGwxIDYwIDI2IC0zMCAyNiAtMzAgLTYgNjkgYy01IDQ5IC0xNyA5MiAtNDEgMTQzIC0xOSA0MAotMzMgNzMgLTMxIDczIDIgMCAyNCAtOSA1MCAtMjAgMjYgLTExIDUxIC0yMCA1NiAtMjAgMTEgMCAtMjMgNjkgLTYzIDEyOApsLTI5IDQzIDI4IC03IGMxNSAtNCAzNiAtMTEgNDYgLTE2IDEwIC01IDIxIC04IDIzIC01IDUgNCAtNjggNzcgLTEwMSAxMDEKLTE5IDE0IC0xOSAxNSAxMCAyMSA4MiAxNyAxNDcgNzEgMTY5IDE0MiBsNyAyMiAtNDcgLTIwIGMtMjYgLTEyIC03NCAtMjMKLTEwOCAtMjYgbC02MSAtNCA0NyAyNiBjMjYgMTQgNjMgNDEgODIgNTkgMzcgMzggNzYgMTI4IDc2IDE3NyBsMCAzMSAtNTMgLTQ2CmMtNTEgLTQzIC0xODIgLTEyNiAtMjAxIC0xMjYgLTUgMCAxMCAyMCAzMiA0NCA1NCA1OCA4MyAxMTcgODkgMTgyIDMgMzAgNCA1NAoyIDU0IC0yIDAgLTIwIC0xNyAtMzkgLTM2eiBtLTU2IC0xMDQgYy00NyAtNzEgLTEyOCAtMTE5IC00MjQgLTI1MCAtOTIgLTQyCi0yNDIgLTEyMSAtMjM3IC0xMjYgMiAtMiA0MyAxMiA5MiAzMSA0OCAxOSAxODcgNjcgMzA4IDEwNiAxMzEgNDIgMjU3IDkwIDMxMwoxMTggNTIgMjcgOTQgNDUgOTQgNDEgMCAtNCAtMjUgLTMxIC01NSAtNTggLTYzIC01OCAtMTQ4IC05NSAtMzE1IC0xMzcgLTU4Ci0xNSAtMTA5IC0zMSAtMTE1IC0zNyAtNyAtNyAtNCAtOCAxMCAtNSAxMSA0IDk5IDEzIDE5NSAyMiA5NiA4IDE5OCAxOCAyMjUKMjEgbDUwIDUgLTIzIC0yMCBjLTM2IC0zMiAtODYgLTQyIC0yMjkgLTQ4IC0xMzQgLTYgLTE2NSAtMTUgLTk1IC0yOCA0NCAtOAoxMjkgLTQ3IDE2NiAtNzYgMjYgLTIxIDgyIC0xMDYgNzQgLTExNCAtMiAtMiAtMzkgMTMgLTgxIDM1IC00MiAyMiAtOTYgNDMKLTExOSA0NiBsLTQzIDYgNTIgLTI2IGMyOCAtMTUgNTcgLTM0IDYzIC00MSAxMSAtMTMgNCAtMTUgLTQ0IC0xNSAtNTQgMCAtMTcwCi0zMSAtMTkxIC01MSAtNSAtNSAxMCAtMyAzNCA2IDI1IDggNzcgMTUgMTIxIDE1IDYyIDAgODIgLTQgMTAzIC0yMCAyNSAtMjAKODEgLTExOSA3MiAtMTI4IC0yIC0zIC0xNSAyIC0yOCAxMSAtNTYgMzYgLTIyNyA2NCAtMjI3IDM3IDAgLTUgMTcgLTEwIDM4Ci0xMCA0OSAwIDE1MSAtNDkgMTg1IC04OSAzMyAtMzkgMzkgLTYyIDM1IC0xMjcgbC0zIC00OSAtMTkgMzcgYy00MyA4OCAtMTM2CjE2MyAtMjMxIDE4NiAtNzEgMTggLTEyNSAyMyAtMTI1IDEyIDAgLTUgOSAtMTAgMjAgLTEwIDM2IDAgMTMxIC00MiAxNjcgLTczCjQ3IC00MSA2MyAtODIgNjMgLTE1OCBsMCAtNjIgLTMwIDYwIGMtMzUgNzAgLTk2IDEzMSAtMTY3IDE2NiAtNjkgMzUgLTEwNyA0MwotNTMgMTIgMTAwIC01OCAxNjMgLTE0MCAxOTkgLTI1OCAxOSAtNjQgMjAgLTY5IDQgLTEwMiAtOSAtMTkgLTIwIC0zNSAtMjMKLTM1IC0xNCAwIC00OCA3OCAtNTUgMTI1IC0xMSA4MCAtNTMgMTQ4IC0xMTYgMTg5IC0yMCAxNCAtODEgMzkgLTEzNSA1NyBsLTk4CjMyIDU0IDE0IGM0NyAxMiAxMzAgNTUgMTMwIDY3IDAgMiAtMjcgLTcgLTYwIC0yMCAtNDIgLTE3IC05MyAtMjcgLTE3MiAtMzQKLTYyIC01IC0xMjggLTEzIC0xNDYgLTE5IC0yMyAtNyAtMzIgLTcgLTMwIDAgMiA2IDggMTEgMTMgMTEgNiAwIDIxIDUgMzUgMTAKMTQgNiA2NSAxMyAxMTMgMTggODEgNiA5MSAxMCAxMjAgMzggbDMxIDMyIC0zOSAtMTEgYy0yMSAtNiAtNjEgLTggLTg4IC01Ci0zMSA1IC00NyAzIC00MyAtMyA0IC02IC0xNSAtMTAgLTQ2IC0xMCAtMjkgMCAtNjYgLTQgLTgxIC0xMCAtMzYgLTE0IC0zMwotMTUgLTQ2IDE3IC03IDE1IC00MCA0NiAtNzQgNjkgbC02MiA0MiAtMjcgLTI2IGMtMzcgLTM2IC02OSAtMTAzIC03OCAtMTY2Ci03IC01MSAtOCAtNTEgLTkgLTExIC0zIDExOCAxMDYgMjg0IDE4OCAyODQgMjEgMCA2MSAtNzUgNjEgLTExNiAwIC0xNiA1IC0zNgoxMSAtNDQgNyAtMTEgOCAyIDMgNDQgbC03IDU5IDIzIC0xNiBjMTcgLTExIDM2IC0xNCA3MSAtMTAgMzYgNCA1NSAxIDczIC0xMQoxNiAtMTAgNDYgLTE2IDgxIC0xNiA0OSAwIDYwIDQgODUgMjggMTUgMTYgMzQgNDggNDEgNzEgMTUgNTAgMjAgNTMgMTIzIDgwCjQzIDExIDg0IDI1IDkwIDMyIDggOSA0IDEwIC0xNyA1IC0xOCAtNCAtMjYgLTMgLTIzIDMgNCA2IC01IDYgLTI1IDEgLTQ4IC0xNAotMTc5IC0yNCAtMTc5IC0xNCAwIDUgMjcgMjYgNjAgNDggMTIyIDc4IDM3IDQ2IC0xMDUgLTM5IC05OSAtNjEgLTE3NiAtOTUKLTIxMiAtOTUgLTEzIDAgLTEwIDcgMTMgMzEgMjMgMjUgMjQgMjkgOCAyMSAtMTIgLTcgLTMzIC0yNSAtNDcgLTQyIC0zMiAtMzcKLTQyIC0zOCAtNjEgLTIgLTE3IDMxIC0yMiAxMiAtNSAtMjEgMTAgLTIxIDEwIC0yMSAtNSAtMyAtMjEgMjYgLTIwIDM5IDUgODcKMjQgNDggMjAgNjIgLTYgMjIgLTE3IC0yNSAtMTkgLTI2IC0yNiAtOCAtNSAxNiAtOSAxMSAtMTQgLTIyIC00IC0yNCAtMTEgLTQzCi0xNiAtNDMgLTE4IDAgLTggNzIgMTUgMTE5IDI3IDUyIDczIDExMiA4NCAxMDggNCAtMSAzMiAxNyA2MiA0MCAzMCAyMiAxMTMKNzQgMTg1IDExMyA3MiA0MCAxMzkgODAgMTUwIDg5IDExIDggNyAxIC0xMCAtMTggLTE2IC0xOCAtNjQgLTU5IC0xMDUgLTkxCi05MSAtNzEgLTE3OSAtMTUxIC0xMzUgLTEyMiAxNyAxMCA5MSA1MyAxNjUgOTUgNzQgNDEgMTU0IDg5IDE3OCAxMDcgMzIgMjMKNDEgMjYgMzMgMTIgLTE3IC0zMiAtNzUgLTc3IC0xNzMgLTEzNiAtMTAzIC02MiAtMTc3IC0xMTYgLTk3IC03MiAyNSAxNCA5NAo0NCAxNTQgNjYgNTkgMjIgMTE0IDQ1IDEyMiA1MSA3IDcgMTYgMTAgMTggNyA1IC01IC0xOCAtMzAgLTUwIC01NCAtNDAgLTMwCjI0MSAxMTYgMjkwIDE1MCAyNyAyMCA1MSAzNiA1MyAzNiAxIDAgLTEwIC0xOCAtMjQgLTQweiBtLTUzNCAtNDk1IGMwIC0xMiAtOQotMzAgLTIwIC00MCAtMzUgLTMxIC0xMDAgLTE2IC0xMDAgMjQgMSAxNCAyIDE0IDEzIDAgMzIgLTQyIDkyIC0xOSA4NSAzMiAtNAoyMyAtMiAyNiA5IDE4IDcgLTcgMTMgLTIxIDEzIC0zNHogbTMwIC0yMCBjMCAtOSAtMTEgLTI3IC0yNSAtNDAgLTE5IC0xOSAtMzQKLTI1IC02NyAtMjQgbC00MyAyIDQyIDYgYzQ0IDggODMgMzQgODMgNTggMCA3IDIgMTMgNSAxMyAzIDAgNSAtNyA1IC0xNXoKbS0zNjggLTE2MiBjMTEgLTEyIDE5IC0yNSAxNyAtMzAgLTIgLTQgLTI2IDE0IC01NCA0MSAtNDMgNDMgLTQ1IDQ3IC0xNyAzMAoxOCAtMTAgNDIgLTI5IDU0IC00MXogbTI0MyAtMzAgYy0xMTUgLTEwIC0xODUgLTI2IC0yNTAgLTU3IC03OSAtMzggLTEzNSAtNTQKLTEzNSAtMzcgMCA2IDEwIDExIDIzIDExIDEyIDAgNDcgMTIgNzcgMjYgMTAwIDQ4IDE2MCA2MyAyNDUgNjIgNDQgLTEgNjIgLTMKNDAgLTV6IG0xNjIgLTIxMCBjMjQgLTIzIDQ0IC01MyA0NCAtNjUgMSAtMTggMiAtMTkgNiAtNSAzIDEwIC01IDM0IC0xNyA1NAotMjYgNDUgLTIxIDUxIDE2IDE5IDI2IC0yMiAyOSAtMzAgMjcgLTc2IC02IC0xMzAgLTE0NSAtMzA2IC0yODkgLTM2NiAtMzUKLTE1IC0zNiAtMTUgLTI4IDggNCAxMyAxMyA0MiAxOSA2NSA3IDMwIDI0IDU0IDU4IDgzIDI2IDIzIDQ3IDQ2IDQ3IDUyIDAgNQotMTYgLTQgLTM1IC0yMSAtMzYgLTMxIC0xMjggLTgyIC0xNzUgLTk2IC0xNSAtNSAtMiAxMCAzNSAzNyAxMjMgOTMgMTg1IDE3NgoxODUgMjQ4IDAgMTcgNCAyOSA5IDI2IDE3IC0xMSAzMCAtMTAwIDIxIC0xMzkgLTQgLTIwIC02IC0zNyAtNCAtMzcgMTEgMCAzNAo2NCAzNSA5NyAwIDM2IDEgMzYgMTAgMTMgNiAtMTQgOCAtNTAgNSAtODAgLTUgLTUzIC00IC01NCA5IC0yNSAyMSA0NCAxOCAxMTkKLTUgMTY0IC0xMCAyMSAtNDAgNTcgLTY2IDgwIGwtNDcgNDEgNDkgLTE3IGMyOCAtMTAgNjcgLTM2IDkxIC02MHogbTE3OSAtNjUKYzU0IC0xMDYgOSAtMjM2IC0xMTEgLTMxOCBsLTQzIC0zMCAtNCA2MSBjLTIgMzcgMSA2NCA4IDcwIDIyIDE4IDY2IDEzMSA3MQoxODIgNSA0NyAtMSA4NiAtMjIgMTQyIC0xNSAzNyA3NiAtNTggMTAxIC0xMDd6IG0tMzM2IC00MCBjMCAtNDQgLTQ2IC0xMDMKLTk3IC0xMjQgLTQ5IC0yMSAtNTAgLTE3IC0xMSAyNCA0MiA0MyA3NyAxMTMgNzggMTU3IGwxIDMwIDE0IC0yNSBjOCAtMTQgMTQKLTQyIDE1IC02MnoiLz48L2c+PC9zdmc+");
+    -webkit-mask-size:contain; mask-size:contain;
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-position:center; mask-position:center;
+    transform:scaleX(-1);
+    animation:spl-aigle-vie var(--spl-duree) ease-in-out infinite;
+  }
+  @keyframes spl-aigle-vie {
+    0%,100% { filter:drop-shadow(0 0 4px rgba(244,247,251,.10)); opacity:.88; }
+    43%     { filter:drop-shadow(0 0 16px rgba(34,197,94,.5));   opacity:1; }
+  }
+
+/* ---- LA SIGNATURE ----
+   Le nom « Anqā » tracé trait par trait, en calligraphie, juste apres que
+   l'aigle se soit pose : chaque lettre se dessine (stroke-dashoffset, via
+   l'API Web Animations plutot que des transitions CSS, pour un declenchement
+   fiable y compris sur les navigateurs embarques), puis se remplit. Le minutage
+   (voir le script plus bas) est cale pour que l'encre soit posee juste avant
+   que le fondu de sortie ne commence (2,6 s). */
+  .spl-signature {
+    width:min(62vw,230px); height:auto; margin-top:14px; overflow:visible;
+  }
+  .spl-lettre {
+    fill:none; stroke:#f4f7fb; stroke-width:10;
+    stroke-linecap:round; stroke-linejoin:round;
+  }
+
+
     @keyframes fadeOutCinematic {
       0% { opacity: 1; visibility: visible; }
-      90% { opacity: 1; visibility: visible; } /* 90% de 5,6s = 5,04s */
+      87% { opacity: 1; visibility: visible; } /* 87% de 3s = 2,6s : le cycle de pose est fini, on peut fondre */
       100% { opacity: 0; visibility: hidden; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      #splash-screen { animation: none !important; }
-      .spl-video { display: none; }
+      #splash-screen, .etat-bg::before,
+      .spl-scene, .spl-aigle
+        { animation: none !important; }
+      /* Sans animation, on fige l'aigle avec son contour au maximum : une
+         silhouette figee vaut mieux qu'un ecran vide. */
+      .spl-aigle { opacity: 1; filter:drop-shadow(0 0 16px rgba(34,197,94,.5)); }
       * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
     }
 
@@ -1951,11 +2003,19 @@
 </head>
 <body>
 
-<!-- Écran de démarrage : le dragon s'envole et embrase le nom de la marque. -->
+<!-- Écran de démarrage : l'aigle, puis le nom « Anqā » en calligraphie. -->
 <div id="splash-screen">
-  <video class="spl-video" aria-hidden="true" autoplay muted playsinline webkit-playsinline preload="auto">
-    <source src="assets/splash-anqa-dragon-fire.mp4" type="video/mp4">
-  </video>
+  <div class="spl-scene" aria-hidden="true">
+    <div class="spl-aigle"></div>
+  </div>
+  <svg class="spl-signature" viewBox="0 0 1965 900" aria-hidden="true" focusable="false">
+    <g transform="translate(0,620) scale(1,-1)">
+      <path class="spl-lettre" d="M46 -87Q16 -71 8.0 -54.0Q0 -37 0 -25Q0 2 19.5 47.5Q39 93 72.0 152.0Q105 211 147 275Q116 277 88.0 278.0Q60 279 16 279H0Q14 315 44.5 329.5Q75 344 116 344Q133 344 151.5 342.0Q170 340 190 338Q240 410 288.5 474.0Q337 538 380.5 589.5Q424 641 458 674Q506 722 528 722Q542 722 559.5 711.0Q577 700 596 683Q586 675 570.5 642.0Q555 609 537.5 558.5Q520 508 502.5 448.0Q485 388 471.0 326.0Q457 264 448.5 207.5Q440 151 440 108Q440 68 448.0 48.5Q456 29 475 29Q498 29 532.0 64.0Q566 99 608 178L626 159Q595 77 545.5 24.0Q496 -29 440 -29Q392 -29 372.0 12.5Q352 54 352 126Q352 149 355.0 178.0Q358 207 365 250Q321 257 287.0 261.0Q253 265 222 269Q174 184 129.0 93.0Q84 2 46 -87ZM375 299Q388 358 405.5 418.5Q423 479 442.5 534.5Q462 590 481 634Q451 610 414.0 565.0Q377 520 336.5 459.0Q296 398 254 326Q284 320 314.0 313.0Q344 306 375 299Z" transform="translate(0,0)"></path>
+      <path class="spl-lettre" d="M337 -20Q298 -20 277.5 -0.5Q257 19 257 49Q257 69 264.0 91.5Q271 114 278.0 137.0Q285 160 285 181Q285 203 274.5 211.5Q264 220 250 220Q220 220 188.5 195.5Q157 171 127.5 134.0Q98 97 72.0 57.0Q46 17 27 -15Q8 -15 -9.0 -8.5Q-26 -2 -38 14Q-37 19 -26.5 44.5Q-16 70 -3.0 105.5Q10 141 20.0 180.0Q30 219 30 251Q37 259 51.5 267.0Q66 275 82 275Q117 275 117 245Q117 233 112.5 209.5Q108 186 100 156Q126 191 157.0 222.0Q188 253 221.5 272.5Q255 292 289 292Q332 292 352.5 263.0Q373 234 373 199Q373 169 363.0 143.0Q353 117 343.5 94.0Q334 71 334 49Q334 33 341.5 26.5Q349 20 358 20Q382 20 408.0 43.0Q434 66 457.5 101.5Q481 137 499 173L516 159Q495 110 468.5 69.5Q442 29 409.5 4.5Q377 -20 337 -20Z" transform="translate(631,0)"></path>
+      <path class="spl-lettre" d="M216 -280Q200 -280 186.5 -263.5Q173 -247 173 -201Q173 -170 178.5 -123.0Q184 -76 194.5 -23.0Q205 30 218 77Q178 28 141.0 -4.0Q104 -36 69 -36Q52 -36 32.5 -26.5Q13 -17 -0.5 3.0Q-14 23 -14 56Q-14 91 2.5 132.0Q19 173 47.5 213.0Q76 253 113.0 285.5Q150 318 192.0 337.5Q234 357 277 357Q315 357 341.0 341.5Q367 326 367 301Q367 293 363.5 282.5Q360 272 351 267Q342 262 326 268Q326 289 311.0 302.0Q296 315 271 315Q237 315 206.5 296.5Q176 278 151.0 249.0Q126 220 107.5 186.5Q89 153 79.0 122.0Q69 91 69 69Q69 51 77.5 38.0Q86 25 102 25Q121 25 143.5 44.0Q166 63 190.0 93.5Q214 124 238.5 160.0Q263 196 287 230Q296 243 302.0 250.0Q308 257 315 264Q320 269 336.5 265.0Q353 261 358 256Q366 248 366 237Q366 216 350.0 190.5Q334 165 313.5 126.5Q293 88 279 29Q320 34 362.5 67.0Q405 100 442 169L460 153Q423 79 375.5 43.0Q328 7 279 -1Q287 -25 291.5 -52.0Q296 -79 296 -106Q296 -155 286.0 -194.5Q276 -234 258.0 -257.0Q240 -280 216 -280ZM237 -215Q243 -215 246.5 -197.5Q250 -180 251.5 -153.0Q253 -126 253 -100Q253 -83 252.5 -73.0Q252 -63 250 -53Q242 -93 237.5 -127.5Q233 -162 233 -194Q233 -207 234.0 -211.0Q235 -215 237 -215Z" transform="translate(1104,0)"></path>
+      <path class="spl-lettre" d="M56 -47Q23 -47 -1.5 -25.0Q-26 -3 -26 41Q-26 76 -10.0 117.0Q6 158 34.0 198.0Q62 238 98.0 270.5Q134 303 175.0 323.0Q216 343 257 343Q300 343 330.0 321.0Q360 299 360 263Q360 236 341.0 224.0Q322 212 296 217Q298 226 299.5 235.0Q301 244 301 254Q301 274 293.0 290.0Q285 306 259 306Q231 306 202.0 287.0Q173 268 146.5 237.5Q120 207 99.0 170.5Q78 134 66.0 99.0Q54 64 54 36Q54 4 77 4Q100 4 128.0 26.5Q156 49 184.5 83.0Q213 117 239.0 152.5Q265 188 284 213Q287 218 292 218Q296 217 307.5 213.5Q319 210 329.0 203.0Q339 196 339 185Q339 175 330.5 159.5Q322 144 310.5 125.5Q299 107 290.5 88.5Q282 70 282 53Q282 40 289.0 28.5Q296 17 312 17Q336 17 379.5 52.5Q423 88 468 173L487 154Q463 100 429.5 58.5Q396 17 359.0 -6.5Q322 -30 284 -30Q243 -30 223.0 -4.0Q203 22 201 52Q201 54 201.0 55.0Q201 56 201 57Q161 9 127.5 -19.0Q94 -47 56 -47ZM401 427Q378 427 344.5 432.5Q311 438 274.5 446.0Q238 454 205.0 461.5Q172 469 149 472Q160 502 199 502Q235 502 277.5 494.5Q320 487 363.5 476.0Q407 465 442 452Q430 427 401 427Z" transform="translate(1521,0)"></path>
+    </g>
+  </svg>
 </div>
 <script>
   /* Le theme est applique AVANT le premier rendu : sans cela, l'app clignotait
@@ -2021,22 +2081,60 @@
       splash.style.opacity = '0';
       setTimeout(function () { splash.style.display = 'none'; }, 420);
     }
-    /* La video (5,04 s) a une seule ouverture par session : une seconde
-       ouverture dans la meme session passe directement, sans la recharger.
-       hideSplash se declenche des que la video se termine ("ended"), avec
-       un filet de securite (setTimeout) si elle n'a pas pu demarrer. */
+    /* 4,5 s d'ecran de marque a chaque ouverture, c'est long quand on veut
+       juste noter un repas. On descend a 3,4 s (3s d'animation, cf.
+       fadeOutCinematic, + le meme delai de 0,4s que sa propre transition
+       ci-dessus) : assez pour voir le mouvement en entier, et une seconde
+       ouverture dans la meme session passe directement. */
     var dejaVu = false;
     try { dejaVu = sessionStorage.getItem('elite_splash') === '1'; sessionStorage.setItem('elite_splash', '1'); } catch (e) {}
-    var video = splash.querySelector('.spl-video');
-    if (dejaVu) {
-      splash.style.animation = 'none';
-      if (video) { video.pause(); video.removeAttribute('autoplay'); }
-      hideSplash();
-    } else {
-      if (video) { video.addEventListener('ended', hideSplash); }
-      setTimeout(hideSplash, 5500);
-    }
+    if (dejaVu) { splash.style.animation = 'none'; hideSplash(); }
+    else { setTimeout(hideSplash, 3400); }
     splash.addEventListener('click', hideSplash);
+
+    /* La signature « Anqā » se trace lettre par lettre (longueur du tracé SVG,
+       API Web Animations) puis se remplit. Calee pour finir juste avant le
+       debut du fondu de sortie (2,6 s) : 0,7 s de pause apres l'atterrissage
+       de l'aigle, ~1,1 s pour tracer, ~0,5 s pour l'encre qui se pose. Sans
+       interet si l'ecran passe sans animation (seconde ouverture, mouvement
+       reduit) : les lettres apparaissent alors directement remplies. */
+    try {
+      var lettres = splash.querySelectorAll('.spl-lettre');
+      var reduitMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (dejaVu || reduitMotion) {
+        for (var li = 0; li < lettres.length; li++) {
+          lettres[li].style.fill = '#f4f7fb';
+          lettres[li].style.strokeWidth = '2';
+        }
+      } else {
+        var DEBUT_SIGNATURE = 700;
+        var DUREE_TRAIT = 1100;
+        var longueurs = [];
+        var total = 0;
+        for (var i = 0; i < lettres.length; i++) {
+          var l = lettres[i].getTotalLength();
+          longueurs.push(l);
+          total += l;
+        }
+        var cumule = 0;
+        for (var j = 0; j < lettres.length; j++) {
+          (function (p, len) {
+            p.style.strokeDasharray = len;
+            var debutLettre = DEBUT_SIGNATURE + (cumule / total) * DUREE_TRAIT * 0.75;
+            var dureeLettre = Math.max(160, (len / total) * DUREE_TRAIT * 1.6);
+            p.animate(
+              [{ strokeDashoffset: len }, { strokeDashoffset: 0 }],
+              { duration: dureeLettre, delay: debutLettre, easing: 'cubic-bezier(.45,0,.2,1)', fill: 'both' }
+            );
+            p.animate(
+              [{ fill: 'transparent', strokeWidth: 10 }, { fill: '#f4f7fb', strokeWidth: 2 }],
+              { duration: 400, delay: DEBUT_SIGNATURE + DUREE_TRAIT + 150, easing: 'ease-out', fill: 'both' }
+            );
+          })(lettres[j], longueurs[j]);
+          cumule += longueurs[j];
+        }
+      }
+    } catch (e) {}
   })();
 </script>
 
