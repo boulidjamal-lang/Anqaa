@@ -8126,7 +8126,130 @@ function mettreAJourStatsMuscu() {
 function themeClairActif() {
   return document.documentElement.getAttribute('data-theme') !== 'dark';
 }
+/* =====================================================================
+   STYLE « NÉON » DE TOUS LES GRAPHIQUES — appliqué une seule fois à
+   Chart.js (valeurs par défaut + extensions), donc à chaque graphique de
+   l'appli sans toucher à leur code :
+   - courbes lissées, sans points au repos, avec un halo de leur couleur ;
+   - zones remplies (fill) en dégradé qui s'efface vers le bas ;
+   - barres arrondies en dégradé vertical ;
+   - grille en pointillés très discrète, sans axes ;
+   - info-bulle façon verre et ligne verticale lumineuse sous le doigt.
+   Les couleurs restent celles de chaque graphique (jetons du thème). */
+const outilCouleur = document.createElement('canvas').getContext('2d');
+function couleurAlpha(couleur, a) {
+  if (typeof couleur !== 'string' || !couleur || couleur === 'transparent') return couleur;
+  outilCouleur.fillStyle = '#000';
+  outilCouleur.fillStyle = couleur;
+  const c = outilCouleur.fillStyle; // « #rrggbb » ou « rgba(…) »
+  if (c[0] === '#') {
+    const n = parseInt(c.slice(1), 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  }
+  const m = c.match(/rgba?\(([^)]+)\)/);
+  if (!m) return couleur;
+  const [r, g, b] = m[1].split(',').map(x => parseFloat(x));
+  return `rgba(${r},${g},${b},${a})`;
+}
+let styleNeonInstalle = false;
+function installerStyleGraphiques() {
+  if (styleNeonInstalle || typeof Chart === 'undefined') return;
+  styleNeonInstalle = true;
+  const d = Chart.defaults;
+  d.font.family = (document.body && getComputedStyle(document.body).fontFamily) || d.font.family;
+  d.animation = Object.assign({}, d.animation, { duration: 650, easing: 'easeOutQuart' });
+  Object.assign(d.elements.line, { tension: 0.4, borderWidth: 2.5, borderCapStyle: 'round', borderJoinStyle: 'round' });
+  Object.assign(d.elements.point, { radius: 0, hoverRadius: 5, hitRadius: 12, hoverBorderWidth: 2.5, hoverBorderColor: '#ffffff' });
+  Object.assign(d.elements.bar, { borderRadius: 7, borderSkipped: false });
+  Chart.register({
+    id: 'anqaNeon',
+    // Grille pointillée, axes effacés, info-bulle en verre : réglés ici
+    // pour tous les graphiques, quelles que soient leurs options.
+    beforeInit(chart) {
+      const o = chart.options;
+      Object.values(o.scales || {}).forEach(sc => {
+        sc.border = Object.assign({}, sc.border, { display: false, dash: [3, 5] });
+        if (sc.grid && sc.grid.display !== false) sc.grid.drawTicks = false;
+        if (sc.ticks) sc.ticks.padding = 6;
+      });
+      const clair = themeClairActif();
+      const tt = o.plugins && o.plugins.tooltip;
+      if (tt) Object.assign(tt, {
+        backgroundColor: clair ? 'rgba(255,255,255,0.88)' : 'rgba(16,20,30,0.82)',
+        borderColor: couleurAlpha(getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#14b566', 0.45),
+        borderWidth: 1, cornerRadius: 12, padding: 11, caretSize: 0, caretPadding: 10
+      });
+    },
+    // Dégradés : calculés à la taille réelle de la zone de tracé.
+    beforeDatasetsDraw(chart) {
+      const zone = chart.chartArea;
+      if (!zone) return;
+      const ctx = chart.ctx;
+      chart.data.datasets.forEach((ds, i) => {
+        const meta = chart.getDatasetMeta(i);
+        if (!meta || meta.hidden) return;
+        const type = meta.type;
+        if (type === 'line' && ds.fill && ds.fill !== false) {
+          const base = ds._couleurNeon || (ds._couleurNeon = ds.borderColor);
+          if (typeof base !== 'string') return;
+          const g = ctx.createLinearGradient(0, zone.top, 0, zone.bottom);
+          g.addColorStop(0, couleurAlpha(base, themeClairActif() ? 0.26 : 0.34));
+          g.addColorStop(0.65, couleurAlpha(base, 0.06));
+          g.addColorStop(1, couleurAlpha(base, 0));
+          meta.dataset && meta.dataset.options && (meta.dataset.options.backgroundColor = g);
+        } else if (type === 'bar') {
+          const base = ds._couleurNeon || (ds._couleurNeon = ds.backgroundColor);
+          if (typeof base !== 'string') return;
+          // Un seul dégradé par série, sur toute la hauteur (les options des
+          // barres d'une même série peuvent être partagées par Chart.js).
+          const g = ctx.createLinearGradient(0, zone.top, 0, zone.bottom);
+          g.addColorStop(0, couleurAlpha(base, 1));
+          g.addColorStop(1, couleurAlpha(base, 0.4));
+          meta.data.forEach(el => { if (el && el.options) el.options.backgroundColor = g; });
+        }
+      });
+    },
+    // Halo de la couleur de chaque courbe (plus discret en thème clair).
+    beforeDatasetDraw(chart, args) {
+      const meta = args.meta;
+      if (!meta || (meta.type !== 'line' && meta.type !== 'bar')) return;
+      const ds = chart.data.datasets[args.index];
+      const couleur = meta.type === 'line' ? (ds._couleurNeon || ds.borderColor) : (ds._couleurNeon || ds.backgroundColor);
+      if (typeof couleur !== 'string' || couleur === 'transparent') return;
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.shadowColor = couleurAlpha(couleur, meta.type === 'line' ? (themeClairActif() ? 0.35 : 0.7) : 0.35);
+      ctx.shadowBlur = meta.type === 'line' ? (themeClairActif() ? 8 : 14) : 10;
+      ctx.shadowOffsetY = meta.type === 'line' ? 3 : 0;
+    },
+    afterDatasetDraw(chart, args) {
+      const meta = args.meta;
+      if (!meta || (meta.type !== 'line' && meta.type !== 'bar')) return;
+      const ds = chart.data.datasets[args.index];
+      const couleur = meta.type === 'line' ? (ds._couleurNeon || ds.borderColor) : (ds._couleurNeon || ds.backgroundColor);
+      if (typeof couleur !== 'string' || couleur === 'transparent') return;
+      chart.ctx.restore();
+    },
+    // Ligne verticale lumineuse à la position survolée (graphiques en courbes).
+    afterDatasetsDraw(chart) {
+      const actifs = chart.tooltip && chart.tooltip.getActiveElements ? chart.tooltip.getActiveElements() : [];
+      if (!actifs.length || chart.config.type !== 'line') return;
+      const x = actifs[0].element.x, zone = chart.chartArea, ctx = chart.ctx;
+      const couleur = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#14b566';
+      const g = ctx.createLinearGradient(0, zone.top, 0, zone.bottom);
+      g.addColorStop(0, couleurAlpha(couleur, 0));
+      g.addColorStop(0.5, couleurAlpha(couleur, 0.55));
+      g.addColorStop(1, couleurAlpha(couleur, 0));
+      ctx.save();
+      ctx.strokeStyle = g; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x, zone.top); ctx.lineTo(x, zone.bottom); ctx.stroke();
+      ctx.restore();
+    }
+  });
+}
+installerStyleGraphiques();
 function paletteGraphique() {
+  installerStyleGraphiques();
   const styles = getComputedStyle(document.documentElement);
   const clair = themeClairActif();
   const lire = (nom, repli) => (styles.getPropertyValue(nom) || repli).trim();
