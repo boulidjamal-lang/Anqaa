@@ -5460,7 +5460,7 @@ function renderCardio() {
   const liste = seances.length
     ? seances.slice(0, 12).map(({ date, index, w }) => {
         const n = intensiteCardio(w);
-        return `<button type="button" class="cardio-seance" onclick="ouvrirCardio('${date}', ${index})">
+        return `<button type="button" class="cardio-seance" onclick="ouvrirCardio(${argJs(date)}, ${index})">
           <span class="cardio-seance-ico">${ICONES_CARDIO[w.type] || ICONE_CARDIO}</span>
           <span class="cardio-seance-txt"><b>${escapeHtml(SPORT_LABELS[w.type] || w.type)}${w.note ? ' — ' + escapeHtml(w.note) : ''}</b><small>${escapeHtml(resumeSeanceCardio(w))}</small><small>${escapeHtml(formatDateDisplay(date))}</small></span>
           <span class="cardio-pastille" style="background:${couleurIntensite(n)};color:${couleurTexteIntensite(n)}">${NOMS_INTENSITE[n]}</span>
@@ -5505,7 +5505,7 @@ function ouvrirCardio(date, index) {
 function rendreFormulaireCardio() {
   const br = cardioBrouillon;
   document.getElementById('cardio-activites').innerHTML = CARDIO_TYPES.map(t =>
-    `<button type="button" class="cardio-chip" aria-pressed="${br.type === t}" onclick="choisirTypeCardio('${t}')">${ICONES_CARDIO[t]}${SPORT_LABELS[t]}</button>`).join('');
+    `<button type="button" class="cardio-chip" aria-pressed="${br.type === t}" onclick="choisirTypeCardio(${argJs(t)})">${ICONES_CARDIO[t]}${SPORT_LABELS[t]}</button>`).join('');
   document.getElementById('cardio-intensites').innerHTML = [1, 2, 3].map(n =>
     `<button type="button" class="cardio-int" aria-pressed="${br.intensite === n}" onclick="choisirIntensiteCardio(${n})" style="--c:${couleurIntensite(n)}">
       <span class="cardio-points">${[1, 2, 3].map(k => `<i${k <= n ? ' class="on"' : ''}></i>`).join('')}</span><b>${NOMS_INTENSITE[n]}</b><small>${AIDE_INTENSITE[n]}</small></button>`).join('');
@@ -5649,7 +5649,7 @@ function renderStatsCardio() {
   const nav = document.getElementById('cardio-allure-nav');
   if (nav) {
     nav.classList.toggle('hidden', typesDispo.length < 2);
-    nav.innerHTML = typesDispo.map(t => `<button type="button" onclick="choisirAllureCardio('${t}')" aria-pressed="${t === cardioAllureType}">${SPORT_LABELS[t]}</button>`).join('');
+    nav.innerHTML = typesDispo.map(t => `<button type="button" onclick="choisirAllureCardio(${argJs(t)})" aria-pressed="${t === cardioAllureType}">${SPORT_LABELS[t]}</button>`).join('');
   }
   const pts = cardioAllureType
     ? periode.filter(x => x.w.type === cardioAllureType && Number(x.w.distance) > 0).slice().reverse()
@@ -5825,13 +5825,13 @@ function renderMeals(day) {
       const clefIngr = currentDate + '_' + mealId + '_' + i;
       const ouvertIngr = !!ingredientsAlimentOuvert[clefIngr];
       const blocIngredients = ingredients.length ? `
-          <button type="button" class="serie-paliers-toggle ${ouvertIngr ? 'ouvert' : ''}" aria-expanded="${ouvertIngr}" onclick="basculerIngredientsAliment('${mealId}',${i})">
+          <button type="button" class="serie-paliers-toggle ${ouvertIngr ? 'ouvert' : ''}" aria-expanded="${ouvertIngr}" onclick="basculerIngredientsAliment(${argJs(mealId)},${i})">
             <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
             ${ingredients.length} ingrédient${ingredients.length > 1 ? 's' : ''}
           </button>${ouvertIngr ? `<div class="choix-recette-ingredients">${ingredients.map((ing, j) => `
             <div class="ingredient-aliment-ligne">
               <span>${escapeHtml(ing.nom)}</span>
-              <span><input type="number" inputmode="decimal" step="1" value="${ing.grammes ?? ''}" onchange="modifierPoidsIngredientAliment('${mealId}',${i},${j},this.value)"> g</span>
+              <span><input type="number" inputmode="decimal" step="1" value="${escapeHtml(ing.grammes ?? '')}" onchange="modifierPoidsIngredientAliment(${argJs(mealId)},${i},${j},this.value)"> g</span>
             </div>`).join('')}</div>` : ''}` : '';
       // Le poids total d'un aliment venu d'une recette ne se modifie pas
       // directement : il découle de la somme de ses ingrédients (voir
@@ -5858,7 +5858,7 @@ function renderMeals(day) {
           </div>
           <div class="food-right">
             <span class="food-kcal">${Math.round(it.kcal)} kcal</span>
-            <button class="btn-delete" onclick="supprimerAliment('${mealId}', ${i})" aria-label="Supprimer">&times;</button>
+            <button class="btn-delete" onclick="supprimerAliment(${argJs(mealId)}, ${i})" aria-label="Supprimer">&times;</button>
           </div>
         </div>${blocIngredients}
       </li>`;
@@ -8570,7 +8570,7 @@ function appliquerPeriodeStats() {
 function rendrePeriodesStats() {
   const c = document.getElementById('stats-periode');
   if (c && !c.children.length) {
-    c.innerHTML = PERIODES_STATS.map(p => `<button type="button" onclick="choisirPeriodeStats('${p[0]}')" aria-pressed="false">${p[1]}</button>`).join('');
+    c.innerHTML = PERIODES_STATS.map(p => `<button type="button" onclick="choisirPeriodeStats(${argJs(p[0])})" aria-pressed="false">${p[1]}</button>`).join('');
   }
   if (c) [...c.children].forEach((btn, i) => btn.setAttribute('aria-pressed', String(PERIODES_STATS[i][0] === periodeStats)));
   const bloc = document.getElementById('periode-poids-bloc');
@@ -9504,7 +9504,7 @@ function renderChoixPalettePerso() {
   c.innerHTML = options.map(p => {
     const v = (p.donnees && (sombre ? p.donnees.sombre : p.donnees.clair)) || {};
     const pastilles = [v.bg, v.primary, v.accent].map(col => `<i style="background:${escapeHtml(col || '#888')};"></i>`).join('');
-    return `<button type="button" class="palette-perso${p.id === actif ? ' choisi' : ''}" onclick="choisirPalettePerso('${p.id}')" aria-pressed="${p.id === actif}">
+    return `<button type="button" class="palette-perso${p.id === actif ? ' choisi' : ''}" onclick="choisirPalettePerso(${argJs(p.id)})" aria-pressed="${p.id === actif}">
       <span class="palette-perso-pastilles">${pastilles}</span><span>${escapeHtml(p.nom)}</span></button>`;
   }).join('');
 }
@@ -10129,7 +10129,7 @@ function choisirModeAjout(mode) {
   const actuel = repasDuMoment();
   const day = getDay(currentDate);
   document.getElementById('choix-repas-liste').innerHTML = MEALS.map(m => `
-    <button class="feuille-action${m === actuel ? ' feuille-action--suggere' : ''}" onclick="choisirRepasAjout('${m}')">
+    <button class="feuille-action${m === actuel ? ' feuille-action--suggere' : ''}" onclick="choisirRepasAjout(${argJs(m)})">
       <span class="ic" aria-hidden="true">${MEAL_ICONS[m]}</span>
       <span>${MEAL_LABELS[m]}<span class="sous">${mealKcal(day, m)} kcal${m === actuel ? ' · repas du moment' : ''}</span></span>
     </button>`).join('');
@@ -11132,7 +11132,7 @@ function renderGymbrosFavoris() {
   const c = document.getElementById('gymbro-favoris');
   const liste = (userProfile.gymbros || []);
   c.innerHTML = liste.length
-    ? `<p class="note" style="margin:0 0 6px; font-weight:700;">Mes gymbros</p><div class="gymbro-puces">${liste.map(p => `<button type="button" onclick="comparerGymbro('${escapeHtml(p)}')">@${escapeHtml(p)}</button>`).join('')}</div>`
+    ? `<p class="note" style="margin:0 0 6px; font-weight:700;">Mes gymbros</p><div class="gymbro-puces">${liste.map(p => `<button type="button" onclick="comparerGymbro(${argJs(p)})">@${escapeHtml(p)}</button>`).join('')}</div>`
     : '';
 }
 function rechercherGymbro(v) {
@@ -11151,7 +11151,7 @@ async function lancerRechercheGymbro(v) {
       .ilike('pseudo', motif).neq('utilisateur', sessionUtilisateur.id).order('pseudo').limit(12);
     if (error) throw error;
     c.innerHTML = (data && data.length)
-      ? data.map(r => `<button type="button" class="exo-ligne" onclick="comparerGymbro('${escapeHtml(r.pseudo)}')">
+      ? data.map(r => `<button type="button" class="exo-ligne" onclick="comparerGymbro(${argJs(r.pseudo)})">
           <span style="flex:1; min-width:0;"><span class="exo-ligne-nom">@${escapeHtml(r.pseudo)}</span>
           <span class="exo-ligne-meta">${r.partage_seances ? 'Comparer nos séances et nos charges' : 'Séances non partagées'}</span></span></button>`).join('')
       : '<p class="note">Aucun utilisateur ne commence par « ' + escapeHtml(q) + ' ».</p>';
@@ -11203,7 +11203,7 @@ async function comparerGymbro(pseudo) {
 
   let html = `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:12px;">
     <button type="button" class="btn-icone" onclick="retourRechercheGymbro()">‹ Retour</button>
-    <button type="button" class="btn-icone" onclick="${favori ? 'retirerGymbroFavori' : 'ajouterGymbroFavori'}('${escapeHtml(pseudo)}')">${favori ? 'Retirer de mes gymbros' : '+ Ajouter à mes gymbros'}</button>
+    <button type="button" class="btn-icone" onclick="${favori ? 'retirerGymbroFavori' : 'ajouterGymbroFavori'}(${argJs(pseudo)})">${favori ? 'Retirer de mes gymbros' : '+ Ajouter à mes gymbros'}</button>
   </div>
   <h4 style="margin:0 0 10px;">${escapeHtml(nomMoi)} vs ${escapeHtml(lui)}</h4>`;
 
@@ -11289,7 +11289,7 @@ function renderPhotosProgression() {
   const comp = document.getElementById('photos-comparaison');
   c.innerHTML = `<div class="photos-grille">${photosProgression.map((p, i) => `
     <figure>
-      <img src="${escapeHtml(p.url || '')}" alt="Photo du ${escapeHtml(p.date)}" loading="lazy" onclick="window.open(this.src, '_blank')">
+      <img src="${escapeHtml(p.url || '')}" alt="Photo du ${escapeHtml(p.date)}" loading="lazy" onclick="window.open(this.src, '_blank', 'noopener')">
       <figcaption>${p.date ? formatDateDisplay(p.date) : ''}</figcaption>
       <button type="button" class="photos-suppr" onclick="supprimerPhotoProgression(${i})" aria-label="Supprimer cette photo">&times;</button>
     </figure>`).join('')}</div>`;
@@ -11794,7 +11794,7 @@ function renderPremiersPas() {
       <button type="button" class="pp-masquer" onclick="masquerPremiersPas()">${reste ? 'Masquer' : 'Fermer'}</button></div>
     ${etapes.map(e => `<div class="pp-etape${e.fait ? ' pp-fait' : ''}"><span class="pp-coche">${e.fait ? coche : ''}</span>
       <span class="pp-texte"><b>${e.titre}</b><small>${e.sous}</small></span>
-      ${e.fait ? '' : `<button type="button" class="pp-go" onclick="faireEtapePremiersPas('${e.cle}')">Faire ›</button>`}</div>`).join('')}
+      ${e.fait ? '' : `<button type="button" class="pp-go" onclick="faireEtapePremiersPas(${argJs(e.cle)})">Faire ›</button>`}</div>`).join('')}
     <p class="pp-visite">Envie d'un tour complet ? <button type="button" onclick="demarrerTourGuide()">Lancer la visite guidée</button></p>
   </div>`;
 }
@@ -13656,15 +13656,19 @@ function sqlAccents() {
 create extension if not exists unaccent;
 create extension if not exists pg_trgm;
 
--- Table partagée (pas de colonne "utilisateur", tout le monde y lit/écrit
--- les mêmes aliments) : la policy reste ouverte, comme les autres tables de
--- l'appli côté "day one, sans compte" (voir SQL_SUPABASE). Ce qui compte
--- ici, c'est que RLS soit bien ACTIVÉE — sans ça, Supabase la signale comme
--- table publique non protégée (avertissement "rls_disabled_in_public") :
--- la policy n'est même pas consultée tant que RLS est désactivée.
+-- Table commune à tous : tout le monde la LIT, seul l'administrateur
+-- l'ÉCRIT (les aliments créés par les utilisateurs passent par
+-- aliments_partages et sa validation). Ce script remettait auparavant une
+-- policy ouverte en écriture (« using (true) ») : relancé après le script
+-- de sécurité, il redonnait à n'importe qui le droit de modifier ou vider
+-- la base d'aliments avec la seule clé publique.
 alter table ${table} enable row level security;
 drop policy if exists "acces ${table}" on ${table};
-create policy "acces ${table}" on ${table} for all using (true) with check (true);
+drop policy if exists "base lecture" on ${table};
+drop policy if exists "base admin" on ${table};
+create policy "base lecture" on ${table} for select to anon, authenticated using (true);
+create policy "base admin" on ${table} for all to authenticated
+  using (auth.jwt() ->> 'email' = '${ADMIN_EMAIL}') with check (auth.jwt() ->> 'email' = '${ADMIN_EMAIL}');
 
 -- Colonnes ajoutées par l'application pour tes propres aliments.
 alter table ${table} add column if not exists code_barre text;
@@ -13723,6 +13727,15 @@ function identifiantUnique() {
 
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+/* Argument texte d'un gestionnaire écrit dans le HTML, onclick="f(${argJs(x)})" :
+   JSON.stringify en fait une chaîne JavaScript sûre, escapeHtml protège
+   l'attribut. Ni escapeHtml seul (le navigateur décode &#39; en ' AVANT
+   d'exécuter le code), ni un simple échappement des apostrophes (un " ferme
+   l'attribut) ne suffisent : un identifiant venu d'un autre compte (vu
+   depuis l'Administration, Gymbro…) pouvait sinon injecter du code. */
+function argJs(v) {
+  return escapeHtml(JSON.stringify(String(v == null ? '' : v)));
 }
 /* Photo d'exercice personnalisée (perso ou override admin d'un exercice de
    base) : un simple champ texte libre, affiché ensuite tel quel comme
@@ -15453,13 +15466,13 @@ function renderListeProgrammes() {
     const derniere = dernierePerfProgramme(p.id);
     const meta = p.exercices.length + ' exercice(s)' + (derniere ? ' · dernière fois ' + formatDateDisplay(derniere.date) : '');
     return `<div class="programme-carte">
-      <button type="button" class="programme-entete" style="display:block;width:100%;background:none;border:none;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer;" onclick="ouvrirEditionProgramme('${p.id}')" aria-label="Modifier ${escapeHtml(p.nom)}">
+      <button type="button" class="programme-entete" style="display:block;width:100%;background:none;border:none;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer;" onclick="ouvrirEditionProgramme(${argJs(p.id)})" aria-label="Modifier ${escapeHtml(p.nom)}">
         <div class="programme-nom">${escapeHtml(p.nom)}</div>
         <div class="programme-meta">${meta}</div>
       </button>
       <div class="programme-actions">
-        <button class="btn btn-primary" style="width:auto; flex:1;" onclick="apercuProgramme('${p.id}')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z" /></svg> Démarrer</button>
-        <button class="btn-icone btn-options-programme" onclick="ouvrirMenuProgramme(this,'${p.id}')" title="Plus d'options" aria-label="Plus d'options pour ${escapeHtml(p.nom)}">⋯</button>
+        <button class="btn btn-primary" style="width:auto; flex:1;" onclick="apercuProgramme(${argJs(p.id)})"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z" /></svg> Démarrer</button>
+        <button class="btn-icone btn-options-programme" onclick="ouvrirMenuProgramme(this,${argJs(p.id)})" title="Plus d'options" aria-label="Plus d'options pour ${escapeHtml(p.nom)}">⋯</button>
       </div>
     </div>`;
   }).join('');
@@ -15608,7 +15621,7 @@ function renderForceMuscu(idCible) {
     .filter(o => o.exo && o.n && o.n.best)
     .sort((a, b) => b.n.position - a.n.position);
   html += niveaux.map(o => `<div class="force-carte">
-      <div class="force-carte-titre" onclick="afficherFicheExerciceBiblio('${o.id}')">${escapeHtml(libelleExercice(o.exo))}</div>
+      <div class="force-carte-titre" onclick="afficherFicheExerciceBiblio(${argJs(o.id)})">${escapeHtml(libelleExercice(o.exo))}</div>
       ${jaugeForceHTML(o.n)}
     </div>`).join('');
   c.innerHTML = html;
@@ -15753,7 +15766,7 @@ function populerSelectExercices(historique, idSelect) {
   const liste = Array.from(ids)
     .map(id => ({ id, nom: nomExerciceHistorique(historique, id) }))
     .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
-  sel.innerHTML = liste.map(e => `<option value="${e.id}">${escapeHtml(e.nom)}</option>`).join('');
+  sel.innerHTML = liste.map(e => `<option value="${escapeHtml(e.id)}">${escapeHtml(e.nom)}</option>`).join('');
   return liste;
 }
 /* Réaffiche la liste déroulante en gardant la sélection en cours si elle
@@ -15845,8 +15858,7 @@ function renderStatsProgrammesMuscu(historique, idCible) {
       const n = g.seances.length;
       const volMoyen = g.seances.reduce((s, h) => s + volumeSeance(h), 0) / n;
       const dureeMoyenne = g.seances.reduce((s, h) => s + (h.dureeMin || 0), 0) / n;
-      const cleJs = cle.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-      return `<button type="button" class="historique-carte" onclick="voirDetailProgramme('${cleJs}')">
+      return `<button type="button" class="historique-carte" onclick="voirDetailProgramme(${argJs(cle)})">
         <div class="historique-carte-entete">
           <span class="historique-carte-nom">${escapeHtml(g.nom)}</span>
           <span class="historique-carte-date">${n} fois</span>
@@ -15945,7 +15957,7 @@ function renderHistoriqueSeances(historique, idCible, jours) {
   }
   c.innerHTML = items.map(h => {
     const nbSeries = h.exercices.reduce((n, e) => n + e.series.length, 0);
-    return `<button type="button" class="historique-carte" onclick="voirDetailHistorique('${h.id}')">
+    return `<button type="button" class="historique-carte" onclick="voirDetailHistorique(${argJs(h.id)})">
       <div class="historique-carte-entete">
         <span class="historique-carte-nom">${escapeHtml(h.programmeNom || 'Séance libre')}</span>
         <span class="historique-carte-date">${formatDateDisplay(h.date)}</span>
@@ -16062,7 +16074,6 @@ function voirDetailHistorique(id) {
   const records = h.exercices.map(e => recordsExerciceSeance(historique, h, e));
   const nbRecords = records.reduce((n, r) => n + r.length, 0);
   const groupes = ajouterSeriesParGroupe({}, h.exercices, { date: h.date, historique });
-  const idJs = id => String(id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
   let html = `${surtitre ? `<div class="hd-surtitre">${escapeHtml(surtitre)}</div>` : ''}
     <div class="hd-titre">${escapeHtml(titre)}</div>
@@ -16085,7 +16096,7 @@ function voirDetailHistorique(id) {
       return `<div class="hd-exo">
         <div class="hd-exo-entete">
           <div class="hd-exo-nom">${escapeHtml(libelleExerciceHistorique(e))}</div>
-          <button type="button" class="hd-exo-courbe" onclick="ouvrirHistoriqueExercice('${idJs(e.exerciceId)}')" aria-label="Historique et courbe de l'exercice">${ICONE_COURBE}</button>
+          <button type="button" class="hd-exo-courbe" onclick="ouvrirHistoriqueExercice(${argJs(e.exerciceId)})" aria-label="Historique et courbe de l'exercice">${ICONE_COURBE}</button>
         </div>
         ${badges}
         ${e.tempo ? `<div class="hd-date" style="margin:6px 0 0;">TEMPO <b style="letter-spacing:2px; color:var(--text);">${escapeHtml(e.tempo)}</b></div>` : ''}
@@ -16174,15 +16185,15 @@ function renderProgrammeExercicesEnEdition() {
         <button type="button" class="serie-ligne-suppr" onclick="retirerSerieProgramme(${i},${si})" aria-label="Supprimer cette série"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg> Supprimer</button>
         <div class="serie-ligne serie-ligne--3col">
           ${boutonNumeroSerie(si, s.technique, `ouvrirMenuTechniqueProgramme(this,${i},${si})`)}
-          <input type="number" inputmode="decimal" step="0.5" value="${s.poids ?? ''}" placeholder="—" onchange="modifierSerieProgramme(${i},${si},'poids',this.value)">
-          <input type="number" inputmode="numeric" step="1" value="${s.reps ?? ''}" placeholder="—" onchange="modifierSerieProgramme(${i},${si},'reps',this.value)">
+          <input type="number" inputmode="decimal" step="0.5" value="${escapeHtml(s.poids ?? '')}" placeholder="—" onchange="modifierSerieProgramme(${i},${si},'poids',this.value)">
+          <input type="number" inputmode="numeric" step="1" value="${escapeHtml(s.reps ?? '')}" placeholder="—" onchange="modifierSerieProgramme(${i},${si},'reps',this.value)">
         </div>
       </div>`).join('');
     return `<div class="exo-en-programme">
       <div class="exo-en-programme-entete">
         <div>
           ${exo
-            ? `<button type="button" class="exo-en-programme-nom" style="background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-align:left;" onclick="afficherFicheExerciceBiblio('${pe.exerciceId}')">${escapeHtml(libelleExercice(exo))}</button>`
+            ? `<button type="button" class="exo-en-programme-nom" style="background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-align:left;" onclick="afficherFicheExerciceBiblio(${argJs(pe.exerciceId)})">${escapeHtml(libelleExercice(exo))}</button>`
             : `<div class="exo-en-programme-nom">Exercice supprimé</div>`}
           <div class="exo-en-programme-meta">${escapeHtml(meta)}</div>
         </div>
@@ -16294,7 +16305,7 @@ function objectifRepsHTML(type, idx, plage) {
   const id = `objectif-${type}-${idx}`;
   return `<span class="objectif-groupe">
       <button type="button" class="label-icone" onclick="ouvrirModal('modal-plage')" title="Objectif de répétitions : comment ça marche ?" aria-label="Objectif de répétitions : comment ça marche ?">${ICONE_OBJECTIF}</button>
-      <input type="text" id="${id}" class="objectif-input" inputmode="text" autocomplete="off" maxlength="7" placeholder="8-12" value="${escapeHtml(normaliserPlage(plage) || '')}" onchange="modifierObjectifReps('${type}', ${idx}, this)" aria-label="Répétitions visées, par exemple 8-12">
+      <input type="text" id="${id}" class="objectif-input" inputmode="text" autocomplete="off" maxlength="7" placeholder="8-12" value="${escapeHtml(normaliserPlage(plage) || '')}" onchange="modifierObjectifReps(${argJs(type)}, ${idx}, this)" aria-label="Répétitions visées, par exemple 8-12">
     </span>`;
 }
 function modifierObjectifReps(type, idx, champ) {
@@ -16353,7 +16364,7 @@ function resumeTempo(t) {
 function tempoBadgeHTML(tempo) {
   if (!tempo) return '';
   const t = escapeHtml(tempo);
-  return `<button type="button" class="tempo-badge" onclick="ouvrirAideTempo('${t}')" title="${escapeHtml(resumeTempo(tempo))}">Tempo <b>${t}</b></button>`;
+  return `<button type="button" class="tempo-badge" onclick="ouvrirAideTempo(${argJs(t)})" title="${escapeHtml(resumeTempo(tempo))}">Tempo <b>${t}</b></button>`;
 }
 function ouvrirAideTempo(tempo) {
   const zone = document.getElementById('tempo-decodage');
@@ -16631,7 +16642,7 @@ function rendrePrioritesIAProgramme() {
   document.getElementById('ia-prog-priorites').innerHTML = groupes.map(g => `<div class="ia-prog-prio">
       <span>${escapeHtml(GROUPES_MUSCULAIRES[g])}</span>
       <div class="segment" role="group" aria-label="${escapeHtml(GROUPES_MUSCULAIRES[g])}">${IA_PROG_PRIO.map(([v, l]) =>
-        `<button type="button" onclick="choisirPrioriteIAProgramme('${g}','${v}')" aria-pressed="${(iaProgPriorites[g] || 'normal') === v}">${l}</button>`).join('')}</div>
+        `<button type="button" onclick="choisirPrioriteIAProgramme(${argJs(g)},${argJs(v)})" aria-pressed="${(iaProgPriorites[g] || 'normal') === v}">${l}</button>`).join('')}</div>
     </div>`).join('');
   const n = Object.values(iaProgPriorites).filter(v => v === 'priorite').length;
   document.getElementById('ia-prog-prio-compte').textContent = `${n} / 2 priorités`;
@@ -17012,7 +17023,7 @@ function rendrePickerExercices() {
     const jauge = n && n.best
       ? `<span class="mini-jauge"><span style="width:${n.position.toFixed(0)}%; background:${COULEURS_NIVEAUX[Math.max(0, n.indexNiveau)]};"></span></span><span class="exo-ligne-meta">${n.niveau} · plus fort que ~${n.centile} %</span>`
       : (n ? '<span class="exo-ligne-meta">Pas encore pratiqué : ouvre la fiche pour voir les repères</span>' : '');
-    return `<button type="button" class="exo-ligne" onclick="choisirExercicePicker('${e.id}')">
+    return `<button type="button" class="exo-ligne" onclick="choisirExercicePicker(${argJs(e.id)})">
       <span class="exo-ligne-vignette" aria-hidden="true">${medaillonExercice(e)}</span>
       <span style="flex:1; min-width:0;">
         <span class="exo-ligne-nom">${escapeHtml(libelleExercice(e))}${pickerOnglet !== 'niveau' ? badgeNiveauHTML(e.id) : ''}</span>
@@ -17097,7 +17108,7 @@ function afficherFicheExerciceBiblio(id, options) {
     // bibliothèque de tout le monde (comme les aliments partagés), mais
     // seul son créateur peut le modifier.
     if (musculationExosPerso.some(x => x.id === e.id)) {
-      html += `<button type="button" class="btn btn-secondaire" style="margin-bottom:14px;" onclick="ouvrirEditionExercicePerso('${e.id}')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></svg> Modifier cet exercice (nom, groupe, photo…)</button>`;
+      html += `<button type="button" class="btn btn-secondaire" style="margin-bottom:14px;" onclick="ouvrirEditionExercicePerso(${argJs(e.id)})"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></svg> Modifier cet exercice (nom, groupe, photo…)</button>`;
     } else {
       html += `<p class="note note-explicative" style="margin-bottom:14px;">Exercice personnalisé créé par un autre utilisateur — visible par tous, modifiable seulement par son créateur.</p>`;
     }
@@ -17207,12 +17218,11 @@ function rendreHistoriqueFiche() {
   const seances = seancesFicheHisto();
   const courbe = document.getElementById('fiche-resume-courbe');
   const liste = document.getElementById('fiche-histo-liste');
-  const idJs = id => String(id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   let html = `<div class="segment fh-periodes" id="fiche-histo-periodes" role="group" aria-label="Période">
-    ${PERIODES_FICHE.map(p => `<button type="button" onclick="choisirPeriodeFiche('${p[0]}')" aria-pressed="${p[0] === ficheHisto.periode}">${p[1]}</button>`).join('')}
+    ${PERIODES_FICHE.map(p => `<button type="button" onclick="choisirPeriodeFiche(${argJs(p[0])})" aria-pressed="${p[0] === ficheHisto.periode}">${p[1]}</button>`).join('')}
   </div>
   <div class="fh-barre">
-    ${METRIQUES_FICHE.map(m => `<button type="button" class="fh-chip" onclick="basculerMetriqueFiche('${m[0]}')" aria-pressed="${ficheHisto.metriques.includes(m[0])}"><i style="background:${m[2]}"></i>${m[1]}</button>`).join('')}
+    ${METRIQUES_FICHE.map(m => `<button type="button" class="fh-chip" onclick="basculerMetriqueFiche(${argJs(m[0])})" aria-pressed="${ficheHisto.metriques.includes(m[0])}"><i style="background:${m[2]}"></i>${m[1]}</button>`).join('')}
     <button type="button" class="fh-agrandir" onclick="agrandirCourbeFiche()" aria-label="Afficher la courbe en plein écran"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6" /><path d="M9 21H3v-6" /><path d="m21 3-7 7" /><path d="m3 21 7-7" /></svg></button>
   </div>
   <p class="note" style="margin:2px 0 0;">Variation en % depuis la première séance affichée</p>
@@ -17220,7 +17230,7 @@ function rendreHistoriqueFiche() {
   if (courbe) courbe.innerHTML = html;
   // Historique : toutes les séances, quelle que soit la période de la courbe.
   if (liste) liste.innerHTML = seancesFicheHisto(true).slice().reverse().map(o => `<div class="hd-exo">
-      <button type="button" class="hd-seance-lien" onclick="ouvrirSeanceDepuisFiche('${idJs(o.h.id)}')">
+      <button type="button" class="hd-seance-lien" onclick="ouvrirSeanceDepuisFiche(${argJs(o.h.id)})">
         <span class="hd-exo-nom">${escapeHtml(o.h.programmeNom || 'Séance libre')}</span>
         <span class="hd-date">${escapeHtml(dateLongueSeance(o.h.date))} ›</span>
       </button>
@@ -17347,9 +17357,9 @@ function rendreCourbePleinEcran() {
   const pe = document.getElementById('courbe-plein-ecran');
   if (!pe || pe.classList.contains('hidden') || !ficheHisto) return;
   document.getElementById('courbe-pe-reglages').innerHTML = `<div class="segment fh-periodes" role="group" aria-label="Période">
-      ${PERIODES_FICHE.map(p => `<button type="button" onclick="choisirPeriodeFiche('${p[0]}')" aria-pressed="${p[0] === ficheHisto.periode}">${p[1]}</button>`).join('')}
+      ${PERIODES_FICHE.map(p => `<button type="button" onclick="choisirPeriodeFiche(${argJs(p[0])})" aria-pressed="${p[0] === ficheHisto.periode}">${p[1]}</button>`).join('')}
     </div>
-    <div class="fh-barre">${METRIQUES_FICHE.map(m => `<button type="button" class="fh-chip" onclick="basculerMetriqueFiche('${m[0]}')" aria-pressed="${ficheHisto.metriques.includes(m[0])}"><i style="background:${m[2]}"></i>${m[1]}</button>`).join('')}</div>`;
+    <div class="fh-barre">${METRIQUES_FICHE.map(m => `<button type="button" class="fh-chip" onclick="basculerMetriqueFiche(${argJs(m[0])})" aria-pressed="${ficheHisto.metriques.includes(m[0])}"><i style="background:${m[2]}"></i>${m[1]}</button>`).join('')}</div>`;
   if (courbePleinEcranChart) { courbePleinEcranChart.destroy(); courbePleinEcranChart = null; }
   const canvas = document.getElementById('courbe-pe-canvas');
   if (canvas && typeof Chart !== 'undefined') courbePleinEcranChart = creerCourbeFiche(canvas, true);
@@ -17467,7 +17477,7 @@ function apercuProgramme(programmeId) {
         <span class="exo-ligne-nom">${nbSeries} × ${escapeHtml(libelleExercice(exo))}</span>
         <span class="exo-ligne-meta">${escapeHtml(GROUPES_MUSCULAIRES[exo.groupe] || '')}</span>
       </span>
-      <button type="button" class="btn-icone" style="flex:none;" onclick="afficherFicheExerciceBiblio('${exo.id}')" aria-label="Détails de l'exercice"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg></button>
+      <button type="button" class="btn-icone" style="flex:none;" onclick="afficherFicheExerciceBiblio(${argJs(exo.id)})" aria-label="Détails de l'exercice"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg></button>
     </div>`;
   }).join('');
   document.getElementById('apercu-programme-btn-demarrer').onclick = () => {
@@ -17808,8 +17818,8 @@ function rendreReglagesZones() {
     const z = ZONES_VOLUME[g];
     return `<div class="zones-reglage-ligne${perso[g] ? ' perso' : ''}">
       <span title="${escapeHtml(GROUPES_MUSCULAIRES[g])}">${escapeHtml(GROUPES_MUSCULAIRES[g])}</span>
-      ${ORDRE_ZONES.map(k => `<input type="number" inputmode="numeric" min="0" max="40" step="1" value="${z[k]}" aria-label="${escapeHtml(GROUPES_MUSCULAIRES[g])} : ${ZONES_INFO[k].abbr}" onchange="modifierZonePerso('${g}','${k}',this.value)">`).join('')}
-      ${perso[g] ? `<button type="button" onclick="reinitialiserZonesPerso('${g}')" aria-label="Valeurs par défaut pour ${escapeHtml(GROUPES_MUSCULAIRES[g])}" title="Valeurs par défaut">↺</button>` : '<span></span>'}
+      ${ORDRE_ZONES.map(k => `<input type="number" inputmode="numeric" min="0" max="40" step="1" value="${z[k]}" aria-label="${escapeHtml(GROUPES_MUSCULAIRES[g])} : ${ZONES_INFO[k].abbr}" onchange="modifierZonePerso(${argJs(g)},${argJs(k)},this.value)">`).join('')}
+      ${perso[g] ? `<button type="button" onclick="reinitialiserZonesPerso(${argJs(g)})" aria-label="Valeurs par défaut pour ${escapeHtml(GROUPES_MUSCULAIRES[g])}" title="Valeurs par défaut">↺</button>` : '<span></span>'}
     </div>`;
   }).join('');
 }
@@ -17846,7 +17856,7 @@ function reinitialiserZonesPerso(g) {
 function rendreReglagesIncrements() {
   document.getElementById('increments-reglage-liste').innerHTML = ORDRE_MATERIELS.map(m => `<div class="increment-ligne">
       <span>${MATERIELS[m].ic} ${escapeHtml(MATERIELS[m].label)}</span>
-      <span style="display:flex; align-items:center; gap:6px;"><input type="number" inputmode="decimal" min="0" max="50" step="0.25" value="${incrementCharge(m)}" aria-label="Incrément ${escapeHtml(MATERIELS[m].label)} en kg" onchange="modifierIncrementCharge('${m}', this.value)"> kg</span>
+      <span style="display:flex; align-items:center; gap:6px;"><input type="number" inputmode="decimal" min="0" max="50" step="0.25" value="${incrementCharge(m)}" aria-label="Incrément ${escapeHtml(MATERIELS[m].label)} en kg" onchange="modifierIncrementCharge(${argJs(m)}, this.value)"> kg</span>
     </div>`).join('') + '<p class="note" style="margin:8px 2px 0;">0 = pas de proposition pour ce matériel.</p>';
 }
 function modifierIncrementCharge(m, valeur) {
@@ -18418,8 +18428,8 @@ function renderSessionExerciceBlocHTML(exo, ei) {
       <div class="serie-ligne serie-ligne--5col">
         ${boutonNumeroSerie(si, set.technique, `ouvrirMenuTechniqueSession(this,${ei},${si})`, set.rir, `ouvrirRirSerie(${ei},${si})`)}
         ${celluleFrec}
-        <input type="number" inputmode="decimal" step="0.5" value="${set.poids ?? ''}" placeholder="—" onchange="modifierSerieSession(${ei},${si},'poids',this.value)">
-        <input type="number" inputmode="numeric" step="1" value="${set.reps ?? ''}" placeholder="${exo.plage && set.technique !== 'echauffement' ? escapeHtml(textePlage(exo.plage)) : '—'}" onchange="modifierSerieSession(${ei},${si},'reps',this.value)">
+        <input type="number" inputmode="decimal" step="0.5" value="${escapeHtml(set.poids ?? '')}" placeholder="—" onchange="modifierSerieSession(${ei},${si},'poids',this.value)">
+        <input type="number" inputmode="numeric" step="1" value="${escapeHtml(set.reps ?? '')}" placeholder="${exo.plage && set.technique !== 'echauffement' ? escapeHtml(textePlage(exo.plage)) : '—'}" onchange="modifierSerieSession(${ei},${si},'reps',this.value)">
         <button type="button" class="serie-check ${set.fait ? 'faite' : ''}" onclick="basculerSerieSession(${ei},${si})" aria-label="Marquer la série comme faite"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></button>
       </div>
     </div>${bandeRirHTML(ei, si, set)}${barreRepos}${blocPaliersHTML(ei, si, set)}`;
@@ -18430,7 +18440,7 @@ function renderSessionExerciceBlocHTML(exo, ei) {
     const fini = exo.series.length > 0 && faites === exo.series.length;
     return `<div class="session-exo-bloc session-exo-bloc--replie">
     <div class="session-exo-entete">
-      <button type="button" class="session-exo-vignette-btn" onclick="agrandirVideoExercice('${exo.exerciceId}')" aria-label="Voir la démonstration en grand"><span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet, true) : ''}</span></button>
+      <button type="button" class="session-exo-vignette-btn" onclick="agrandirVideoExercice(${argJs(exo.exerciceId)})" aria-label="Voir la démonstration en grand"><span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet, true) : ''}</span></button>
       <button type="button" class="session-exo-replie-btn" onclick="basculerRepliExerciceSession(${ei})" aria-expanded="false" aria-label="Déplier ${nomExo}">
         <span class="session-exo-nom">${nomExo}</span>
         <span class="session-exo-progression${fini ? ' session-exo-progression--fini' : ''}">${fini ? '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>' : ''}${faites}/${exo.series.length} série${exo.series.length > 1 ? 's' : ''}</span>
@@ -18441,12 +18451,12 @@ function renderSessionExerciceBlocHTML(exo, ei) {
   }
   return `<div class="session-exo-bloc">
     <div class="session-exo-entete">
-      <button type="button" class="session-exo-vignette-btn" onclick="agrandirVideoExercice('${exo.exerciceId}')" aria-label="Voir la démonstration en grand"><span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet, true) : ''}</span></button>
+      <button type="button" class="session-exo-vignette-btn" onclick="agrandirVideoExercice(${argJs(exo.exerciceId)})" aria-label="Voir la démonstration en grand"><span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet, true) : ''}</span></button>
       <div style="flex:1; min-width:0;">
         <div class="session-exo-titre">
           <div class="session-exo-nom-ligne">
             <button type="button" class="session-exo-nom" style="background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-align:left;"
-                    onclick="afficherFicheExerciceBiblio('${exo.exerciceId}')">${nomExo}</button>
+                    onclick="afficherFicheExerciceBiblio(${argJs(exo.exerciceId)})">${nomExo}</button>
           </div>
           <div style="display:flex; gap:4px; align-items:center;">
             <button type="button" class="btn-icone${exo.notes ? ' btn-note-active' : ''}" onclick="basculerNoteExerciceSession(${ei})" aria-label="Note sur cet exercice" title="Note sur cet exercice"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" /></svg></button>
@@ -18493,8 +18503,8 @@ function blocPaliersHTML(ei, si, set) {
   if (!ouvert) return toggle;
   const lignesPaliers = paliers.map((p, pi) => `
     <div class="serie-palier-ligne">
-      <input type="number" inputmode="decimal" step="0.5" value="${p.poids ?? ''}" placeholder="Poids" onchange="modifierPalierSession(${ei},${si},${pi},'poids',this.value)">
-      <input type="number" inputmode="numeric" step="1" value="${p.reps ?? ''}" placeholder="Reps" onchange="modifierPalierSession(${ei},${si},${pi},'reps',this.value)">
+      <input type="number" inputmode="decimal" step="0.5" value="${escapeHtml(p.poids ?? '')}" placeholder="Poids" onchange="modifierPalierSession(${ei},${si},${pi},'poids',this.value)">
+      <input type="number" inputmode="numeric" step="1" value="${escapeHtml(p.reps ?? '')}" placeholder="Reps" onchange="modifierPalierSession(${ei},${si},${pi},'reps',this.value)">
       <button type="button" onclick="retirerPalierSession(${ei},${si},${pi})" aria-label="Supprimer ce palier"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
     </div>`).join('');
   return `${toggle}<div class="serie-paliers">${lignesPaliers}
@@ -18546,11 +18556,11 @@ function boutonNumeroSerie(si, technique, ouvrirMenuJs, rir, ouvrirRirJs) {
   const libelle = technique && TECHNIQUE_LABELS[technique] ? TECHNIQUE_LABELS[technique] : 'Normale';
   const contenu = (technique && TECHNIQUE_LETTRES[technique]) || (si + 1);
   if (!ouvrirMenuJs) {
-    return `<span class="serie-num-btn" data-technique="${technique || ''}" aria-label="Série ${si + 1} — ${libelle}">${contenu}</span>`;
+    return `<span class="serie-num-btn" data-technique="${escapeHtml(technique || '')}" aria-label="Série ${si + 1} — ${libelle}">${contenu}</span>`;
   }
   const aRir = rir != null && rir !== '';
-  return `<span class="serie-num-wrap"><button type="button" class="serie-num-btn" data-technique="${technique || ''}" onclick="${ouvrirMenuJs}"
-    aria-label="Série ${si + 1} — ${libelle}${aRir ? ` — ${rir > 5 ? '5 ou plus' : rir} en réserve` : ''} — appuyer pour changer le type">${contenu}</button>${aRir ? `<button type="button" class="serie-rir"${ouvrirRirJs ? ` onclick="${ouvrirRirJs}"` : ''} aria-label="Modifier le RIR (${rir > 5 ? '5 ou plus' : rir})">R${rir > 5 ? '5+' : rir}</button>` : ''}</span>`;
+  return `<span class="serie-num-wrap"><button type="button" class="serie-num-btn" data-technique="${escapeHtml(technique || '')}" onclick="${ouvrirMenuJs}"
+    aria-label="Série ${si + 1} — ${libelle}${aRir ? ` — ${rir > 5 ? '5 ou plus' : escapeHtml(rir)} en réserve` : ''} — appuyer pour changer le type">${contenu}</button>${aRir ? `<button type="button" class="serie-rir"${ouvrirRirJs ? ` onclick="${ouvrirRirJs}"` : ''} aria-label="Modifier le RIR (${rir > 5 ? '5 ou plus' : escapeHtml(rir)})">R${rir > 5 ? '5+' : rir}</button>` : ''}</span>`;
 }
 
 /* Menu du type de série : un seul élément partagé (#menu-technique-popup),

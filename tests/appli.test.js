@@ -9,6 +9,7 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
 const { lancerNavigateur, ouvrirAppli, RACINE } = require('./outils');
+const { P, installerFauxSupabase, injectionsTrouvees } = require('./injection');
 
 let navigateur;
 before(async () => { navigateur = await lancerNavigateur(); });
@@ -200,6 +201,53 @@ for (const visite of ['generale', 'muscu']) {
     await page.evaluate(() => fermerTourGuide());
   }));
 }
+
+test("des données piégées venant d'autres comptes ne s'exécutent jamais (Administration, Gymbro)", () => avecAppli({}, async ({ page }) => {
+  await installerFauxSupabase(page);
+  const etapes = [
+    () => { allerA('admin'); return chargerAdmin(); },
+    () => chargerApercuAdmin(),
+    () => ouvrirJournalAdmin(),
+    () => chargerAlimentsAdmin(),
+    () => chargerExercicesAdmin(),
+    () => chargerRecettesAdmin(),
+    () => chargerStatsMuscuAdmin('u1', 'Compte'),
+    () => voirDetailHistorique(muscuContexteActuel.historique[0].id),
+    () => ouvrirHistoriqueExercice(muscuContexteActuel.historique[0].exercices[0].exerciceId),
+    () => comparerGymbro('abc')
+  ];
+  for (const etape of etapes) {
+    await page.evaluate(`(${etape.toString()})()`);
+    await page.waitForTimeout(250);
+    assert.equal(await injectionsTrouvees(page), 0, 'code injecté exécuté après : ' + etape.toString());
+  }
+}));
+
+test("des données piégées dans ses propres données ne s'exécutent jamais", () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(P => {
+    const t = todayStr(), d = getDay(t);
+    d.meals.lunch.push({ name: P, grams: 100, kcal: 100, p: 1, c: 1, f: 1, code: P });
+    d.workouts.push({ type: 'course', time: 30, distance: 5, intensite: 2, note: P });
+    saveData(t);
+    musculationProgrammes.push({ id: 'p' + P, nom: P, exercices: [{ exerciceId: 'x' + P, nom: P, tempo: P, plage: P, series: [{ poids: P, reps: P }] }], maj: Date.now() });
+    musculationHistorique.unshift({ id: 'h' + P, programmeId: 'p' + P, programmeNom: P, date: t, debut: Date.now() - 3e6, fin: Date.now(), dureeMin: 50, notes: P, maj: Date.now(),
+      exercices: [{ exerciceId: toutesLesExercices()[0].id, nom: P, notes: P, tempo: P, series: [{ poids: 80, reps: 8, fait: true, technique: P, rir: P }] }] });
+  }, P);
+  const etapes = [
+    () => { allerA('repas'); renderApp(); },
+    () => { allerA('seance'); choisirModeSeance('muscu'); renderSeance(); },
+    () => choisirModeSeance('cardio'),
+    () => { allerA('stats'); ['poids', 'nutrition', 'activite', 'muscu'].forEach(o => choisirOngletStats(o)); },
+    () => voirDetailHistorique(musculationHistorique[0].id),
+    () => ouvrirEditionProgramme(musculationProgrammes[0].id),
+    () => { document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show')); allerA('seance'); demarrerSeance(musculationProgrammes[0].id); renderSessionModal(); }
+  ];
+  for (const etape of etapes) {
+    await page.evaluate(`(${etape.toString()})()`);
+    await page.waitForTimeout(200);
+    assert.equal(await injectionsTrouvees(page), 0, 'code injecté exécuté après : ' + etape.toString());
+  }
+}));
 
 test('le thème sombre ne casse aucun écran', () => avecAppli({ theme: 'dark' }, async ({ page }) => {
   for (const ecran of ['repas', 'seance', 'stats', 'reglages']) {
