@@ -166,6 +166,29 @@ test('les statistiques s\'affichent sur chaque onglet et chaque période', () =>
   assert.deepEqual(r, { semaines: true, allure: true, records: 3 });
 }));
 
+test('après le questionnaire : « Par où commencer ? » puis la carte « Premiers pas »', () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => {
+    document.getElementById('onb-age').value = 30;
+    document.getElementById('onb-taille').value = 180;
+    document.getElementById('onb-poids').value = 80;
+    Object.assign(onbReponses, { gender: 'm', goal: 'maintien', pasHabituels: 6000 });
+    onbTerminer();
+  });
+  await page.waitForSelector('#modal-interets.show');
+  await page.click('#modal-interets .interet[data-interet="nutrition"]');
+  await page.click('#modal-interets .interet[data-interet="cardio"]');
+  await page.click('#btn-interets-ok');
+  // Seule la musculation reste choisie : on démarre sur l'écran Activité.
+  assert.deepEqual(await page.evaluate(() => [userProfile.premiersPas.interets, ecranActif, modeSeance]), [['muscu'], 'seance', 'muscu']);
+  await page.evaluate(() => allerA('repas'));
+  assert.match(await page.textContent('#premiers-pas'), /1\/2/);
+  // L'étape se coche toute seule une fois faite
+  await page.evaluate(() => { musculationProgrammes.push({ id: 'p1', nom: 'Test', exercices: [] }); renderPremiersPas(); });
+  assert.match(await page.textContent('#premiers-pas'), /Bravo/);
+  await page.click('.pp-masquer');
+  assert.equal(await page.evaluate(() => document.getElementById('premiers-pas').innerHTML), '');
+}));
+
 for (const visite of ['generale', 'muscu']) {
   test(`la visite guidée « ${visite} » se déroule jusqu'au bout`, () => avecAppli({}, async ({ page }) => {
     await page.evaluate(v => demarrerTourGuide(v === 'muscu' ? 'muscu' : undefined), visite);

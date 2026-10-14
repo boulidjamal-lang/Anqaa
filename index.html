@@ -1888,6 +1888,37 @@
     .cardio-legende { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); }
     .cardio-legende i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
     .cardio-ajouter { margin-bottom: 12px; }
+    /* --- Premiers pas (carte de l'écran Repas) et choix des intérêts --- */
+    #premiers-pas:empty { display: none; }
+    .pp-carte { padding: 15px; margin-bottom: 14px; }
+    .pp-tete { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .pp-tete h3 { margin: 0; font-size: 1rem; }
+    .pp-tete p { margin: 2px 0 0; font-size: 0.76rem; color: var(--text-muted); }
+    .pp-anneau { position: relative; width: 46px; height: 46px; flex: none; }
+    .pp-anneau svg { width: 46px; height: 46px; display: block; }
+    .pp-anneau b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 800; }
+    .pp-masquer { margin-left: auto; align-self: flex-start; background: none; border: 0; font: inherit; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); cursor: pointer; padding: 4px 0; }
+    .pp-etape { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--verre-brd); }
+    .pp-coche { width: 26px; height: 26px; flex: none; border-radius: 50%; border: 2px solid var(--verre-brd-vive); display: flex; align-items: center; justify-content: center; }
+    .pp-coche svg { width: 15px; height: 15px; }
+    .pp-fait .pp-coche { background: var(--primary); border-color: var(--primary); color: var(--primary-txt); }
+    .pp-texte { flex: 1; min-width: 0; }
+    .pp-texte b { display: block; font-size: 0.88rem; }
+    .pp-texte small { display: block; font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+    .pp-fait .pp-texte b { text-decoration: line-through; color: var(--text-muted); }
+    .pp-go { flex: none; background: none; border: 0; font: inherit; font-size: 0.8rem; font-weight: 800; color: var(--primary); cursor: pointer; padding: 6px 0 6px 8px; }
+    .pp-visite { margin: 4px 0 0; padding-top: 10px; border-top: 1px solid var(--verre-brd); font-size: 0.76rem; color: var(--text-muted); }
+    .pp-visite button { background: none; border: 0; padding: 0; font: inherit; font-weight: 800; color: var(--primary); cursor: pointer; }
+    .interet { display: flex; align-items: center; gap: 14px; width: 100%; margin-bottom: 10px; padding: 14px; border-radius: 18px; background: var(--verre-fort); border: 2px solid transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+    .interet[aria-pressed="true"] { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, var(--verre-fort)); }
+    .interet-ico { width: 44px; height: 44px; flex: none; border-radius: 14px; background: var(--verre-creux); display: flex; align-items: center; justify-content: center; }
+    .interet-ico svg { width: 22px; height: 22px; }
+    .interet-txt { flex: 1; min-width: 0; }
+    .interet-txt b { display: block; font-size: 0.95rem; }
+    .interet-txt small { display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+    .interet-case { width: 22px; height: 22px; flex: none; border-radius: 6px; border: 2px solid var(--verre-brd-vive); display: flex; align-items: center; justify-content: center; color: transparent; }
+    .interet-case svg { width: 14px; height: 14px; }
+    .interet[aria-pressed="true"] .interet-case { background: var(--primary); border-color: var(--primary); color: var(--primary-txt); }
     .jauge-pas:empty { display: none; }
     .jauge-pas { margin-top: 10px; }
     .jauge-pas-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 0.76rem; color: var(--text-muted); font-weight: 600; }
@@ -2534,6 +2565,7 @@
   <!-- ================= ÉCRAN 1 : REPAS ================= -->
   <section id="ecran-repas" class="ecran actif" role="region" aria-label="Repas">
     <h2 class="titre-ecran"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg></span> Repas du jour</h2>
+    <div id="premiers-pas"></div>
     <div class="summary-card" role="button" tabindex="0" onclick="ouvrirModal('depense-modal')" onkeydown="if(event.key==='Enter')ouvrirModal('depense-modal')" style="cursor:pointer;" aria-label="Calories du jour — toucher pour voir la dépense estimée">
       <span class="libelle">Calories consommées</span>
       <h1 id="total-kcals">0</h1>
@@ -3993,6 +4025,7 @@
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
         <button class="btn btn-secondaire" id="btn-revoir-tutoriel" style="min-height:auto; padding:10px 8px; font-size:0.8rem;" onclick="demarrerTourGuide()">L'application</button>
         <button class="btn btn-secondaire" id="btn-visite-muscu" style="min-height:auto; padding:10px 8px; font-size:0.8rem;" onclick="demarrerTourGuide('muscu')">Musculation</button>
+        <button class="btn btn-secondaire" id="btn-premiers-pas" style="min-height:auto; padding:10px 8px; font-size:0.8rem; grid-column:1 / -1;" onclick="reafficherPremiersPas()">Premiers pas (étapes pour démarrer)</button>
       </div>
     </div>
 
@@ -4513,6 +4546,21 @@
     <div class="tempo-exemple"><b>4010</b><span>Descente très lente : beaucoup de temps sous tension, efficace avec des charges modérées.</span></div>
     <div class="tempo-exemple"><b>20X0</b><span>Descente contrôlée puis remontée explosive : pour la force et la vitesse.</span></div>
     <div class="tempo-exemple"><b>2012</b><span>Pause de 2 s muscle contracté : pour l'isolation (curl, élévations, leg extension).</span></div>
+  </div>
+</div>
+
+<div id="modal-interets" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-interets">
+  <div class="modal-content" style="max-width:440px;">
+    <div class="modal-entete">
+      <h3 id="titre-interets">Par où veux-tu commencer ?</h3>
+      <button class="close-modal" onclick="validerInterets(false)" aria-label="Fermer">&times;</button>
+    </div>
+    <p class="note" style="margin:0 0 14px;">Tu pourras tout utiliser ensuite : c'est juste pour savoir quoi te montrer en premier.</p>
+    <button type="button" class="interet" data-interet="nutrition" aria-pressed="true" onclick="basculerInteret('nutrition')"><span class="interet-ico"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg></span><span class="interet-txt"><b>Ma nutrition</b><small>Calories, protéines, repas</small></span><span class="interet-case"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></span></button>
+    <button type="button" class="interet" data-interet="muscu" aria-pressed="true" onclick="basculerInteret('muscu')"><span class="interet-ico"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg></span><span class="interet-txt"><b>Ma musculation</b><small>Programmes, séances, progression</small></span><span class="interet-case"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></span></button>
+    <button type="button" class="interet" data-interet="cardio" aria-pressed="true" onclick="basculerInteret('cardio')"><span class="interet-ico"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.2 12h3.3l1.5-3 3 6 1.5-3h8.3" /></svg></span><span class="interet-txt"><b>Mon cardio</b><small>Course, vélo, natation, pas</small></span><span class="interet-case"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></span></button>
+    <button type="button" class="btn btn-primary" id="btn-interets-ok" style="margin-top:6px;" onclick="validerInterets(false)">C'est parti</button>
+    <button type="button" class="btn btn-secondaire" style="margin-top:8px; background:transparent; box-shadow:none;" onclick="validerInterets(true)">Faire plutôt la visite guidée complète</button>
   </div>
 </div>
 
@@ -5211,6 +5259,7 @@ function renderApp() {
   majNoteRecomposition();
   document.getElementById('daily-steps').value = day.steps || '';
   renderJaugePas(day.steps);
+  renderPremiersPas();
   afficherResumeMesures();
   
   renderMeals(day);
@@ -6171,7 +6220,7 @@ function ouvrirModal(id) {
   // champ texte : focus auto dessus ferait surgir le clavier tactile juste
   // au moment où la personne tente de toucher Homme/Femme, et sur certains
   // mobiles ce tap-là se perd dans la transition du clavier.
-  if (id === 'modal-bienvenue') return;
+  if (id === 'modal-bienvenue' || id === 'modal-interets') return;
   /* La croix de fermeture arrive avant le champ dans le DOM : le sélecteur
      précédent lui donnait le focus, si bien qu'Entrée refermait la fenêtre
      au lieu de valider, et que le champ de recherche ne s'ouvrait jamais
@@ -9247,7 +9296,7 @@ function allerA(nom) {
   reduireAppBar(false);
   if (nom === 'stats') { prepareStats(); }
   if (nom === 'seance') { renderSeance(); choisirModeSeance(modeSeance, true); }
-  if (nom === 'repas') majNoteCleIA();
+  if (nom === 'repas') { majNoteCleIA(); renderPremiersPas(); }
   // Les aliments ne sont chargés qu'à l'ouverture de leur feuille :
   // inutile d'interroger Supabase tant que personne ne les regarde.
   if (nom === 'admin') chargerAdmin();
@@ -11645,6 +11694,9 @@ async function onbTerminer() {
   userProfile.height = taille;
   userProfile.pasHabituels = onbReponses.pasHabituels;
   userProfile.onboarding = new Date().toISOString();
+  // La carte « Premiers pas » s'affiche même si la fenêtre « Par où veux-tu
+  // commencer ? » est fermée sans choisir : tous les centres d'intérêt.
+  userProfile.premiersPas = { interets: INTERETS.slice(), masque: false };
   userProfile.maj = Date.now();
 
   // Poids et objectif vivent dans la journée, pas dans le profil : c'est
@@ -11661,10 +11713,11 @@ async function onbTerminer() {
   invaliderHistorique();
   renderApp();
   planifierSync();
-  // Juste après le bilan initial : le bon moment pour une première visite
-  // guidée, jamais avant (elle empilerait sa bulle sur la modale encore
-  // ouverte). Ne se repropose plus ensuite — voir fermerTourGuide.
-  if (!userProfile.tutorielVu) setTimeout(demarrerTourGuide, 450);
+  // Juste après le bilan initial : « Par où veux-tu commencer ? », qui
+  // remplace la visite guidée imposée (proposée en lien, ici et dans la
+  // carte « Premiers pas »). Jamais avant : elle s'empilerait sur la
+  // modale encore ouverte.
+  setTimeout(ouvrirChoixInterets, 350);
 }
 
 /* Les boutons de choix sont branchés une fois pour toutes au chargement. */
@@ -11694,6 +11747,103 @@ function brancherChoixOnboarding() {
    éléments du formulaire existent déjà à ce stade : ce script se trouve
    après eux dans le document. */
 brancherChoixOnboarding();
+
+/* =====================================================================
+   PREMIERS PAS — après le questionnaire de bienvenue :
+   1. « Par où veux-tu commencer ? » (modal-interets) : nutrition,
+      musculation, cardio. Remplace la visite guidée imposée, qui reste
+      proposée en lien.
+   2. La carte « Premiers pas » en haut de l'écran Repas : quelques étapes
+      qui se cochent toutes seules dès que la chose est faite, chacune avec
+      un bouton qui y mène. Masquable ; réaffichable depuis les Réglages.
+   État dans le profil (synchronisé) : userProfile.premiersPas =
+   { interets: [...], masque: bool }. Sans cet état (comptes d'avant cette
+   carte), rien ne s'affiche tant qu'on ne la rouvre pas.
+   ===================================================================== */
+const INTERETS = ['nutrition', 'muscu', 'cardio'];
+let interetsChoisis = INTERETS.slice();
+function etapesPremiersPas() {
+  const pp = userProfile.premiersPas || {};
+  const int = Array.isArray(pp.interets) && pp.interets.length ? pp.interets : INTERETS;
+  const jours = Object.values(appData);
+  const aRepas = jours.some(d => d && d.meals && Object.values(d.meals).some(l => Array.isArray(l) && l.length));
+  const aPas = jours.some(d => d && Number(d.steps) > 0);
+  const etapes = [{ cle: 'profil', titre: 'Ton profil', sous: 'Objectif et calories calculés', fait: !!userProfile.onboarding }];
+  if (int.includes('nutrition')) etapes.push({ cle: 'repas', titre: 'Note ton premier repas', sous: 'Ton déjeuner, par exemple', fait: aRepas });
+  if (int.includes('nutrition') || int.includes('cardio')) etapes.push({ cle: 'pas', titre: 'Indique tes pas du jour', sous: 'Le nombre affiché par ton téléphone', fait: aPas });
+  if (int.includes('muscu')) etapes.push({ cle: 'muscu', titre: 'Crée ton premier programme', sous: 'Ou lance une séance vide', fait: musculationProgrammes.length > 0 || musculationHistorique.length > 0 });
+  if (int.includes('cardio')) etapes.push({ cle: 'cardio', titre: 'Ajoute une séance cardio', sous: 'Course, vélo, natation…', fait: seancesCardio().length > 0 });
+  return etapes;
+}
+function anneauProgresHTML(n, total) {
+  const r = 20, c = 2 * Math.PI * r, f = total ? n / total : 0;
+  return `<span class="pp-anneau" aria-hidden="true"><svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="${r}" fill="none" stroke="var(--verre-brd)" stroke-width="5" /><circle cx="23" cy="23" r="${r}" fill="none" stroke="var(--primary)" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 23 23)" /></svg><b>${n}/${total}</b></span>`;
+}
+function renderPremiersPas() {
+  const zone = document.getElementById('premiers-pas');
+  if (!zone) return;
+  const pp = userProfile.premiersPas;
+  if (!pp || pp.masque) { zone.innerHTML = ''; return; }
+  const etapes = etapesPremiersPas();
+  const faites = etapes.filter(e => e.fait).length;
+  const reste = etapes.length - faites;
+  const coche = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>';
+  zone.innerHTML = `<div class="bloc-verre pp-carte">
+    <div class="pp-tete">${anneauProgresHTML(faites, etapes.length)}
+      <div><h3>${reste ? 'Premiers pas' : 'Bravo, tu es lancé !'}</h3><p>${reste ? `Encore ${reste} étape${reste > 1 ? 's' : ''} pour bien démarrer` : "Tu connais l'essentiel de l'appli."}</p></div>
+      <button type="button" class="pp-masquer" onclick="masquerPremiersPas()">${reste ? 'Masquer' : 'Fermer'}</button></div>
+    ${etapes.map(e => `<div class="pp-etape${e.fait ? ' pp-fait' : ''}"><span class="pp-coche">${e.fait ? coche : ''}</span>
+      <span class="pp-texte"><b>${e.titre}</b><small>${e.sous}</small></span>
+      ${e.fait ? '' : `<button type="button" class="pp-go" onclick="faireEtapePremiersPas('${e.cle}')">Faire ›</button>`}</div>`).join('')}
+    <p class="pp-visite">Envie d'un tour complet ? <button type="button" onclick="demarrerTourGuide()">Lancer la visite guidée</button></p>
+  </div>`;
+}
+function enregistrerPremiersPas(maj) {
+  userProfile.premiersPas = Object.assign({}, userProfile.premiersPas || {}, maj);
+  saveData();
+  renderPremiersPas();
+}
+function masquerPremiersPas() { enregistrerPremiersPas({ masque: true }); }
+function reafficherPremiersPas() {
+  enregistrerPremiersPas({ masque: false });
+  fermerModal('reglages-modal');
+  allerA('repas');
+}
+function faireEtapePremiersPas(cle) {
+  if (cle === 'repas') { allerA('repas'); ouvrirFeuilleRepas(repasDuMoment()); return; }
+  if (cle === 'pas') {
+    allerA('repas');
+    const champ = document.getElementById('daily-steps');
+    champ.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => champ.focus(), 350);
+    return;
+  }
+  if (cle === 'muscu') { allerA('seance'); choisirModeSeance('muscu'); return; }
+  if (cle === 'cardio') { allerA('seance'); choisirModeSeance('cardio'); ouvrirCardio(); }
+}
+/* « Par où veux-tu commencer ? » */
+function ouvrirChoixInterets() {
+  interetsChoisis = INTERETS.slice();
+  rendreChoixInterets();
+  ouvrirModal('modal-interets');
+}
+function rendreChoixInterets() {
+  document.querySelectorAll('#modal-interets .interet').forEach(b => b.setAttribute('aria-pressed', String(interetsChoisis.includes(b.dataset.interet))));
+  document.getElementById('btn-interets-ok').disabled = !interetsChoisis.length;
+}
+function basculerInteret(cle) {
+  interetsChoisis = interetsChoisis.includes(cle) ? interetsChoisis.filter(x => x !== cle) : INTERETS.filter(x => x === cle || interetsChoisis.includes(x));
+  rendreChoixInterets();
+}
+function validerInterets(avecVisite) {
+  const choix = interetsChoisis.length ? interetsChoisis.slice() : INTERETS.slice();
+  enregistrerPremiersPas({ interets: choix, masque: false });
+  fermerModal('modal-interets');
+  if (avecVisite) { setTimeout(demarrerTourGuide, 300); return; }
+  // On démarre sur l'écran du premier centre d'intérêt choisi.
+  if (choix.includes('nutrition')) allerA('repas');
+  else { allerA('seance'); choisirModeSeance(choix.includes('muscu') ? 'muscu' : 'cardio'); }
+}
 
 /* =====================================================================
    ADMINISTRATION — recherche, filtre et vue d'ensemble
