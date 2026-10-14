@@ -2064,7 +2064,6 @@
     /* Séances longues : un exercice peut être replié sur une seule ligne
        (nom + séries faites), et se redéplie d'un toucher. */
     .session-repli-barre { display: flex; justify-content: flex-end; align-items: center; gap: 14px; margin: 0 2px 8px; }
-    .session-repli-astuce { flex: 1; min-width: 0; font-size: 0.66rem; color: var(--text-muted); }
     .session-repli-barre button {
       background: none; border: 0; padding: 4px 0; font: inherit; font-size: 0.76rem; font-weight: 700;
       color: var(--primary); cursor: pointer;
@@ -2612,7 +2611,6 @@
         <div class="session-zones" id="session-zones"></div>
       </div>
       <div class="session-repli-barre hidden" id="session-repli-barre">
-        <span class="session-repli-astuce">Glisser : ← retirer · remplacer →</span>
         <button type="button" onclick="replierTousExercicesSession(true)">Tout replier</button>
         <button type="button" onclick="replierTousExercicesSession(false)">Tout déplier</button>
       </div>
@@ -9188,6 +9186,9 @@ const TOUR_MUSCU = [
     texte: () => (musculationSessionActive && musculationSessionActive.demo
       ? "Ici, la 2e série vient d'être cochée : la case passe au vert et le minuteur de repos démarre en dessous. Les jauges et le corps se mettent à jour. Seules les séries proches de l'échec comptent dans le volume."
       : "Coche chaque série faite : le minuteur de repos démarre, les jauges et le corps se mettent à jour. Seules les séries proches de l'échec comptent dans le volume.") },
+  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .exo-swipe', titre: 'Retirer ou remplacer un exercice',
+    avant: () => setTimeout(demoGlisserExercice, 700),
+    texte: "Fais glisser un exercice depuis son nom : vers la gauche pour le retirer de la séance (une confirmation est demandée), vers la droite pour le remplacer par un autre. Ton programme enregistré, lui, ne change pas." },
   { ecran: 'seance', siSession: true, cible: '#seance-vue-active [onclick="terminerSeance()"]', titre: 'Terminer la séance',
     texte: () => "Ta dernière série faite, touche « Terminer la séance » : elle rejoint ton historique avec tes records (1RM, charge, volume, répétitions) et compte dans la dépense de ta journée."
       + (musculationSessionActive && musculationSessionActive.demo ? " Ici, rien n'est enregistré : la démonstration se ferme à l'étape suivante." : '') },
@@ -9196,6 +9197,22 @@ const TOUR_MUSCU = [
   { titre: 'Bon entraînement !', texte: "Tu peux revoir cette visite à tout moment depuis Profil › Réglages." }
 ];
 let tourListe = TOUR_ETAPES;
+/* Visite : montre le geste sur le premier exercice (gauche = retirer,
+   droite = remplacer), sans rien déclencher. */
+function demoGlisserExercice() {
+  const zone = document.querySelector('#session-exercices-container .exo-swipe');
+  const bloc = zone && zone.querySelector('.session-exo-bloc');
+  if (!zone || !bloc || !tourActif) return;
+  const etape = tourEtape;
+  const pas = [
+    [0, () => { zone.classList.add('vers-gauche'); bloc.style.transform = 'translateX(-96px)'; }],
+    [1100, () => { bloc.style.transform = ''; }],
+    [1450, () => { zone.classList.remove('vers-gauche'); zone.classList.add('vers-droite'); bloc.style.transform = 'translateX(96px)'; }],
+    [2550, () => { bloc.style.transform = ''; }],
+    [2900, () => { zone.classList.remove('vers-droite'); }]
+  ];
+  pas.forEach(([t, f]) => setTimeout(() => { if (tourActif && tourEtape === etape && document.body.contains(zone)) f(); else { bloc.style.transform = ''; zone.classList.remove('vers-gauche', 'vers-droite'); } }, t));
+}
 /* Visite Musculation sans séance en cours : une séance de démonstration
    (un exercice, quelques séries d'exemple) est ouverte le temps des étapes
    de séance, puis retirée. Elle n'est jamais enregistrée (voir
