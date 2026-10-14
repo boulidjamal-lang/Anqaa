@@ -1851,12 +1851,6 @@
     }
     .serie-prec small { font-size: 0.6rem; font-weight: 600; margin-right: 1px; }
     .serie-prec--vide { cursor: default; opacity: 0.6; }
-    .muscles-ligne { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
-    .muscle-puce {
-      font-size: 0.64rem; font-weight: 700; padding: 2px 7px; border-radius: 999px;
-      background: var(--verre-fort); color: var(--text-muted);
-    }
-    .muscle-puce--principal { color: var(--primary); box-shadow: 0 0 0 1px var(--primary) inset; background: transparent; }
     .btn-note-active { color: var(--primary); }
     .note-exo textarea {
       width: 100%; resize: vertical; font-family: inherit; font-size: 0.8rem; margin: 0 0 8px;
@@ -17437,7 +17431,6 @@ function renderSessionExerciceBlocHTML(exo, ei) {
             <button class="btn-delete" onclick="retirerExerciceSession(${ei})" aria-label="Retirer l'exercice">&times;</button>
           </div>
         </div>
-        ${musclesLigneHTML(exerciceComplet)}
       </div>
     </div>
     <div class="tempo-ligne" style="margin:8px 0 4px;">
@@ -17456,11 +17449,6 @@ function renderSessionExerciceBlocHTML(exo, ei) {
     </div>
     <button type="button" class="btn-ajouter-serie" onclick="ajouterSerieSession(${ei})">Ajouter une série</button>
   </div>`;
-}
-function musclesLigneHTML(exo) {
-  if (!exo) return '';
-  const m = musclesExerciceTexte(exo);
-  return `<div class="muscles-ligne"><span class="muscle-puce muscle-puce--principal">${escapeHtml(m.principal)}</span>${m.secondaires.map(s => `<span class="muscle-puce">${escapeHtml(s)}</span>`).join('')}</div>`;
 }
 function noteExerciceHTML(exo, ei) {
   if (!exo.noteOuverte && !exo.notes) return '';
