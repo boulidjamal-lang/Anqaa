@@ -2002,12 +2002,13 @@
     .rir-choix[aria-pressed="true"] { background: var(--primary); color: #fff; }
     .rir-fermer { flex: none; border: 0; background: none; color: var(--text-muted); font-size: 1.15rem; line-height: 1; padding: 0 2px; cursor: pointer; }
     .menu-technique-popup button:hover, .menu-technique-popup button:focus-visible { background: color-mix(in srgb, var(--primary) 14%, transparent); }
-    .serie-table input {
+    /* Tempo et objectif : même case que Kg / Reps juste en dessous. */
+    .serie-table input, .tempo-ligne input {
       width: 100%; min-height: 34px; padding: 5px 4px; text-align: center;
       background: var(--verre); border: 1px solid transparent; color: var(--text);
       border-radius: 10px; font-size: 0.85rem; font-family: inherit; font-weight: 700; outline: none;
     }
-    .serie-table input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent); }
+    .serie-table input:focus, .tempo-ligne input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent); }
     /* --- Paliers d'une série en dégressif : repliés par défaut (voir
        palierOuvert), pour ne pas noyer la liste de séries sous des lignes
        qu'on ne veut pas toujours voir. --- */
@@ -2232,11 +2233,11 @@
     label.label-icone { display: inline-flex; align-items: center; justify-content: center; width: 24px; flex: 0 0 24px; margin: 0 2px 0 0 !important; color: var(--text-muted); }
     label.label-icone .icone-ligne { width: 22px; height: 22px; display: block; }
     .tempo-ligne label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); margin: 0; }
-    .tempo-ligne input { width: 80px; text-align: center; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; padding: 8px 10px; }
+    .tempo-ligne input { width: 80px; letter-spacing: 3px; text-transform: uppercase; }
     .tempo-ligne small { color: var(--text-muted); font-size: 0.72rem; flex-basis: 100%; }
     #modal-plage .tempo-exemple b { letter-spacing: 0; white-space: nowrap; min-width: 66px; }
     .objectif-groupe { display: inline-flex; align-items: center; gap: 8px; margin-left: 10px; }
-    .tempo-ligne input.objectif-input { width: 70px; letter-spacing: 0.5px; }
+    .tempo-ligne input.objectif-input { width: 70px; letter-spacing: 0; }
     .zones-reglage-entete, .zones-reglage-ligne { display: grid; grid-template-columns: minmax(0, 1fr) repeat(4, 46px) 26px; gap: 5px; align-items: center; }
     .zones-reglage-entete { font-size: 0.6rem; font-weight: 800; letter-spacing: 0; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
     .zones-reglage-entete span:not(:first-child) { text-align: center; }
