@@ -2232,8 +2232,11 @@
     .tempo-ligne label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); margin: 0; }
     .tempo-ligne input { width: 80px; text-align: center; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; padding: 8px 10px; }
     .tempo-ligne small { color: var(--text-muted); font-size: 0.72rem; flex-basis: 100%; }
-    .tempo-ligne .plage-groupe { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
-    .tempo-ligne input.plage-input { width: 70px; letter-spacing: 1px; }
+    #modal-plage .tempo-exemple b { letter-spacing: 0; white-space: nowrap; min-width: 66px; }
+    .objectif-ligne { display: flex; align-items: center; gap: 7px; margin: -2px 0 10px; flex-wrap: wrap; }
+    .objectif-ligne label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); margin: 0 4px 0 0; }
+    .objectif-ligne span { font-size: 0.84rem; font-weight: 700; color: var(--text-muted); }
+    .objectif-ligne input.objectif-input { width: 56px; text-align: center; font-weight: 800; padding: 8px 4px; }
     .zones-reglage-entete, .zones-reglage-ligne { display: grid; grid-template-columns: minmax(0, 1fr) repeat(4, 46px) 26px; gap: 5px; align-items: center; }
     .zones-reglage-entete { font-size: 0.6rem; font-weight: 800; letter-spacing: 0; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
     .zones-reglage-entete span:not(:first-child) { text-align: center; }
@@ -4451,6 +4454,28 @@
     <div class="tempo-exemple"><b>4010</b><span>Descente très lente : beaucoup de temps sous tension, efficace avec des charges modérées.</span></div>
     <div class="tempo-exemple"><b>20X0</b><span>Descente contrôlée puis remontée explosive : pour la force et la vitesse.</span></div>
     <div class="tempo-exemple"><b>2012</b><span>Pause de 2 s muscle contracté : pour l'isolation (curl, élévations, leg extension).</span></div>
+  </div>
+</div>
+
+<div id="modal-plage" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-plage">
+  <div class="modal-content" style="max-width:460px;">
+    <div class="modal-entete">
+      <h3 id="titre-plage">Objectif de répétitions</h3>
+      <button class="close-modal" onclick="fermerModal('modal-plage')" aria-label="Fermer">&times;</button>
+    </div>
+    <p class="note" style="margin:0 0 10px;">C'est le nombre de répétitions que tu vises à chaque série de cet exercice, par exemple <b>8 à 12</b>. Il s'affiche en grisé dans les cases « Reps » pour te le rappeler pendant la séance.</p>
+    <div class="tempo-etape"><span>1</span><div><b>Garde la même charge</b><p>Tant que tu n'arrives pas en haut de l'objectif (12) sur tes séries, tu restes au même poids et tu essaies d'ajouter une répétition par-ci par-là.</p></div></div>
+    <div class="tempo-etape"><span>2</span><div><b>Haut de l'objectif atteint : monte un peu</b><p>À la séance suivante, l'appli te propose d'ajouter un peu de poids (+2,5 kg à la barre, réglable dans Réglages › Musculation › Séance).</p></div></div>
+    <div class="tempo-etape"><span>3</span><div><b>Repars du bas</b><p>Avec la nouvelle charge, tu retombes vers 8 répétitions, puis tu remontes vers 12. Et ainsi de suite.</p></div></div>
+    <p class="note" style="margin:14px 0 4px; font-weight:800; letter-spacing:0.8px; text-transform:uppercase; font-size:0.7rem;">Exemple au développé couché, objectif 8 à 12</p>
+    <div class="tempo-exemple"><b>60 kg</b><span>9, 9, 8 répétitions : on garde 60 kg.</span></div>
+    <div class="tempo-exemple"><b>60 kg</b><span>12, 12, 12 : la prochaine fois, l'appli propose 62,5 kg.</span></div>
+    <div class="tempo-exemple"><b>62,5 kg</b><span>9, 8, 8 : on remonte tranquillement vers 12.</span></div>
+    <p class="note" style="margin:14px 0 4px; font-weight:800; letter-spacing:0.8px; text-transform:uppercase; font-size:0.7rem;">Quel objectif choisir ?</p>
+    <div class="tempo-exemple"><b>3 à 6</b><span>Force, sur les gros mouvements (squat, développé, soulevé de terre).</span></div>
+    <div class="tempo-exemple"><b>6 à 12</b><span>Prise de muscle : le plus courant.</span></div>
+    <div class="tempo-exemple"><b>12 à 20</b><span>Exercices d'isolation (élévations, curls, mollets) et endurance.</span></div>
+    <p class="note" style="margin:12px 0 0;">Une seule case remplie = un objectif fixe (par exemple 10). Laisse vide si tu ne veux pas de suggestion de charge.</p>
   </div>
 </div>
 
@@ -9165,7 +9190,7 @@ const TOUR_MUSCU = [
   { ecran: 'seance', siSession: true, cible: '#session-haut', titre: 'Le volume de ta semaine', texte: "Une jauge par muscle : tes séries de la semaine, de « trop peu » à « trop », en passant par l'entretien, la progression et la zone idéale. Le curseur montre où tu en es ; barre épaisse pour les muscles principaux de la séance, fine pour les secondaires. Le corps se colore pareil ; touche-le pour l'agrandir." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-prec', titre: 'Ta séance précédente', texte: "La colonne « Préc. » rappelle ce que tu as fait la dernière fois sur cette série. Touche-la pour reprendre ces valeurs, puis essaie de faire un peu mieux." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-num-btn', titre: 'Le type de série', texte: "Touche le numéro d'une série pour la marquer : Échauffement (W, jamais comptée dans les jauges), Dégressif, Pyramidal ou Échec." },
-  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .tempo-ligne', titre: 'Le tempo', texte: "Quatre chiffres pour la vitesse de chaque phase : descente, pause en bas, montée, pause en haut (X = explosif). Le (i) explique tout, avec des exemples." },
+  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .tempo-ligne', titre: 'Tempo et objectif', texte: "Le tempo : quatre chiffres pour la vitesse de chaque phase (descente, pause en bas, montée, pause en haut ; X = explosif). Juste en dessous, l'objectif de répétitions (par exemple 8 à 12) : quand tu atteins le haut, l'appli te propose de monter la charge. Chaque (i) explique tout, avec des exemples." },
   { ecran: 'seance', siSession: true, titre: 'Cocher une série',
     // Démonstration : la 2e série est vraiment cochée, pour montrer la case
     // validée et le minuteur de repos qui démarre juste en dessous.
@@ -15502,10 +15527,9 @@ function renderProgrammeExercicesEnEdition() {
         <label for="tempo-prog-${i}">Tempo</label>
         <input type="text" id="tempo-prog-${i}" maxlength="7" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="3010" value="${escapeHtml(pe.tempo || '')}" onchange="modifierTempoProgramme(${i}, this.value, this)">
         <button type="button" class="tempo-aide-btn" onclick="ouvrirAideTempo(document.getElementById('tempo-prog-${i}').value)" aria-label="Comment fonctionne le tempo ?">${ICONE_INFO_TEMPO}</button>
-        <span class="plage-groupe"><label for="plage-prog-${i}">Reps</label>
-        <input type="text" class="plage-input" id="plage-prog-${i}" maxlength="5" inputmode="numeric" autocomplete="off" placeholder="8-12" value="${escapeHtml(pe.plage || '')}" onchange="modifierPlageProgramme(${i}, this.value, this)"></span>
         <small id="tempo-resume-${i}">${pe.tempo ? escapeHtml(resumeTempo(pe.tempo)) : ''}</small>
       </div>
+      ${ligneObjectifRepsHTML('prog', i, pe.plage)}
       <div class="serie-table">
         <div class="serie-entete serie-entete--3col"><span>Série</span><span>Poids (kg)</span><span>Répétitions</span></div>
         ${lignesSeries}
@@ -15590,6 +15614,28 @@ function ignorerSuggestionCharge(ei) {
   exo.suggestionVue = true;
   sauvegarderSessionActive();
   renderSessionModal();
+}
+/* Objectif de répétitions, écrit comme une phrase : « Objectif : [8] à
+   [12] répétitions ». Deux cases (minimum, maximum) ; une seule remplie =
+   un objectif fixe. Le (i) explique la progression. */
+function ligneObjectifRepsHTML(type, idx, plage) {
+  const p = lirePlageReps(plage);
+  const id = `objectif-${type}-${idx}`;
+  return `<div class="objectif-ligne">
+    <label for="${id}-min">Objectif</label>
+    <input type="number" id="${id}-min" class="objectif-input" inputmode="numeric" min="1" max="50" step="1" placeholder="min" value="${p ? p.min : ''}" onchange="modifierObjectifReps('${type}', ${idx})" aria-label="Répétitions visées au minimum">
+    <span>à</span>
+    <input type="number" id="${id}-max" class="objectif-input" inputmode="numeric" min="1" max="50" step="1" placeholder="max" value="${p && p.max !== p.min ? p.max : ''}" onchange="modifierObjectifReps('${type}', ${idx})" aria-label="Répétitions visées au maximum">
+    <span>répétitions</span>
+    <button type="button" class="tempo-aide-btn" onclick="ouvrirModal('modal-plage')" aria-label="À quoi sert l'objectif de répétitions ?">${ICONE_INFO_TEMPO}</button>
+  </div>`;
+}
+function modifierObjectifReps(type, idx) {
+  const lire = c => { const v = document.getElementById(`objectif-${type}-${idx}-${c}`); return v && v.value !== '' ? Math.round(Number(v.value)) : null; };
+  const a = lire('min'), b = lire('max');
+  const valeur = a && b ? `${a}-${b}` : String(a || b || '');
+  if (type === 'prog') { modifierPlageProgramme(idx, valeur, null); renderProgrammeExercicesEnEdition(); }
+  else modifierPlageSession(idx, valeur, null);
 }
 function modifierPlageProgramme(i, valeur, champ) {
   const pe = programmeEnEdition.exercices[i];
@@ -17745,10 +17791,9 @@ function renderSessionExerciceBlocHTML(exo, ei) {
       <label for="tempo-seance-${ei}">Tempo</label>
       <input type="text" id="tempo-seance-${ei}" maxlength="7" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="3010" value="${escapeHtml(exo.tempo || '')}" onchange="modifierTempoSession(${ei}, this.value, this)">
       <button type="button" class="tempo-aide-btn" onclick="ouvrirAideTempo(document.getElementById('tempo-seance-${ei}').value)" aria-label="Comment fonctionne le tempo ?">${ICONE_INFO_TEMPO}</button>
-      <span class="plage-groupe"><label for="plage-seance-${ei}">Reps</label>
-      <input type="text" class="plage-input" id="plage-seance-${ei}" maxlength="5" inputmode="numeric" autocomplete="off" placeholder="8-12" value="${escapeHtml(exo.plage || '')}" onchange="modifierPlageSession(${ei}, this.value, this)"></span>
       <small id="tempo-seance-resume-${ei}">${exo.tempo ? escapeHtml(resumeTempo(exo.tempo)) : ''}</small>
     </div>
+    ${ligneObjectifRepsHTML('seance', ei, exo.plage)}
     ${blocProgressionHTML(exo, ei)}
     ${noteExerciceHTML(exo, ei)}
     <div class="serie-table">
