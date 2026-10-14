@@ -4120,9 +4120,12 @@
           temps, à condition de continuer à progresser en charge à l'entraînement.
           Le facteur × 1,2 correspond à un mode de vie sédentaire — il inclut déjà
           environ 4 000 pas, c'est pourquoi seuls les pas au-delà sont ajoutés.
-          Les séances utilisent les MET du <em>Compendium of Physical Activities</em>,
-          moins 1 MET : l'heure de sport remplace une heure de repos déjà comptée,
-          elle ne s'y ajoute pas.
+          Les séances utilisent les MET du <em>Compendium of Physical Activities</em>
+          et ton poids. Quand la distance est notée (course, marche, vélo), le MET
+          suit ta vitesse réelle ; sinon, celui du sport, ajusté par l'intensité
+          notée. On retire ton propre métabolisme de repos (âge, sexe, taille, poids
+          ou masse maigre) sur la durée de la séance : l'heure de sport remplace une
+          heure de repos déjà comptée, elle ne s'y ajoute pas.
           Pour une séance de musculation trackée dans l'onglet Activité, le temps de
           repos entre les séries n'est pas compté comme de l'effort (il se passe à
           un rythme proche du repos, déjà compté ailleurs) : seul le nombre de
@@ -4883,6 +4886,9 @@ const MEAL_ICONS = { breakfast: '<svg class="icone-ui" viewBox="0 0 24 24" fill=
       fois. On retire donc 1 MET : c'est la depense NETTE de la seance.
 
    Formule : kcal = (MET - 1) x 3,5 x poids(kg) / 200 x minutes
+   (depuis : le « 1 MET » de repos est remplacé par le métabolisme de base
+   de la personne, et le MET suit la vitesse quand la distance est connue,
+   voir kcalSeance)
    Une heure de musculation a 80 kg donne ainsi 4 x 3,5 x 80 / 200 x 60
    = 336 kcal nettes, au lieu de 420 kcal auparavant.
    --------------------------------------------------------------------- */
@@ -4906,14 +4912,51 @@ const MET_MUSCULATION_ACTIF = 6.0;
    d'environ 20 % vers le bas ou le haut. Sans intensité (anciennes
    saisies), facteur 1 : la dépense déjà calculée ne change pas. */
 const FACTEUR_INTENSITE_MET = { 1: 0.8, 2: 1, 3: 1.2 };
-function kcalSeance(type, minutes, poids, seriesFaites, intensite) {
-  if (type === 'musculation' && Number(seriesFaites) > 0) {
-    const dureeActiveMin = (Number(seriesFaites) * SECONDES_PAR_SERIE_MUSCU) / 60;
-    return Math.max(0, (MET_MUSCULATION_ACTIF - 1) * 3.5 * poids / 200) * dureeActiveMin;
+/* MET selon la vitesse réelle (Compendium of Physical Activities), pour
+   les séances dont la distance est connue : une course à 12 km/h ne coûte
+   pas comme une course à 8 km/h. Interpolation linéaire entre les points,
+   bornée aux extrémités. La vitesse mesurée remplace alors l'intensité
+   notée (sinon l'effort serait compté deux fois). */
+const MET_PAR_VITESSE = {
+  course: [[6.4, 6.0], [8.0, 8.3], [9.7, 9.8], [11.3, 11.0], [12.9, 11.8], [14.5, 12.8], [16.1, 14.5], [17.7, 16.0], [19.3, 19.0]],
+  marche_rapide: [[3.2, 2.8], [4.0, 3.0], [4.8, 3.5], [5.6, 4.3], [6.4, 5.0], [7.2, 7.0], [8.0, 8.3]],
+  cyclisme: [[12, 4.0], [17.7, 6.8], [20.9, 8.0], [24.1, 10.0], [28.2, 12.0], [33, 15.8]]
+};
+// Vitesses plausibles : en dehors (faute de frappe, montre oubliée…), on
+// garde le MET moyen du sport plutôt qu'un chiffre absurde.
+const VITESSE_PLAUSIBLE = { course: [4, 25], marche_rapide: [2, 9], cyclisme: [5, 60] };
+function metSelonVitesse(type, minutes, km) {
+  const table = MET_PAR_VITESSE[type];
+  const v = Number(km) / (Number(minutes) / 60);
+  if (!table || !(v > 0) || !Number.isFinite(v)) return null;
+  const [mini, maxi] = VITESSE_PLAUSIBLE[type];
+  if (v < mini || v > maxi) return null;
+  if (v <= table[0][0]) return table[0][1];
+  for (let k = 1; k < table.length; k++) {
+    const [v0, m0] = table[k - 1], [v1, m1] = table[k];
+    if (v <= v1) return m0 + (m1 - m0) * (v - v0) / (v1 - v0);
   }
-  const met = SPORT_MET[type] * (FACTEUR_INTENSITE_MET[intensite] || 1);
-  if (!met) return 0;
-  return Math.max(0, (met - 1) * 3.5 * poids / 200) * (Number(minutes) || 0);
+  return table[table.length - 1][1];
+}
+/* Dépense NETTE d'une séance : la dépense brute du Compendium (MET x 3,5
+   ml d'O2/kg/min, 1 L d'O2 ~ 5 kcal, d'où le / 200) moins le repos de la
+   même durée, déjà compté dans le métabolisme de base. Ce repos est TON
+   métabolisme de base (âge, sexe, taille, poids ou masse maigre, voir
+   metabolismeDeBase) ramené à la minute, plutôt que le « 1 MET » moyen
+   (3,5 ml/kg/min) qui le surestime chez la plupart des adultes.
+   `options` : { distance (km), bmr (kcal/jour) } ; sans bmr, on retombe
+   sur 1 MET. */
+function kcalSeance(type, minutes, poids, seriesFaites, intensite, options) {
+  options = options || {};
+  const reposParMin = Number(options.bmr) > 0 ? options.bmr / 1440 : 3.5 * poids / 200;
+  const net = (met, min) => Math.max(0, met * 3.5 * poids / 200 - reposParMin) * min;
+  if (type === 'musculation' && Number(seriesFaites) > 0) {
+    return net(MET_MUSCULATION_ACTIF, (Number(seriesFaites) * SECONDES_PAR_SERIE_MUSCU) / 60);
+  }
+  if (!SPORT_MET[type]) return 0;
+  const met = metSelonVitesse(type, minutes, options.distance)
+    || SPORT_MET[type] * (FACTEUR_INTENSITE_MET[intensite] || 1);
+  return net(met, Number(minutes) || 0);
 }
 const SPORT_LABELS = { musculation: 'Musculation', course: 'Course', natation: 'Natation', cyclisme: 'Vélo', hiit: 'HIIT', foot: 'Sport co', marche_rapide: 'Marche', rameur: 'Rameur' };
 const SPORT_COLORS = { musculation: '#ff5252', course: '#2979ff', natation: '#00e5ff', cyclisme: '#00ff66', hiit: '#ffab40', foot: '#d500f9', marche_rapide: '#9e9e9e', rameur: '#ffd60a' };
@@ -5075,8 +5118,7 @@ function dernierObjectifConnu(avant) {
   return 'maintien';
 }
 
-function computeTargets(day, dateStr) {
-  const weight = Number(day.weight) || dernierPoidsConnu(dateStr || todayStr());
+function metabolismeDeBase(weight, dateStr) {
   const height = Number(userProfile.height) || 175;
   const age = Number(userProfile.age) || 25;
   const bodyFatPercent = derniereGrassePctConnue(dateStr || todayStr());
@@ -5093,6 +5135,13 @@ function computeTargets(day, dateStr) {
   } else {
     bmr = 10 * weight + 6.25 * height - 5 * age + (userProfile.gender === 'f' ? -161 : 5);
   }
+  return bmr;
+}
+function computeTargets(day, dateStr) {
+  const weight = Number(day.weight) || dernierPoidsConnu(dateStr || todayStr());
+  const bmr = metabolismeDeBase(weight, dateStr);
+  const bodyFatPercent = derniereGrassePctConnue(dateStr || todayStr());
+  const masseMaigre = bodyFatPercent ? weight * (1 - bodyFatPercent / 100) : null;
 
   /* Le facteur 1,2 de Mifflin-St Jeor correspond à « sédentaire », qui inclut
      déjà environ 4 000 pas quotidiens. Ajouter tous les pas par-dessus les
@@ -5113,7 +5162,7 @@ function computeTargets(day, dateStr) {
 
   let workoutKcal = 0;
   if (day.workouts && day.workouts.length > 0) {
-    day.workouts.forEach(w => { workoutKcal += kcalSeance(w.type, w.time, weight, w.seriesFaites, w.intensite); });
+    day.workouts.forEach(w => { workoutKcal += kcalSeance(w.type, w.time, weight, w.seriesFaites, w.intensite, { distance: w.distance, bmr }); });
   }
   let tdee = bmr * 1.2 + stepsKcal + workoutKcal;
 
@@ -5500,7 +5549,7 @@ function majCalculsCardio() {
   if (a) el.innerHTML = `<span>${br.type === 'cyclisme' ? 'Vitesse' : 'Allure'}</span><b>${a.texte}</b>`;
   const date = document.getElementById('cardio-date').value || todayStr();
   const poids = Number(getDay(date).weight) || dernierPoidsConnu(date);
-  const kcal = br.type && minutes > 0 ? Math.round(kcalSeance(br.type, minutes, poids, 0, br.intensite)) : 0;
+  const kcal = br.type && minutes > 0 ? Math.round(kcalSeance(br.type, minutes, poids, 0, br.intensite, { distance: km, bmr: metabolismeDeBase(poids, date) })) : 0;
   document.getElementById('cardio-kcal').innerHTML = `<span>Dépense estimée</span><b>${kcal ? '≈ ' + kcal + ' kcal' : '—'}</b>`;
 }
 function enregistrerCardio() {
@@ -11509,7 +11558,7 @@ function targetsPourCompte(day, dateStr, jours, compte) {
   const pasEnPlus = Math.max(0, pasDuJour - PAS_DEJA_COMPTES);
   const stepsKcal = pasEnPlus * 0.03 * (weight / 70);
   let workoutKcal = 0;
-  (day.workouts || []).forEach(w => { workoutKcal += kcalSeance(w.type, w.time, weight, w.seriesFaites, w.intensite); });
+  (day.workouts || []).forEach(w => { workoutKcal += kcalSeance(w.type, w.time, weight, w.seriesFaites, w.intensite, { distance: w.distance, bmr }); });
   const tdee = bmr * 1.2 + stepsKcal + workoutKcal;
   const objectif = day.goal || dernierObjectifDansListe(jours, dateStr);
   const adj = objectif === 'seche' ? -0.20 : objectif === 'masse' ? 0.15 : 0;
