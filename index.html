@@ -2055,7 +2055,8 @@
 
     /* Séances longues : un exercice peut être replié sur une seule ligne
        (nom + séries faites), et se redéplie d'un toucher. */
-    .session-repli-barre { display: flex; justify-content: flex-end; gap: 14px; margin: 0 2px 8px; }
+    .session-repli-barre { display: flex; justify-content: flex-end; align-items: center; gap: 14px; margin: 0 2px 8px; }
+    .session-repli-astuce { flex: 1; min-width: 0; font-size: 0.66rem; color: var(--text-muted); }
     .session-repli-barre button {
       background: none; border: 0; padding: 4px 0; font: inherit; font-size: 0.76rem; font-weight: 700;
       color: var(--primary); cursor: pointer;
@@ -2091,6 +2092,26 @@
       border-bottom: 1px dashed var(--verre-brd);
     }
     .session-superset-bloc .session-exo-bloc:last-of-type { border-bottom: none; padding-bottom: 2px; margin-bottom: 6px; }
+
+    /* Glisser un exercice de la séance : à gauche = retirer (avec
+       confirmation), à droite = remplacer. Le geste part de l'en-tête de
+       l'exercice ; les lignes de série gardent leur propre glisser. */
+    .exo-swipe { position: relative; margin-bottom: 14px; border-radius: 16px; }
+    .exo-swipe:last-child { margin-bottom: 6px; }
+    .exo-swipe > .session-exo-bloc { position: relative; z-index: 1; margin-bottom: 0; transition: transform 0.25s ease; }
+    .exo-swipe .session-exo-entete { touch-action: pan-y; }
+    .exo-swipe.en-glissement > .session-exo-bloc { transition: none; background-color: var(--bg); background-image: linear-gradient(var(--verre-creux), var(--verre-creux)); }
+    .exo-swipe-fond { position: absolute; inset: 0; border-radius: 16px; display: flex; align-items: center; gap: 8px; padding: 0 22px;
+      color: #fff; font-weight: 800; font-size: 0.82rem; opacity: 0; transition: opacity 0.15s; }
+    .exo-swipe-fond svg, .exo-swipe-fond .icone-ui { width: 22px; height: 22px; color: #fff; }
+    .exo-swipe-fond--suppr { background: var(--danger); justify-content: flex-end; }
+    .exo-swipe-fond--remplacer { background: var(--accent); justify-content: flex-start; }
+    .exo-swipe.vers-gauche .exo-swipe-fond--suppr, .exo-swipe.vers-droite .exo-swipe-fond--remplacer { opacity: 1; }
+    .exo-swipe.au-seuil .exo-swipe-fond svg { transform: scale(1.25); transition: transform 0.15s; }
+    .session-superset-bloc .exo-swipe { margin-bottom: 14px; border-radius: 12px; }
+    .session-superset-bloc .exo-swipe:last-child { margin-bottom: 6px; }
+    .session-superset-bloc .exo-swipe > .session-exo-bloc { margin-bottom: 0; padding-bottom: 2px; border-bottom: none; }
+    .session-superset-bloc .exo-swipe:not(:last-child) > .session-exo-bloc { padding-bottom: 14px; border-bottom: 1px dashed var(--verre-brd); }
 
     /* --- Historique des séances --- */
     .historique-carte {
@@ -2572,6 +2593,7 @@
         <div class="session-zones" id="session-zones"></div>
       </div>
       <div class="session-repli-barre hidden" id="session-repli-barre">
+        <span class="session-repli-astuce">Glisse un exercice : ← retirer · remplacer →</span>
         <button type="button" onclick="replierTousExercicesSession(true)">Tout replier</button>
         <button type="button" onclick="replierTousExercicesSession(false)">Tout déplier</button>
       </div>
@@ -17220,7 +17242,11 @@ function renderSessionModal() {
     const videosEnCours = {};
     c.querySelectorAll('.exo-ligne-vignette video').forEach(v => { (videosEnCours[v.getAttribute('src')] = videosEnCours[v.getAttribute('src')] || []).push(v); });
     c.innerHTML = grouperBlocsExercices(s.exercices).map(indices => {
-      const contenu = indices.map(ei => renderSessionExerciceBlocHTML(s.exercices[ei], ei)).join('');
+      const contenu = indices.map(ei => `<div class="exo-swipe" data-ei="${ei}">
+        <div class="exo-swipe-fond exo-swipe-fond--remplacer" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4" /><path d="M3 11v-1a4 4 0 0 1 4-4h14" /><path d="m7 22-4-4 4-4" /><path d="M21 13v1a4 4 0 0 1-4 4H3" /></svg> Remplacer</div>
+        <div class="exo-swipe-fond exo-swipe-fond--suppr" aria-hidden="true">Retirer <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></div>
+        ${renderSessionExerciceBlocHTML(s.exercices[ei], ei)}
+      </div>`).join('');
       return indices.length > 1
         ? `<div class="session-superset-bloc"><div class="session-superset-titre"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg> Superset — enchaîne les exercices sans repos entre eux</div>${contenu}</div>`
         : contenu;
@@ -17232,6 +17258,7 @@ function renderSessionModal() {
   }
   document.getElementById('session-notes').value = s.notes || '';
   initSwipeSeries('session-exercices-container');
+  initSwipeExercices('session-exercices-container');
 }
 /* Carte du corps de la séance en cours : chaque série cochée colore le
    muscle travaillé (plein pour le groupe principal, à moitié pour les
@@ -17427,8 +17454,6 @@ function renderSessionExerciceBlocHTML(exo, ei) {
           </div>
           <div style="display:flex; gap:4px; align-items:center;">
             <button type="button" class="btn-icone${exo.notes ? ' btn-note-active' : ''}" onclick="basculerNoteExerciceSession(${ei})" aria-label="Note sur cet exercice" title="Note sur cet exercice"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" /></svg></button>
-            <button type="button" class="btn-icone" onclick="remplacerExerciceSession(${ei})" aria-label="Remplacer cet exercice" title="Remplacer cet exercice (pour cette séance uniquement)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m17 2 4 4-4 4" /><path d="M3 11v-1a4 4 0 0 1 4-4h14" /><path d="m7 22-4-4 4-4" /><path d="M21 13v1a4 4 0 0 1-4 4H3" /></svg></button>
-            <button class="btn-delete" onclick="retirerExerciceSession(${ei})" aria-label="Retirer l'exercice">&times;</button>
           </div>
         </div>
       </div>
@@ -17685,6 +17710,69 @@ function initSwipeSeries(conteneurId) {
   };
   c.addEventListener('pointerup', finGlissement);
   c.addEventListener('pointercancel', finGlissement);
+}
+let swipeExo = null;
+let swipeExoVientDeGlisser = false;
+function initSwipeExercices(conteneurId) {
+  const c = document.getElementById(conteneurId);
+  if (!c || c.dataset.swipeExoInit) return;
+  c.dataset.swipeExoInit = '1';
+  const SEUIL = () => Math.min(120, c.clientWidth * 0.3);
+  c.addEventListener('pointerdown', (e) => {
+    const zone = e.target.closest('.exo-swipe');
+    // Seulement depuis l'en-tête de l'exercice (vignette, nom), jamais
+    // depuis un champ ou une ligne de série.
+    if (!zone || !e.target.closest('.session-exo-entete') || e.target.closest('input, textarea, .serie-ligne')) return;
+    swipeExo = { zone, bloc: zone.querySelector('.session-exo-bloc'), x0: e.clientX, y0: e.clientY, dx: 0, horizontal: false, pointerId: e.pointerId };
+  });
+  c.addEventListener('pointermove', (e) => {
+    const st = swipeExo;
+    if (!st || e.pointerId !== st.pointerId) return;
+    const dx = e.clientX - st.x0, dy = e.clientY - st.y0;
+    if (!st.horizontal) {
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+      if (Math.abs(dy) > Math.abs(dx)) { swipeExo = null; return; }
+      st.horizontal = true;
+      st.zone.classList.add('en-glissement');
+      try { st.zone.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+    // Un peu de résistance au-delà du seuil, comme un élastique.
+    const seuil = SEUIL();
+    const abs = Math.abs(dx);
+    st.dx = Math.sign(dx) * (abs <= seuil ? abs : seuil + (abs - seuil) * 0.35);
+    st.bloc.style.transform = `translateX(${st.dx}px)`;
+    st.zone.classList.toggle('vers-gauche', st.dx < 0);
+    st.zone.classList.toggle('vers-droite', st.dx > 0);
+    st.zone.classList.toggle('au-seuil', Math.abs(st.dx) >= seuil);
+  });
+  const fin = (e) => {
+    const st = swipeExo;
+    if (!st || e.pointerId !== st.pointerId) return;
+    swipeExo = null;
+    if (!st.horizontal) return;
+    swipeExoVientDeGlisser = true;
+    setTimeout(() => { swipeExoVientDeGlisser = false; }, 60);
+    const ei = Number(st.zone.dataset.ei);
+    const declenche = Math.abs(st.dx) >= SEUIL() && e.type === 'pointerup';
+    const revenir = () => {
+      st.zone.classList.remove('en-glissement', 'au-seuil');
+      st.bloc.style.transform = '';
+      setTimeout(() => st.zone.classList.remove('vers-gauche', 'vers-droite'), 250);
+    };
+    if (declenche && st.dx < 0) {
+      // Reste ouvert le temps de la confirmation, puis revient si annulé.
+      setTimeout(() => { retirerExerciceSession(ei); if (document.body.contains(st.zone)) revenir(); }, 30);
+    } else if (declenche && st.dx > 0) {
+      revenir();
+      remplacerExerciceSession(ei);
+    } else {
+      revenir();
+    }
+  };
+  c.addEventListener('pointerup', fin);
+  c.addEventListener('pointercancel', fin);
+  // Un glissement ne doit pas aussi « cliquer » (ouvrir la fiche, déplier).
+  c.addEventListener('click', (e) => { if (swipeExoVientDeGlisser) { e.stopPropagation(); e.preventDefault(); } }, true);
 }
 function refermerLigneSerie(ligne) {
   ligne.style.transform = '';
