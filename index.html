@@ -16804,17 +16804,29 @@ const ZONES_VOLUME = new Proxy(ZONES_VOLUME_DEFAUT, {
 // Libellés en mots simples ; le sigle d'origine (MV, MEV…) n'apparaît plus
 // que discrètement dans la légende, pour qui le connaît.
 const ZONES_INFO = {
-  sous: { abbr: 'Peu', sigle: '', nom: 'Trop peu', court: 'Trop peu', desc: 'Pas assez pour garder ton muscle : il risque de fondre doucement.', couleur: '#4f7cff' },
-  mv: { abbr: 'Entr.', sigle: 'MV', nom: 'Entretien', court: 'Entretien', desc: "Tu gardes ton muscle sans vraiment en gagner. Utile pour une semaine légère, ou pour un muscle qui n'est pas ta priorité.", couleur: '#34c759' },
-  mev: { abbr: 'Prog.', sigle: 'MEV', nom: 'Progression', court: 'Progression', desc: 'Assez pour que le muscle commence à se développer.', couleur: '#ffd60a' },
-  mav: { abbr: 'Idéal', sigle: 'MAV', nom: 'Zone idéale', court: 'Zone idéale', desc: "Le meilleur rapport effort / résultat : c'est là que tu progresses le plus.", couleur: '#ff9f0a' },
-  mrv: { abbr: 'Trop', sigle: 'MRV', nom: 'Trop', court: 'Trop', desc: 'Plus que ce que ton corps arrive à récupérer : fatigue, et risque de stagner ou même de régresser.', couleur: '#ff453a' }
+  sous: { abbr: 'Peu', sigle: '', nom: 'Trop peu', court: 'Trop peu', desc: 'Pas assez pour garder ton muscle : il risque de fondre doucement.' },
+  mv: { abbr: 'Entr.', sigle: 'MV', nom: 'Entretien', court: 'Entretien', desc: "Tu gardes ton muscle sans vraiment en gagner. Utile pour une semaine légère, ou pour un muscle qui n'est pas ta priorité." },
+  mev: { abbr: 'Prog.', sigle: 'MEV', nom: 'Progression', court: 'Progression', desc: 'Assez pour que le muscle commence à se développer.' },
+  mav: { abbr: 'Idéal', sigle: 'MAV', nom: 'Zone idéale', court: 'Zone idéale', desc: "Le meilleur rapport effort / résultat : c'est là que tu progresses le plus." },
+  mrv: { abbr: 'Trop', sigle: 'MRV', nom: 'Trop', court: 'Trop', desc: 'Plus que ce que ton corps arrive à récupérer : fatigue, et risque de stagner ou même de régresser.' }
 };
 const ORDRE_ZONES = ['mv', 'mev', 'mav', 'mrv'];
-// Couleur pour du TEXTE : le jaune vif de « Progression » se lit mal sur
-// fond clair, on le fonce ; les barres gardent la couleur vive.
+/* Couleurs des zones, de « pas grand-chose » à « danger » : gris (trop
+   peu) → bleu (entretien) → vert-jaune clair (progression) → vert profond
+   (zone idéale) → rouge (trop). Les deux verts sont volontairement très
+   éloignés en clarté, et le vert idéal tire vers l'émeraude pour rester
+   distinct du rouge, daltoniens compris. Une version par thème. */
+const COULEURS_ZONES = {
+  clair: { sous: '#9aa3b2', mv: '#4f7cff', mev: '#b4d334', mav: '#0e9f6e', mrv: '#ff453a' },
+  sombre: { sous: '#6b7385', mv: '#4f7cff', mev: '#c5e34a', mav: '#10b981', mrv: '#ff453a' }
+};
+// Pour du TEXTE sur fond clair, des teintes plus foncées (lisibilité).
+const COULEURS_TEXTE_ZONES_CLAIR = { sous: '#6b7280', mv: '#3b63e0', mev: '#6b8500', mav: '#0b8a5f', mrv: '#e0362b' };
+Object.keys(ZONES_INFO).forEach(cle => Object.defineProperty(ZONES_INFO[cle], 'couleur', {
+  get: () => COULEURS_ZONES[themeClairActif() ? 'clair' : 'sombre'][cle], enumerable: true
+}));
 function couleurTexteZone(cle) {
-  return cle === 'mev' && themeClairActif() ? '#a68400' : ZONES_INFO[cle].couleur;
+  return themeClairActif() ? COULEURS_TEXTE_ZONES_CLAIR[cle] : ZONES_INFO[cle].couleur;
 }
 
 function cleZoneVolume(groupe, series) {
