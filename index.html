@@ -1863,6 +1863,7 @@
     /* Jauge de volume : une barre en 5 tronçons (sous le maintien, MV, MEV,
        MAV, MRV) proportionnels aux seuils du muscle, remplie jusqu'au total
        de la semaine, avec un curseur lumineux à la couleur de la zone atteinte. */
+    .zones-sigle { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.5px; color: var(--text-muted); border: 1px solid var(--verre-brd); border-radius: 6px; padding: 0 5px; margin-left: 4px; }
     .zone-barre { position: relative; display: flex; gap: 3px; height: 10px; margin: 8px 0 8px; }
     .zone-seg { position: relative; height: 100%; border-radius: 99px; overflow: hidden; }
     .zone-seg i { position: absolute; inset: 0; opacity: 0.18; }
@@ -2233,7 +2234,7 @@
     .tempo-ligne .plage-groupe { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
     .tempo-ligne input.plage-input { width: 70px; letter-spacing: 1px; }
     .zones-reglage-entete, .zones-reglage-ligne { display: grid; grid-template-columns: minmax(0, 1fr) repeat(4, 46px) 26px; gap: 5px; align-items: center; }
-    .zones-reglage-entete { font-size: 0.64rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+    .zones-reglage-entete { font-size: 0.6rem; font-weight: 800; letter-spacing: 0; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
     .zones-reglage-entete span:not(:first-child) { text-align: center; }
     .zones-reglage-ligne { padding: 5px 0; border-bottom: 1px solid var(--verre-brd); }
     .zones-reglage-ligne > span { font-size: 0.82rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -4020,8 +4021,8 @@
       <button type="button" onclick="choisirOngletReglagesMuscu('increments')" aria-pressed="false">Charges</button>
     </div>
     <div id="muscu-reglages-zones">
-      <p class="note note-explicative" style="margin-top:0;">Séries de travail par semaine à partir desquelles chaque zone commence. Les valeurs par défaut conviennent à la plupart des gens : ajuste un muscle si ton expérience te dit qu'il progresse avec moins, ou récupère mal avec plus.</p>
-      <div class="zones-reglage-entete"><span>Muscle</span><span>MV</span><span>MEV</span><span>MAV</span><span>MRV</span><span></span></div>
+      <p class="note note-explicative" style="margin-top:0;">Nombre de séries par semaine à partir duquel commence chaque zone : entretien, progression, zone idéale, et « trop ». Les valeurs par défaut conviennent à la plupart des gens : ajuste un muscle si ton expérience te dit qu'il progresse avec moins, ou récupère mal avec plus.</p>
+      <div class="zones-reglage-entete"><span>Muscle</span><span title="Entretien">Entret.</span><span title="Progression">Progr.</span><span title="Zone idéale">Idéal</span><span title="Trop">Trop</span><span></span></div>
       <div id="zones-reglage-liste"></div>
       <p class="note ia-prog-erreur" id="zones-reglage-erreur"></p>
       <button type="button" class="btn btn-secondaire" style="margin-top:10px;" onclick="reinitialiserZonesPerso()">Revenir aux valeurs par défaut</button>
@@ -4419,8 +4420,8 @@
         <span>2–3 jours : <i>Full body</i> (tout le corps à chaque séance). 4 jours : <i>Haut / Bas</i>. 5–6 jours : <i>Push / Pull / Legs</i>. Crée un programme par type de séance (ex. « Haut A », « Bas A »).</span></li>
       <li><b>4 à 7 exercices par séance.</b>
         <span>Commence par les gros mouvements polyarticulaires (squat, développé, rowing, soulevé de terre, tractions), quand tu es frais ; termine par l'isolation (curl, élévations latérales, extensions…).</span></li>
-      <li><b>Vise le volume maximal adaptatif (MAV) pour chaque muscle.</b>
-        <span>Commence ton cycle près du volume minimal effectif (MEV), puis monte vers le MAV sans dépasser le volume maximal récupérable (MRV) : environ 10 à 20 séries par muscle et par semaine, réparties sur 2 séances ou plus ; 2 à 4 séries par exercice. Le suivi est automatique dans Statistiques › Muscu › Zones, et en haut de l'écran pendant la séance.</span></li>
+      <li><b>Vise la « zone idéale » pour chaque muscle.</b>
+        <span>Commence ton cycle dans la zone « progression », puis monte vers la zone idéale sans tomber dans « trop » : environ 10 à 20 séries par muscle et par semaine, réparties sur 2 séances ou plus ; 2 à 4 séries par exercice. Le suivi est automatique dans Statistiques › Muscu › Semaine, et en haut de l'écran pendant la séance.</span></li>
       <li><b>Choisis ta fourchette de répétitions.</b>
         <span>5–8 pour la force sur les gros mouvements, 8–12 pour la prise de muscle, 12–20 pour l'isolation. Arrête chaque série à 1–3 répétitions de l'échec.</span></li>
       <li><b>Repose-toi assez.</b>
@@ -9170,7 +9171,7 @@ const TOUR_MUSCU = [
   { ecran: 'seance', siSession: true, cible: '#session-entete', titre: 'En-tête de la séance',
     texte: () => "Le nom de la séance et le chrono, qui tourne depuis le début."
       + (musculationSessionActive && musculationSessionActive.demo ? " Ceci est une séance de démonstration : rien n'y est enregistré." : '') },
-  { ecran: 'seance', siSession: true, cible: '#session-haut', titre: 'Le volume de ta semaine', texte: "Une jauge par muscle : tes séries de travail de la semaine (MV maintien, MEV croissance, MAV zone idéale, MRV plafond). Le curseur montre où tu en es ; barre épaisse pour les muscles principaux de la séance, fine pour les secondaires. Le corps se colore pareil ; touche-le pour l'agrandir." },
+  { ecran: 'seance', siSession: true, cible: '#session-haut', titre: 'Le volume de ta semaine', texte: "Une jauge par muscle : tes séries de la semaine, de « trop peu » à « trop », en passant par l'entretien, la progression et la zone idéale. Le curseur montre où tu en es ; barre épaisse pour les muscles principaux de la séance, fine pour les secondaires. Le corps se colore pareil ; touche-le pour l'agrandir." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-prec', titre: 'Ta séance précédente', texte: "La colonne « Préc. » rappelle ce que tu as fait la dernière fois sur cette série. Touche-la pour reprendre ces valeurs, puis essaie de faire un peu mieux." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-num-btn', titre: 'Le type de série', texte: "Touche le numéro d'une série pour la marquer (Échauffement W, jamais comptée dans les jauges, Dégressif, Pyramidal, Échec) ou noter tes répétitions en réserve (RIR) : une série à 5+ en réserve ne compte pas dans le volume." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .tempo-ligne', titre: 'Le tempo', texte: "Quatre chiffres pour la vitesse de chaque phase : descente, pause en bas, montée, pause en haut (X = explosif). Le (i) explique tout, avec des exemples." },
@@ -14876,7 +14877,7 @@ function renderZonesMuscu(idCible) {
         const n = s[g] || 0;
         if (!n) return '<td style="opacity:0.35;">·</td>';
         const info = ZONES_INFO[cleZoneVolume(g, n)];
-        return `<td style="color:${info.couleur};"><b>${info.abbr}</b>${formatSeries(n)}</td>`;
+        return `<td style="color:${couleurTexteZone(cleZoneVolume(g, n))};"><b>${info.abbr}</b>${formatSeries(n)}</td>`;
       }).join('')}</tr>`).join('')}</tbody></table></div>`;
   }
   c.innerHTML = html;
@@ -16783,14 +16784,21 @@ const ZONES_VOLUME = new Proxy(ZONES_VOLUME_DEFAUT, {
     return perso ? { ...d, ...perso } : d;
   }
 });
+// Libellés en mots simples ; le sigle d'origine (MV, MEV…) n'apparaît plus
+// que discrètement dans la légende, pour qui le connaît.
 const ZONES_INFO = {
-  sous: { abbr: 'Bas', nom: 'Sous le volume de maintien', court: 'Sous le maintien', desc: 'Pas assez pour conserver ta masse musculaire', couleur: '#4f7cff' },
-  mv: { abbr: 'MV', nom: 'Volume de maintien', court: 'Maintien (MV)', desc: 'Le minimum pour conserver ta masse musculaire actuelle (récupération, deload)', couleur: '#34c759' },
-  mev: { abbr: 'MEV', nom: 'Volume minimal effectif', court: 'Minimal effectif (MEV)', desc: 'Le seuil le plus bas qui commence à stimuler une nouvelle croissance', couleur: '#ffd60a' },
-  mav: { abbr: 'MAV', nom: 'Volume maximal adaptatif', court: 'Maximal adaptatif (MAV)', desc: "La zone idéale (« zone d'or ») : la meilleure progression en force et en volume", couleur: '#ff9f0a' },
-  mrv: { abbr: 'MRV', nom: 'Volume maximal récupérable', court: 'Maximal récupérable (MRV)', desc: 'Le plafond que ton corps peut encaisser : au-delà, fatigue excessive, surmenage et régression', couleur: '#ff453a' }
+  sous: { abbr: 'Peu', sigle: '', nom: 'Trop peu', court: 'Trop peu', desc: 'Pas assez pour garder ton muscle : il risque de fondre doucement.', couleur: '#4f7cff' },
+  mv: { abbr: 'Entr.', sigle: 'MV', nom: 'Entretien', court: 'Entretien', desc: "Tu gardes ton muscle sans vraiment en gagner. Utile pour une semaine légère, ou pour un muscle qui n'est pas ta priorité.", couleur: '#34c759' },
+  mev: { abbr: 'Prog.', sigle: 'MEV', nom: 'Progression', court: 'Progression', desc: 'Assez pour que le muscle commence à se développer.', couleur: '#ffd60a' },
+  mav: { abbr: 'Idéal', sigle: 'MAV', nom: 'Zone idéale', court: 'Zone idéale', desc: "Le meilleur rapport effort / résultat : c'est là que tu progresses le plus.", couleur: '#ff9f0a' },
+  mrv: { abbr: 'Trop', sigle: 'MRV', nom: 'Trop', court: 'Trop', desc: 'Plus que ce que ton corps arrive à récupérer : fatigue, et risque de stagner ou même de régresser.', couleur: '#ff453a' }
 };
 const ORDRE_ZONES = ['mv', 'mev', 'mav', 'mrv'];
+// Couleur pour du TEXTE : le jaune vif de « Progression » se lit mal sur
+// fond clair, on le fonce ; les barres gardent la couleur vive.
+function couleurTexteZone(cle) {
+  return cle === 'mev' && themeClairActif() ? '#a68400' : ZONES_INFO[cle].couleur;
+}
 
 function cleZoneVolume(groupe, series) {
   const z = ZONES_VOLUME[groupe];
@@ -17059,7 +17067,7 @@ function modifierZonePerso(g, cle, valeur) {
   const err = document.getElementById('zones-reglage-erreur');
   const z = { ...ZONES_VOLUME[g], [cle]: Math.round(Number(valeur)) };
   if (!(z.mv >= 1 && z.mv < z.mev && z.mev < z.mav && z.mav < z.mrv && z.mrv <= 40)) {
-    err.textContent = `${GROUPES_MUSCULAIRES[g]} : les seuils doivent aller en augmentant (MV < MEV < MAV < MRV), de 1 à 40 séries.`;
+    err.textContent = `${GROUPES_MUSCULAIRES[g]} : les seuils doivent aller en augmentant (entretien < progression < zone idéale < trop), de 1 à 40 séries.`;
     rendreReglagesZones();
     return;
   }
@@ -17125,24 +17133,24 @@ function phraseProchaineZone(groupe, series) {
   const z = ZONES_VOLUME[groupe];
   if (series < z.mev) {
     const manque = Math.ceil(z.mev - series);
-    return manque + ' série' + (manque > 1 ? 's' : '') + ' pour atteindre le volume minimal effectif (MEV)';
+    return 'Encore ' + manque + ' série' + (manque > 1 ? 's' : '') + ' pour commencer à progresser';
   }
   if (series < z.mav) {
     const manque = Math.ceil(z.mav - series);
-    return 'La croissance commence : encore ' + manque + ' série' + (manque > 1 ? 's' : '') + ' pour la zone idéale (MAV)';
+    return 'Ça progresse : encore ' + manque + ' série' + (manque > 1 ? 's' : '') + ' pour la zone idéale';
   }
   if (series < z.mrv) {
     const reste = Math.ceil(z.mrv - series);
-    return 'Zone idéale : encore ' + reste + ' série' + (reste > 1 ? 's' : '') + ' avant le plafond récupérable (MRV)';
+    return 'Parfait : encore ' + reste + ' série' + (reste > 1 ? 's' : '') + ' de marge avant « trop »';
   }
-  return 'Plafond récupérable atteint : au-delà, fatigue excessive et risque de régression';
+  return 'Trop de séries : ton corps ne récupère plus bien, lève le pied cette semaine';
 }
 function ligneZoneHTML(groupe, series, compacte, secondaire) {
   const cle = cleZoneVolume(groupe, series);
   const info = ZONES_INFO[cle];
   return `<div class="zone-ligne${compacte ? ' zone-ligne--compacte' : ''}${secondaire ? ' zone-ligne--secondaire' : ''}">
     <div class="zone-ligne-tete"><span>${escapeHtml(GROUPES_MUSCULAIRES[groupe])}</span>
-      <span style="color:${info.couleur};">${info.court} · ${formatSeries(series)} série${series >= 2 ? 's' : ''}</span></div>
+      <span style="color:${couleurTexteZone(cle)};">${info.court} · ${formatSeries(series)} série${series >= 2 ? 's' : ''}</span></div>
     ${barreZoneHTML(groupe, series)}
     <div class="zone-ligne-note">${escapeHtml(phraseProchaineZone(groupe, series))}</div>
   </div>`;
@@ -17151,7 +17159,7 @@ function legendeZonesHTML() {
   return `<div class="zones-legende">${ORDRE_ZONES.map(k => {
     const i = ZONES_INFO[k];
     return `<div class="zones-legende-item" style="border-left-color:${i.couleur};">
-      <div><b style="color:${i.couleur};">(${i.abbr})</b> ${i.nom}</div><small>${i.desc}</small></div>`;
+      <div><b style="color:${couleurTexteZone(k)};">${i.nom}</b>${i.sigle ? ` <span class="zones-sigle">${i.sigle}</span>` : ''}</div><small>${i.desc}</small></div>`;
   }).join('')}</div>`;
 }
 
