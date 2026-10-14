@@ -1991,6 +1991,19 @@
     .zone-ligne--secondaire .zone-ligne-note { display: none; }
     .zone-ligne-note { font-size: 0.68rem; color: var(--text-muted); margin-top: 4px; }
     .zones-legende { display: grid; gap: 8px; margin: 4px 0 16px; }
+    /* Détail par faisceau sous la jauge d'un groupe (Stats › Muscu). */
+    .faisceaux { margin: -6px 0 16px; background: var(--verre-creux); border-radius: 12px; padding: 9px 11px; }
+    .faisceaux summary { font-size: 0.74rem; font-weight: 700; cursor: pointer; color: var(--text-muted); }
+    .faisceaux-alerte { color: #b26a00; }
+    [data-theme="dark"] .faisceaux-alerte { color: #ffb340; }
+    .faisceaux-corps { margin-top: 10px; }
+    .faisceau-ligne { margin: 0 0 9px; }
+    .faisceau-tete { display: flex; justify-content: space-between; gap: 8px; font-size: 0.72rem; font-weight: 600; margin-bottom: 4px; }
+    .faisceau-tete span:last-child { color: var(--text-muted); white-space: nowrap; }
+    .faisceau-barre { height: 6px; border-radius: 3px; background: var(--verre-lo); overflow: hidden; }
+    .faisceau-barre b { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+    .faisceaux .alerte-volume-seance { margin: 4px 0 8px; }
+    .faisceaux-note { font-size: 0.68rem; color: var(--text-muted); margin: 4px 0 0; }
     .zones-legende-item { background: var(--verre-creux); border-left: 3px solid; border-radius: 10px; padding: 8px 11px; font-size: 0.8rem; }
     .zones-legende-item small { display: block; color: var(--text-muted); font-size: 0.7rem; margin-top: 2px; }
     .zones-table-wrap { overflow-x: auto; margin: 0 0 16px; }
@@ -15682,11 +15695,67 @@ function renderStatsMuscu(dateDebut, dateFin) {
   renderForceMuscu('muscu-force-container');
 }
 
+/* Détail par faisceau sous la jauge d'un groupe (Stats › Muscu) : séries
+   estimées par faisceau, part du total et déséquilibres à surveiller. Pas
+   d'avis tant que le groupe a moins de SERIES_MIN_FAISCEAUX séries. */
+const SERIES_MIN_FAISCEAUX = 4;
+const RAPPEL_FAISCEAUX = {
+  pectoraux: 'incliné → haut, décliné et dips → bas, à plat → surtout le milieu',
+  epaules: 'développés et élévations frontales → antérieur, élévations latérales → latéral, oiseau et face pull → postérieur',
+  dos: 'tractions et tirages verticaux → largeur, rowings → épaisseur'
+};
+function alertesFaisceaux(groupe, f, total) {
+  const v = cle => f[cle] || 0;
+  const alertes = [];
+  if (total < SERIES_MIN_FAISCEAUX) return alertes;
+  if (groupe === 'epaules') {
+    if (v('delt_post') < v('delt_ant') * 0.5)
+      alertes.push('Le deltoïde postérieur reçoit moins de la moitié du travail de l\'antérieur (les développés pectoraux sollicitent aussi l\'antérieur). Ajoute de l\'oiseau ou du face pull : l\'épaule sera plus équilibrée et mieux protégée.');
+    if (v('delt_lat') < total * 0.2)
+      alertes.push('Le deltoïde latéral est peu ciblé, alors que c\'est lui qui élargit les épaules. Ajoute des élévations latérales.');
+  } else if (groupe === 'pectoraux') {
+    if (v('pec_haut') < total * 0.25)
+      alertes.push('Le haut des pectoraux est peu ciblé. Ajoute un développé ou un écarté incliné.');
+  } else if (groupe === 'dos') {
+    if (v('dos_largeur') < total * 0.35)
+      alertes.push('Il y a peu de tirages verticaux. Ajoute des tractions ou du tirage vertical pour la largeur du dos.');
+    if (v('dos_epaisseur') < total * 0.35)
+      alertes.push('Il y a peu de rowings. Ajoute du rowing pour l\'épaisseur du milieu du dos.');
+  }
+  return alertes;
+}
+function detailFaisceauxHTML(groupe, f) {
+  const liste = FAISCEAUX[groupe];
+  if (!liste) return '';
+  const total = liste.reduce((s, [cle]) => s + (f[cle] || 0), 0);
+  if (!(total > 0)) return '';
+  const alertes = alertesFaisceaux(groupe, f, total);
+  const lignes = liste.map(([cle, nom]) => {
+    const n = f[cle] || 0;
+    const part = n / total * 100;
+    return `<div class="faisceau-ligne">
+      <div class="faisceau-tete"><span>${escapeHtml(nom)}</span><span>${formatSeries(n)} série${arrondiSeries(n) >= 2 ? 's' : ''} · ${Math.round(part)} %</span></div>
+      <div class="faisceau-barre"><b style="width:${part.toFixed(1)}%;"></b></div>
+    </div>`;
+  }).join('');
+  const avis = alertes.length
+    ? alertes.map(t => `<div class="alerte-volume-seance" role="note">
+        <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
+        <span>${escapeHtml(t)}</span></div>`).join('')
+    : `<p class="faisceaux-note">${total >= SERIES_MIN_FAISCEAUX ? 'Répartition équilibrée cette semaine.' : 'Encore trop peu de séries pour juger l\'équilibre entre les faisceaux.'}</p>`;
+  return `<details class="faisceaux" data-groupe="${escapeHtml(groupe)}">
+    <summary>Détail par faisceau${alertes.length ? ` <span class="faisceaux-alerte">· ${alertes.length} point${alertes.length > 1 ? 's' : ''} à surveiller</span>` : ''}</summary>
+    <div class="faisceaux-corps">${lignes}${avis}
+      <p class="faisceaux-note">Estimation d'après le type de mouvement : ${escapeHtml(RAPPEL_FAISCEAUX[groupe])}.</p>
+    </div>
+  </details>`;
+}
 function renderZonesMuscu(idCible) {
   const c = document.getElementById(idCible);
   if (!c) return;
   const lundi = lundiDeLaSemaine(todayStr());
-  const semaine = seriesSemaine(lundi, false);
+  const faisceaux = {};
+  const semaine = seriesSemaine(lundi, false, null, faisceaux);
   const groupes = ORDRE_GROUPES.filter(g => ZONES_VOLUME[g]);
   const actifs = groupes.filter(g => semaine[g] > 0).sort((a, b) => semaine[b] - semaine[a]);
   const inactifs = groupes.filter(g => !(semaine[g] > 0));
@@ -15697,7 +15766,7 @@ function renderZonesMuscu(idCible) {
     ${corpsSVG(couleursZones(semaine), 'Zone atteinte par chaque muscle cette semaine')}
     <div style="height:12px;"></div>`;
   html += actifs.length
-    ? actifs.map(g => ligneZoneHTML(g, semaine[g])).join('')
+    ? actifs.map(g => ligneZoneHTML(g, semaine[g]) + detailFaisceauxHTML(g, faisceaux)).join('')
     : '<p class="note">Aucune série faite cette semaine pour l\'instant.</p>';
   if (inactifs.length) {
     html += `<details style="margin:0 0 14px;"><summary class="note" style="cursor:pointer; font-weight:700;">Muscles pas encore travaillés cette semaine (${inactifs.length})</summary>
@@ -17906,10 +17975,88 @@ function estSerieDeTravail(x, ref) {
   const repsPossibles = 30 * (ref / p - 1);
   return repsPossibles - r <= RIR_MAX_SERIE_TRAVAIL;
 }
+/* --- Faisceaux musculaires (pectoraux, épaules, dos) ---
+   Les fiches d'exercices ne donnent que le groupe musculaire. La part de
+   chaque faisceau est estimée selon le type de mouvement reconnu dans le
+   nom de l'exercice (biomécanique classique) : incliné → haut des pecs,
+   décliné / dips → bas ; élévation latérale → deltoïde latéral, oiseau /
+   face pull → postérieur, développés → antérieur ; tractions et tirages
+   verticaux → grand dorsal (largeur), rowings → milieu du dos (épaisseur).
+   Le nom français prime ; le nom anglais ne sert que s'il ne dit rien
+   (quelques traductions SmartWorkout se contredisent, ex. « Développé
+   Couché Incliné » / « Decline Bench Press »). Un mouvement non reconnu
+   est réparti entre les faisceaux. Les poids de chaque répartition font 1,
+   si bien que la somme des faisceaux retombe sur le total du groupe. */
+const FAISCEAUX = {
+  pectoraux: [['pec_haut', 'Haut (claviculaire)'], ['pec_milieu', 'Milieu (sternal)'], ['pec_bas', 'Bas (abdominal)']],
+  epaules: [['delt_ant', 'Deltoïde antérieur'], ['delt_lat', 'Deltoïde latéral'], ['delt_post', 'Deltoïde postérieur']],
+  dos: [['dos_largeur', 'Grand dorsal (largeur)'], ['dos_epaisseur', 'Milieu du dos (épaisseur)']]
+};
+function contient(n, ...mots) { return mots.some(m => n.includes(m)); }
+const REGLES_FAISCEAUX = {
+  pectoraux: n => {
+    if (contient(n, ' pompe', ' push up', ' pushup')) {
+      if (contient(n, 'declin', 'decline', 'pieds sureleves', 'feet elevated')) return { pec_haut: 0.6, pec_milieu: 0.4 };
+      if (contient(n, 'inclin', 'incline', 'mains sureleves', 'au mur', 'wall push')) return { pec_bas: 0.6, pec_milieu: 0.4 };
+    }
+    if (contient(n, 'haut vers le bas', 'haute vers', 'haute a basse', 'haut en bas', 'poulie haute', 'high to low', 'high low', 'poitrine basse')) return { pec_bas: 0.7, pec_milieu: 0.3 };
+    if (contient(n, 'bas vers le haut', 'basse vers', 'bas en haut', 'poulie basse', 'low to high', 'low cable')) return { pec_haut: 0.7, pec_milieu: 0.3 };
+    if (contient(n, 'declin', 'decline', 'dips', ' dip ')) return { pec_bas: 0.7, pec_milieu: 0.3 };
+    if (contient(n, 'inclin', 'incline', 'landmine', 'prise inversee', 'reverse grip')) return { pec_haut: 0.7, pec_milieu: 0.3 };
+    return null;
+  },
+  epaules: n => {
+    if (contient(n, 'oiseau', 'arriere', 'posterieur', 'face pull', 'tirage visage', 'tirage facial', 'reverse fly', 'rear delt', 'delt fly', 'butterfly inverse', 'ecarte inverse', 'ecartes inverses', 'powell', 'rotation externe', 'external rotation')
+      || (contient(n, 'elevation', 'raise') && contient(n, 'penche', 'bent over'))
+      || (contient(n, 'tirage', 'row') && contient(n, 'penche', 'bent over'))
+      || (contient(n, 'elevation') && contient(n, ' en t ')) || contient(n, ' t raise')) return { delt_post: 1 };
+    if (contient(n, ' laterale', ' lateraux', ' lateral ', 'menton', 'upright')) {
+      return contient(n, 'support', 'chest supported') ? { delt_post: 0.6, delt_lat: 0.4 } : { delt_lat: 0.8, delt_ant: 0.1, delt_post: 0.1 };
+    }
+    if (contient(n, 'en y ', ' y raise', ' y fly')) return { delt_lat: 0.5, delt_post: 0.5 };
+    return null;
+  },
+  epaulesAvant: n => {
+    if (contient(n, 'pallof')) return null;
+    if (contient(n, 'frontale', 'front raise')) return { delt_ant: 1 };
+    if (contient(n, 'arnold')) return { delt_ant: 0.6, delt_lat: 0.4 };
+    if (contient(n, 'developpe', 'press', 'militaire', 'pompe', 'push up', 'handstand', 'equilibre sur les mains', 'jerk', 'jete', 'thruster')) return { delt_ant: 0.75, delt_lat: 0.25 };
+    return null;
+  },
+  dos: n => {
+    if (contient(n, 'rowing', ' row ', 'rameur', 'rangee', 'tirage horizontal', 'tirage assis', 'tirage bas', 'poulie basse', 'retraction', 't bar', 'australien', 'australian', 'inverted',
+      'face pull', 'tirage visage', 'tirage facial', 'oiseau', 'reverse fly', 'rear delt', 'delt fly', 'laterale arriere', 'laterales arriere', 'butterfly inverse', 'powell', 'elevation en t', 'support pour la poitrine', 'support poitrine', 'high row')) return { dos_epaisseur: 0.7, dos_largeur: 0.3 };
+    if (contient(n, ' traction', ' tractions', 'pull up', 'pullup', 'chin up', 'chinup', 'tirage vertical', 'tirage poitrine', 'nuque', 'poulie haute', 'pulldown', 'pull down',
+      'pullover', 'pull over', 'bras tendus', 'straight arm', 'muscle up', 'lever', 'grimper de corde', 'rope climb', 'suspension', 'tirage incline')) return { dos_largeur: 0.8, dos_epaisseur: 0.2 };
+    return null;
+  }
+};
+function repartitionFaisceaux(exo, groupe) {
+  const noms = [exo.nom, exo.nomEn].map(t => ' ' + normaliserRecherche(t) + ' ');
+  const parNom = regle => { for (const n of noms) { const r = regle(n); if (r) return r; } return null; };
+  if (groupe === 'pectoraux') {
+    return parNom(REGLES_FAISCEAUX.pectoraux)
+      || (exo.groupe === 'epaules' ? { pec_haut: 1 } : { pec_milieu: 0.6, pec_haut: 0.2, pec_bas: 0.2 });
+  }
+  if (groupe === 'epaules') {
+    return parNom(REGLES_FAISCEAUX.epaules)
+      || (exo.groupe === 'pectoraux' || exo.groupe === 'triceps' ? { delt_ant: 1 } : null)
+      || (exo.groupe === 'dos' || exo.groupe === 'trapezes' ? { delt_post: 1 } : null)
+      || parNom(REGLES_FAISCEAUX.epaulesAvant)
+      || { delt_ant: 1 / 3, delt_lat: 1 / 3, delt_post: 1 / 3 };
+  }
+  if (groupe === 'dos') return parNom(REGLES_FAISCEAUX.dos) || { dos_largeur: 0.5, dos_epaisseur: 0.5 };
+  return null;
+}
+function ajouterFaisceaux(acc, exo, groupe, n) {
+  const r = FAISCEAUX[groupe] && repartitionFaisceaux(exo, groupe);
+  if (r) Object.keys(r).forEach(f => { acc[f] = (acc[f] || 0) + n * r[f]; });
+}
 /* Séries de travail par groupe pour une liste d'exercices (séance en cours
    ou entrée d'historique) : 1 pour le principal, 0,5 par secondaire.
-   ctx (facultatif) : { date, historique, cache } — date de la séance et
-   historique servant de repère de 1RM. */
+   ctx (facultatif) : { date, historique, cache, faisceaux } — date de la
+   séance, historique servant de repère de 1RM, et objet où cumuler les
+   séries par faisceau (pectoraux, épaules, dos). */
 function ajouterSeriesParGroupe(acc, exercices, ctx) {
   const date = (ctx && ctx.date) || todayStr();
   const historique = (ctx && ctx.historique) || musculationHistorique;
@@ -17920,9 +18067,16 @@ function ajouterSeriesParGroupe(acc, exercices, ctx) {
     const ref = reference1RMExercice(e.exerciceId, date, historique, exercices, cache);
     const n = (e.series || []).filter(x => estSerieDeTravail(x, ref)).length;
     if (!n) return;
-    if (ZONES_VOLUME[exo.groupe]) acc[exo.groupe] = (acc[exo.groupe] || 0) + n;
+    const faisceaux = ctx && ctx.faisceaux;
+    if (ZONES_VOLUME[exo.groupe]) {
+      acc[exo.groupe] = (acc[exo.groupe] || 0) + n;
+      if (faisceaux) ajouterFaisceaux(faisceaux, exo, exo.groupe, n);
+    }
     (exo.secondaires || []).forEach(g => {
-      if (g !== exo.groupe && ZONES_VOLUME[g]) acc[g] = (acc[g] || 0) + n * 0.5;
+      if (g !== exo.groupe && ZONES_VOLUME[g]) {
+        acc[g] = (acc[g] || 0) + n * 0.5;
+        if (faisceaux) ajouterFaisceaux(faisceaux, exo, g, n * 0.5);
+      }
     });
   });
   return acc;
@@ -17935,13 +18089,13 @@ function lundiDeLaSemaine(iso) {
   return isoLocale(d);
 }
 function decalerJours(iso, n) { const d = dateLocale(iso); d.setDate(d.getDate() + n); return isoLocale(d); }
-function seriesSemaine(lundi, inclureSessionActive, historique) {
+function seriesSemaine(lundi, inclureSessionActive, historique, faisceaux) {
   const dimanche = decalerJours(lundi, 6);
   const acc = {};
   const histo = historique || musculationHistorique;
   const cache = new Map();
-  histo.forEach(h => { if (h.date >= lundi && h.date <= dimanche) ajouterSeriesParGroupe(acc, h.exercices, { date: h.date, historique: histo, cache }); });
-  if (inclureSessionActive && musculationSessionActive) ajouterSeriesParGroupe(acc, musculationSessionActive.exercices, { date: todayStr(), historique: histo, cache });
+  histo.forEach(h => { if (h.date >= lundi && h.date <= dimanche) ajouterSeriesParGroupe(acc, h.exercices, { date: h.date, historique: histo, cache, faisceaux }); });
+  if (inclureSessionActive && musculationSessionActive) ajouterSeriesParGroupe(acc, musculationSessionActive.exercices, { date: todayStr(), historique: histo, cache, faisceaux });
   return acc;
 }
 

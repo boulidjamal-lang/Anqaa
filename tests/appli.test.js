@@ -281,6 +281,46 @@ test("un lien d'image SmartWorkout collé comme vidéo est remplacé par la vrai
   assert.ok(r.vignetteImg, 'une image inconnue s\'affiche comme photo');
 }));
 
+test('stats muscu : détail par faisceau et déséquilibres (pecs, épaules, dos)', () => avecAppli({}, async ({ page }) => {
+  const lire = () => page.evaluate(() => {
+    renderZonesMuscu('muscu-zones-container');
+    const res = {};
+    document.querySelectorAll('#muscu-zones-container details.faisceaux').forEach(d => {
+      res[d.dataset.groupe] = {
+        lignes: d.querySelectorAll('.faisceau-ligne').length,
+        alertes: [...d.querySelectorAll('.alerte-volume-seance')].map(a => a.textContent.trim())
+      };
+    });
+    return res;
+  });
+  // Semaine déséquilibrée : développé couché, développé militaire et tractions seulement.
+  await page.evaluate(() => {
+    allerA('stats'); choisirOngletStats('muscu');
+    const id = nom => { const e = toutesLesExercices().find(x => x.nom === nom); if (!e) throw new Error('exercice introuvable : ' + nom); return e.id; };
+    const series = n => Array.from({ length: n }, () => ({ poids: 50, reps: 8, fait: true, rir: 1 }));
+    window.ajouterSeanceTest = noms => {
+      musculationHistorique.unshift({ id: 'test-' + musculationHistorique.length, date: todayStr(), exercices: noms.map(nom => ({ exerciceId: id(nom), series: series(6) })) });
+    };
+    ajouterSeanceTest(['Développé couché avec barre', 'Développé épaules avec haltères', 'Tractions prise large']);
+  });
+  let r = await lire();
+  assert.deepEqual(Object.keys(r).sort(), ['dos', 'epaules', 'pectoraux']);
+  assert.deepEqual([r.pectoraux.lignes, r.epaules.lignes, r.dos.lignes], [3, 3, 2]);
+  const toutes = Object.values(r).flatMap(g => g.alertes).join(' | ');
+  for (const motif of [/postérieur/, /latéral/, /haut des pectoraux/i, /rowing/i]) assert.match(toutes, motif);
+  // La somme des faisceaux retombe sur le total du groupe.
+  const ecart = await page.evaluate(() => {
+    const f = {};
+    const s = seriesSemaine(lundiDeLaSemaine(todayStr()), false, null, f);
+    return Object.keys(FAISCEAUX).map(g => Math.abs(FAISCEAUX[g].reduce((t, [c]) => t + (f[c] || 0), 0) - (s[g] || 0)));
+  });
+  assert.ok(ecart.every(e => e < 1e-9), 'faisceaux ≠ total du groupe : ' + ecart);
+  // Compléter : incliné, rowing, oiseau, élévations latérales → plus d'alerte.
+  await page.evaluate(() => ajouterSeanceTest(['Développé incliné avec haltères', 'Rowing barre buste penché', 'Reverse fly à la poulie', 'Élévation latérale avec haltères']));
+  r = await lire();
+  assert.deepEqual(Object.values(r).flatMap(g => g.alertes), []);
+}));
+
 test('les statistiques s\'affichent sur chaque onglet et chaque période', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     const t = todayStr();
