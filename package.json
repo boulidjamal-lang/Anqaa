@@ -1,0 +1,12 @@
+{
+  "name": "anqaa",
+  "private": true,
+  "description": "Anqā : appli nutrition, musculation et cardio (un seul fichier index.html, servi par GitHub Pages).",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 tests/appli.test.js"
+  },
+  "devDependencies": {
+    "chart.js": "4.5.1",
+    "playwright-core": "1.56.1"
+  }
+}

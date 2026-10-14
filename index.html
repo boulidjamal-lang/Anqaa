@@ -67,9 +67,14 @@
        casser le scanner du jour au lendemain, sans aucun changement de
        notre côté. -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js et Supabase figés eux aussi, pour la même raison : sans
+       version exacte, le CDN sert la dernière parue, et une nouvelle version
+       majeure (ou une mineure mal testée) pouvait casser tous les graphiques
+       ou la synchronisation sans aucun changement de notre côté. Pour mettre
+       à jour : changer le numéro ici, puis lancer les tests (tests/). -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
   <!-- Synchronisation facultative : l'application fonctionne entièrement sans. -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3"></script>
 
   <style>
     /* =====================================================================
