@@ -1785,11 +1785,13 @@
 
     /* --- Vignette d'exercice : photo (base libre) ou schéma corps de repli --- */
     .exo-ligne-vignette {
-      width: 44px; height: 44px; flex: none; border-radius: 11px; overflow: hidden;
+      position: relative; width: 44px; height: 44px; flex: none; border-radius: 11px; overflow: hidden;
       background: var(--verre-fort); border: 0;
       display: flex; align-items: center; justify-content: center;
     }
     .exo-ligne-vignette img, .exo-ligne-vignette video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .exo-ligne-vignette .vignette-video { position: absolute; inset: 0; opacity: 0; transition: opacity 0.2s; background: transparent; }
+    .exo-ligne-vignette .vignette-video.prete { opacity: 1; }
     .exo-ligne-vignette svg { width: 78%; height: 78%; }
 
     /* --- Fiche exercice : grande image (photo qui alterne comme un GIF, ou
@@ -14935,44 +14937,60 @@ function medaillonExercice(exo, anime) {
   if (v && v.video) return videoVignetteHTML(v.video, null, anime);
   return svgSilhouetteGroupe(exo.groupe);
 }
-/* Mini-vidéos des listes. Chaque vignette est d'abord une image ; quand
-   elle reste visible VIGNETTE_DELAI_MS (défilement arrêté), elle devient
-   une vidéo en boucle, et redevient une image en sortant de l'écran. Au
-   plus VIGNETTES_MAX vidéos jouent à la fois (les plus anciennes repassent
-   en image) : un iPhone ne décode que quelques vidéos sans saccader. */
+/* Mini-vidéos des listes. Chaque vignette reste une image ; quand elle est
+   visible depuis VIGNETTE_DELAI_MS (défilement arrêté), une mini-vidéo se
+   pose PAR-DESSUS, invisible jusqu'à sa première image affichée, puis
+   apparaît en fondu : jamais de carré noir pendant le chargement. Au plus
+   VIGNETTES_MAX vidéos à la fois (un iPhone n'en décode que quelques-unes
+   sans saccader) : les vignettes visibles en trop restent des images et
+   prennent une place libérée quand une vidéo sort de l'écran. Une vidéo
+   n'est jamais retirée tant qu'elle est visible — sinon la vignette
+   chassée, toujours à l'écran, réclamait aussitôt une vidéo et en chassait
+   une autre, en boucle (clignotement). */
 const VIGNETTES_MAX = 4, VIGNETTE_DELAI_MS = 350;
-const vignettesActives = [];
+const vignettesActives = new Set();   // images couvertes par leur vidéo
+const vignettesEnAttente = new Set(); // images visibles, sans place libre
 function vignetteEnVideo(img) {
-  if (!img.isConnected || img.tagName !== 'IMG') return;
-  while (vignettesActives.length >= VIGNETTES_MAX) vignetteEnImage(vignettesActives[0]);
+  if (!img.isConnected || img._video || vignettesActives.size >= VIGNETTES_MAX) {
+    if (img.isConnected && !img._video) vignettesEnAttente.add(img);
+    return;
+  }
+  vignettesEnAttente.delete(img);
   const v = document.createElement('video');
-  v.className = 'vignette-differee vignette-active';
+  v.className = 'vignette-video';
   v.muted = true; v.loop = true; v.playsInline = true; v.autoplay = true;
   ['muted', 'loop', 'playsinline', 'autoplay', 'disablepictureinpicture', 'disableremoteplayback'].forEach(a => v.setAttribute(a, ''));
   v.setAttribute('aria-hidden', 'true');
-  v.poster = img.src;
-  v.style.background = '#2b2c30';
-  v._image = img;
+  v.addEventListener('playing', () => v.classList.add('prete'), { once: true });
   v.src = img.dataset.video;
-  img.replaceWith(v);
-  vignettesActives.push(v);
-  if (observateurVignettes) observateurVignettes.observe(v);
+  img.after(v);
+  img._video = v;
+  vignettesActives.add(img);
   const p = v.play();
   if (p && p.catch) p.catch(() => {});
 }
-function vignetteEnImage(v) {
-  const k = vignettesActives.indexOf(v);
-  if (k >= 0) vignettesActives.splice(k, 1);
-  if (observateurVignettes) observateurVignettes.unobserve(v);
-  try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {}
-  if (v.isConnected && v._image) { v.replaceWith(v._image); if (observateurVignettes) observateurVignettes.observe(v._image); }
+function vignetteSansVideo(img) {
+  const v = img._video;
+  img._video = null;
+  vignettesActives.delete(img);
+  if (v) { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} v.remove(); }
+}
+function promouvoirVignetteEnAttente() {
+  for (const img of vignettesEnAttente) {
+    vignettesEnAttente.delete(img);
+    if (img.isConnected) { vignetteEnVideo(img); return; }
+  }
 }
 const observateurVignettes = typeof IntersectionObserver === 'function' ? new IntersectionObserver(entrees => {
   entrees.forEach(en => {
-    const el = en.target;
-    if (el.tagName === 'VIDEO') { if (!en.isIntersecting) vignetteEnImage(el); return; }
-    clearTimeout(el._attente);
-    if (en.isIntersecting) el._attente = setTimeout(() => vignetteEnVideo(el), VIGNETTE_DELAI_MS);
+    const img = en.target;
+    clearTimeout(img._attente);
+    if (en.isIntersecting) {
+      img._attente = setTimeout(() => vignetteEnVideo(img), VIGNETTE_DELAI_MS);
+    } else {
+      vignettesEnAttente.delete(img);
+      if (img._video) { vignetteSansVideo(img); promouvoirVignetteEnAttente(); }
+    }
   });
 }, { threshold: 0.6 }) : null;
 function observerVignettesVideo(racine) {
@@ -14981,8 +14999,11 @@ function observerVignettesVideo(racine) {
     img.dataset.observee = '1';
     observateurVignettes.observe(img);
   });
-  // Vidéos dont la liste a été remplacée : on libère leur place.
-  for (let k = vignettesActives.length - 1; k >= 0; k--) if (!vignettesActives[k].isConnected) vignettesActives.splice(k, 1);
+  // Listes remplacées (nouvelle recherche, fermeture) : on libère leurs places.
+  let libere = false;
+  for (const img of [...vignettesActives]) if (!img.isConnected) { vignetteSansVideo(img); libere = true; }
+  for (const img of [...vignettesEnAttente]) if (!img.isConnected) vignettesEnAttente.delete(img);
+  if (libere) promouvoirVignetteEnAttente();
 }
 if (typeof MutationObserver === 'function') {
   let attenteVignettes = null;

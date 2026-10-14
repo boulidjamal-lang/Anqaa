@@ -235,6 +235,14 @@ test('la bibliothèque s\'ouvre vite et ne lance que quelques vidéos', () => av
   const apres = await page.evaluate(() => ({ lignes: document.querySelectorAll('#picker-liste-exercices .exo-ligne').length, videos: document.querySelectorAll('#picker-liste-exercices video').length }));
   assert.ok(apres.lignes > r.lignes, 'la suite se charge en défilant');
   assert.ok(apres.videos <= 4, `${apres.videos} vidéos à la fois`);
+  // Liste immobile : plus aucune vidéo créée ni retirée (pas de clignotement)
+  const remous = await page.evaluate(() => new Promise(ok => {
+    let n = 0;
+    const obs = new MutationObserver(ms => ms.forEach(m => [...m.addedNodes, ...m.removedNodes].forEach(x => { if (x.tagName === 'VIDEO' || x.tagName === 'IMG') n++; })));
+    obs.observe(document.getElementById('picker-liste-exercices'), { childList: true, subtree: true });
+    setTimeout(() => { obs.disconnect(); ok(n); }, 2500);
+  }));
+  assert.equal(remous, 0, `${remous} vignettes remplacées alors que la liste ne bouge pas`);
   // La recherche filtre toujours toute la base
   await page.fill('#picker-recherche', 'développé couché');
   await page.waitForTimeout(300);
