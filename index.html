@@ -1303,6 +1303,12 @@
     /* --- FORMULAIRES --- */
     .input-group { margin-bottom: 15px; }
     .input-group label { display: block; font-weight: 700; font-size: 0.72rem; margin-bottom: 6px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+    /* Safari iOS dessine ses champs à sa façon (ombre intérieure en haut,
+       coins et marges internes à lui) : à côté de nos cases, les chiffres
+       n'étaient plus alignés d'une case à l'autre. On repart de zéro. */
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]), textarea {
+      -webkit-appearance: none; appearance: none;
+    }
     .input-group input, .input-group select, .input-group textarea, #modal-cardio input {
       width: 100%; padding: 12px 15px; min-height: 44px;
       background: var(--verre-creux);
@@ -2032,11 +2038,19 @@
          thème sombre) fait pour un fond flouté, pas pour masquer quoi que
          ce soit — le rouge transparaissait complètement à travers. Même
          composition opaque que .off-liste. */
-      background: linear-gradient(var(--barre), var(--barre)), var(--bg);
+      background: transparent;
       border-radius: 10px; text-align: center;
       touch-action: pan-y; transition: transform 0.18s ease;
     }
     .serie-ligne.en-glissement { transition: none; }
+    /* Le fond rouge « Supprimer » n'existe que pendant le glissement (ou
+       ligne ouverte) : le reste du temps la ligne est transparente. Avec un
+       fond opaque permanent, chaque série formait une bande grise autour de
+       ses cases (très visible sur iPhone, où la carte est en verre flouté),
+       et le rouge débordait d'un pixel aux coins arrondis. Opaque seulement
+       quand elle glisse au-dessus du rouge. */
+    .serie-ligne.en-glissement, .serie-ligne.ouverte { background: linear-gradient(var(--barre), var(--barre)), var(--bg); }
+    .serie-ligne-fenetre:not(:has(.serie-ligne.en-glissement, .serie-ligne.ouverte)) .serie-ligne-suppr { visibility: hidden; }
     /* "Ajouter une série" : le seul bouton restant sous la liste (le
        glisser a remplacé "– Série", voir plus haut) — pleine largeur, sans
        bordure ni relief, plus bas qu'un .btn-icone standard. display:flex +
