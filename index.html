@@ -2644,12 +2644,12 @@
       <div id="seance-mode-muscu">
       <div id="seance-lancer">
       <div id="programmes-liste-container"></div>
-      <div style="display:flex; gap:8px; margin-top:12px; margin-bottom:6px;">
+      <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-top:12px; margin-bottom:6px;" onclick="ouvrirBibliotheque()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></svg> Parcourir les exercices</button>
+      <div style="display:flex; gap:8px; margin-bottom:6px;">
         <button class="btn btn-primary" style="flex:1; min-height:auto; padding:10px 8px; font-size:0.78rem;" onclick="ouvrirCreationProgramme()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Créer un programme</button>
-        <button class="btn btn-secondaire" style="flex:1; min-height:auto; padding:10px 8px; font-size:0.78rem;" onclick="demarrerSeanceLibre()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z" /></svg> Séance libre</button>
+        <button class="btn btn-secondaire" style="flex:1; min-height:auto; padding:10px 8px; font-size:0.78rem;" onclick="demarrerSeanceLibre()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z" /></svg> Séance vide</button>
       </div>
       </div>
-      <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-bottom:6px;" onclick="ouvrirBibliotheque()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></svg> Parcourir les exercices</button>
       <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-bottom:6px;" onclick="ouvrirAssistantProgrammeIA()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /><path d="M20 3v4" /><path d="M22 5h-4" /><path d="M4 17v2" /><path d="M5 18H3" /></svg> Créer un programme avec l'IA</button>
       <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-bottom:6px; background:transparent;" onclick="ouvrirModal('aide-routine-modal')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg> Comment créer une routine ?</button>
       <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-bottom:6px; background:transparent;" onclick="ouvrirGymbro()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> Gymbro : comparer mes séances</button>
@@ -9785,8 +9785,8 @@ const TOUR_MUSCU = [
   { ecran: 'seance', cible: '[onclick="ouvrirGymbro()"]', titre: 'Gymbro', texte: "Compare tes séances avec celles d'un ami grâce à son nom d'utilisateur." },
   { ecran: 'seance', cible: '#seance-lancer', titre: 'Lancer une séance',
     texte: () => (musculationSessionActive && !musculationSessionActive.demo
-      ? "Touche un programme, ou « Séance libre » pour choisir tes exercices au fil de l'eau. Suivant : on passe à ta séance en cours."
-      : "Touche un programme, ou « Séance libre » pour choisir tes exercices au fil de l'eau. Suivant : on lance une séance de démonstration.") },
+      ? "Touche un programme, ou « Séance vide » pour choisir tes exercices au fil de l'eau. Suivant : on passe à ta séance en cours."
+      : "Touche un programme, ou « Séance vide » pour choisir tes exercices au fil de l'eau. Suivant : on lance une séance de démonstration.") },
   // B. Pendant la séance (démonstration si aucune séance n'est en cours)
   { ecran: 'seance', siSession: true, cible: '#session-entete', titre: 'En-tête de la séance',
     texte: () => "Le nom de la séance et le chrono, qui tourne depuis le début."
@@ -15377,7 +15377,7 @@ function renderListeProgrammes() {
   if (!c) return;
   prechargerImagesProgrammes();
   if (!musculationProgrammes.length) {
-    c.innerHTML = '<div class="vide">Aucun programme pour l’instant. Crée ton premier programme, ou lance une séance libre.</div>';
+    c.innerHTML = '<div class="vide">Aucun programme pour l’instant. Crée ton premier programme, ou lance une séance vide.</div>';
     return;
   }
   c.innerHTML = musculationProgrammes.map(p => {
