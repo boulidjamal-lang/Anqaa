@@ -11528,7 +11528,7 @@ async function chargerStatsMuscuAdmin(utilisateur, nomAffiche) {
   try {
     const { data, error } = await supa.from('seances_musculation').select('donnees').eq('utilisateur', utilisateur);
     if (error) throw error;
-    const historique = (data || []).map(r => r.donnees).sort((a, b) => (Number(b.maj) || 0) - (Number(a.maj) || 0));
+    const historique = (data || []).map(r => r.donnees).filter(d => d && !d.supprime).sort((a, b) => (Number(b.maj) || 0) - (Number(a.maj) || 0));
     muscuContexteActuel = { historique, admin: true, utilisateur };
     renderStatsTotauxMuscu(historique, 'admin-muscu-totaux');
     renderChartSeancesParMois(historique, 'adminMuscuMoisChart', 'adminMuscuMoisChartInstance');
@@ -14150,23 +14150,40 @@ function fileSuppressionsMuscu() {
    côté serveur — sans quoi le prochain pull la rapporterait telle quelle,
    puisqu'elle n'existe simplement plus dans la collection locale à
    comparer. Mise en file pour résister à une suppression hors ligne. */
+/* Suppressions : au lieu d'effacer la ligne côté serveur (une autre copie
+   de l'appli — autre appareil, autre adresse du site — qui a encore
+   l'élément en mémoire le croyait alors jamais envoyé et le renvoyait : il
+   « revenait »), on y laisse une marque datée { supprime: true }. Chaque
+   copie qui la reçoit retire l'élément et ne le renvoie plus. Les marques
+   locales en attente d'envoi vivent dans MUSCU_TOMBES_LS. */
+const MUSCU_TOMBES_LS = 'mc_muscu_tombes_v1';
+function tombesMuscu() {
+  try { return JSON.parse(localStorage.getItem(MUSCU_TOMBES_LS)) || {}; } catch (e) { return {}; }
+}
+function enregistrerTombesMuscu(t) {
+  try { localStorage.setItem(MUSCU_TOMBES_LS, JSON.stringify(t)); } catch (e) {}
+}
 function ajouterSuppressionMuscu(table, id) {
-  const f = fileSuppressionsMuscu();
-  f.push({ table, id });
-  try { localStorage.setItem(MUSCU_SUPPR_LS, JSON.stringify(f.slice(-500))); } catch (e) {}
+  const t = tombesMuscu();
+  (t[table] = t[table] || {})[id] = Date.now();
+  enregistrerTombesMuscu(t);
   planifierSync();
 }
-async function viderSuppressionsMuscu(utilisateurId) {
+/* Contenu de la marque : garde une forme lisible par une ancienne version
+   de l'appli pas encore mise à jour (elle n'y verrait qu'un élément vide). */
+function donneesTombeMuscu(table, id) {
+  if (table === 'seances_musculation') return { id, supprime: true, date: '1970-01-01', exercices: [] };
+  if (table === 'exercices_perso_musculation') return { id, supprime: true, nom: '(supprimé)', groupe: 'autres', materiel: 'autre', perso: true };
+  return { id, supprime: true, nom: '(supprimé)', exercices: [] };
+}
+// Ancienne file de suppressions (effacement direct) : convertie en marques.
+async function viderSuppressionsMuscu() {
   const f = fileSuppressionsMuscu();
   if (!f.length) return;
-  const restantes = [];
-  for (const s of f) {
-    try {
-      const { error } = await supa.from(s.table).delete().eq('utilisateur', utilisateurId).eq('id', s.id);
-      if (error) throw error;
-    } catch (e) { restantes.push(s); }
-  }
-  try { localStorage.setItem(MUSCU_SUPPR_LS, JSON.stringify(restantes)); } catch (e) {}
+  const t = tombesMuscu();
+  f.forEach(x => { (t[x.table] = t[x.table] || {})[x.id] = Date.now(); });
+  enregistrerTombesMuscu(t);
+  try { localStorage.removeItem(MUSCU_SUPPR_LS); } catch (e) {}
 }
 
 /* Synchronise une collection locale (tableau d'objets avec id + maj) avec
@@ -14178,11 +14195,26 @@ async function syncCollectionMusculation(nomTable, utilisateurId, collectionLoca
   const distants = new Map();
   let changement = false;
   const bloque = id => nomTable === 'exercices_perso_musculation' && EXERCICES_SUPPRIMES.has(id);
+  const tombes = tombesMuscu();
+  const T = tombes[nomTable] || (tombes[nomTable] = {});
+  const tombesDistantes = new Map();
   (data || []).forEach(r => {
     if (bloque(r.id)) return;
     const m = Number(r.maj) || 0;
     distants.set(r.id, m);
     const idxLocal = collectionLocale.findIndex(x => x.id === r.id);
+    // Marque de suppression venue du serveur : on retire la copie locale
+    // (sauf si elle a été modifiée ici après la suppression).
+    if (r.donnees && r.donnees.supprime) {
+      tombesDistantes.set(r.id, m);
+      if (idxLocal !== -1 && (Number(collectionLocale[idxLocal].maj) || 0) <= m) { collectionLocale.splice(idxLocal, 1); changement = true; }
+      return;
+    }
+    // Supprimé ici après cette version distante : la marque part plus bas.
+    if (T[r.id] && T[r.id] >= m) {
+      if (idxLocal !== -1) { collectionLocale.splice(idxLocal, 1); changement = true; }
+      return;
+    }
     const mLocal = idxLocal === -1 ? -1 : (Number(collectionLocale[idxLocal].maj) || 0);
     if (r.donnees && m > mLocal) {
       const fusionne = Object.assign({}, r.donnees, { id: r.id, maj: m });
@@ -14192,21 +14224,30 @@ async function syncCollectionMusculation(nomTable, utilisateurId, collectionLoca
   });
   const aPousser = collectionLocale
     .filter(x => {
-      if (bloque(x.id)) return false;
+      if (bloque(x.id) || (T[x.id] && T[x.id] >= (Number(x.maj) || 0))) return false;
       const m = Number(x.maj) || 0;
       if (!distants.has(x.id)) return true;
       return m > distants.get(x.id);
     })
     .map(x => ({ utilisateur: utilisateurId, id: x.id, donnees: x, maj: Number(x.maj) || 1 }));
+  // Marques locales à envoyer (sauf si le serveur a déjà la même ou plus récente).
+  Object.keys(T).forEach(id => {
+    if (tombesDistantes.has(id) && tombesDistantes.get(id) >= T[id]) return;
+    aPousser.push({ utilisateur: utilisateurId, id, donnees: donneesTombeMuscu(nomTable, id), maj: T[id] });
+  });
   for (let i = 0; i < aPousser.length; i += 200) {
     const { error: e2 } = await supa.from(nomTable).upsert(aPousser.slice(i, i + 200), { onConflict: 'utilisateur,id' });
     if (e2) throw e2;
   }
+  // Envoyées : plus besoin de les garder en attente (la marque reste sur le
+  // serveur, c'est elle qui fait foi pour toutes les copies).
+  tombes[nomTable] = {};
+  enregistrerTombesMuscu(tombes);
   return changement;
 }
 
 async function synchroniserMuscu(utilisateurId) {
-  await viderSuppressionsMuscu(utilisateurId);
+  await viderSuppressionsMuscu();
   const c1 = await syncCollectionMusculation('programmes_musculation', utilisateurId, musculationProgrammes);
   const c2 = await syncCollectionMusculation('seances_musculation', utilisateurId, musculationHistorique);
   const c3 = await syncCollectionMusculation('exercices_perso_musculation', utilisateurId, musculationExosPerso);
@@ -14244,7 +14285,7 @@ async function chargerExercicesCommunaute(utilisateurId) {
     const { data, error } = await supa.from('exercices_perso_musculation').select('id,utilisateur,donnees');
     if (error) throw error;
     exercicesCommunaute = (data || [])
-      .filter(r => r.utilisateur !== utilisateurId && r.donnees)
+      .filter(r => r.utilisateur !== utilisateurId && r.donnees && !r.donnees.supprime)
       .map(r => Object.assign({}, r.donnees, { id: r.id }));
     try { localStorage.setItem(MUSCU_EXOS_COMMUNAUTE_KEY, JSON.stringify(exercicesCommunaute)); } catch (e) {}
     if (document.getElementById('picker-exercices-modal')?.classList.contains('show')) rendrePickerExercices();
@@ -19141,7 +19182,7 @@ async function chargerExercicesAdmin() {
   try {
     const { data, error } = await supa.from('exercices_perso_musculation').select('id,utilisateur,donnees,maj');
     if (error) throw error;
-    const persoEtCommunaute = (data || []).map(r => ({
+    const persoEtCommunaute = (data || []).filter(r => !(r.donnees && r.donnees.supprime)).map(r => ({
       id: r.id,
       utilisateur: r.utilisateur,
       email: (adminComptes[r.utilisateur] && adminComptes[r.utilisateur].email) || String(r.utilisateur).slice(0, 8),
