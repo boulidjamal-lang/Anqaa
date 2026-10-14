@@ -2230,8 +2230,10 @@
     .exo-en-programme-technique { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
     /* Tempo : saisie dans le programme, rappel en séance et dans l'historique. */
     .tempo-ligne { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-    label.label-icone { display: inline-flex; align-items: center; justify-content: center; width: 24px; flex: 0 0 24px; margin: 0 2px 0 0 !important; color: var(--text-muted); }
-    label.label-icone .icone-ligne { width: 22px; height: 22px; display: block; }
+    /* Métronome et cible : touchés, ils ouvrent l'aide (plus de bouton (i)). */
+    .label-icone { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex: 0 0 34px; margin: 0 -4px 0 -5px; padding: 0; border: 0; border-radius: 10px; background: none; color: var(--text-muted); cursor: pointer; }
+    .label-icone:active { background: var(--verre); }
+    .label-icone .icone-ligne { width: 22px; height: 22px; display: block; }
     .tempo-ligne label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); margin: 0; }
     .tempo-ligne input { width: 80px; letter-spacing: 3px; text-transform: uppercase; }
     .tempo-ligne small { color: var(--text-muted); font-size: 0.72rem; flex-basis: 100%; }
@@ -9191,7 +9193,7 @@ const TOUR_MUSCU = [
   { ecran: 'seance', siSession: true, cible: '#session-haut', titre: 'Le volume de ta semaine', texte: "Une jauge par muscle : tes séries de la semaine, de « trop peu » à « trop », en passant par l'entretien, la progression et la zone idéale. Le curseur montre où tu en es ; barre épaisse pour les muscles principaux de la séance, fine pour les secondaires. Le corps se colore pareil ; touche-le pour l'agrandir." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-prec', titre: 'Ta séance précédente', texte: "La colonne « Préc. » rappelle ce que tu as fait la dernière fois sur cette série. Touche-la pour reprendre ces valeurs, puis essaie de faire un peu mieux." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-num-btn', titre: 'Le type de série', texte: "Touche le numéro d'une série pour la marquer : Échauffement (W, jamais comptée dans les jauges), Dégressif, Pyramidal ou Échec." },
-  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .tempo-ligne', titre: 'Tempo et objectif', texte: "Le tempo : quatre chiffres pour la vitesse de chaque phase (descente, pause en bas, montée, pause en haut ; X = explosif). À côté, la cible : l'objectif de répétitions (par exemple 8 à 12) : quand tu atteins le haut, l'appli te propose de monter la charge. Chaque (i) explique tout, avec des exemples." },
+  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .tempo-ligne', titre: 'Tempo et objectif', texte: "Le tempo : quatre chiffres pour la vitesse de chaque phase (descente, pause en bas, montée, pause en haut ; X = explosif). À côté, la cible : l'objectif de répétitions (par exemple 8 à 12) : quand tu atteins le haut, l'appli te propose de monter la charge. Touche le métronome ou la cible pour une explication avec des exemples." },
   { ecran: 'seance', siSession: true, titre: 'Cocher une série',
     // Démonstration : la 2e série est vraiment cochée, pour montrer la case
     // validée et le minuteur de repos qui démarre juste en dessous.
@@ -15525,9 +15527,8 @@ function renderProgrammeExercicesEnEdition() {
         <button type="button" class="filtre-chip" aria-pressed="${pe.supersetSuivant ? 'true' : 'false'}" onclick="toggleSupersetProgramme(${i})"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg> Superset avec le suivant</button>
       </div>`}
       <div class="tempo-ligne">
-        <label for="tempo-prog-${i}" class="label-icone" title="Tempo" aria-label="Tempo">${ICONE_METRONOME}</label>
-        <input type="text" id="tempo-prog-${i}" maxlength="7" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="3010" value="${escapeHtml(pe.tempo || '')}" onchange="modifierTempoProgramme(${i}, this.value, this)">
-        <button type="button" class="tempo-aide-btn" onclick="ouvrirAideTempo(document.getElementById('tempo-prog-${i}').value)" aria-label="Comment fonctionne le tempo ?">${ICONE_INFO_TEMPO}</button>
+        <button type="button" class="label-icone" onclick="ouvrirAideTempo(document.getElementById('tempo-prog-${i}').value)" title="Tempo : comment ça marche ?" aria-label="Tempo : comment ça marche ?">${ICONE_METRONOME}</button>
+        <input type="text" id="tempo-prog-${i}" maxlength="7" aria-label="Tempo, par exemple 3010" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="3010" value="${escapeHtml(pe.tempo || '')}" onchange="modifierTempoProgramme(${i}, this.value, this)">
         ${objectifRepsHTML('prog', i, pe.plage)}
         <small id="tempo-resume-${i}">${pe.tempo ? escapeHtml(resumeTempo(pe.tempo)) : ''}</small>
       </div>
@@ -15617,13 +15618,12 @@ function ignorerSuggestionCharge(ei) {
   renderSessionModal();
 }
 /* Objectif de répétitions : un seul champ (« 8-12 », ou « 10 » pour un
-   objectif fixe), à côté du tempo. Le (i) explique la progression. */
+   objectif fixe), à côté du tempo. Toucher la cible ouvre l'aide sur la progression. */
 function objectifRepsHTML(type, idx, plage) {
   const id = `objectif-${type}-${idx}`;
   return `<span class="objectif-groupe">
-      <label for="${id}" class="label-icone" title="Objectif de répétitions" aria-label="Objectif de répétitions">${ICONE_OBJECTIF}</label>
+      <button type="button" class="label-icone" onclick="ouvrirModal('modal-plage')" title="Objectif de répétitions : comment ça marche ?" aria-label="Objectif de répétitions : comment ça marche ?">${ICONE_OBJECTIF}</button>
       <input type="text" id="${id}" class="objectif-input" inputmode="text" autocomplete="off" maxlength="7" placeholder="8-12" value="${escapeHtml(normaliserPlage(plage) || '')}" onchange="modifierObjectifReps('${type}', ${idx}, this)" aria-label="Répétitions visées, par exemple 8-12">
-      <button type="button" class="tempo-aide-btn" onclick="ouvrirModal('modal-plage')" aria-label="À quoi sert l'objectif de répétitions ?">${ICONE_INFO_TEMPO}</button>
     </span>`;
 }
 function modifierObjectifReps(type, idx, champ) {
@@ -17786,9 +17786,8 @@ function renderSessionExerciceBlocHTML(exo, ei) {
       </div>
     </div>
     <div class="tempo-ligne" style="margin:8px 0 4px;">
-      <label for="tempo-seance-${ei}" class="label-icone" title="Tempo" aria-label="Tempo">${ICONE_METRONOME}</label>
-      <input type="text" id="tempo-seance-${ei}" maxlength="7" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="3010" value="${escapeHtml(exo.tempo || '')}" onchange="modifierTempoSession(${ei}, this.value, this)">
-      <button type="button" class="tempo-aide-btn" onclick="ouvrirAideTempo(document.getElementById('tempo-seance-${ei}').value)" aria-label="Comment fonctionne le tempo ?">${ICONE_INFO_TEMPO}</button>
+      <button type="button" class="label-icone" onclick="ouvrirAideTempo(document.getElementById('tempo-seance-${ei}').value)" title="Tempo : comment ça marche ?" aria-label="Tempo : comment ça marche ?">${ICONE_METRONOME}</button>
+      <input type="text" id="tempo-seance-${ei}" maxlength="7" aria-label="Tempo, par exemple 3010" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="3010" value="${escapeHtml(exo.tempo || '')}" onchange="modifierTempoSession(${ei}, this.value, this)">
       ${objectifRepsHTML('seance', ei, exo.plage)}
       <small id="tempo-seance-resume-${ei}">${exo.tempo ? escapeHtml(resumeTempo(exo.tempo)) : ''}</small>
     </div>
