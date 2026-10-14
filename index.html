@@ -1298,7 +1298,7 @@
     /* --- FORMULAIRES --- */
     .input-group { margin-bottom: 15px; }
     .input-group label { display: block; font-weight: 700; font-size: 0.72rem; margin-bottom: 6px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
-    .input-group input, .input-group select, .input-group textarea {
+    .input-group input, .input-group select, .input-group textarea, #modal-cardio input {
       width: 100%; padding: 12px 15px; min-height: 44px;
       background: var(--verre-creux);
       border: 1px solid transparent; color: var(--text);
@@ -1310,7 +1310,7 @@
       background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
       background-position: calc(100% - 19px) 50%, calc(100% - 13px) 50%;
       background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; padding-right: 34px; }
-    .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent); }
+    .input-group input:focus, .input-group select:focus, .input-group textarea:focus, #modal-cardio input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent); }
     :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
     /* --- TRIO DE CHAMPS CÔTE À CÔTE (ex : composition corporelle) --- */
@@ -1868,6 +1868,59 @@
     .zone-seg b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; transition: width 0.45s ease; }
     .zone-curseur { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; background: #fff;
       transform: translate(-50%, -50%); box-shadow: 0 0 0 3px var(--c), 0 0 12px var(--c); transition: left 0.45s ease; }
+    /* --- Cardio (onglet Séance › Cardio, fenêtre d'ajout, Statistiques) --- */
+    .seance-mode-nav { margin: 0 0 14px; }
+    .seance-mode-nav button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-size: 0.84rem; }
+    .cardio-carte { padding: 15px; margin-bottom: 12px; }
+    .cardio-titre { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+    .cardio-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .cardio-gros { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.5px; line-height: 1.1; }
+    .cardio-gros small { font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-left: 4px; letter-spacing: 0; }
+    .cardio-statut { font-weight: 800; font-size: 0.84rem; text-align: right; }
+    .cardio-echelle { position: relative; height: 13px; font-size: 0.6rem; font-weight: 700; color: var(--text-muted); margin-top: -4px; }
+    .cardio-echelle span { position: absolute; transform: translateX(-50%); }
+    .cardio-repart { display: flex; gap: 2px; height: 8px; border-radius: 99px; overflow: hidden; margin: 10px 0 7px; }
+    .cardio-legende { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); }
+    .cardio-legende i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+    .cardio-ajouter { margin-bottom: 12px; }
+    .cardio-seance { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 0; background: none; border: 0; border-top: 1px solid var(--verre-brd); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+    .cardio-carte .cardio-seance:first-of-type { border-top: 0; padding-top: 2px; }
+    .cardio-seance-ico { width: 40px; height: 40px; flex: none; border-radius: 12px; background: var(--verre-fort); display: flex; align-items: center; justify-content: center; }
+    .cardio-seance-ico svg { width: 20px; height: 20px; }
+    .cardio-seance-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .cardio-seance-txt b { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cardio-seance-txt small { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+    .cardio-pastille { flex: none; font-size: 0.68rem; font-weight: 800; padding: 3px 9px; border-radius: 99px; }
+    .cardio-ligne-jour { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; background: var(--verre-creux); padding: 4px 6px 4px 10px; border-radius: 14px; }
+    .cardio-ligne-jour .cardio-seance { border-top: 0; padding: 6px 0; }
+    .cardio-ligne-jour .cardio-seance-ico { width: 34px; height: 34px; border-radius: 10px; }
+    .cardio-champ-l { display: block; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-muted); margin: 14px 0 7px; }
+    #modal-cardio .cardio-champ-l:first-of-type { margin-top: 4px; }
+    .cardio-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .cardio-chip { display: inline-flex; align-items: center; gap: 5px; padding: 7px 9px; border-radius: 12px; background: var(--verre-fort); border: 1.5px solid transparent; color: var(--text); font: inherit; font-weight: 700; font-size: 0.82rem; cursor: pointer; }
+    .cardio-chip svg { width: 18px; height: 18px; }
+    .cardio-chip[aria-pressed="true"] { border-color: var(--primary); color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, var(--verre-fort)); }
+    .cardio-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .cardio-grille > div { min-width: 0; }
+    .cardio-unite { position: relative; }
+    .cardio-unite span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); pointer-events: none; }
+    .cardio-unite input { padding-right: 40px; font-weight: 800; }
+    #modal-cardio input { width: 100%; }
+    .cardio-calc { display: flex; justify-content: space-between; gap: 10px; background: var(--verre-fort); border-radius: 12px; padding: 10px 12px; margin-top: 10px; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); }
+    .cardio-calc b { color: var(--text); }
+    .cardio-ints { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 2px; }
+    .cardio-int { display: flex; flex-direction: column; align-items: center; gap: 3px; background: var(--verre-fort); border-radius: 12px; padding: 10px 6px; border: 1.5px solid transparent; color: var(--text); font: inherit; cursor: pointer; }
+    .cardio-int b { font-size: 0.86rem; }
+    .cardio-int small { font-size: 0.66rem; color: var(--text-muted); line-height: 1.25; text-align: center; }
+    .cardio-int[aria-pressed="true"] { border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, var(--verre-fort)); }
+    .cardio-points { display: flex; gap: 3px; margin-bottom: 3px; }
+    .cardio-points i { width: 7px; height: 7px; border-radius: 50%; background: var(--verre-brd); }
+    .cardio-points i.on { background: var(--c); }
+    .cardio-records { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+    .cardio-record { background: var(--verre); border-radius: 14px; padding: 11px 6px; text-align: center; min-width: 0; }
+    .cardio-record b { display: block; font-size: 1.02rem; font-weight: 800; white-space: nowrap; }
+    .cardio-record span { display: block; font-size: 0.6rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 3px; }
+    .cardio-record small { display: block; font-size: 0.64rem; color: var(--text-muted); margin-top: 2px; }
     .zone-curseur--vide { box-shadow: 0 0 0 2px var(--c); opacity: 0.6; }
     /* Muscle secondaire de la séance : barre fine, ligne plus discrète. */
     .zone-ligne--secondaire .zone-barre { height: 6px; margin: 6px 0 4px; }
@@ -2579,6 +2632,11 @@
     <h2 class="titre-ecran"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg></span> Activité</h2>
 
     <div id="seance-vue-accueil">
+      <div class="segment seance-mode-nav" id="seance-mode-nav" role="group" aria-label="Type de séance">
+        <button type="button" onclick="choisirModeSeance('muscu')" aria-pressed="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Musculation</button>
+        <button type="button" onclick="choisirModeSeance('cardio')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.2 12h3.3l1.5-3 3 6 1.5-3h8.3" /></svg> Cardio</button>
+      </div>
+      <div id="seance-mode-muscu">
       <div class="titre-depliant titre-section" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-seance-libre')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-seance-libre')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg> Mes programmes</div>
       <div id="seance-lancer">
       <div id="programmes-liste-container"></div>
@@ -2599,6 +2657,8 @@
       </div>
 
       <p class="note note-repliee" id="note-stats-muscu" style="margin:4px 2px 0;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg> Les statistiques de musculation (progression, records, historique…) sont dans l'onglet <a href="#" onclick="event.preventDefault(); allerA('stats');" style="color:var(--accent);">Statistiques</a>.</p>
+      </div>
+      <div id="seance-mode-cardio" class="hidden"><div id="seance-cardio"></div></div>
     </div>
 
     <div id="seance-vue-active" class="hidden">
@@ -2657,7 +2717,7 @@
     <div class="segment stats-onglets-nav" id="stats-onglets-nav" role="group" aria-label="Catégorie de statistiques">
       <button type="button" onclick="choisirOngletStats('poids')" aria-pressed="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></svg> Corps</button>
       <button type="button" onclick="choisirOngletStats('nutrition')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg> Nutrition</button>
-      <button type="button" onclick="choisirOngletStats('activite')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Activité</button>
+      <button type="button" onclick="choisirOngletStats('activite')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.2 12h3.3l1.5-3 3 6 1.5-3h8.3" /></svg> Cardio</button>
       <button type="button" onclick="choisirOngletStats('muscu')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Muscu</button>
     </div>
     <div class="segment stats-periodes" id="stats-periode" role="group" aria-label="Période analysée"></div>
@@ -2704,14 +2764,23 @@
     </div>
 
     <div class="stats-tab" data-tab="activite">
+      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.2 12h3.3l1.5-3 3 6 1.5-3h8.3" /></svg> Minutes de cardio par semaine</div>
+      <div class="chart-container"><canvas id="cardioSemainesChart"></canvas></div>
+      <p class="note" id="note-cardio-semaines" style="margin:-6px 2px 4px;"></p>
+
+      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2h4" /><path d="M12 14l3-3" /><circle cx="12" cy="14" r="8" /></svg> Allure</div>
+      <div class="segment cardio-allure-nav" id="cardio-allure-nav" role="group" aria-label="Activité"></div>
+      <div class="chart-container"><canvas id="cardioAllureChart"></canvas></div>
+      <p class="note" id="note-cardio-allure" style="margin:-6px 2px 4px;"></p>
+
+      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" /></svg> Records</div>
+      <div class="cardio-records" id="cardio-records"></div>
+
       <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" /></svg> Pas quotidiens</div>
       <div class="chart-container"><canvas id="stepsChart"></canvas></div>
 
       <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Activités (minutes par sport)</div>
       <div class="chart-container"><canvas id="workoutChart"></canvas></div>
-
-      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg> Séances de musculation par mois</div>
-      <div class="chart-container"><canvas id="muscuParMoisChart"></canvas></div>
     </div>
 
     <div class="stats-tab" data-tab="muscu">
@@ -2748,6 +2817,8 @@
       </div>
 
       <div class="stats-soustab" data-soustab="seances">
+        <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg> Séances de musculation par mois</div>
+        <div class="chart-container"><canvas id="muscuParMoisChart"></canvas></div>
         <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M8 13h.01" /><path d="M12 13h.01" /><path d="M16 13h.01" /><path d="M8 17h.01" /><path d="M12 17h.01" /><path d="M16 17h.01" /></svg> Historique des séances</div>
         <div id="muscu-historique-container"></div>
 
@@ -4452,6 +4523,34 @@
   </div>
 </div>
 
+<div id="modal-cardio" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-cardio">
+  <div class="modal-content" style="max-width:460px;">
+    <div class="modal-entete">
+      <h3 id="titre-cardio">Séance cardio</h3>
+      <button class="close-modal" onclick="fermerModal('modal-cardio')" aria-label="Fermer">&times;</button>
+    </div>
+    <div class="cardio-champ-l">Activité</div>
+    <div class="cardio-chips" id="cardio-activites" role="group" aria-label="Activité"></div>
+    <div class="cardio-grille">
+      <div><label class="cardio-champ-l" for="cardio-duree">Durée</label>
+        <div class="cardio-unite"><input type="number" id="cardio-duree" inputmode="numeric" min="1" max="1440" step="1" placeholder="30" oninput="majCalculsCardio()"><span>min</span></div></div>
+      <div id="cardio-distance-groupe"><label class="cardio-champ-l" for="cardio-distance">Distance (facultatif)</label>
+        <div class="cardio-unite"><input type="text" id="cardio-distance" inputmode="decimal" autocomplete="off" placeholder="—" oninput="majCalculsCardio()"><span id="cardio-distance-unite">km</span></div></div>
+    </div>
+    <div class="cardio-calc hidden" id="cardio-allure"></div>
+    <div class="cardio-champ-l">Intensité</div>
+    <div class="cardio-ints" id="cardio-intensites" role="group" aria-label="Intensité"></div>
+    <div class="cardio-grille">
+      <div><label class="cardio-champ-l" for="cardio-date">Date</label><input type="date" id="cardio-date" onchange="majCalculsCardio()"></div>
+      <div><label class="cardio-champ-l" for="cardio-note">Note</label><input type="text" id="cardio-note" maxlength="80" autocomplete="off" placeholder="Facultatif"></div>
+    </div>
+    <div class="cardio-calc" id="cardio-kcal"></div>
+    <p class="note" style="margin:6px 2px 14px;">Comptée dans ta dépense du jour, comme les autres séances.</p>
+    <button type="button" class="btn btn-primary" onclick="enregistrerCardio()">Enregistrer</button>
+    <button type="button" class="btn btn-secondaire hidden" id="btn-suppr-cardio" style="margin-top:10px;" onclick="supprimerCardio()">Supprimer la séance</button>
+  </div>
+</div>
+
 <div id="modal-plage" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-plage">
   <div class="modal-content" style="max-width:460px;">
     <div class="modal-entete">
@@ -4787,7 +4886,7 @@ const MEAL_ICONS = { breakfast: '<svg class="icone-ui" viewBox="0 0 24 24" fill=
    Une heure de musculation a 80 kg donne ainsi 4 x 3,5 x 80 / 200 x 60
    = 336 kcal nettes, au lieu de 420 kcal auparavant.
    --------------------------------------------------------------------- */
-const SPORT_MET = { musculation: 5.0, course: 9.0, natation: 7.0, cyclisme: 7.5, hiit: 8.0, foot: 8.0, marche_rapide: 4.5 };
+const SPORT_MET = { musculation: 5.0, course: 9.0, natation: 7.0, cyclisme: 7.5, hiit: 8.0, foot: 8.0, marche_rapide: 4.5, rameur: 7.0 };
 /* Pour une séance de musculation trackée dans l'appli (donc dont on connaît
    le nombre de séries réellement faites), le temps total entre le début et
    la fin inclut le repos entre les séries — souvent 60 à 70 % de la durée.
@@ -4802,17 +4901,22 @@ const SPORT_MET = { musculation: 5.0, course: 9.0, natation: 7.0, cyclisme: 7.5,
    la durée totale saisie. */
 const SECONDES_PAR_SERIE_MUSCU = 40;
 const MET_MUSCULATION_ACTIF = 6.0;
-function kcalSeance(type, minutes, poids, seriesFaites) {
+/* Intensité notée sur une séance cardio (1 facile, 2 modérée, 3 intense) :
+   le MET du Compendium correspond à un rythme « habituel », on l'ajuste
+   d'environ 20 % vers le bas ou le haut. Sans intensité (anciennes
+   saisies), facteur 1 : la dépense déjà calculée ne change pas. */
+const FACTEUR_INTENSITE_MET = { 1: 0.8, 2: 1, 3: 1.2 };
+function kcalSeance(type, minutes, poids, seriesFaites, intensite) {
   if (type === 'musculation' && Number(seriesFaites) > 0) {
     const dureeActiveMin = (Number(seriesFaites) * SECONDES_PAR_SERIE_MUSCU) / 60;
     return Math.max(0, (MET_MUSCULATION_ACTIF - 1) * 3.5 * poids / 200) * dureeActiveMin;
   }
-  const met = SPORT_MET[type];
+  const met = SPORT_MET[type] * (FACTEUR_INTENSITE_MET[intensite] || 1);
   if (!met) return 0;
   return Math.max(0, (met - 1) * 3.5 * poids / 200) * (Number(minutes) || 0);
 }
-const SPORT_LABELS = { musculation: 'Musculation', course: 'Course', natation: 'Natation', cyclisme: 'Cyclisme', hiit: 'HIIT', foot: 'Football', marche_rapide: 'Marche rapide' };
-const SPORT_COLORS = { musculation: '#ff5252', course: '#2979ff', natation: '#00e5ff', cyclisme: '#00ff66', hiit: '#ffab40', foot: '#d500f9', marche_rapide: '#9e9e9e' };
+const SPORT_LABELS = { musculation: 'Musculation', course: 'Course', natation: 'Natation', cyclisme: 'Vélo', hiit: 'HIIT', foot: 'Sport co', marche_rapide: 'Marche', rameur: 'Rameur' };
+const SPORT_COLORS = { musculation: '#ff5252', course: '#2979ff', natation: '#00e5ff', cyclisme: '#00ff66', hiit: '#ffab40', foot: '#d500f9', marche_rapide: '#9e9e9e', rameur: '#ffd60a' };
 
 let currentDate = todayStr();
 // Date ciblée par la modale Mesures (poids/composition) — d'ordinaire le
@@ -5009,7 +5113,7 @@ function computeTargets(day, dateStr) {
 
   let workoutKcal = 0;
   if (day.workouts && day.workouts.length > 0) {
-    day.workouts.forEach(w => { workoutKcal += kcalSeance(w.type, w.time, weight, w.seriesFaites); });
+    day.workouts.forEach(w => { workoutKcal += kcalSeance(w.type, w.time, weight, w.seriesFaites, w.intensite); });
   }
   let tdee = bmr * 1.2 + stepsKcal + workoutKcal;
 
@@ -5111,38 +5215,28 @@ function renderWorkoutsList(day) {
       <button class="btn-delete" onclick="supprimerSport(${index})" aria-label="Supprimer cette séance">&times;</button>
     </div>`;
     }
+    // Les autres sports sont des séances cardio : résumé d'une ligne, un
+    // toucher ouvre la même fenêtre que l'onglet Séance › Cardio.
+    const n = intensiteCardio(w);
     return `
-    <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px; background: var(--verre-creux); padding: 10px; border-radius: 14px; border: 0;">
-      <div class="input-group" style="flex: 2; margin-bottom: 0;">
-        <label style="font-size: 0.65rem;">Sport</label>
-        <select onchange="modifierSport(${index}, 'type', this.value)">
-          <option value="">-- Choisir --</option>
-          <option value="course" ${w.type === 'course' ? 'selected' : ''}>Course à pied / Running</option>
-          <option value="natation" ${w.type === 'natation' ? 'selected' : ''}>Natation</option>
-          <option value="cyclisme" ${w.type === 'cyclisme' ? 'selected' : ''}>Cyclisme / Vélo</option>
-          <option value="hiit" ${w.type === 'hiit' ? 'selected' : ''}>HIIT / Crossfit</option>
-          <option value="foot" ${w.type === 'foot' ? 'selected' : ''}>Football / Sport Co</option>
-          <option value="marche_rapide" ${w.type === 'marche_rapide' ? 'selected' : ''}>Marche rapide</option>
-        </select>
-      </div>
-      <div class="input-group" style="flex: 1; margin-bottom: 0;">
-        <label style="font-size: 0.65rem;">Durée (min)</label>
-        <input type="number" value="${Number(w.time) || ''}" placeholder="60" step="5" onchange="modifierSport(${index}, 'time', this.value)">
-      </div>
+    <div class="cardio-ligne-jour">
+      <button type="button" class="cardio-seance" onclick="ouvrirCardio('${currentDate}', ${index})">
+        <span class="cardio-seance-ico">${ICONES_CARDIO[w.type] || ICONE_CARDIO}</span>
+        <span class="cardio-seance-txt"><b>${w.type ? escapeHtml(SPORT_LABELS[w.type] || w.type) : 'Séance à compléter'}</b><small>${escapeHtml(resumeSeanceCardio(w, true))}</small></span>
+        ${w.type ? `<span class="cardio-pastille" style="background:${couleurIntensite(n)};color:${couleurTexteIntensite(n)}">${NOMS_INTENSITE[n]}</span>` : ''}
+      </button>
       <button class="btn-delete" onclick="supprimerSport(${index})" aria-label="Supprimer cette séance">&times;</button>
     </div>`;
   }).join('');
 }
 
 function ajouterLigneSportVide() {
-  const day = getDay(currentDate);
-  // Plus de type par défaut « musculation » : cette entrée-là s'ajoute
-  // maintenant toute seule en terminant une séance dans l'onglet Séance
-  // (voir terminerSeance), ce bouton sert aux AUTRES sports.
-  day.workouts.push({ type: '', time: 60 });
-  saveData(currentDate);
-  renderWorkoutsList(day);
-  updateSummary(day);
+  // La musculation s'ajoute toute seule en terminant une séance dans
+  // l'onglet Séance (voir terminerSeance) : ce bouton sert aux AUTRES
+  // sports, saisis dans la fenêtre cardio pour le jour affiché.
+  ouvrirCardio();
+  document.getElementById('cardio-date').value = currentDate;
+  majCalculsCardio();
 }
 
 function modifierSport(index, field, value) {
@@ -5161,7 +5255,448 @@ function supprimerSport(index) {
   saveData(currentDate);
   renderWorkoutsList(day);
   updateSummary(day);
+  renderCardio();
 }
+
+/* =====================================================================
+   CARDIO — les séances hors musculation (course, vélo, natation…).
+   Pas de nouveau stockage : ce sont les mêmes entrées day.workouts que
+   la carte « Pas & séances » (synchronisées jour par jour), enrichies de
+   la distance (km), de l'intensité (1 facile, 2 modérée, 3 intense) et
+   d'une note. L'onglet Séance › Cardio et Statistiques › Cardio les
+   relisent sur tout l'historique.
+   Objectif de la semaine (OMS) : 150 à 300 min d'activité modérée, une
+   minute intense comptant double ; en dessous de 75, c'est trop peu.
+   ===================================================================== */
+const CARDIO_TYPES = ['course', 'cyclisme', 'natation', 'marche_rapide', 'rameur', 'hiit', 'foot'];
+// Distance saisie en mètres pour la natation et le rameur, en km sinon ;
+// toujours stockée en km.
+const CARDIO_UNITE_DISTANCE = { course: 'km', cyclisme: 'km', marche_rapide: 'km', natation: 'm', rameur: 'm' };
+const ICONES_CARDIO = {
+  course: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="4" r="1.6" /><path d="m8 21 3.2-6.3 3 2.3V22" /><path d="M6 12.5 9 9.5l4.2.6 2.3 3.4 3 1" /><path d="m11.2 14.7 1.8-4.6" /></svg>',
+  cyclisme: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18.5" cy="17.5" r="3.5" /><circle cx="5.5" cy="17.5" r="3.5" /><circle cx="15" cy="5" r="1" /><path d="M12 17.5V14l-3-3 4-3 2 3h2" /></svg>',
+  natation: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" /><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" /><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" /></svg>',
+  marche_rapide: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" /></svg>',
+  rameur: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20h20" /><path d="m5 16 14-9" /><circle cx="9" cy="6" r="1.6" /><path d="M9 8v4l4 2" /></svg>',
+  hiit: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" /></svg>',
+  foot: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="m12 7 4.2 3-1.6 5H9.4l-1.6-5z" /><path d="M12 2v5" /><path d="m21.5 9.5-5.3.5" /><path d="m2.5 9.5 5.3.5" /><path d="m18 19.5-3.4-4.5" /><path d="m6 19.5 3.4-4.5" /></svg>'
+};
+const ICONE_CARDIO = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.2 12h3.3l1.5-3 3 6 1.5-3h8.3" /></svg>';
+const NOMS_INTENSITE = { 1: 'Facile', 2: 'Modérée', 3: 'Intense' };
+const AIDE_INTENSITE = { 1: 'Tu peux parler normalement', 2: 'Phrases courtes seulement', 3: 'Quelques mots, pas plus' };
+const OBJECTIF_CARDIO = { min: 75, cible: 150, haut: 300, fin: 380 };
+
+function estSeanceCardio(w) { return !!w && w.source !== 'seance' && w.type !== 'musculation'; }
+function intensiteCardio(w) {
+  const n = Number(w && w.intensite);
+  return n >= 1 && n <= 3 ? n : (w && w.type === 'hiit' ? 3 : 2);
+}
+function minutesEquivCardio(w) { return (Number(w.time) || 0) * (intensiteCardio(w) === 3 ? 2 : 1); }
+// Toutes les séances cardio renseignées, la plus récente d'abord.
+function seancesCardio() {
+  const liste = [];
+  Object.keys(appData).sort().reverse().forEach(date => {
+    const ws = (appData[date] && appData[date].workouts) || [];
+    for (let i = ws.length - 1; i >= 0; i--) {
+      const w = ws[i];
+      if (estSeanceCardio(w) && w.type && Number(w.time) > 0) liste.push({ date, index: i, w });
+    }
+  });
+  return liste;
+}
+function lundiDe(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  return shiftDate(dateStr, -((d.getDay() + 6) % 7));
+}
+function texteMinSec(minutes) {
+  let m = Math.floor(minutes), s = Math.round((minutes - m) * 60);
+  if (s === 60) { m++; s = 0; }
+  return m + ':' + String(s).padStart(2, '0');
+}
+function nombreFr(v, dec) { return Number(v).toLocaleString('fr-FR', { maximumFractionDigits: dec == null ? 1 : dec }); }
+/* Allure d'une séance, dans l'unité d'usage de chaque sport : min/km à
+   pied, km/h à vélo, min/100 m en natation, min/500 m au rameur.
+   `valeur` sert aux graphiques ; `plusPetitMieux` : une allure en min se
+   lit à l'envers (plus c'est bas, plus c'est rapide). */
+function allureCardio(type, minutes, km) {
+  minutes = Number(minutes); km = Number(km);
+  if (!(minutes > 0) || !(km > 0)) return null;
+  if (type === 'cyclisme') { const v = km / (minutes / 60); return { valeur: v, texte: nombreFr(v) + ' km/h', unite: 'km/h', plusPetitMieux: false }; }
+  if (type === 'natation') { const v = minutes / (km * 10); return { valeur: v, texte: texteMinSec(v) + ' /100 m', unite: '/100 m', plusPetitMieux: true }; }
+  if (type === 'rameur') { const v = minutes / (km * 2); return { valeur: v, texte: texteMinSec(v) + ' /500 m', unite: '/500 m', plusPetitMieux: true }; }
+  if (type === 'course' || type === 'marche_rapide') { const v = minutes / km; return { valeur: v, texte: texteMinSec(v) + ' /km', unite: '/km', plusPetitMieux: true }; }
+  return null;
+}
+function texteDistanceCardio(type, km) {
+  if (!(Number(km) > 0)) return '';
+  return CARDIO_UNITE_DISTANCE[type] === 'm' ? nombreFr(km * 1000, 0) + ' m' : nombreFr(km, 2) + ' km';
+}
+function resumeSeanceCardio(w, sansAllure) {
+  const morceaux = [];
+  if (Number(w.distance) > 0) morceaux.push(texteDistanceCardio(w.type, w.distance));
+  morceaux.push((Number(w.time) || 0) + ' min');
+  const a = !sansAllure && allureCardio(w.type, w.time, w.distance);
+  if (a) morceaux.push(a.texte);
+  return morceaux.join(' · ');
+}
+function couleurIntensite(n) {
+  const sombre = !themeClairActif();
+  return (sombre ? { 1: '#2f4fb8', 2: '#4f7cff', 3: '#a9c0ff' } : { 1: '#9fbaff', 2: '#4f7cff', 3: '#1d3a9e' })[n];
+}
+function couleurTexteIntensite(n) {
+  const sombre = !themeClairActif();
+  if (sombre) return n === 3 ? '#0e1420' : '#fff';
+  return n === 1 ? '#0e1420' : '#fff';
+}
+function bilanSemaineCardio(lundi) {
+  const dimanche = shiftDate(lundi, 6);
+  const parInt = { 1: 0, 2: 0, 3: 0 };
+  let equiv = 0;
+  seancesCardio().forEach(({ date, w }) => {
+    if (date < lundi || date > dimanche) return;
+    parInt[intensiteCardio(w)] += Number(w.time) || 0;
+    equiv += minutesEquivCardio(w);
+  });
+  return { equiv, parInt, total: parInt[1] + parInt[2] + parInt[3] };
+}
+function cleZoneCardio(v) {
+  return v >= OBJECTIF_CARDIO.haut ? 'mav' : v >= OBJECTIF_CARDIO.cible ? 'mev' : v >= OBJECTIF_CARDIO.min ? 'mv' : 'sous';
+}
+const NOMS_ZONE_CARDIO = { sous: 'Trop peu', mv: 'Un début', mev: 'Objectif atteint', mav: 'Au top' };
+// Même jauge que les zones de volume des muscles (barreZoneHTML), sans
+// tronçon « trop » : il n'y a pas de plafond recommandé pour le cardio.
+function barreCardioHTML(v) {
+  const O = OBJECTIF_CARDIO;
+  const val = Math.max(0, Math.min(O.fin, v));
+  const troncons = [[0, O.min, 'sous'], [O.min, O.cible, 'mv'], [O.cible, O.haut, 'mev'], [O.haut, O.fin, 'mav']];
+  const segs = troncons.map(([a, b, cle]) => {
+    const r = Math.max(0, Math.min(1, (val - a) / (b - a)));
+    const c = ZONES_INFO[cle].couleur;
+    return `<span class="zone-seg" style="flex:${b - a};"><i style="background:${c};"></i><b style="width:${r * 100}%;background:${c};"></b></span>`;
+  }).join('');
+  const idx = Math.max(0, troncons.findIndex(([a, b]) => val >= a && val < b));
+  const f = val / O.fin;
+  const gauche = `calc(${(f * 100).toFixed(3)}% - ${(f * 9).toFixed(2)}px + ${(val >= O.fin ? 3 : idx) * 3}px)`;
+  const ech = [O.min, O.cible, O.haut].map(x => `<span style="left:${(x / O.fin * 100).toFixed(2)}%">${x}</span>`).join('');
+  return `<div class="zone-barre" aria-hidden="true">${segs}<span class="zone-curseur${val > 0 ? '' : ' zone-curseur--vide'}" style="--c:${ZONES_INFO[cleZoneCardio(val)].couleur};left:clamp(8px, ${gauche}, calc(100% - 8px));"></span></div><div class="cardio-echelle" aria-hidden="true">${ech}</div>`;
+}
+
+let modeSeance = 'muscu';
+try { if (localStorage.getItem('mc_seance_mode') === 'cardio') modeSeance = 'cardio'; } catch (e) {}
+function choisirModeSeance(mode, silencieux) {
+  modeSeance = mode === 'cardio' ? 'cardio' : 'muscu';
+  if (!silencieux) { try { localStorage.setItem('mc_seance_mode', modeSeance); } catch (e) {} }
+  const m = document.getElementById('seance-mode-muscu'), c = document.getElementById('seance-mode-cardio');
+  if (m) m.classList.toggle('hidden', modeSeance !== 'muscu');
+  if (c) c.classList.toggle('hidden', modeSeance !== 'cardio');
+  majSegment('seance-mode-nav', ['muscu', 'cardio'], modeSeance);
+  if (modeSeance === 'cardio') renderCardio();
+}
+
+function renderCardio() {
+  const zone = document.getElementById('seance-cardio');
+  if (!zone) return;
+  const b = bilanSemaineCardio(lundiDe(todayStr()));
+  const cle = cleZoneCardio(b.equiv);
+  let phrase;
+  if (b.equiv < OBJECTIF_CARDIO.cible) phrase = `Encore ${Math.ceil(OBJECTIF_CARDIO.cible - b.equiv)} min pour atteindre l'objectif de la semaine.`;
+  else if (b.equiv < OBJECTIF_CARDIO.haut) phrase = `Objectif atteint. Jusqu'à ${OBJECTIF_CARDIO.haut} min, c'est encore mieux pour la santé et l'endurance.`;
+  else phrase = `Plus de ${OBJECTIF_CARDIO.haut} min : excellent pour la santé et l'endurance.`;
+  let equilibre = '';
+  if (b.total >= 120) {
+    const pf = Math.round(b.parInt[1] / b.total * 100);
+    equilibre = pf >= 65
+      ? ` ${pf} % en facile : bon équilibre pour progresser.`
+      : ` ${pf} % en facile : pour progresser en endurance, vise environ 80 % de séances faciles.`;
+  }
+  const repart = b.total > 0
+    ? `<div class="cardio-repart" aria-hidden="true">${[1, 2, 3].filter(n => b.parInt[n] > 0).map(n => `<i style="flex:${b.parInt[n]};background:${couleurIntensite(n)}"></i>`).join('')}</div>
+       <div class="cardio-legende">${[1, 2, 3].map(n => `<span><i style="background:${couleurIntensite(n)}"></i>${NOMS_INTENSITE[n]} ${b.parInt[n]}</span>`).join('')}</div>`
+    : '';
+  const seances = seancesCardio();
+  const liste = seances.length
+    ? seances.slice(0, 12).map(({ date, index, w }) => {
+        const n = intensiteCardio(w);
+        return `<button type="button" class="cardio-seance" onclick="ouvrirCardio('${date}', ${index})">
+          <span class="cardio-seance-ico">${ICONES_CARDIO[w.type] || ICONE_CARDIO}</span>
+          <span class="cardio-seance-txt"><b>${escapeHtml(SPORT_LABELS[w.type] || w.type)}${w.note ? ' — ' + escapeHtml(w.note) : ''}</b><small>${escapeHtml(resumeSeanceCardio(w))}</small><small>${escapeHtml(formatDateDisplay(date))}</small></span>
+          <span class="cardio-pastille" style="background:${couleurIntensite(n)};color:${couleurTexteIntensite(n)}">${NOMS_INTENSITE[n]}</span>
+        </button>`;
+      }).join('')
+    : `<p class="note" style="margin:0;">Aucune séance cardio pour l'instant. Ajoute ta première course, sortie vélo ou séance de natation.</p>`;
+  zone.innerHTML = `
+    <div class="bloc-verre cardio-carte">
+      <div class="cardio-titre">Cette semaine</div>
+      <div class="cardio-tete"><div class="cardio-gros">${Math.round(b.equiv)}<small>min</small></div><div class="cardio-statut" style="color:${couleurTexteZone(cle)}">${NOMS_ZONE_CARDIO[cle]}</div></div>
+      ${barreCardioHTML(b.equiv)}
+      ${repart}
+      <p class="note" style="margin:8px 0 0;">${phrase}${equilibre} Recommandé : ${OBJECTIF_CARDIO.cible} à ${OBJECTIF_CARDIO.haut} min par semaine, 1 min intense compte double.</p>
+    </div>
+    <button type="button" class="btn btn-primary cardio-ajouter" onclick="ouvrirCardio()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Ajouter une séance cardio</button>
+    <div class="bloc-verre cardio-carte">
+      <div class="cardio-titre">Dernières séances</div>
+      ${liste}
+    </div>`;
+}
+
+/* --- Fenêtre d'ajout / modification --- */
+let cardioEdition = null;   // { date, index } de la séance modifiée, null = nouvelle
+let cardioBrouillon = null; // { type, intensite }
+function ouvrirCardio(date, index) {
+  const existante = date != null && index != null && appData[date] && appData[date].workouts ? appData[date].workouts[index] : null;
+  cardioEdition = existante ? { date, index } : null;
+  const w = existante || {};
+  cardioBrouillon = { type: CARDIO_TYPES.includes(w.type) ? w.type : (existante ? '' : 'course'), intensite: existante ? intensiteCardio(w) : 2 };
+  document.getElementById('titre-cardio').textContent = existante ? 'Modifier la séance' : 'Séance cardio';
+  document.getElementById('cardio-duree').value = existante && Number(w.time) > 0 ? Number(w.time) : '';
+  document.getElementById('cardio-date').value = date || todayStr();
+  document.getElementById('cardio-date').max = todayStr();
+  document.getElementById('cardio-note').value = w.note || '';
+  const champDist = document.getElementById('cardio-distance');
+  champDist.value = '';
+  if (Number(w.distance) > 0) champDist.value = CARDIO_UNITE_DISTANCE[cardioBrouillon.type] === 'm' ? Math.round(w.distance * 1000) : Number(w.distance);
+  document.getElementById('btn-suppr-cardio').classList.toggle('hidden', !existante);
+  rendreFormulaireCardio();
+  ouvrirModal('modal-cardio');
+}
+function rendreFormulaireCardio() {
+  const br = cardioBrouillon;
+  document.getElementById('cardio-activites').innerHTML = CARDIO_TYPES.map(t =>
+    `<button type="button" class="cardio-chip" aria-pressed="${br.type === t}" onclick="choisirTypeCardio('${t}')">${ICONES_CARDIO[t]}${SPORT_LABELS[t]}</button>`).join('');
+  document.getElementById('cardio-intensites').innerHTML = [1, 2, 3].map(n =>
+    `<button type="button" class="cardio-int" aria-pressed="${br.intensite === n}" onclick="choisirIntensiteCardio(${n})" style="--c:${couleurIntensite(n)}">
+      <span class="cardio-points">${[1, 2, 3].map(k => `<i${k <= n ? ' class="on"' : ''}></i>`).join('')}</span><b>${NOMS_INTENSITE[n]}</b><small>${AIDE_INTENSITE[n]}</small></button>`).join('');
+  const unite = CARDIO_UNITE_DISTANCE[br.type];
+  document.getElementById('cardio-distance-groupe').classList.toggle('hidden', !unite);
+  document.getElementById('cardio-distance-unite').textContent = unite || 'km';
+  majCalculsCardio();
+}
+function choisirTypeCardio(t) {
+  const champ = document.getElementById('cardio-distance');
+  const avant = CARDIO_UNITE_DISTANCE[cardioBrouillon.type], apres = CARDIO_UNITE_DISTANCE[t];
+  // Même distance, autre unité de saisie (km <-> m) : on convertit plutôt
+  // que de laisser « 5 » devenir 5 mètres.
+  const v = Number(String(champ.value).replace(',', '.'));
+  if (v > 0 && avant && apres && avant !== apres) champ.value = apres === 'm' ? Math.round(v * 1000) : nombreFr(v / 1000, 2).replace(/\s/g, '');
+  cardioBrouillon.type = t;
+  if (t === 'hiit' && !cardioEdition) cardioBrouillon.intensite = 3;
+  rendreFormulaireCardio();
+}
+function choisirIntensiteCardio(n) { cardioBrouillon.intensite = n; rendreFormulaireCardio(); }
+function lireDistanceCardio() {
+  const unite = CARDIO_UNITE_DISTANCE[cardioBrouillon.type];
+  if (!unite) return null;
+  const v = Number(String(document.getElementById('cardio-distance').value).replace(',', '.'));
+  if (!(v > 0)) return null;
+  return unite === 'm' ? v / 1000 : v;
+}
+function majCalculsCardio() {
+  const br = cardioBrouillon;
+  const minutes = Number(document.getElementById('cardio-duree').value) || 0;
+  const km = lireDistanceCardio();
+  const a = allureCardio(br.type, minutes, km);
+  const el = document.getElementById('cardio-allure');
+  el.classList.toggle('hidden', !a);
+  if (a) el.innerHTML = `<span>${br.type === 'cyclisme' ? 'Vitesse' : 'Allure'}</span><b>${a.texte}</b>`;
+  const date = document.getElementById('cardio-date').value || todayStr();
+  const poids = Number(getDay(date).weight) || dernierPoidsConnu(date);
+  const kcal = br.type && minutes > 0 ? Math.round(kcalSeance(br.type, minutes, poids, 0, br.intensite)) : 0;
+  document.getElementById('cardio-kcal').innerHTML = `<span>Dépense estimée</span><b>${kcal ? '≈ ' + kcal + ' kcal' : '—'}</b>`;
+}
+function enregistrerCardio() {
+  const br = cardioBrouillon;
+  const minutes = Math.round(Number(document.getElementById('cardio-duree').value) || 0);
+  if (!br.type) { alert("Choisis l'activité."); return; }
+  if (!(minutes > 0)) { alert('Indique la durée de la séance, en minutes.'); document.getElementById('cardio-duree').focus(); return; }
+  let date = document.getElementById('cardio-date').value || todayStr();
+  if (date > todayStr()) date = todayStr();
+  const km = lireDistanceCardio();
+  const note = document.getElementById('cardio-note').value.trim().slice(0, 80);
+  let w;
+  if (cardioEdition) {
+    const ancien = getDay(cardioEdition.date);
+    w = ancien.workouts[cardioEdition.index];
+    if (!w) { fermerModal('modal-cardio'); return; }
+    if (date !== cardioEdition.date) {
+      ancien.workouts.splice(cardioEdition.index, 1);
+      saveData(cardioEdition.date);
+      getDay(date).workouts.push(w);
+    }
+  } else {
+    w = {};
+    getDay(date).workouts.push(w);
+  }
+  w.type = br.type; w.time = minutes; w.intensite = br.intensite;
+  if (km) w.distance = Math.round(km * 1000) / 1000; else delete w.distance;
+  if (note) w.note = note; else delete w.note;
+  saveData(date);
+  apresModifCardio([date, cardioEdition && cardioEdition.date]);
+  fermerModal('modal-cardio');
+}
+function supprimerCardio() {
+  if (!cardioEdition) return;
+  if (!confirm('Supprimer cette séance ?')) return;
+  const day = getDay(cardioEdition.date);
+  day.workouts.splice(cardioEdition.index, 1);
+  saveData(cardioEdition.date);
+  apresModifCardio([cardioEdition.date]);
+  fermerModal('modal-cardio');
+}
+/* --- Statistiques › Cardio : minutes par semaine, allure, records --- */
+let cardioSemainesChartInstance = null, cardioAllureChartInstance = null;
+let cardioAllureType = null;
+const CARDIO_AVEC_ALLURE = ['course', 'cyclisme', 'natation', 'marche_rapide', 'rameur'];
+// Distance minimale pour qu'une séance compte dans « meilleure allure » :
+// un sprint de 400 m ne doit pas battre le record d'un 10 km.
+const DISTANCE_MIN_RECORD = { course: 3, marche_rapide: 2, cyclisme: 10, natation: 0.4, rameur: 1 };
+function choisirAllureCardio(t) { cardioAllureType = t; renderStatsCardio(); }
+function renderStatsCardio() {
+  if (typeof Chart === 'undefined') return;
+  const { debut, fin } = bornesMuscuIso();
+  const toutes = seancesCardio();
+  const periode = toutes.filter(x => x.date >= debut && x.date <= fin);
+  const p = paletteGraphique();
+  const baseOpts = optionsGraphiqueBase(p, { avecLegende: true });
+
+  // 1. Minutes par semaine, empilées par intensité, ligne d'objectif.
+  let premier = debut === '0000-01-01'
+    ? (periode.length ? periode[periode.length - 1].date : shiftDate(fin, -56))
+    : debut;
+  let lundi = lundiDe(premier);
+  const derLundi = lundiDe(fin);
+  const semaines = [];
+  while (lundi <= derLundi && semaines.length < 104) { semaines.push(lundi); lundi = shiftDate(lundi, 7); }
+  const parSemaine = semaines.map(() => ({ 1: 0, 2: 0, 3: 0 }));
+  periode.forEach(({ date, w }) => {
+    const k = semaines.indexOf(lundiDe(date));
+    if (k >= 0) parSemaine[k][intensiteCardio(w)] += Number(w.time) || 0;
+  });
+  const labels = semaines.map(l => { const d = new Date(l + 'T12:00:00'); return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }); });
+  const jeux = [1, 2, 3].map((n, i) => ({
+    label: n === 3 ? 'Intense (×2)' : NOMS_INTENSITE[n],
+    data: parSemaine.map(x => x[n] * (n === 3 ? 2 : 1)),
+    backgroundColor: couleurIntensite(n), stack: 'cardio',
+    borderRadius: rayonPileBarres(i, 3, 5), borderSkipped: false, maxBarThickness: 26
+  }));
+  jeux.push({ type: 'line', label: 'Objectif', data: semaines.map(() => OBJECTIF_CARDIO.cible), stack: 'objectif',
+    borderColor: couleurTexteZone('mev'), borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0, fill: false });
+  if (cardioSemainesChartInstance) cardioSemainesChartInstance.destroy();
+  cardioSemainesChartInstance = new Chart(document.getElementById('cardioSemainesChart'), {
+    type: 'bar',
+    data: { labels, datasets: jeux },
+    options: Object.assign({}, baseOpts, {
+      scales: Object.assign({}, baseOpts.scales, {
+        x: Object.assign({ stacked: true }, baseOpts.scales.x),
+        y: Object.assign({ stacked: true, suggestedMax: OBJECTIF_CARDIO.cible + 30 }, baseOpts.scales.y)
+      })
+    })
+  });
+  const noteS = document.getElementById('note-cardio-semaines');
+  if (noteS) {
+    const totaux = parSemaine.map(x => x[1] + x[2] + x[3] * 2);
+    const atteintes = totaux.filter(v => v >= OBJECTIF_CARDIO.cible).length;
+    noteS.textContent = periode.length
+      ? `Objectif de ${OBJECTIF_CARDIO.cible} min atteint ${atteintes} semaine${atteintes > 1 ? 's' : ''} sur ${semaines.length}. Une minute intense compte double.`
+      : "Aucune séance cardio sur cette période. Ajoute-en depuis Activité › Cardio.";
+  }
+
+  // 2. Allure, pour une activité au choix parmi celles qui ont une distance.
+  const typesDispo = CARDIO_AVEC_ALLURE.filter(t => periode.some(x => x.w.type === t && Number(x.w.distance) > 0));
+  if (!typesDispo.includes(cardioAllureType)) cardioAllureType = typesDispo[0] || null;
+  const nav = document.getElementById('cardio-allure-nav');
+  if (nav) {
+    nav.classList.toggle('hidden', typesDispo.length < 2);
+    nav.innerHTML = typesDispo.map(t => `<button type="button" onclick="choisirAllureCardio('${t}')" aria-pressed="${t === cardioAllureType}">${SPORT_LABELS[t]}</button>`).join('');
+  }
+  const pts = cardioAllureType
+    ? periode.filter(x => x.w.type === cardioAllureType && Number(x.w.distance) > 0).slice().reverse()
+        .map(x => ({ date: x.date, w: x.w, a: allureCardio(x.w.type, x.w.time, x.w.distance) }))
+    : [];
+  const enMin = pts.length ? pts[0].a.plusPetitMieux : true;
+  const fmt = v => enMin ? texteMinSec(v) : nombreFr(v);
+  if (cardioAllureChartInstance) cardioAllureChartInstance.destroy();
+  const optsA = optionsGraphiqueBase(p, { avecLegende: false, beginAtZero: false });
+  cardioAllureChartInstance = new Chart(document.getElementById('cardioAllureChart'), {
+    type: 'line',
+    data: {
+      labels: pts.map(x => new Date(x.date + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })),
+      datasets: [{ label: pts.length ? (enMin ? 'Allure' : 'Vitesse') : '', data: pts.map(x => x.a.valeur),
+        borderColor: couleurIntensite(2), backgroundColor: 'rgba(79,124,255,0.14)', fill: pts.length ? { value: enMin ? Math.max(...pts.map(x => x.a.valeur)) : Math.min(...pts.map(x => x.a.valeur)) } : false, tension: 0.3,
+        pointRadius: 3, pointHoverRadius: 5, borderWidth: 2 }]
+    },
+    options: Object.assign({}, optsA, {
+      plugins: Object.assign({}, optsA.plugins, {
+        tooltip: Object.assign({}, optsA.plugins.tooltip, { callbacks: {
+          label: c => { const x = pts[c.dataIndex]; return x ? ` ${x.a.texte} · ${resumeSeanceCardio(x.w, true)}` : ''; }
+        } })
+      }),
+      scales: Object.assign({}, optsA.scales, {
+        y: Object.assign({}, optsA.scales.y, { reverse: enMin, ticks: Object.assign({}, optsA.scales.y.ticks, { callback: v => fmt(v) }) })
+      })
+    })
+  });
+  const noteA = document.getElementById('note-cardio-allure');
+  if (noteA) {
+    if (!pts.length) noteA.textContent = "Indique la distance de tes séances (course, vélo, natation, marche, rameur) pour suivre ton allure.";
+    else if (pts.length < 2) noteA.textContent = `Une seule séance avec distance sur la période : ${pts[0].a.texte}.`;
+    else {
+      const n = Math.min(3, Math.floor(pts.length / 2));
+      const moy = arr => arr.reduce((t, x) => t + x.a.valeur, 0) / arr.length;
+      const avant = moy(pts.slice(0, n)), apres = moy(pts.slice(-n));
+      const unite = pts[0].a.unite;
+      if (enMin) {
+        const sec = Math.round((avant - apres) * 60);
+        noteA.textContent = Math.abs(sec) < 3
+          ? `Allure stable sur la période, autour de ${texteMinSec(apres)} ${unite}. Plus la courbe monte, plus tu vas vite.`
+          : `${sec > 0 ? 'Plus rapide' : 'Plus lent'} de ${Math.abs(sec)} s ${unite} entre le début et la fin de la période. Plus la courbe monte, plus tu vas vite.`;
+      } else {
+        const d = apres - avant;
+        noteA.textContent = Math.abs(d) < 0.3
+          ? `Vitesse stable sur la période, autour de ${nombreFr(apres)} km/h.`
+          : `${d > 0 ? '+' : '−'}${nombreFr(Math.abs(d))} km/h entre le début et la fin de la période.`;
+      }
+    }
+  }
+
+  // 3. Records, sur tout l'historique.
+  const rec = document.getElementById('cardio-records');
+  if (rec) {
+    const semainesTout = {};
+    toutes.forEach(({ date, w }) => { const l = lundiDe(date); semainesTout[l] = (semainesTout[l] || 0) + minutesEquivCardio(w); });
+    let meilleureSem = null;
+    Object.keys(semainesTout).forEach(l => { if (!meilleureSem || semainesTout[l] > semainesTout[meilleureSem]) meilleureSem = l; });
+    const tuile = (val, titre, sous) => `<div class="cardio-record"><b>${val}</b><span>${titre}</span>${sous ? `<small>${sous}</small>` : ''}</div>`;
+    const dateCourte = d => new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: d.slice(0, 4) === todayStr().slice(0, 4) ? undefined : '2-digit' });
+    const tuiles = [];
+    const t = cardioAllureType;
+    const duType = t ? toutes.filter(x => x.w.type === t && Number(x.w.distance) > 0) : [];
+    if (t && duType.length) {
+      const eligibles = duType.filter(x => Number(x.w.distance) >= (DISTANCE_MIN_RECORD[t] || 0));
+      const meilleur = eligibles.reduce((m, x) => {
+        const a = allureCardio(t, x.w.time, x.w.distance);
+        return !m || (a.plusPetitMieux ? a.valeur < m.a.valeur : a.valeur > m.a.valeur) ? { x, a } : m;
+      }, null);
+      tuiles.push(meilleur ? tuile(escapeHtml(meilleur.a.texte.replace(/ \/.*$/, '')), `Meilleure ${t === 'cyclisme' ? 'vitesse' : 'allure'}`, escapeHtml((t === 'cyclisme' ? '' : meilleur.a.unite + ' · ') + dateCourte(meilleur.x.date))) : tuile('—', 'Meilleure allure', `dès ${texteDistanceCardio(t, DISTANCE_MIN_RECORD[t])}`));
+      const loin = duType.reduce((m, x) => !m || Number(x.w.distance) > Number(m.w.distance) ? x : m, null);
+      tuiles.push(tuile(escapeHtml(texteDistanceCardio(t, loin.w.distance)), 'Plus longue sortie', escapeHtml(dateCourte(loin.date))));
+    } else {
+      const longue = toutes.reduce((m, x) => !m || Number(x.w.time) > Number(m.w.time) ? x : m, null);
+      tuiles.push(tuile(longue ? Number(longue.w.time) + ' min' : '—', 'Plus longue séance', longue ? escapeHtml(dateCourte(longue.date)) : ''));
+      tuiles.push(tuile(String(toutes.length), 'Séances au total', ''));
+    }
+    tuiles.push(tuile(meilleureSem ? Math.round(semainesTout[meilleureSem]) + ' min' : '—', 'Meilleure semaine', meilleureSem ? 'du ' + escapeHtml(dateCourte(meilleureSem)) : ''));
+    rec.innerHTML = tuiles.join('');
+  }
+}
+function apresModifCardio(dates) {
+  renderCardio();
+  if (dates.includes(currentDate)) {
+    const day = getDay(currentDate);
+    renderWorkoutsList(day);
+    updateSummary(day);
+  }
+}
+
 
 /* En mode confort, les macros de chaque aliment sont déjà visibles sous son
    nom : pas besoin d'un pop-up en plus. En mode compact, elles sont
@@ -8012,6 +8547,7 @@ function majToutesStats() {
   mettreAJourStats();
   mettreAJourStatsNutrition();
   mettreAJourStatsMuscu();
+  renderStatsCardio();
 }
 /* Dates de la période pour la musculation (ISO). */
 function bornesMuscuIso() {
@@ -8720,7 +9256,7 @@ function allerA(nom) {
   window.scrollTo({ top: 0, behavior: 'auto' });
   reduireAppBar(false);
   if (nom === 'stats') { prepareStats(); }
-  if (nom === 'seance') { renderSeance(); }
+  if (nom === 'seance') { renderSeance(); choisirModeSeance(modeSeance, true); }
   if (nom === 'repas') majNoteCleIA();
   // Les aliments ne sont chargés qu'à l'ouverture de leur feuille :
   // inutile d'interroger Supabase tant que personne ne les regarde.
@@ -9151,12 +9687,14 @@ const TOUR_ETAPES = [
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-barcode', titre: 'Code-barres', texte: "Scanne un produit emballé : ses valeurs nutritionnelles sont récupérées toutes seules." },
   { ecran: 'repas', cible: '#bloc-eau', titre: "L'eau", texte: 'Un toucher sur +250 ml, +500 ml ou +1 L à chaque fois que tu bois.' },
   { ecran: 'repas', cible: '[onclick*="note-suggestions"]', titre: 'Idées recettes', texte: "Des idées de repas qui complètent tes macros du jour. Astuce : touche un titre pour afficher son explication." },
-  { ecran: 'repas', cible: '#carte-pas-seances', titre: 'Pas et autres sports', texte: "Tes pas et tes séances hors musculation (course, vélo, natation…) : ils comptent dans ta dépense. Tes séances de musculation terminées s'y ajoutent seules." },
+  { ecran: 'repas', cible: '#carte-pas-seances', titre: 'Pas et autres sports', texte: "Tes pas et tes séances du jour : elles comptent dans ta dépense. Tes séances de musculation terminées s'y ajoutent seules, et le cardio (course, vélo, natation…) se retrouve aussi dans Activité › Cardio." },
   { ecran: 'repas', cible: '#carte-bilan-jour', titre: 'Bilan de la journée', texte: "Une analyse de ta journée par l'IA : nutrition, activité et séance du jour." },
   { ecran: 'repas', cible: '#fab', titre: 'Le bouton de navigation', texte: "Ce bouton flottant change d'écran. Garde le doigt appuyé dessus pour le déplacer où tu veux." },
-  { fab: true, cible: '#nav-seance', titre: 'Activité', texte: 'Tes programmes de musculation, tes séances et la bibliothèque d’exercices. La visite « Musculation » détaille tout cet écran.' },
+  { fab: true, cible: '#nav-seance', titre: 'Activité', texte: 'Ta musculation (programmes, séances, bibliothèque d’exercices) et ton cardio. La visite « Musculation » détaille la partie muscu.' },
+  { ecran: 'seance', cible: '#seance-mode-nav', titre: 'Musculation ou cardio', texte: "Bascule entre tes séances de musculation et ton cardio : course, vélo, natation, marche, rameur, HIIT, sport co." },
+  { ecran: 'seance', modeCardio: true, cible: '#seance-cardio .cardio-carte', titre: 'Ta semaine de cardio', texte: "L'objectif conseillé : 150 à 300 min par semaine, une minute intense comptant double. La jauge montre où tu en es, la barre en dessous ta répartition facile / modérée / intense. Ajoute une séance avec le bouton juste en dessous : durée, distance, intensité." },
   { fab: true, cible: '#nav-stats', titre: 'Statistiques', texte: 'Poids, composition, nutrition et musculation, sur la période de ton choix.' },
-  { ecran: 'stats', cible: '#stats-onglets-nav', titre: 'Quatre catégories', texte: 'Corps (poids et composition), Nutrition, Activité (pas, sports, séances) et Muscu (semaine, progression, séances, programmes).' },
+  { ecran: 'stats', cible: '#stats-onglets-nav', titre: 'Quatre catégories', texte: 'Corps (poids et composition), Nutrition, Cardio (minutes par semaine, allure, records, pas) et Muscu (semaine, progression, séances, programmes).' },
   { ecran: 'stats', cible: '#stats-periode', titre: 'Choisir une période', texte: "Une seule période pour tout l'écran : 7 jours, 30 jours, 3 mois… ou « Perso » pour la régler aux curseurs. Le bilan IA, en bas, l'analyse en entier." },
   { fab: true, cible: '#nav-reglages', titre: 'Profil', texte: 'Ton compte, ton objectif, tes informations et tes mesures corporelles.' },
   { ecran: 'reglages', cible: '#carte-objectif', titre: 'Ton objectif', texte: "Maintien, sèche, prise de masse ou recomposition : il règle tes calories et tes macros. En changer ne réécrit jamais ton historique." },
@@ -9292,6 +9830,7 @@ function afficherEtapeTour() {
   const bulleTour = document.getElementById('tour-bulle');
   if (changement && bulleTour) bulleTour.style.opacity = '0';
   if (etape.ecran && etape.ecran !== ecranActif) allerA(etape.ecran);
+  if (etape.ecran === 'seance') choisirModeSeance(etape.modeCardio ? 'cardio' : 'muscu', true);
   if (etape.fab) { if (!fabOuvert) ouvrirFab(); }
   else if (fabOuvert) fermerFab();
   // Certaines étapes détaillent le contenu d'une feuille (ex. les 4 options
@@ -10970,7 +11509,7 @@ function targetsPourCompte(day, dateStr, jours, compte) {
   const pasEnPlus = Math.max(0, pasDuJour - PAS_DEJA_COMPTES);
   const stepsKcal = pasEnPlus * 0.03 * (weight / 70);
   let workoutKcal = 0;
-  (day.workouts || []).forEach(w => { workoutKcal += kcalSeance(w.type, w.time, weight, w.seriesFaites); });
+  (day.workouts || []).forEach(w => { workoutKcal += kcalSeance(w.type, w.time, weight, w.seriesFaites, w.intensite); });
   const tdee = bmr * 1.2 + stepsKcal + workoutKcal;
   const objectif = day.goal || dernierObjectifDansListe(jours, dateStr);
   const adj = objectif === 'seche' ? -0.20 : objectif === 'masse' ? 0.15 : 0;
