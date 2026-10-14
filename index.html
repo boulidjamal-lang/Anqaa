@@ -2215,6 +2215,7 @@
        confirmation), à droite = remplacer. Le geste part de l'en-tête de
        l'exercice ; les lignes de série gardent leur propre glisser. */
     .picker-suite { height: 1px; }
+    .lien-depliant { background: none; border: 0; padding: 4px 2px; margin: 0 0 4px; font: inherit; font-size: 0.82rem; font-weight: 700; color: var(--primary); cursor: pointer; }
     .exo-swipe { position: relative; margin-bottom: 14px; border-radius: 16px; }
     .exo-swipe:last-child { margin-bottom: 6px; }
     .exo-swipe > .session-exo-bloc { position: relative; z-index: 1; margin-bottom: 0; transition: transform 0.25s ease; }
@@ -3645,13 +3646,17 @@
       <label for="edit-exo-materiel">Matériel</label>
       <select id="edit-exo-materiel"></select>
     </div>
-    <div class="input-group">
-      <label for="edit-exo-image">Lien d'une photo (facultatif)</label>
-      <input type="url" id="edit-exo-image" autocomplete="off" placeholder="https://…">
-    </div>
-    <div class="input-group" style="margin-bottom:0;">
+    <div class="input-group" style="margin-bottom:8px;">
       <label for="edit-exo-video">Lien de la vidéo (vide = aucune vidéo)</label>
       <input type="url" id="edit-exo-video" autocomplete="off" placeholder="https://….mp4">
+    </div>
+    <!-- Image d'aperçu repliée : facultative, elle sert de vignette légère
+         dans les listes (sans elle, la miniature est tirée de la vidéo). -->
+    <button type="button" class="lien-depliant" id="edit-exo-image-toggle" onclick="afficherChampImageExercice(true)">+ Ajouter une image d'aperçu (facultatif)</button>
+    <div class="input-group hidden" id="edit-exo-image-groupe" style="margin-bottom:0;">
+      <label for="edit-exo-image">Image d'aperçu (facultatif)</label>
+      <input type="url" id="edit-exo-image" autocomplete="off" placeholder="https://….jpg">
+      <p class="note" style="margin:6px 2px 0;">Affichée dans les listes et pendant le chargement de la vidéo : plus rapide qu'une miniature tirée de la vidéo.</p>
     </div>
     <p class="note">La modification s'applique pour tous les utilisateurs.</p>
     <button class="btn btn-primary" type="button" onclick="sauvegarderEditionExerciceAdmin()">Enregistrer</button>
@@ -20567,6 +20572,11 @@ function rendreExercicesAdmin(exercices, totalReel) {
   });
 }
 
+function afficherChampImageExercice(ouvert) {
+  document.getElementById('edit-exo-image-groupe').classList.toggle('hidden', !ouvert);
+  document.getElementById('edit-exo-image-toggle').classList.toggle('hidden', !!ouvert);
+  if (ouvert && !document.getElementById('edit-exo-image').value) document.getElementById('edit-exo-image').focus();
+}
 function editerExerciceAdmin(exo) {
   const modal = document.getElementById('modal-edit-exercice-admin');
   if (!modal) return;
@@ -20579,6 +20589,7 @@ function editerExerciceAdmin(exo) {
   // photo vient normalement de EXERCICE_MEDIA, pas de l'objet lui-même.
   const mediaActuel = mediaExercice(exo);
   document.getElementById('edit-exo-image').value = (mediaActuel && mediaActuel.img && mediaActuel.img[0]) || '';
+  afficherChampImageExercice(!!document.getElementById('edit-exo-image').value);
   const videoActuelle = videoExercice(exo);
   document.getElementById('edit-exo-video').value = (videoActuelle && videoActuelle.video) || '';
   modal.dataset.videoInitiale = (videoActuelle && videoActuelle.video) || '';
