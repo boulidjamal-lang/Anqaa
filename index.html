@@ -2185,6 +2185,16 @@
     .fh-agrandir svg { width: 20px; height: 20px; }
     .fh-courbe { position: relative; height: 220px; border-radius: 12px; margin: 6px 0 14px; transition: height 0.25s ease; }
     .fh-courbe.grand { height: 380px; }
+    .video-zoom { position: fixed; inset: 0; z-index: 4100; background: rgba(0, 0, 0, 0.82); display: flex; align-items: center; justify-content: center;
+      padding: calc(env(safe-area-inset-top, 0px) + 16px) 14px calc(env(safe-area-inset-bottom, 0px) + 16px); }
+    .video-zoom.hidden { display: none; }
+    .video-zoom-cadre { width: 100%; max-width: 560px; background: var(--bg); border-radius: 20px; padding: 12px; box-shadow: var(--ombre-haute); }
+    .video-zoom-tete { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 2px 10px; }
+    .video-zoom-tete b { font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .video-zoom-media { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #2b2c30; }
+    .video-zoom-media video, .video-zoom-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+    .video-zoom-media video.hd { opacity: 0; transition: opacity 0.25s; }
+    .video-zoom-media video.hd.prete { opacity: 1; }
     .courbe-pe { position: fixed; inset: 0; z-index: 4000; background: var(--bg); display: flex; flex-direction: column; gap: 8px;
       padding: calc(env(safe-area-inset-top, 0px) + 10px) calc(env(safe-area-inset-right, 0px) + 14px) calc(env(safe-area-inset-bottom, 0px) + 10px) calc(env(safe-area-inset-left, 0px) + 14px); }
     .courbe-pe.hidden { display: none; }
@@ -2594,7 +2604,7 @@
         <div class="session-zones" id="session-zones"></div>
       </div>
       <div class="session-repli-barre hidden" id="session-repli-barre">
-        <span class="session-repli-astuce">Glisse un exercice : ← retirer · remplacer →</span>
+        <span class="session-repli-astuce">Glisser : ← retirer · remplacer →</span>
         <button type="button" onclick="replierTousExercicesSession(true)">Tout replier</button>
         <button type="button" onclick="replierTousExercicesSession(false)">Tout déplier</button>
       </div>
@@ -3018,6 +3028,17 @@
 <div class="menu-technique-popup hidden" id="menu-programme-popup" role="menu">
   <button type="button" role="menuitem" onclick="choisirOptionProgramme('dupliquer')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg> Dupliquer</button>
   <button type="button" role="menuitem" onclick="choisirOptionProgramme('supprimer')" style="color:var(--danger);"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg> Supprimer</button>
+</div>
+
+<!-- Démonstration d'un exercice en grand (toucher la miniature en séance) -->
+<div id="video-zoom" class="video-zoom hidden" role="dialog" aria-modal="true" aria-labelledby="video-zoom-titre" onclick="if (event.target === this) fermerVideoExercice()">
+  <div class="video-zoom-cadre">
+    <div class="video-zoom-tete">
+      <b id="video-zoom-titre"></b>
+      <button type="button" class="close-modal" onclick="fermerVideoExercice()" aria-label="Fermer la vidéo">&times;</button>
+    </div>
+    <div class="video-zoom-media" id="video-zoom-media"></div>
+  </div>
 </div>
 
 <!-- Courbe d'un exercice en plein écran (voir agrandirCourbeFiche) -->
@@ -16358,6 +16379,39 @@ function basculerMetriqueFiche(m) {
    courbes à afficher. Sur Android, l'écran passe en paysage tout seul ;
    ailleurs, une astuce invite à tourner le téléphone. */
 let courbePleinEcranChart = null;
+/* Démonstration en grand : la mini-vidéo (déjà chargée) s'affiche tout de
+   suite, la vidéo d'origine en haute qualité la remplace dès qu'elle peut
+   être lue. Sans vidéo, l'image de l'exercice en grand. */
+function agrandirVideoExercice(exerciceId) {
+  const exo = trouverExercice(exerciceId);
+  if (!exo) return;
+  const zone = document.getElementById('video-zoom-media');
+  document.getElementById('video-zoom-titre').textContent = libelleExercice(exo);
+  const v = !exo.perso && videoExercice(exo);
+  const brut = !exo.perso && typeof exo.video !== 'string' && VIDEOS_SMARTWORKOUT[exo.id];
+  if (v && v.video) {
+    const mini = brut ? 'assets/miniatures/' + brut[0] : null;
+    zone.innerHTML = (mini ? `<video src="${mini}.mp4" poster="${mini}.jpg" autoplay muted loop playsinline disablepictureinpicture aria-hidden="true" style="filter:blur(1px);"></video>` : '')
+      + `<video class="hd" src="${escapeHtml(v.video)}"${v.poster && !mini ? ` poster="${escapeHtml(v.poster)}"` : ''} autoplay muted loop playsinline disablepictureinpicture preload="auto" aria-label="Démonstration : ${escapeHtml(libelleExercice(exo))}"></video>`;
+    const hd = zone.querySelector('video.hd');
+    const montrer = () => hd.classList.add('prete');
+    hd.addEventListener('playing', montrer, { once: true });
+    hd.addEventListener('canplay', montrer, { once: true });
+    if (!mini) montrer();
+  } else {
+    const media = mediaExercice(exo);
+    const img = media && media.img && media.img[0];
+    zone.innerHTML = img ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(libelleExercice(exo))}">` : `<div class="schema-repli" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">${svgSilhouetteGroupe(exo.groupe)}</div>`;
+  }
+  document.getElementById('video-zoom').classList.remove('hidden');
+}
+function fermerVideoExercice() {
+  const z = document.getElementById('video-zoom');
+  if (!z || z.classList.contains('hidden')) return;
+  z.classList.add('hidden');
+  document.getElementById('video-zoom-media').innerHTML = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') fermerVideoExercice(); });
 function agrandirCourbeFiche() {
   if (!ficheHisto) return;
   const pe = document.getElementById('courbe-plein-ecran');
@@ -17434,8 +17488,8 @@ function renderSessionExerciceBlocHTML(exo, ei) {
     const fini = exo.series.length > 0 && faites === exo.series.length;
     return `<div class="session-exo-bloc session-exo-bloc--replie">
     <div class="session-exo-entete">
+      <button type="button" class="session-exo-vignette-btn" onclick="agrandirVideoExercice('${exo.exerciceId}')" aria-label="Voir la démonstration en grand"><span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet, true) : ''}</span></button>
       <button type="button" class="session-exo-replie-btn" onclick="basculerRepliExerciceSession(${ei})" aria-expanded="false" aria-label="Déplier ${nomExo}">
-        <span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet, true) : ''}</span>
         <span class="session-exo-nom">${nomExo}</span>
         <span class="session-exo-progression${fini ? ' session-exo-progression--fini' : ''}">${fini ? '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>' : ''}${faites}/${exo.series.length} série${exo.series.length > 1 ? 's' : ''}</span>
         <span class="session-exo-chevron" aria-hidden="true">${ICONE_CHEVRON_EXO}</span>
@@ -17445,7 +17499,7 @@ function renderSessionExerciceBlocHTML(exo, ei) {
   }
   return `<div class="session-exo-bloc">
     <div class="session-exo-entete">
-      <button type="button" class="session-exo-vignette-btn" onclick="basculerRepliExerciceSession(${ei})" aria-label="Replier cet exercice"><span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet, true) : ''}</span></button>
+      <button type="button" class="session-exo-vignette-btn" onclick="agrandirVideoExercice('${exo.exerciceId}')" aria-label="Voir la démonstration en grand"><span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet, true) : ''}</span></button>
       <div style="flex:1; min-width:0;">
         <div class="session-exo-titre">
           <div class="session-exo-nom-ligne">
