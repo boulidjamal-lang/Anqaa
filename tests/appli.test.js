@@ -133,6 +133,26 @@ test("éditeur de programme : glisser pour retirer ou remplacer, toucher le nom 
   assert.equal(await page.evaluate(() => document.querySelector('#fiche-exercice-modal [aria-pressed="true"]')?.textContent.trim()), 'Résumé');
 }));
 
+test('éditeur de programme : appui long pour déplacer un exercice', () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => {
+    allerA('seance'); choisirModeSeance('muscu'); ouvrirCreationProgramme();
+    programmeEnEdition.exercices = toutesLesExercices().slice(0, 4).map(e => ({ exerciceId: e.id, series: [{ poids: 40, reps: 10 }] }));
+    renderProgrammeExercicesEnEdition();
+  });
+  const avant = await page.evaluate(() => programmeEnEdition.exercices.map(e => e.exerciceId));
+  const b = await page.locator('#programme-exercices-container .exo-en-programme-entete').first().boundingBox();
+  const x = b.x + 60, y = b.y + 15;
+  await page.mouse.move(x, y); await page.mouse.down();
+  await page.waitForTimeout(600);
+  assert.ok(await page.evaluate(() => document.getElementById('programme-exercices-container').classList.contains('reordre')), 'les exercices se replient');
+  for (let k = 1; k <= 10; k++) await page.mouse.move(x, y + k * 14);
+  await page.mouse.up(); await page.waitForTimeout(300);
+  const apres = await page.evaluate(() => programmeEnEdition.exercices.map(e => e.exerciceId));
+  assert.deepEqual(apres, [avant[1], avant[2], avant[0], avant[3]]);
+  assert.equal(await page.evaluate(() => !!document.querySelector('#fiche-exercice-modal.show')), false, "l'appui long n'ouvre pas la fiche");
+  assert.equal(await page.locator('#programme-exercices-container .exo-en-programme-reordre').count(), 0, 'plus de flèches');
+}));
+
 test('un programme se crée puis se supprime sans revenir', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     allerA('seance'); choisirModeSeance('muscu');

@@ -1824,6 +1824,18 @@
     .exo-en-programme-entete { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
     .exo-en-programme-nom { font-weight: 700; font-size: 0.88rem; }
     .exo-en-programme-meta { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+    .exo-poignee { flex: none; align-self: center; width: 22px; height: 22px; color: var(--text-muted); opacity: 0.55; }
+    .exo-poignee svg { width: 22px; height: 22px; display: block; }
+    .exo-en-programme-entete { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+    /* Mode réorganisation : chaque exercice replié sur son en-tête. */
+    #programme-exercices-container.reordre .exo-en-programme > :not(.exo-en-programme-entete) { display: none; }
+    #programme-exercices-container.reordre .exo-en-programme-entete { margin-bottom: 0; }
+    #programme-exercices-container.reordre .exo-en-programme-meta { display: none; }
+    #programme-exercices-container.reordre .exo-swipe { transition: transform 0.18s ease; }
+    #programme-exercices-container.reordre .exo-swipe-fond { display: none; }
+    #programme-exercices-container .exo-swipe.reordre-tenu { transition: none; z-index: 5; }
+    #programme-exercices-container .exo-swipe.reordre-tenu > .exo-en-programme { box-shadow: 0 10px 28px rgba(14, 20, 32, 0.22); transform: scale(1.02); background-color: var(--bg); background-image: linear-gradient(var(--verre-creux), var(--verre-creux)); }
+    #programme-exercices-container.reordre .exo-poignee { opacity: 1; color: var(--primary); }
     .exo-en-programme-reordre { display: flex; flex-direction: column; gap: 3px; }
     .exo-en-programme-reordre button {
       width: 28px; height: 22px; border-radius: 6px; border: 0;
@@ -9778,7 +9790,7 @@ const TOUR_MUSCU = [
   // A. Écran Activité : préparer ses séances
   { titre: 'La musculation dans Anqā', texte: "Trois temps : préparer tes séances sur l'écran Activité, faire une séance (avec une démonstration), puis suivre ta progression dans les statistiques." },
   { ecran: 'seance', cible: '#programmes-liste-container', titre: 'Tes programmes', texte: "Un programme = une liste d'exercices avec leurs séries, charges et répétitions cibles. Le ⋯ d'un programme permet de le modifier, le dupliquer ou le supprimer." },
-  { ecran: 'seance', cible: '[onclick="ouvrirCreationProgramme()"]', titre: 'Créer un programme', texte: "Ajoute tes exercices, règle les séries, les techniques (dégressif, pyramidal…), les supersets, le tempo et l'objectif de chaque exercice. Comme en séance, glisse un exercice vers la gauche pour le retirer, vers la droite pour le remplacer ; touche son nom pour voir ta courbe de progression." },
+  { ecran: 'seance', cible: '[onclick="ouvrirCreationProgramme()"]', titre: 'Créer un programme', texte: "Ajoute tes exercices, règle les séries, les techniques (dégressif, pyramidal…), les supersets, le tempo et l'objectif de chaque exercice. Comme en séance, glisse un exercice vers la gauche pour le retirer, vers la droite pour le remplacer ; garde le doigt appuyé dessus pour le déplacer dans la liste ; touche son nom pour voir ta courbe de progression." },
   { ecran: 'seance', cible: '[onclick="ouvrirAssistantProgrammeIA()"]', titre: "Programme par l'IA", texte: "Donne ton objectif, tes jours disponibles et ton matériel : l'IA te propose un programme complet, que tu peux ensuite modifier." },
   { ecran: 'seance', cible: '[onclick="ouvrirBibliotheque()"]', titre: "Bibliothèque d'exercices", texte: "Plus de 800 exercices, filtrés par muscle et par matériel. Chaque fiche a trois onglets : Instructions (vidéo, muscles, étapes), Résumé (tes records et ta courbe) et Historique." },
   { ecran: 'seance', cible: '[onclick="ouvrirGymbro()"]', titre: 'Gymbro', texte: "Compare tes séances avec celles d'un ami grâce à son nom d'utilisateur." },
@@ -16289,12 +16301,7 @@ function renderProgrammeExercicesEnEdition() {
             : `<div class="exo-en-programme-nom">Exercice supprimé</div>`}
           <div class="exo-en-programme-meta">${escapeHtml(meta)}</div>
         </div>
-        <div style="display:flex; gap:6px; align-items:center;">
-          <div class="exo-en-programme-reordre">
-            <button type="button" onclick="deplacerExerciceProgramme(${i},-1)" ${i === 0 ? 'disabled' : ''} aria-label="Monter"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6" /></svg></button>
-            <button type="button" onclick="deplacerExerciceProgramme(${i},1)" ${dernierDeLaListe ? 'disabled' : ''} aria-label="Descendre"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></button>
-          </div>
-        </div>
+        <span class="exo-poignee" aria-hidden="true" title="Appui long pour déplacer"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6" /><circle cx="15" cy="6" r="1.6" /><circle cx="9" cy="12" r="1.6" /><circle cx="15" cy="12" r="1.6" /><circle cx="9" cy="18" r="1.6" /><circle cx="15" cy="18" r="1.6" /></svg></span>
       </div>
       ${dernierDeLaListe ? '' : `<div class="exo-en-programme-technique">
         <button type="button" class="filtre-chip" aria-pressed="${pe.supersetSuivant ? 'true' : 'false'}" onclick="toggleSupersetProgramme(${i})"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg> Superset avec le suivant</button>
@@ -16314,6 +16321,7 @@ function renderProgrammeExercicesEnEdition() {
     </div>`;
   }).join('');
   initSwipeExercices('programme-exercices-container', { bloc: '.exo-en-programme', entete: '.exo-en-programme-entete', retirer: retirerExerciceProgramme, remplacer: remplacerExerciceProgramme });
+  initReordreProgramme();
 }
 /* --- Tempo (4 caractères : chiffres de 0 à 9, ou X = explosif) ------- */
 /* --- Plage de répétitions visée (« 8-12 », ou une valeur seule « 10 ») ---
@@ -16563,11 +16571,96 @@ function retirerExerciceProgramme(i) {
   if (precedent) precedent.supersetSuivant = false;
   renderProgrammeExercicesEnEdition();
 }
+/* Réorganiser un programme : appui long sur l'en-tête d'un exercice. Tous
+   les exercices se replient (nom seul), celui qu'on tient suit le doigt,
+   les autres s'écartent pour lui faire de la place ; on lâche pour le
+   poser. Un mouvement avant la fin de l'appui (défilement, glissement
+   gauche/droite pour retirer ou remplacer) annule l'appui long. */
+const APPUI_LONG_MS = 450;
+let reordreProg = null;          // déplacement en cours
+let reordreProgVientDeFinir = false;
+function initReordreProgramme() {
+  const c = document.getElementById('programme-exercices-container');
+  if (!c || c.dataset.reordreInit) return;
+  c.dataset.reordreInit = '1';
+  let attente = null;
+  const annuler = () => { if (attente) { clearTimeout(attente.timer); attente = null; } };
+  c.addEventListener('pointerdown', e => {
+    const entete = e.target.closest('.exo-en-programme-entete');
+    if (!entete || e.button > 0) return;
+    const zone = entete.closest('.exo-swipe');
+    const x0 = e.clientX, y0 = e.clientY;
+    attente = { x0, y0, timer: setTimeout(() => { attente = null; demarrerReordre(c, zone, e.pointerId, y0); }, APPUI_LONG_MS) };
+  });
+  c.addEventListener('pointermove', e => {
+    if (attente && Math.hypot(e.clientX - attente.x0, e.clientY - attente.y0) > 8) annuler();
+    if (reordreProg && e.pointerId === reordreProg.pointerId) suivreReordre(e.clientY);
+  });
+  const fin = e => {
+    annuler();
+    if (reordreProg && e.pointerId === reordreProg.pointerId) terminerReordre(e.type === 'pointerup');
+  };
+  c.addEventListener('pointerup', fin);
+  c.addEventListener('pointercancel', fin);
+  // Pendant le déplacement, le doigt ne doit pas faire défiler la page.
+  c.addEventListener('touchmove', e => { if (reordreProg) e.preventDefault(); }, { passive: false });
+  // Le relâchement d'un appui long n'ouvre pas la fiche de l'exercice.
+  c.addEventListener('click', e => { if (reordreProgVientDeFinir) { e.stopPropagation(); e.preventDefault(); } }, true);
+  c.addEventListener('contextmenu', e => { if (e.target.closest('.exo-en-programme-entete')) e.preventDefault(); });
+}
+function demarrerReordre(c, zone, pointerId, y) {
+  if (!zone || !document.body.contains(zone) || programmeEnEdition.exercices.length < 2) return;
+  if (typeof swipeExo !== 'undefined') swipeExo = null;
+  const zones = [...c.querySelectorAll(':scope > .exo-swipe')];
+  const from = zones.indexOf(zone);
+  if (from < 0) return;
+  c.classList.add('reordre');
+  zone.classList.add('reordre-tenu');
+  if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+  try { c.setPointerCapture(pointerId); } catch (e) {}
+  // Les exercices viennent de se replier : on place celui qu'on tient sous
+  // le doigt, puis on mémorise la position de chacun.
+  const r = zone.getBoundingClientRect();
+  window.scrollBy(0, (r.top + r.height / 2) - y);
+  const rects = zones.map(z => z.getBoundingClientRect());
+  const pas = rects.length > 1 ? rects[1].top - rects[0].top : r.height + 8;
+  reordreProg = { c, zones, from, cible: from, pointerId, y0: y, pas, centres: rects.map(x => x.top + x.height / 2) };
+  suivreReordre(y);
+}
+function suivreReordre(y) {
+  const st = reordreProg;
+  const dy = y - st.y0;
+  st.zones[st.from].style.transform = `translateY(${dy}px)`;
+  const centre = st.centres[st.from] + dy;
+  let cible = 0;
+  st.centres.forEach((cy, k) => { if (k !== st.from && centre > cy) cible++; });
+  if (cible > st.from) cible = Math.min(cible, st.zones.length - 1);
+  st.cible = cible;
+  st.zones.forEach((z, k) => {
+    if (k === st.from) return;
+    let d = 0;
+    if (st.from < cible && k > st.from && k <= cible) d = -st.pas;
+    if (st.from > cible && k >= cible && k < st.from) d = st.pas;
+    z.style.transform = d ? `translateY(${d}px)` : '';
+  });
+}
+function terminerReordre(poser) {
+  const st = reordreProg;
+  reordreProg = null;
+  reordreProgVientDeFinir = true;
+  setTimeout(() => { reordreProgVientDeFinir = false; }, 80);
+  st.c.classList.remove('reordre');
+  st.zones.forEach(z => { z.style.transform = ''; z.classList.remove('reordre-tenu'); });
+  if (poser && st.cible !== st.from) deplacerExerciceProgramme(st.from, st.cible - st.from);
+}
 function deplacerExerciceProgramme(i, delta) {
   const j = i + delta;
   if (j < 0 || j >= programmeEnEdition.exercices.length) return;
   const [x] = programmeEnEdition.exercices.splice(i, 1);
   programmeEnEdition.exercices.splice(j, 0, x);
+  // Le dernier exercice n'a pas de « suivant » avec qui faire un superset.
+  const dernier = programmeEnEdition.exercices[programmeEnEdition.exercices.length - 1];
+  if (dernier) dernier.supersetSuivant = false;
   renderProgrammeExercicesEnEdition();
 }
 function validerProgramme() {
@@ -18884,6 +18977,7 @@ function initSwipeExercices(conteneurId, options) {
   c.addEventListener('pointermove', (e) => {
     const st = swipeExo;
     if (!st || e.pointerId !== st.pointerId) return;
+    if (typeof reordreProg !== 'undefined' && reordreProg) { swipeExo = null; return; }
     const dx = e.clientX - st.x0, dy = e.clientY - st.y0;
     if (!st.horizontal) {
       if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
