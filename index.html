@@ -5443,12 +5443,12 @@ function renderJaugePas(valeur) {
   const zone = document.getElementById('jauge-pas');
   if (!zone) return;
   const pas = Math.max(0, Math.round(Number(valeur) || 0));
-  if (!pas) { zone.innerHTML = ''; return; }
   const cle = pas >= SEUILS_PAS[2] ? 'mav' : pas >= SEUILS_PAS[1] ? 'mev' : pas >= SEUILS_PAS[0] ? 'mv' : 'sous';
-  const phrase = pas < SEUILS_PAS[1]
+  const phrase = !pas ? 'Indique tes pas du jour pour voir où tu en es.'
+    : pas < SEUILS_PAS[1]
     ? `Encore ${(SEUILS_PAS[1] - pas).toLocaleString('fr-FR')} pas pour 7 500, le repère santé.`
     : pas < SEUILS_PAS[2] ? 'Repère santé atteint.' : 'Très belle journée de marche.';
-  zone.innerHTML = `<div class="jauge-pas-tete"><span>${phrase}</span><b style="color:${couleurTexteZone(cle)}">${NOMS_ZONE_PAS[cle]}</b></div>
+  zone.innerHTML = `<div class="jauge-pas-tete"><span>${phrase}</span><b style="color:${couleurTexteZone(cle)}">${pas ? NOMS_ZONE_PAS[cle] : ''}</b></div>
     ${barreSeuilsHTML(pas, SEUILS_PAS, FIN_PAS, x => (x / 1000).toLocaleString('fr-FR') + ' k')}`;
 }
 
