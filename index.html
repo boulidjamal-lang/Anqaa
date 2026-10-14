@@ -3606,7 +3606,6 @@
       </select>
     </div>
 
-    <button type="button" class="btn btn-primary hidden" id="btn-corriger-videos" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.8rem; margin:0 0 10px;" onclick="corrigerVideosImagesAdmin()"></button>
     <div id="admin-exercices-feuille-liste"></div>
   </div>
 </div>
@@ -20471,7 +20470,6 @@ async function chargerExercicesAdmin() {
     base.forEach(e => { e.usages = usages[e.id] || 0; });
     adminExercicesCharges = persoEtCommunaute.filter(e => !REDIRECTIONS_EXERCICES[e.id]).concat(base, anciens);
     filtrerExercicesAdmin();
-    majBoutonCorrigerVideos();
   } catch (e) {
     conteneur.innerHTML = '';
     const p = document.createElement('p');
@@ -20710,48 +20708,6 @@ async function sauvegarderEditionExerciceAdmin() {
   }
 }
 
-/* Exercices dont le « lien vidéo » enregistré est en fait l'image d'une
-   page SmartWorkout dont on connaît la vidéo : on enregistre la vidéo, et
-   l'image devient l'image d'aperçu. */
-function exercicesAvecImageCommeVideo() {
-  return adminExercicesCharges.filter(e => !e.estRetire && typeof e.video === 'string' && estLienImage(e.video) && videoDepuisLienImageSW(e.video));
-}
-function majBoutonCorrigerVideos() {
-  const b = document.getElementById('btn-corriger-videos');
-  if (!b) return;
-  const n = exercicesAvecImageCommeVideo().length;
-  b.classList.toggle('hidden', !n);
-  b.textContent = `Remplacer ${n} lien${n > 1 ? 's' : ''} d'image par ${n > 1 ? 'leurs' : 'sa'} vidéo${n > 1 ? 's' : ''}`;
-}
-async function corrigerVideosImagesAdmin() {
-  const liste = exercicesAvecImageCommeVideo();
-  if (!liste.length || !supa) return;
-  if (!confirm(`${liste.length} exercice(s) ont le lien d'une image à la place de leur vidéo. Les remplacer par la vidéo SmartWorkout correspondante ?\n\nL'image est gardée comme image d'aperçu.`)) return;
-  let faits = 0, echecs = 0;
-  for (const e of liste) {
-    const video = videoDepuisLienImageSW(e.video), image = e.video;
-    try {
-      if (e.estBase) {
-        const donnees = { nom: e.nom, groupe: e.groupe, materiel: e.materiel, video, img: Array.isArray(e.img) && e.img[0] ? e.img : [image] };
-        const { error } = await supa.from('exercices_base_overrides')
-          .upsert({ id: e.id, donnees, maj: Date.now(), modifie_par: sessionUtilisateur ? sessionUtilisateur.email : 'inconnu' }, { onConflict: 'id' });
-        if (error) throw error;
-        appliquerOverridesBase([{ id: e.id, donnees }]);
-      } else {
-        const donnees = Object.assign({}, e, { video, maj: Date.now() });
-        if (!(Array.isArray(e.img) && e.img[0])) donnees.img = [image];
-        ['email', 'utilisateur', 'estBase', 'usages'].forEach(k => delete donnees[k]);
-        const { error } = await supa.from('exercices_perso_musculation').update({ donnees, maj: donnees.maj }).eq('id', e.id);
-        if (error) throw error;
-      }
-      faits++;
-    } catch (err) { echecs++; }
-  }
-  await consignerAction('exercices_videos_corrigees', null, `${faits} vidéo(s)`, null, null);
-  alert(`${faits} exercice(s) corrigé(s)${echecs ? `, ${echecs} échec(s)` : ''}.`);
-  await chargerExercicesAdmin();
-  rendrePickerExercices();
-}
 async function supprimerExerciceAdmin(exo) {
   if (!supa || exo.estRetire) return;
   const avertUsage = exo.usages ? `\n\n⚠️ Il est utilisé ${exo.usages} fois dans tes programmes/séances : mieux vaut le FUSIONNER vers un autre exercice.` : '';
