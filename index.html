@@ -13982,6 +13982,8 @@ function medaillonExercice(exo, anime) {
     const mini = 'assets/miniatures/' + swBase[0];
     return `<video src="${mini}.mp4" poster="${mini}.jpg" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" style="background:#2b2c30;"></video>`;
   }
+  // Vidéo ajoutée dans Administration : en séance, elle joue en boucle.
+  if (anime && sw && sw.video && typeof exo.video === 'string') return videoVignetteHTML(sw.video, sw.poster, true);
   if (sw && sw.poster) return `<img src="${escapeHtml(sw.poster)}" alt="" decoding="async" loading="lazy" style="background:#fff;">`;
   const media = mediaExercice(exo);
   if (media && media.img && media.img[0]) {
@@ -13999,7 +14001,17 @@ function medaillonExercice(exo, anime) {
   // affiche plusieurs centaines).
   const v = videoExercice(exo);
   if (v && v.poster) return `<img src="${escapeHtml(v.poster)}" alt="" decoding="async" loading="lazy" style="background:#fff;">`;
+  // Une vidéo mais ni aperçu ni photo (lien ajouté dans Administration) :
+  // la première image de la vidéo sert de miniature.
+  if (v && v.video) return videoVignetteHTML(v.video, null, anime);
   return svgSilhouetteGroupe(exo.groupe);
+}
+/* Miniature tirée directement d'une vidéo : « #t=0.1 » fait afficher une
+   première image même sans lecture (iPhone compris) ; preload="metadata"
+   ne télécharge que le début du fichier. */
+function videoVignetteHTML(url, poster, anime) {
+  const src = escapeHtml(url) + (anime ? '' : '#t=0.1');
+  return `<video src="${src}"${poster ? ` poster="${escapeHtml(poster)}"` : ''}${anime ? ' autoplay loop' : ''} muted playsinline disablepictureinpicture disableremoteplayback preload="${anime ? 'auto' : 'metadata'}" aria-hidden="true" style="background:#2b2c30;"></video>`;
 }
 function estIllustrationVectorielle(url) {
   return url.includes('/workout-guide/');
@@ -16157,7 +16169,9 @@ function afficherFicheExerciceBiblio(id, options) {
   <div class="fiche-onglet" data-onglet="resume">${resumeFicheHTML(id, histoSource)}</div>
   <div class="fiche-onglet hidden" data-onglet="historique"><div id="fiche-histo-liste"></div></div>
   <div class="fiche-onglet hidden" data-onglet="technique">`;
-  const video = !e.perso && videoExercice(e);
+  // Un exercice personnalisé garde sa photo, sauf si une vidéo lui a été
+  // ajoutée (Administration).
+  const video = (!e.perso || typeof e.video === 'string') && videoExercice(e);
   if (video) {
     html += `<div class="fiche-exo-video"><video src="${escapeHtml(video.video)}"${video.poster ? ` poster="${escapeHtml(video.poster)}"` : ''} autoplay muted loop playsinline preload="metadata" aria-label="Démonstration : ${escapeHtml(libelleExercice(e))}"></video></div>
     <p class="note fiche-exo-note-source">Vidéo : <a href="${escapeHtml(video.page)}" target="_blank" rel="noopener" style="color:var(--accent);">SmartWorkout</a></p>`;
@@ -16392,7 +16406,7 @@ function agrandirVideoExercice(exerciceId) {
   if (!exo) return;
   const zone = document.getElementById('video-zoom-media');
   document.getElementById('video-zoom-titre').textContent = libelleExercice(exo);
-  const v = !exo.perso && videoExercice(exo);
+  const v = videoExercice(exo);
   const brut = !exo.perso && typeof exo.video !== 'string' && VIDEOS_SMARTWORKOUT[exo.id];
   if (v && v.video) {
     const mini = brut ? 'assets/miniatures/' + brut[0] : null;
