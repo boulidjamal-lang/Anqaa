@@ -1895,9 +1895,6 @@
     .cardio-seance-txt b { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cardio-seance-txt small { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
     .cardio-pastille { flex: none; font-size: 0.68rem; font-weight: 800; padding: 3px 9px; border-radius: 99px; }
-    .cardio-ligne-jour { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; background: var(--verre-creux); padding: 4px 6px 4px 10px; border-radius: 14px; }
-    .cardio-ligne-jour .cardio-seance { border-top: 0; padding: 6px 0; }
-    .cardio-ligne-jour .cardio-seance-ico { width: 34px; height: 34px; border-radius: 10px; }
     .cardio-champ-l { display: block; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-muted); margin: 14px 0 7px; }
     #modal-cardio .cardio-champ-l:first-of-type { margin-top: 4px; }
     .cardio-chips { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -2602,20 +2599,12 @@
     <div id="meals-container"></div>
 
     <div class="fitness-card" id="carte-pas-seances">
-      <h3 class="titre-depliant" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-sport note-poids')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-sport note-poids')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" /></svg> Pas &amp; séances</h3>
-      <div class="input-group">
+      <h3 class="titre-depliant" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-poids')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-poids')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" /></svg> Pas du jour</h3>
+      <div class="input-group" style="margin-bottom:0;">
         <label for="daily-steps">Nombre de pas</label>
         <input type="number" id="daily-steps" placeholder="ex : 8500" step="100" inputmode="numeric" oninput="renderJaugePas(this.value)" onchange="sauvegarderParametresJour()">
         <div id="jauge-pas" class="jauge-pas"></div>
       </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px;">
-        <label style="font-weight: 700; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin: 0;">Séances de sport</label>
-        <button class="btn-icone" style="font-size: 0.75rem; font-weight: 700;" onclick="ajouterLigneSportVide()">+ Ajouter</button>
-      </div>
-      <p class="note note-repliee" id="note-sport" style="margin: -4px 0 12px;">Une séance terminée dans l'onglet <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Activité apparaît ici automatiquement (étiquette « Séance »). Ajoute ici les <em>autres</em> sports (course, natation, etc.).</p>
-
-      <div id="workouts-list-container"></div>
     </div>
     <p class="note note-repliee" id="note-poids" style="margin: -4px 2px 14px;"></p>
 
@@ -5219,7 +5208,6 @@ function renderApp() {
   renderJaugePas(day.steps);
   afficherResumeMesures();
   
-  renderWorkoutsList(day);
   renderMeals(day);
   updateSummary(day);
   majBoutonAujourdhui();
@@ -5234,80 +5222,10 @@ function revenirAujourdhui() {
   renderApp();
 }
 
-function renderWorkoutsList(day) {
-  const container = document.getElementById('workouts-list-container');
-  if (!day.workouts || day.workouts.length === 0) {
-    container.innerHTML = `<div class="vide">Aucune séance enregistrée ce jour-là.</div>`;
-    return;
-  }
-
-  container.innerHTML = day.workouts.map((w, index) => {
-    // Une séance terminée depuis l'onglet Séance atterrit ici automatiquement
-    // (voir terminerSeance) : affichée à part, sans le sélecteur de sport
-    // (qu'il n'y a pas de raison de changer), pour que ce soit visuellement
-    // évident que c'est déjà comptée et qu'il ne faut pas en resaisir une.
-    if (w.source === 'seance') {
-      return `
-    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: var(--verre-creux); padding: 10px; border-radius: 14px; border: 0;">
-      <div style="flex: 2;">
-        <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Sport</div>
-        <div style="font-weight: 700; font-size: 0.85rem; margin-top: 2px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Musculation <span class="badge-technique">Séance</span></div>
-        <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">${escapeHtml(w.nom || 'Séance libre')} · ajoutée automatiquement</div>
-      </div>
-      <div class="input-group" style="flex: 1; margin-bottom: 0;">
-        <label style="font-size: 0.65rem;">Durée (min)</label>
-        <input type="number" value="${Number(w.time) || ''}" placeholder="60" step="5" onchange="modifierSport(${index}, 'time', this.value)">
-      </div>
-      <button class="btn-delete" onclick="supprimerSport(${index})" aria-label="Supprimer cette séance">&times;</button>
-    </div>`;
-    }
-    // Les autres sports sont des séances cardio : résumé d'une ligne, un
-    // toucher ouvre la même fenêtre que l'onglet Séance › Cardio.
-    const n = intensiteCardio(w);
-    return `
-    <div class="cardio-ligne-jour">
-      <button type="button" class="cardio-seance" onclick="ouvrirCardio('${currentDate}', ${index})">
-        <span class="cardio-seance-ico">${ICONES_CARDIO[w.type] || ICONE_CARDIO}</span>
-        <span class="cardio-seance-txt"><b>${w.type ? escapeHtml(SPORT_LABELS[w.type] || w.type) : 'Séance à compléter'}</b><small>${escapeHtml(resumeSeanceCardio(w, true))}</small></span>
-        ${w.type ? `<span class="cardio-pastille" style="background:${couleurIntensite(n)};color:${couleurTexteIntensite(n)}">${NOMS_INTENSITE[n]}</span>` : ''}
-      </button>
-      <button class="btn-delete" onclick="supprimerSport(${index})" aria-label="Supprimer cette séance">&times;</button>
-    </div>`;
-  }).join('');
-}
-
-function ajouterLigneSportVide() {
-  // La musculation s'ajoute toute seule en terminant une séance dans
-  // l'onglet Séance (voir terminerSeance) : ce bouton sert aux AUTRES
-  // sports, saisis dans la fenêtre cardio pour le jour affiché.
-  ouvrirCardio();
-  document.getElementById('cardio-date').value = currentDate;
-  majCalculsCardio();
-}
-
-function modifierSport(index, field, value) {
-  const day = getDay(currentDate);
-  if (day.workouts[index]) {
-    if (field === 'time') day.workouts[index].time = Number(value) || 0;
-    else day.workouts[index].type = value;
-    saveData(currentDate);
-    updateSummary(day);
-  }
-}
-
-function supprimerSport(index) {
-  const day = getDay(currentDate);
-  day.workouts.splice(index, 1);
-  saveData(currentDate);
-  renderWorkoutsList(day);
-  updateSummary(day);
-  renderCardio();
-}
-
 /* =====================================================================
    CARDIO — les séances hors musculation (course, vélo, natation…).
-   Pas de nouveau stockage : ce sont les mêmes entrées day.workouts que
-   la carte « Pas & séances » (synchronisées jour par jour), enrichies de
+   Pas de nouveau stockage : ce sont les entrées day.workouts de chaque
+   journée (synchronisées jour par jour, comptées dans la dépense), avec
    la distance (km), de l'intensité (1 facile, 2 modérée, 3 intense) et
    d'une note. L'onglet Séance › Cardio et Statistiques › Cardio les
    relisent sur tout l'historique.
@@ -5433,7 +5351,7 @@ function barreCardioHTML(v) {
   return barreSeuilsHTML(v, [O.min, O.cible, O.haut], O.fin);
 }
 
-/* Jauge des pas du jour (carte « Pas & séances ») : les études relient
+/* Jauge des pas du jour (carte « Pas du jour », écran Repas) : les études relient
    environ 7 000 à 8 000 pas par jour à de nets bénéfices pour la santé,
    moins de 5 000 correspond à un mode de vie sédentaire. Les pas restent
    hors de la jauge cardio de la semaine : on ne connaît pas leur rythme. */
@@ -5761,11 +5679,7 @@ function renderStatsCardio() {
 }
 function apresModifCardio(dates) {
   renderCardio();
-  if (dates.includes(currentDate)) {
-    const day = getDay(currentDate);
-    renderWorkoutsList(day);
-    updateSummary(day);
-  }
+  if (dates.includes(currentDate)) updateSummary(getDay(currentDate));
 }
 
 
@@ -9758,7 +9672,7 @@ const TOUR_ETAPES = [
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-barcode', titre: 'Code-barres', texte: "Scanne un produit emballé : ses valeurs nutritionnelles sont récupérées toutes seules." },
   { ecran: 'repas', cible: '#bloc-eau', titre: "L'eau", texte: 'Un toucher sur +250 ml, +500 ml ou +1 L à chaque fois que tu bois.' },
   { ecran: 'repas', cible: '[onclick*="note-suggestions"]', titre: 'Idées recettes', texte: "Des idées de repas qui complètent tes macros du jour. Astuce : touche un titre pour afficher son explication." },
-  { ecran: 'repas', cible: '#carte-pas-seances', titre: 'Pas et autres sports', texte: "Tes pas et tes séances du jour : elles comptent dans ta dépense. Tes séances de musculation terminées s'y ajoutent seules, et le cardio (course, vélo, natation…) se retrouve aussi dans Activité › Cardio." },
+  { ecran: 'repas', cible: '#carte-pas-seances', titre: 'Tes pas', texte: "Note tes pas du jour : la jauge montre où tu en es (7 500 pas, c'est le repère santé), et le surplus compte dans ta dépense. Tes séances de musculation et de cardio se gèrent dans l'écran Activité et comptent aussi dans ta dépense du jour." },
   { ecran: 'repas', cible: '#carte-bilan-jour', titre: 'Bilan de la journée', texte: "Une analyse de ta journée par l'IA : nutrition, activité et séance du jour." },
   { ecran: 'repas', cible: '#fab', titre: 'Le bouton de navigation', texte: "Ce bouton flottant change d'écran. Garde le doigt appuyé dessus pour le déplacer où tu veux." },
   { fab: true, cible: '#nav-seance', titre: 'Activité', texte: 'Ta musculation (programmes, séances, bibliothèque d’exercices) et ton cardio. La visite « Musculation » détaille la partie muscu.' },
