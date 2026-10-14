@@ -2212,7 +2212,11 @@
     .exo-swipe { position: relative; margin-bottom: 14px; border-radius: 16px; }
     .exo-swipe:last-child { margin-bottom: 6px; }
     .exo-swipe > .session-exo-bloc { position: relative; z-index: 1; margin-bottom: 0; transition: transform 0.25s ease; }
-    .exo-swipe .session-exo-entete { touch-action: pan-y; }
+    .exo-swipe .session-exo-entete, .exo-swipe .exo-en-programme-entete { touch-action: pan-y; }
+    .exo-swipe > .exo-en-programme { position: relative; z-index: 1; margin-bottom: 0; transition: transform 0.25s ease; }
+    .exo-swipe.en-glissement > .exo-en-programme { transition: none; background-color: var(--bg); background-image: linear-gradient(var(--verre-creux), var(--verre-creux)); }
+    #programme-exercices-container .exo-swipe { margin-bottom: 10px; border-radius: 14px; }
+    #programme-exercices-container .exo-swipe-fond { border-radius: 14px; }
     .exo-swipe.en-glissement > .session-exo-bloc { transition: none; background-color: var(--bg); background-image: linear-gradient(var(--verre-creux), var(--verre-creux)); }
     .exo-swipe-fond { position: absolute; inset: 0; border-radius: 16px; display: flex; align-items: center; gap: 8px; padding: 0 22px;
       color: #fff; font-weight: 800; font-size: 0.82rem; opacity: 0; transition: opacity 0.15s; }
@@ -9763,7 +9767,7 @@ const TOUR_MUSCU = [
   // A. Écran Activité : préparer ses séances
   { titre: 'La musculation dans Anqā', texte: "Trois temps : préparer tes séances sur l'écran Activité, faire une séance (avec une démonstration), puis suivre ta progression dans les statistiques." },
   { ecran: 'seance', cible: '#programmes-liste-container', titre: 'Tes programmes', texte: "Un programme = une liste d'exercices avec leurs séries, charges et répétitions cibles. Le ⋯ d'un programme permet de le modifier, le dupliquer ou le supprimer." },
-  { ecran: 'seance', cible: '[onclick="ouvrirCreationProgramme()"]', titre: 'Créer un programme', texte: "Ajoute tes exercices, règle les séries, les techniques (dégressif, pyramidal…), les supersets et le tempo de chaque exercice." },
+  { ecran: 'seance', cible: '[onclick="ouvrirCreationProgramme()"]', titre: 'Créer un programme', texte: "Ajoute tes exercices, règle les séries, les techniques (dégressif, pyramidal…), les supersets, le tempo et l'objectif de chaque exercice. Comme en séance, glisse un exercice vers la gauche pour le retirer, vers la droite pour le remplacer ; touche son nom pour voir ta courbe de progression." },
   { ecran: 'seance', cible: '[onclick="ouvrirAssistantProgrammeIA()"]', titre: "Programme par l'IA", texte: "Donne ton objectif, tes jours disponibles et ton matériel : l'IA te propose un programme complet, que tu peux ensuite modifier." },
   { ecran: 'seance', cible: '[onclick="ouvrirBibliotheque()"]', titre: "Bibliothèque d'exercices", texte: "Plus de 800 exercices, filtrés par muscle et par matériel. Chaque fiche a trois onglets : Instructions (vidéo, muscles, étapes), Résumé (tes records et ta courbe) et Historique." },
   { ecran: 'seance', cible: '[onclick="ouvrirGymbro()"]', titre: 'Gymbro', texte: "Compare tes séances avec celles d'un ami grâce à son nom d'utilisateur." },
@@ -16207,11 +16211,14 @@ function renderProgrammeExercicesEnEdition() {
           <input type="number" inputmode="numeric" step="1" value="${escapeHtml(s.reps ?? '')}" placeholder="—" onchange="modifierSerieProgramme(${i},${si},'reps',this.value)">
         </div>
       </div>`).join('');
-    return `<div class="exo-en-programme">
+    return `<div class="exo-swipe" data-ei="${i}">
+      <div class="exo-swipe-fond exo-swipe-fond--remplacer" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4" /><path d="M3 11v-1a4 4 0 0 1 4-4h14" /><path d="m7 22-4-4 4-4" /><path d="M21 13v1a4 4 0 0 1-4 4H3" /></svg> Remplacer</div>
+      <div class="exo-swipe-fond exo-swipe-fond--suppr" aria-hidden="true">Retirer <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></div>
+      <div class="exo-en-programme">
       <div class="exo-en-programme-entete">
         <div>
           ${exo
-            ? `<button type="button" class="exo-en-programme-nom" style="background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-align:left;" onclick="afficherFicheExerciceBiblio(${argJs(pe.exerciceId)})">${escapeHtml(libelleExercice(exo))}</button>`
+            ? `<button type="button" class="exo-en-programme-nom" style="background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-align:left;" onclick="afficherFicheExerciceBiblio(${argJs(pe.exerciceId)}, { historique: musculationHistorique, onglet: 'resume' })">${escapeHtml(libelleExercice(exo))}</button>`
             : `<div class="exo-en-programme-nom">Exercice supprimé</div>`}
           <div class="exo-en-programme-meta">${escapeHtml(meta)}</div>
         </div>
@@ -16220,7 +16227,6 @@ function renderProgrammeExercicesEnEdition() {
             <button type="button" onclick="deplacerExerciceProgramme(${i},-1)" ${i === 0 ? 'disabled' : ''} aria-label="Monter"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6" /></svg></button>
             <button type="button" onclick="deplacerExerciceProgramme(${i},1)" ${dernierDeLaListe ? 'disabled' : ''} aria-label="Descendre"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></button>
           </div>
-          <button class="btn-delete" onclick="retirerExerciceProgramme(${i})" aria-label="Retirer l'exercice">&times;</button>
         </div>
       </div>
       ${dernierDeLaListe ? '' : `<div class="exo-en-programme-technique">
@@ -16237,8 +16243,10 @@ function renderProgrammeExercicesEnEdition() {
         ${lignesSeries}
       </div>
       <button type="button" class="btn-ajouter-serie" onclick="ajouterSerieProgramme(${i})">Ajouter une série</button>
+    </div>
     </div>`;
   }).join('');
+  initSwipeExercices('programme-exercices-container', { bloc: '.exo-en-programme', entete: '.exo-en-programme-entete', retirer: retirerExerciceProgramme, remplacer: remplacerExerciceProgramme });
 }
 /* --- Tempo (4 caractères : chiffres de 0 à 9, ou X = explosif) ------- */
 /* --- Plage de répétitions visée (« 8-12 », ou une valeur seule « 10 ») ---
@@ -16995,7 +17003,7 @@ function ouvrirPickerExercices(mode) {
   document.getElementById('titre-picker-exercices').innerHTML =
     mode === 'programme' ? '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Ajouter un exercice au programme' :
     mode === 'session' ? '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Ajouter un exercice à la séance' :
-    mode === 'session-remplacer' ? '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m17 2 4 4-4 4" /><path d="M3 11v-1a4 4 0 0 1 4-4h14" /><path d="m7 22-4-4 4-4" /><path d="M21 13v1a4 4 0 0 1-4 4H3" /></svg> Remplacer cet exercice' : '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v16" /><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /></svg> Bibliothèque d’exercices';
+    (mode === 'session-remplacer' || mode === 'programme-remplacer') ? '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m17 2 4 4-4 4" /><path d="M3 11v-1a4 4 0 0 1 4-4h14" /><path d="m7 22-4-4 4-4" /><path d="M21 13v1a4 4 0 0 1-4 4H3" /></svg> Remplacer cet exercice' : '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v16" /><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /></svg> Bibliothèque d’exercices';
   rendrePickerExercices();
   ouvrirModal('picker-exercices-modal');
 }
@@ -17068,6 +17076,9 @@ function choisirExercicePicker(id) {
     fermerModal('picker-exercices-modal');
   } else if (pickerMode === 'session-remplacer') {
     remplacerExerciceSessionConfirme(id);
+    fermerModal('picker-exercices-modal');
+  } else if (pickerMode === 'programme-remplacer') {
+    remplacerExerciceProgrammeConfirme(id);
     fermerModal('picker-exercices-modal');
   } else {
     afficherFicheExerciceBiblio(id);
@@ -18229,6 +18240,26 @@ function ajouterExerciceASession(id) {
 // position dans la liste et le lien de superset avec le voisin ; les séries
 // repartent des valeurs par défaut du nouvel exercice (dernière fois dessus,
 // comme un ajout classique).
+function remplacerExerciceProgramme(i) {
+  pickerRemplacerIndex = i;
+  ouvrirPickerExercices('programme-remplacer');
+}
+/* Même place, même nombre de séries, même lien de superset, même tempo et
+   même objectif ; les charges repartent de la dernière fois sur le nouvel
+   exercice (comme un ajout). */
+function remplacerExerciceProgrammeConfirme(id) {
+  const i = pickerRemplacerIndex;
+  const ancien = programmeEnEdition && programmeEnEdition.exercices[i];
+  pickerRemplacerIndex = null;
+  if (!ancien || !trouverExercice(id)) return;
+  const pe = Object.assign({}, ancien, {
+    exerciceId: id,
+    series: normaliserSeriesProgramme(ancien).map(x => ({ poids: null, reps: x.reps ?? 10, technique: x.technique || null }))
+  });
+  backfillDerniereFoisProgramme(pe);
+  programmeEnEdition.exercices[i] = pe;
+  renderProgrammeExercicesEnEdition();
+}
 function remplacerExerciceSession(ei) {
   pickerRemplacerIndex = ei;
   ouvrirPickerExercices('session-remplacer');
@@ -18723,17 +18754,22 @@ function initSwipeSeries(conteneurId) {
 }
 let swipeExo = null;
 let swipeExoVientDeGlisser = false;
-function initSwipeExercices(conteneurId) {
+/* Glisser un exercice depuis son en-tête : à gauche le retirer (avec
+   confirmation), à droite le remplacer. Sert à la séance en cours et à
+   l'éditeur de programme ; `options` choisit le bloc qui glisse, son
+   en-tête et les deux actions (par défaut : la séance). */
+function initSwipeExercices(conteneurId, options) {
   const c = document.getElementById(conteneurId);
   if (!c || c.dataset.swipeExoInit) return;
   c.dataset.swipeExoInit = '1';
+  const o = Object.assign({ bloc: '.session-exo-bloc', entete: '.session-exo-entete', retirer: retirerExerciceSession, remplacer: remplacerExerciceSession }, options || {});
   const SEUIL = () => Math.min(120, c.clientWidth * 0.3);
   c.addEventListener('pointerdown', (e) => {
     const zone = e.target.closest('.exo-swipe');
     // Seulement depuis l'en-tête de l'exercice (vignette, nom), jamais
     // depuis un champ ou une ligne de série.
-    if (!zone || !e.target.closest('.session-exo-entete') || e.target.closest('input, textarea, .serie-ligne')) return;
-    swipeExo = { zone, bloc: zone.querySelector('.session-exo-bloc'), x0: e.clientX, y0: e.clientY, dx: 0, horizontal: false, pointerId: e.pointerId };
+    if (!zone || !e.target.closest(o.entete) || e.target.closest('input, textarea, .serie-ligne')) return;
+    swipeExo = { zone, bloc: zone.querySelector(o.bloc), x0: e.clientX, y0: e.clientY, dx: 0, horizontal: false, pointerId: e.pointerId };
   });
   c.addEventListener('pointermove', (e) => {
     const st = swipeExo;
@@ -18771,10 +18807,10 @@ function initSwipeExercices(conteneurId) {
     };
     if (declenche && st.dx < 0) {
       // Reste ouvert le temps de la confirmation, puis revient si annulé.
-      setTimeout(() => { retirerExerciceSession(ei); if (document.body.contains(st.zone)) revenir(); }, 30);
+      setTimeout(() => { o.retirer(ei); if (document.body.contains(st.zone)) revenir(); }, 30);
     } else if (declenche && st.dx > 0) {
       revenir();
-      remplacerExerciceSession(ei);
+      o.remplacer(ei);
     } else {
       revenir();
     }

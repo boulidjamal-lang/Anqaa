@@ -98,6 +98,41 @@ test('une séance de musculation se fait et se termine', () => avecAppli({}, asy
   assert.deepEqual(r, { enCours: false, historique: 1, seanceDuJour: 1 });
 }));
 
+async function glisser(page, selecteur, dx) {
+  const b = await page.locator(selecteur).first().boundingBox();
+  const x = b.x + b.width / 2, y = b.y + Math.min(20, b.height / 2);
+  await page.mouse.move(x, y); await page.mouse.down();
+  for (let k = 1; k <= 10; k++) await page.mouse.move(x + dx * k / 10, y);
+  await page.mouse.up();
+  await page.waitForTimeout(300);
+}
+
+test("éditeur de programme : glisser pour retirer ou remplacer, toucher le nom pour l'historique", () => avecAppli({}, async ({ page, dialogues }) => {
+  await page.evaluate(() => {
+    allerA('seance'); choisirModeSeance('muscu'); ouvrirCreationProgramme();
+    const ids = toutesLesExercices().slice(0, 3).map(e => e.id);
+    programmeEnEdition.exercices = ids.slice(0, 2).map(id => ({ exerciceId: id, series: [{ poids: 40, reps: 10 }, { poids: 40, reps: 10 }], tempo: '3010', plage: '8-12' }));
+    window.__ids = ids;
+    renderProgrammeExercicesEnEdition();
+  });
+  assert.equal(await page.locator('#programme-exercices-container .btn-delete').count(), 0, 'plus de bouton ✕');
+  // Glisser à droite : remplacer
+  await glisser(page, '#programme-exercices-container .exo-swipe:nth-child(1) .exo-en-programme-entete', 160);
+  await page.waitForSelector('#picker-exercices-modal.show');
+  await page.evaluate(() => choisirExercicePicker(window.__ids[2]));
+  let r = await page.evaluate(() => programmeEnEdition.exercices.map(e => [e.exerciceId, e.series.length, e.tempo, e.plage]));
+  assert.deepEqual(r[0], [await page.evaluate(() => window.__ids[2]), 2, '3010', '8-12']);
+  // Glisser à gauche : retirer (avec confirmation)
+  await glisser(page, '#programme-exercices-container .exo-swipe:nth-child(2) .exo-en-programme-entete', -160);
+  r = await page.evaluate(() => programmeEnEdition.exercices.length);
+  assert.equal(r, 1);
+  assert.ok(dialogues.some(d => /Retirer/.test(d)), 'une confirmation est demandée');
+  // Toucher le nom : fiche sur le résumé
+  await page.click('#programme-exercices-container .exo-en-programme-nom');
+  await page.waitForSelector('#fiche-exercice-modal.show');
+  assert.equal(await page.evaluate(() => document.querySelector('#fiche-exercice-modal [aria-pressed="true"]')?.textContent.trim()), 'Résumé');
+}));
+
 test('un programme se crée puis se supprime sans revenir', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     allerA('seance'); choisirModeSeance('muscu');
