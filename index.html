@@ -2075,6 +2075,7 @@
     }
     .session-exo-replie-btn .session-exo-nom { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .session-exo-replie-btn .session-exo-chevron svg { transform: rotate(-90deg); }
+    .session-exo-chevron--ouvert { width: 34px; height: 34px; }
     .session-exo-progression {
       flex: none; font-size: 0.74rem; font-weight: 700; color: var(--text-muted);
       display: inline-flex; align-items: center; gap: 4px;
@@ -17448,12 +17449,12 @@ function renderSessionExerciceBlocHTML(exo, ei) {
       <div style="flex:1; min-width:0;">
         <div class="session-exo-titre">
           <div class="session-exo-nom-ligne">
-            <button type="button" class="session-exo-chevron" onclick="basculerRepliExerciceSession(${ei})" aria-expanded="true" aria-label="Replier cet exercice" title="Replier cet exercice">${ICONE_CHEVRON_EXO}</button>
             <button type="button" class="session-exo-nom" style="background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-align:left;"
                     onclick="afficherFicheExerciceBiblio('${exo.exerciceId}')">${nomExo}</button>
           </div>
           <div style="display:flex; gap:4px; align-items:center;">
             <button type="button" class="btn-icone${exo.notes ? ' btn-note-active' : ''}" onclick="basculerNoteExerciceSession(${ei})" aria-label="Note sur cet exercice" title="Note sur cet exercice"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" /></svg></button>
+            <button type="button" class="session-exo-chevron session-exo-chevron--ouvert" onclick="basculerRepliExerciceSession(${ei})" aria-expanded="true" aria-label="Replier cet exercice" title="Replier cet exercice">${ICONE_CHEVRON_EXO}</button>
           </div>
         </div>
       </div>
