@@ -1990,15 +1990,17 @@
       cursor: pointer; min-height: 42px;
     }
     .menu-technique-popup button:last-child { border-bottom: none; }
-    .menu-rir { padding: 8px 10px 4px; background: var(--verre-creux); }
-    .menu-rir-titre { font-size: 0.64rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-    .menu-rir-choix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-    .menu-technique-popup .menu-rir-choix button { min-height: 34px; padding: 6px 0; text-align: center; border: 0; border-radius: 9px; background: var(--verre-fort); font-weight: 800; }
-    .menu-technique-popup .menu-rir-choix button[aria-pressed="true"] { background: var(--primary); color: #fff; }
-    .menu-technique-popup .menu-rir-effacer { min-height: 34px; padding: 6px 0; text-align: center; font-size: 0.74rem; color: var(--text-muted); border: 0; }
     .serie-num-wrap { position: relative; display: inline-flex; }
-    .serie-rir { position: absolute; right: -9px; bottom: -6px; font-size: 0.56rem; font-weight: 800; padding: 1px 4px; border-radius: 6px;
-      background: var(--primary); color: #fff; line-height: 1.2; pointer-events: none; }
+    .serie-rir { position: absolute; right: -10px; bottom: -7px; font: inherit; font-size: 0.56rem; font-weight: 800; padding: 1px 4px; border-radius: 6px; border: 0;
+      background: var(--primary); color: #fff; line-height: 1.2; cursor: pointer; }
+    .rir-bande { display: flex; align-items: center; gap: 5px; margin: 4px 3px 2px; padding: 6px 8px; border-radius: 12px;
+      background: color-mix(in srgb, var(--accent) 12%, transparent); animation: rirApparait 0.2s ease-out; }
+    @keyframes rirApparait { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .rir-bande-titre { flex: 1; min-width: 0; font-size: 0.7rem; font-weight: 800; color: var(--text); }
+    .rir-choix { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 0; font: inherit; font-size: 0.8rem; font-weight: 800;
+      background: var(--verre-fort); color: var(--text); cursor: pointer; }
+    .rir-choix[aria-pressed="true"] { background: var(--primary); color: #fff; }
+    .rir-fermer { flex: none; border: 0; background: none; color: var(--text-muted); font-size: 1.15rem; line-height: 1; padding: 0 2px; cursor: pointer; }
     .menu-technique-popup button:hover, .menu-technique-popup button:focus-visible { background: color-mix(in srgb, var(--primary) 14%, transparent); }
     .serie-table input {
       width: 100%; min-height: 34px; padding: 5px 4px; text-align: center;
@@ -3018,18 +3020,6 @@
   <button type="button" role="menuitem" onclick="choisirTechniqueMenu('degressif')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg> Dégressif</button>
   <button type="button" role="menuitem" onclick="choisirTechniqueMenu('pyramidal')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /></svg> Pyramidal</button>
   <button type="button" role="menuitem" onclick="choisirTechniqueMenu('echec')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4" /></svg> Échec</button>
-  <div class="menu-rir hidden" id="menu-rir">
-    <div class="menu-rir-titre">Reps en réserve (RIR)</div>
-    <div class="menu-rir-choix">
-      <button type="button" onclick="choisirRirMenu(0)">0</button>
-      <button type="button" onclick="choisirRirMenu(1)">1</button>
-      <button type="button" onclick="choisirRirMenu(2)">2</button>
-      <button type="button" onclick="choisirRirMenu(3)">3</button>
-      <button type="button" onclick="choisirRirMenu(4)">4</button>
-      <button type="button" onclick="choisirRirMenu(6)">5+</button>
-    </div>
-    <button type="button" class="menu-rir-effacer" onclick="choisirRirMenu(null)">Pas de RIR</button>
-  </div>
 </div>
 <div class="menu-technique-popup hidden" id="menu-programme-popup" role="menu">
   <button type="button" role="menuitem" onclick="choisirOptionProgramme('dupliquer')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg> Dupliquer</button>
@@ -4016,7 +4006,7 @@
     </div>
     <div class="segment" id="muscu-reglages-onglets" role="group" aria-label="Section" style="margin-bottom:14px;">
       <button type="button" onclick="choisirOngletReglagesMuscu('zones')" aria-pressed="true">Zones de volume</button>
-      <button type="button" onclick="choisirOngletReglagesMuscu('increments')" aria-pressed="false">Charges</button>
+      <button type="button" onclick="choisirOngletReglagesMuscu('increments')" aria-pressed="false">Séance</button>
     </div>
     <div id="muscu-reglages-zones">
       <p class="note note-explicative" style="margin-top:0;">Nombre de séries par semaine à partir duquel commence chaque zone : entretien, progression, zone idéale, et « trop ». Les valeurs par défaut conviennent à la plupart des gens : ajuste un muscle si ton expérience te dit qu'il progresse avec moins, ou récupère mal avec plus.</p>
@@ -4026,6 +4016,9 @@
       <button type="button" class="btn btn-secondaire" style="margin-top:10px;" onclick="reinitialiserZonesPerso()">Revenir aux valeurs par défaut</button>
     </div>
     <div id="muscu-reglages-increments" class="hidden">
+      <label class="partage-option" style="margin-bottom:6px;"><input type="checkbox" id="reglage-demander-rir" onchange="modifierDemandeRir(this.checked)"> Demander le RIR après chaque série</label>
+      <p class="note" style="margin:0 2px 14px;">Juste après avoir coché une série, une petite bande te demande combien de répétitions il te restait en réserve. Facultatif à chaque fois.</p>
+      <div class="fiche-bloc-titre">Incréments de charge</div>
       <p class="note note-explicative" style="margin-top:0;">De combien augmenter la charge quand la séance te propose de progresser (haut de la plage de répétitions atteint sur toutes les séries). Pour les haltères : le poids d'un haltère.</p>
       <div id="increments-reglage-liste"></div>
     </div>
@@ -9171,7 +9164,7 @@ const TOUR_MUSCU = [
       + (musculationSessionActive && musculationSessionActive.demo ? " Ceci est une séance de démonstration : rien n'y est enregistré." : '') },
   { ecran: 'seance', siSession: true, cible: '#session-haut', titre: 'Le volume de ta semaine', texte: "Une jauge par muscle : tes séries de la semaine, de « trop peu » à « trop », en passant par l'entretien, la progression et la zone idéale. Le curseur montre où tu en es ; barre épaisse pour les muscles principaux de la séance, fine pour les secondaires. Le corps se colore pareil ; touche-le pour l'agrandir." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-prec', titre: 'Ta séance précédente', texte: "La colonne « Préc. » rappelle ce que tu as fait la dernière fois sur cette série. Touche-la pour reprendre ces valeurs, puis essaie de faire un peu mieux." },
-  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-num-btn', titre: 'Le type de série', texte: "Touche le numéro d'une série pour la marquer (Échauffement W, jamais comptée dans les jauges, Dégressif, Pyramidal, Échec) ou noter tes répétitions en réserve (RIR) : une série à 5+ en réserve ne compte pas dans le volume." },
+  { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-num-btn', titre: 'Le type de série', texte: "Touche le numéro d'une série pour la marquer : Échauffement (W, jamais comptée dans les jauges), Dégressif, Pyramidal ou Échec." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .tempo-ligne', titre: 'Le tempo', texte: "Quatre chiffres pour la vitesse de chaque phase : descente, pause en bas, montée, pause en haut (X = explosif). Le (i) explique tout, avec des exemples." },
   { ecran: 'seance', siSession: true, titre: 'Cocher une série',
     // Démonstration : la 2e série est vraiment cochée, pour montrer la case
@@ -9184,8 +9177,8 @@ const TOUR_MUSCU = [
       ? '#session-exercices-container .serie-table'
       : '#session-exercices-container .serie-ligne button:last-child'),
     texte: () => (musculationSessionActive && musculationSessionActive.demo
-      ? "Ici, la 2e série vient d'être cochée : la case passe au vert et le minuteur de repos démarre en dessous. Les jauges et le corps se mettent à jour. Seules les séries proches de l'échec comptent dans le volume."
-      : "Coche chaque série faite : le minuteur de repos démarre, les jauges et le corps se mettent à jour. Seules les séries proches de l'échec comptent dans le volume.") },
+      ? "Ici, la 2e série vient d'être cochée : la case passe au vert, l'appli te demande combien de répétitions il te restait en réserve (RIR, facultatif), et le minuteur de repos démarre. Une série à 5+ en réserve ne compte pas dans le volume."
+      : "Coche chaque série faite : l'appli te demande combien de répétitions il te restait en réserve (RIR, facultatif), le minuteur de repos démarre, les jauges et le corps se mettent à jour. Une série à 5+ en réserve ne compte pas dans le volume.") },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .exo-swipe', titre: 'Retirer ou remplacer un exercice',
     avant: () => setTimeout(demoGlisserExercice, 700),
     texte: "Fais glisser un exercice depuis son nom : vers la gauche pour le retirer de la séance (une confirmation est demandée), vers la droite pour le remplacer par un autre. Ton programme enregistré, lui, ne change pas." },
@@ -15566,11 +15559,18 @@ function suggestionChargeSession(exo) {
   if (!plage || exo.suggestionVue) return null;
   const prec = dernierePerfExercice(exo.exerciceId);
   const travail = prec ? seriesDeTravailBrutes(prec.series) : [];
-  if (!travail.length || !travail.every(z => Number(z.reps) >= plage.max)) return null;
+  if (!travail.length) return null;
+  const toutAuHaut = travail.every(z => Number(z.reps) >= plage.max);
+  // Avec le RIR : la 1re série au haut de la plage, les autres à 2 reps
+  // près, et toujours au moins 2 reps en réserve là où le RIR est noté.
+  const rirNotes = travail.filter(z => z.rir != null && z.rir !== '');
+  const margeRir = rirNotes.length > 0 && rirNotes.every(z => Number(z.rir) >= 2)
+    && Number(travail[0].reps) >= plage.max && travail.every(z => Number(z.reps) >= plage.max - 2);
+  if (!toutAuHaut && !margeRir) return null;
   const complet = trouverExercice(exo.exerciceId);
   const inc = incrementCharge(complet ? complet.materiel : 'autre');
   if (!inc) return null;
-  return { increment: inc, max: plage.max };
+  return { increment: inc, max: plage.max, parRir: !toutAuHaut };
 }
 function appliquerSuggestionCharge(ei) {
   const exo = musculationSessionActive && musculationSessionActive.exercices[ei];
@@ -17070,7 +17070,14 @@ function enregistrerProfilMuscu() {
   const ecran = document.getElementById('ecran-stats');
   if (ecran && ecran.classList.contains('actif')) renderZonesMuscu('muscu-zones-container');
 }
+function modifierDemandeRir(oui) {
+  if (oui) delete userProfile.demanderRir; else userProfile.demanderRir = false;
+  if (!oui) rirDemande = null;
+  enregistrerProfilMuscu();
+}
 function ouvrirReglagesMuscu(onglet) {
+  const caseRir = document.getElementById('reglage-demander-rir');
+  if (caseRir) caseRir.checked = rirDemandeActif();
   rendreReglagesZones();
   rendreReglagesIncrements();
   choisirOngletReglagesMuscu(onglet || 'zones');
@@ -17658,7 +17665,7 @@ function blocProgressionHTML(exo, ei) {
   const icone = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6" /><path d="m22 7-8.5 8.5-5-5L2 17" /></svg>';
   if (sug) {
     return `<div class="progression-bandeau">${icone}
-      <span>La dernière fois, toutes tes séries ont atteint ${sug.max} répétitions : <b>monte de ${formatSeries(sug.increment)} kg</b>.</span>
+      <span>${sug.parRir ? `La dernière fois, tu as atteint ${sug.max} répétitions avec encore de la marge (2 en réserve ou plus)` : `La dernière fois, toutes tes séries ont atteint ${sug.max} répétitions`} : <b>monte de ${formatSeries(sug.increment)} kg</b>.</span>
       <button type="button" class="progression-ok" onclick="appliquerSuggestionCharge(${ei})">Appliquer</button>
       <button type="button" class="progression-non" onclick="ignorerSuggestionCharge(${ei})" aria-label="Ignorer la suggestion">&times;</button>
     </div>`;
@@ -17695,13 +17702,13 @@ function renderSessionExerciceBlocHTML(exo, ei) {
     <div class="serie-ligne-fenetre">
       <button type="button" class="serie-ligne-suppr" onclick="retirerSerieSession(${ei},${si})" aria-label="Supprimer cette série"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg> Supprimer</button>
       <div class="serie-ligne serie-ligne--5col">
-        ${boutonNumeroSerie(si, set.technique, `ouvrirMenuTechniqueSession(this,${ei},${si})`, set.rir)}
+        ${boutonNumeroSerie(si, set.technique, `ouvrirMenuTechniqueSession(this,${ei},${si})`, set.rir, `ouvrirRirSerie(${ei},${si})`)}
         ${celluleFrec}
         <input type="number" inputmode="decimal" step="0.5" value="${set.poids ?? ''}" placeholder="—" onchange="modifierSerieSession(${ei},${si},'poids',this.value)">
         <input type="number" inputmode="numeric" step="1" value="${set.reps ?? ''}" placeholder="${exo.plage && set.technique !== 'echauffement' ? escapeHtml(textePlage(exo.plage)) : '—'}" onchange="modifierSerieSession(${ei},${si},'reps',this.value)">
         <button type="button" class="serie-check ${set.fait ? 'faite' : ''}" onclick="basculerSerieSession(${ei},${si})" aria-label="Marquer la série comme faite"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></button>
       </div>
-    </div>${barreRepos}${blocPaliersHTML(ei, si, set)}`;
+    </div>${bandeRirHTML(ei, si, set)}${barreRepos}${blocPaliersHTML(ei, si, set)}`;
   }).join('');
   const nomExo = escapeHtml(exerciceComplet ? libelleExercice(exerciceComplet) : exo.nom);
   if (exo.replie) {
@@ -17823,7 +17830,7 @@ function retirerPalierSession(ei, si, pi) {
    pastille affiche sa lettre (D/P/É) et sa couleur plutôt que le numéro.
    ouvrirMenuJs est absent (undefined) pour un rendu en lecture seule
    (détail d'une séance déjà terminée). */
-function boutonNumeroSerie(si, technique, ouvrirMenuJs, rir) {
+function boutonNumeroSerie(si, technique, ouvrirMenuJs, rir, ouvrirRirJs) {
   const libelle = technique && TECHNIQUE_LABELS[technique] ? TECHNIQUE_LABELS[technique] : 'Normale';
   const contenu = (technique && TECHNIQUE_LETTRES[technique]) || (si + 1);
   if (!ouvrirMenuJs) {
@@ -17831,7 +17838,7 @@ function boutonNumeroSerie(si, technique, ouvrirMenuJs, rir) {
   }
   const aRir = rir != null && rir !== '';
   return `<span class="serie-num-wrap"><button type="button" class="serie-num-btn" data-technique="${technique || ''}" onclick="${ouvrirMenuJs}"
-    aria-label="Série ${si + 1} — ${libelle}${aRir ? ` — ${rir > 5 ? '5 ou plus' : rir} en réserve` : ''} — appuyer pour changer le type ou le RIR">${contenu}</button>${aRir ? `<span class="serie-rir" aria-hidden="true">R${rir > 5 ? '5+' : rir}</span>` : ''}</span>`;
+    aria-label="Série ${si + 1} — ${libelle}${aRir ? ` — ${rir > 5 ? '5 ou plus' : rir} en réserve` : ''} — appuyer pour changer le type">${contenu}</button>${aRir ? `<button type="button" class="serie-rir"${ouvrirRirJs ? ` onclick="${ouvrirRirJs}"` : ''} aria-label="Modifier le RIR (${rir > 5 ? '5 ou plus' : rir})">R${rir > 5 ? '5+' : rir}</button>` : ''}</span>`;
 }
 
 /* Menu du type de série : un seul élément partagé (#menu-technique-popup),
@@ -17840,19 +17847,10 @@ function boutonNumeroSerie(si, technique, ouvrirMenuJs, rir) {
    (session ou programme), pas une fonction générique passée en chaîne : on
    ne peut pas sérialiser une closure dans un attribut onclick. */
 let menuTechniqueSur = null;
-let menuRirSur = null;
-// rir (facultatif, séance seulement) : { valeur, appliquer } pour noter les
-// répétitions en réserve de la série dans le même menu.
-function ouvrirMenuTechnique(boutonEl, appliquer, rir) {
+function ouvrirMenuTechnique(boutonEl, appliquer) {
   const menu = document.getElementById('menu-technique-popup');
   if (!menu) return;
   menuTechniqueSur = appliquer;
-  menuRirSur = rir ? rir.appliquer : null;
-  const blocRir = document.getElementById('menu-rir');
-  if (blocRir) {
-    blocRir.classList.toggle('hidden', !rir);
-    blocRir.querySelectorAll('.menu-rir-choix button').forEach(b => b.setAttribute('aria-pressed', String(!!rir && rir.valeur != null && Number(b.getAttribute('onclick').match(/\d+/)[0]) === Number(rir.valeur))));
-  }
   const r = boutonEl.getBoundingClientRect();
   const largeurMenu = 168;
   menu.style.top = (r.bottom + 4) + 'px';
@@ -17868,16 +17866,12 @@ function fermerMenuTechnique() {
   const menu = document.getElementById('menu-technique-popup');
   if (menu) menu.classList.add('hidden');
   menuTechniqueSur = null;
-  menuRirSur = null;
 }
 function choisirTechniqueMenu(valeur) {
   if (menuTechniqueSur) menuTechniqueSur(valeur);
   fermerMenuTechnique();
 }
-function choisirRirMenu(valeur) {
-  if (menuRirSur) menuRirSur(valeur);
-  fermerMenuTechnique();
-}
+
 // Menu « ⋯ » d'un programme (Dupliquer / Supprimer) : même mécanique que le
 // menu de technique juste au-dessus (un seul élément partagé, repositionné
 // à l'ouverture), mais menuProgrammeSur retient l'id du programme plutôt
@@ -18055,23 +18049,47 @@ function refermerLigneSerie(ligne) {
   ligne.classList.remove('ouverte');
 }
 function ouvrirMenuTechniqueSession(boutonEl, ei, si) {
-  const serie = () => musculationSessionActive && musculationSessionActive.exercices[ei] && musculationSessionActive.exercices[ei].series[si];
   ouvrirMenuTechnique(boutonEl, (valeur) => {
-    const set = serie();
+    const set = musculationSessionActive.exercices[ei] && musculationSessionActive.exercices[ei].series[si];
     if (!set) return;
     set.technique = valeur;
     sauvegarderSessionActive();
     renderSessionModal();
-  }, {
-    valeur: serie() ? serie().rir : null,
-    appliquer: (valeur) => {
-      const set = serie();
-      if (!set) return;
-      if (valeur == null) delete set.rir; else set.rir = valeur;
-      sauvegarderSessionActive();
-      renderSessionModal();
-    }
   });
+}
+/* RIR (répétitions en réserve) : demandé juste après avoir coché une série
+   de travail, dans une bande sous la ligne (au-dessus du minuteur de
+   repos). Facultatif : sans réponse, la bande disparaît quand on coche la
+   série suivante. Le badge « R2 » de la série la rouvre pour corriger.
+   Désactivable dans Réglages › Musculation. */
+let rirDemande = null; // { ei, si }
+function rirDemandeActif() {
+  return !(typeof userProfile !== 'undefined' && userProfile && userProfile.demanderRir === false);
+}
+function choisirRirSerie(ei, si, valeur) {
+  const set = musculationSessionActive && musculationSessionActive.exercices[ei] && musculationSessionActive.exercices[ei].series[si];
+  if (!set) return;
+  if (valeur == null) delete set.rir; else set.rir = valeur;
+  rirDemande = null;
+  sauvegarderSessionActive();
+  renderSessionModal();
+}
+function ouvrirRirSerie(ei, si) {
+  rirDemande = { ei, si };
+  renderSessionModal();
+}
+function fermerRirSerie() {
+  rirDemande = null;
+  renderSessionModal();
+}
+function bandeRirHTML(ei, si, set) {
+  if (!rirDemande || rirDemande.ei !== ei || rirDemande.si !== si || !set.fait) return '';
+  const choix = [[0, '0'], [1, '1'], [2, '2'], [3, '3'], [4, '4'], [6, '5+']];
+  return `<div class="rir-bande" role="group" aria-label="Répétitions en réserve sur cette série">
+    <span class="rir-bande-titre">Reps en réserve ?</span>
+    ${choix.map(([v, l]) => `<button type="button" class="rir-choix" aria-pressed="${set.rir != null && Number(set.rir) === v}" onclick="choisirRirSerie(${ei},${si},${v})">${l}</button>`).join('')}
+    <button type="button" class="rir-fermer" onclick="fermerRirSerie()" aria-label="Ne pas noter le RIR">&times;</button>
+  </div>`;
 }
 function ouvrirMenuTechniqueProgramme(boutonEl, i, si) {
   ouvrirMenuTechnique(boutonEl, (valeur) => {
@@ -18093,6 +18111,10 @@ function basculerSerieSession(ei, si) {
   if (!set) return;
   set.fait = !set.fait;
   const clef = ei + '_' + si;
+  // RIR : demandé pour une série de travail tout juste cochée ; la demande
+  // précédente (non répondue) disparaît.
+  if (set.fait && set.technique !== 'echauffement' && rirDemandeActif()) rirDemande = { ei, si };
+  else if (rirDemande && rirDemande.ei === ei && rirDemande.si === si) rirDemande = null;
   if (set.fait) {
     reposActifs[clef] = Date.now();
     // Cocher une série vaut "je commence cette série" : le repos qui la
@@ -18169,6 +18191,7 @@ function ajouterSerieSession(ei) {
 // gauche (voir renderSessionExerciceBlocHTML) : si précise LAQUELLE,
 // pas forcément la dernière comme avant le glisser-supprimer.
 function retirerSerieSession(ei, si) {
+  rirDemande = null;
   const exo = musculationSessionActive.exercices[ei];
   if (!exo || exo.series.length <= 1) return;
   if (!confirm('Supprimer cette série ?')) return;
@@ -18181,6 +18204,7 @@ function retirerExerciceSession(ei) {
   const exo = musculationSessionActive.exercices[ei];
   const nom = exo && (trouverExercice(exo.exerciceId) ? libelleExercice(trouverExercice(exo.exerciceId)) : exo.nom);
   if (!confirm(`Retirer ${nom || 'cet exercice'} de la séance ?`)) return;
+  rirDemande = null;
   musculationSessionActive.exercices.splice(ei, 1);
   reindexerReposApresSuppressionExercice(ei);
   // Voir le même correctif dans retirerExerciceProgramme : c'est l'exercice
