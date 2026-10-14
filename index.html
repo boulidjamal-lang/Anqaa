@@ -1860,12 +1860,19 @@
     .zone-ligne--compacte { margin: 12px 0 0; }
     .zone-ligne-tete { display: flex; justify-content: space-between; gap: 8px; font-size: 0.78rem; font-weight: 700; margin-bottom: 5px; }
     .zone-ligne-tete span:last-child { text-align: right; }
-    /* Une pastille ronde par série (au lieu de bâtonnets) ; leur taille
-       s'adapte à la largeur, sans dépasser 12 px. */
-    .zone-barre { display: grid; gap: 3px; align-items: center; }
-    .zone-barre span { width: 100%; max-width: 12px; aspect-ratio: 1; border-radius: 50%; }
-    /* Muscle secondaire de la séance : petites pastilles, ligne plus discrète. */
-    .zone-ligne--secondaire .zone-barre span { max-width: 6px; }
+    /* Jauge de volume : une barre en 5 tronçons (sous le maintien, MV, MEV,
+       MAV, MRV) proportionnels aux seuils du muscle, remplie jusqu'au total
+       de la semaine, avec un curseur lumineux à la couleur de la zone atteinte. */
+    .zone-barre { position: relative; display: flex; gap: 3px; height: 10px; margin: 8px 0 8px; }
+    .zone-seg { position: relative; height: 100%; border-radius: 99px; overflow: hidden; }
+    .zone-seg i { position: absolute; inset: 0; opacity: 0.18; }
+    .zone-seg b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; transition: width 0.45s ease; }
+    .zone-curseur { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; background: #fff;
+      transform: translate(-50%, -50%); box-shadow: 0 0 0 3px var(--c), 0 0 12px var(--c); transition: left 0.45s ease; }
+    .zone-curseur--vide { box-shadow: 0 0 0 2px var(--c); opacity: 0.6; }
+    /* Muscle secondaire de la séance : barre fine, ligne plus discrète. */
+    .zone-ligne--secondaire .zone-barre { height: 6px; margin: 6px 0 4px; }
+    .zone-ligne--secondaire .zone-curseur { width: 11px; height: 11px; box-shadow: 0 0 0 2px var(--c), 0 0 8px var(--c); }
     .zone-ligne--secondaire .zone-ligne-tete { font-size: 0.72rem; font-weight: 600; }
     .zone-ligne--secondaire .zone-ligne-note { display: none; }
     .zone-ligne-note { font-size: 0.68rem; color: var(--text-muted); margin-top: 4px; }
@@ -9163,7 +9170,7 @@ const TOUR_MUSCU = [
   { ecran: 'seance', siSession: true, cible: '#session-entete', titre: 'En-tête de la séance',
     texte: () => "Le nom de la séance et le chrono, qui tourne depuis le début."
       + (musculationSessionActive && musculationSessionActive.demo ? " Ceci est une séance de démonstration : rien n'y est enregistré." : '') },
-  { ecran: 'seance', siSession: true, cible: '#session-haut', titre: 'Le volume de ta semaine', texte: "Une jauge par muscle : tes séries de travail de la semaine (MV maintien, MEV croissance, MAV zone idéale, MRV plafond). Grosses pastilles pour les muscles principaux de la séance, petites pour les secondaires. Le corps se colore pareil ; touche-le pour l'agrandir." },
+  { ecran: 'seance', siSession: true, cible: '#session-haut', titre: 'Le volume de ta semaine', texte: "Une jauge par muscle : tes séries de travail de la semaine (MV maintien, MEV croissance, MAV zone idéale, MRV plafond). Le curseur montre où tu en es ; barre épaisse pour les muscles principaux de la séance, fine pour les secondaires. Le corps se colore pareil ; touche-le pour l'agrandir." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-prec', titre: 'Ta séance précédente', texte: "La colonne « Préc. » rappelle ce que tu as fait la dernière fois sur cette série. Touche-la pour reprendre ces valeurs, puis essaie de faire un peu mieux." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-num-btn', titre: 'Le type de série', texte: "Touche le numéro d'une série pour la marquer (Échauffement W, jamais comptée dans les jauges, Dégressif, Pyramidal, Échec) ou noter tes répétitions en réserve (RIR) : une série à 5+ en réserve ne compte pas dans le volume." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .tempo-ligne', titre: 'Le tempo', texte: "Quatre chiffres pour la vitesse de chaque phase : descente, pause en bas, montée, pause en haut (X = explosif). Le (i) explique tout, avec des exemples." },
@@ -17092,25 +17099,27 @@ function modifierIncrementCharge(m, valeur) {
   if (!Object.keys(userProfile.incrementsCharge).length) delete userProfile.incrementsCharge;
   enregistrerProfilMuscu();
 }
-/* Barre segmentée façon "jauge" : un segment par série jusqu'un peu au-delà
-   du MRV, chaque segment prenant la couleur de la zone qu'il représente ;
-   seuls les segments déjà atteints sont allumés. */
+/* Jauge de volume : une barre par muscle, découpée aux seuils de ses zones,
+   remplie jusqu'aux séries de la semaine, et un curseur à la zone atteinte. */
 // Repère par séance : au-delà, le gain de chaque série supplémentaire s'effondre.
 const SERIES_MAX_SEANCE = 10;
-function nbPastillesZones() { return Math.min(42, Math.max(...Object.values(ZONES_VOLUME).map(z => z.mrv + 2))); }
 function barreZoneHTML(groupe, series) {
   const z = ZONES_VOLUME[groupe];
-  const total = z.mrv + 2;
-  let segs = '';
-  for (let i = 1; i <= total; i++) {
-    const cle = cleZoneVolume(groupe, i) || 'sous';
-    const allume = series + 1e-9 >= i;
-    segs += `<span style="background:${ZONES_INFO[cle].couleur};${allume ? '' : 'opacity:0.16;'}"></span>`;
-  }
-  // Même grille pour tous les muscles (le plus grand nombre de pastilles) :
-  // les pastilles ont toutes la même taille, et un muscle au plafond plus
-  // bas (lombaires…) a simplement une jauge plus courte.
-  return `<div class="zone-barre" aria-hidden="true" style="grid-template-columns:repeat(${nbPastillesZones()}, 1fr);">${segs}</div>`;
+  const fin = z.mrv + 4; // un peu de place après le plafond
+  const v = Math.max(0, Math.min(fin, Number(series) || 0));
+  const troncons = [[0, z.mv, 'sous'], [z.mv, z.mev, 'mv'], [z.mev, z.mav, 'mev'], [z.mav, z.mrv, 'mav'], [z.mrv, fin, 'mrv']];
+  const segs = troncons.map(([a, b, cle]) => {
+    const remplissage = Math.max(0, Math.min(1, (v - a) / (b - a)));
+    const c = ZONES_INFO[cle].couleur;
+    return `<span class="zone-seg" style="flex:${b - a};"><i style="background:${c};"></i><b style="width:${remplissage * 100}%;background:${c};"></b></span>`;
+  }).join('');
+  const couleur = ZONES_INFO[cleZoneVolume(groupe, v) || 'sous'].couleur;
+  // Position du curseur : la part de la barre hors espaces (5 tronçons,
+  // 4 espaces de 3 px), plus les espaces déjà franchis.
+  const idx = Math.max(0, troncons.findIndex(([a, b]) => v >= a && v < b));
+  const f = v / fin;
+  const gauche = `calc(${(f * 100).toFixed(3)}% - ${(f * 12).toFixed(2)}px + ${(v >= fin ? 4 : idx) * 3}px)`;
+  return `<div class="zone-barre" aria-hidden="true">${segs}<span class="zone-curseur${v > 0 ? '' : ' zone-curseur--vide'}" style="--c:${couleur};left:clamp(8px, ${gauche}, calc(100% - 8px));"></span></div>`;
 }
 function phraseProchaineZone(groupe, series) {
   const z = ZONES_VOLUME[groupe];
@@ -17511,9 +17520,9 @@ function renderCorpsSession() {
   // (au lieu d'une sous chaque exercice), dans l'ordre des exercices.
   const zones = document.getElementById('session-zones');
   if (zones) {
-    // Muscles principaux des exercices (grosses pastilles), puis leurs
+    // Muscles principaux des exercices (barre épaisse), puis leurs
     // muscles secondaires qui ne sont le principal d'aucun exercice de la
-    // séance (petites pastilles).
+    // séance (barre fine).
     const principaux = [], secondaires = [];
     musculationSessionActive.exercices.forEach(e => {
       const exo = trouverExercice(e.exerciceId);
