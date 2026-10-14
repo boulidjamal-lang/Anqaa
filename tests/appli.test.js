@@ -147,6 +147,26 @@ test('le cardio : ajouter, modifier, supprimer une séance', () => avecAppli({},
   assert.equal(r, 0);
 }));
 
+test("historique d'un programme : toucher un exercice ouvre sa courbe", () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => {
+    const exo = toutesLesExercices().find(e => e.groupe === 'epaules') || toutesLesExercices()[0];
+    for (let k = 0; k < 4; k++) {
+      const date = shiftDate(todayStr(), -7 * k);
+      musculationHistorique.push({ id: 'h' + k, programmeId: 'p1', programmeNom: 'Épaules', date, debut: Date.now() - 3e6, fin: Date.now(), dureeMin: 50, maj: Date.now(),
+        exercices: [{ exerciceId: exo.id, nom: exo.nom, series: [{ poids: 20 + k, reps: 10, fait: true }, { poids: 22 + k, reps: 8, fait: true }] }] });
+    }
+    sauvegarderHistorique();
+    allerA('stats'); choisirOngletStats('muscu'); choisirSousOngletMuscu('programmes');
+  });
+  await page.click('#muscu-stats-programmes [onclick^="voirDetailProgramme"]');
+  await page.waitForSelector('#programme-detail-modal.show');
+  await page.click('#programme-detail-container .detail-exo-titre');
+  await page.waitForSelector('#fiche-exercice-modal.show');
+  await page.waitForTimeout(400);
+  const r = await page.evaluate(() => ({ visible: !!document.querySelector('#fiche-exercice-modal.show'), courbe: !!document.querySelector('#fiche-resume-courbe canvas, #fiche-resume-courbe svg') }));
+  assert.deepEqual(r, { visible: true, courbe: true });
+}));
+
 test('les statistiques s\'affichent sur chaque onglet et chaque période', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     const t = todayStr();
@@ -213,6 +233,7 @@ test("des données piégées venant d'autres comptes ne s'exécutent jamais (Adm
     () => chargerRecettesAdmin(),
     () => chargerStatsMuscuAdmin('u1', 'Compte'),
     () => voirDetailHistorique(muscuContexteActuel.historique[0].id),
+    () => voirDetailProgramme([...muscuGroupesProgrammesCourant.keys()][0]),
     () => ouvrirHistoriqueExercice(muscuContexteActuel.historique[0].exercices[0].exerciceId),
     () => comparerGymbro('abc')
   ];
