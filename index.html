@@ -13977,10 +13977,14 @@ function medaillonExercice(exo, anime) {
   // Full HD de ~1 Mo, trop lente à charger pour une vignette. Ailleurs
   // (bibliothèque, sélecteurs : des centaines de lignes) elle reste une image.
   const sw = !exo.perso && videoExercice(exo);
-  const swBase = anime && !exo.perso && typeof exo.video !== 'string' && VIDEOS_SMARTWORKOUT[exo.id];
+  const swBase = !exo.perso && typeof exo.video !== 'string' && VIDEOS_SMARTWORKOUT[exo.id];
   if (swBase) {
     const mini = 'assets/miniatures/' + swBase[0];
-    return `<video src="${mini}.mp4" poster="${mini}.jpg" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" style="background:#2b2c30;"></video>`;
+    if (anime) return `<video src="${mini}.mp4" poster="${mini}.jpg" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" style="background:#2b2c30;"></video>`;
+    // Listes (bibliothèque, sélecteurs : des centaines de lignes) : l'image
+    // locale s'affiche tout de suite, la mini-vidéo ne se charge et ne joue
+    // que lorsqu'elle est à l'écran (voir observerVignettesVideo).
+    return `<video class="vignette-differee" data-src="${mini}.mp4" poster="${mini}.jpg" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" style="background:#2b2c30;"></video>`;
   }
   // Vidéo ajoutée dans Administration : en séance, elle joue en boucle.
   if (anime && sw && sw.video && typeof exo.video === 'string') return videoVignetteHTML(sw.video, sw.poster, true);
@@ -14005,6 +14009,35 @@ function medaillonExercice(exo, anime) {
   // la première image de la vidéo sert de miniature.
   if (v && v.video) return videoVignetteHTML(v.video, null, anime);
   return svgSilhouetteGroupe(exo.groupe);
+}
+/* Mini-vidéos des listes : lecture seulement quand elles sont visibles. Un
+   seul observateur pour toute la page ; les vignettes ajoutées plus tard
+   (rendu d'une liste) sont repérées par un MutationObserver. */
+const observateurVignettes = typeof IntersectionObserver === 'function' ? new IntersectionObserver(entrees => {
+  entrees.forEach(en => {
+    const v = en.target;
+    if (en.isIntersecting) {
+      if (!v.getAttribute('src')) v.setAttribute('src', v.dataset.src);
+      const p = v.play();
+      if (p && p.catch) p.catch(() => {});
+    } else if (!v.paused) {
+      v.pause();
+    }
+  });
+}, { rootMargin: '120px 0px' }) : null;
+function observerVignettesVideo(racine) {
+  (racine || document).querySelectorAll('video.vignette-differee:not([data-observee])').forEach(v => {
+    v.dataset.observee = '1';
+    if (observateurVignettes) observateurVignettes.observe(v);
+    else { v.setAttribute('src', v.dataset.src); v.autoplay = true; }
+  });
+}
+if (typeof MutationObserver === 'function') {
+  let attenteVignettes = null;
+  new MutationObserver(() => {
+    if (attenteVignettes) return;
+    attenteVignettes = requestAnimationFrame(() => { attenteVignettes = null; observerVignettesVideo(); });
+  }).observe(document.documentElement, { childList: true, subtree: true });
 }
 /* Miniature tirée directement d'une vidéo : « #t=0.1 » fait afficher une
    première image même sans lecture (iPhone compris) ; preload="metadata"
