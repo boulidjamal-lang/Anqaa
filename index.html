@@ -3485,6 +3485,11 @@
         <select id="exercices-filter-groupe" style="flex:1; min-width:0;" onchange="filtrerExercicesAdmin()"></select>
         <select id="exercices-filter-materiel" style="flex:1; min-width:0;" onchange="filtrerExercicesAdmin()"></select>
       </div>
+      <select id="exercices-filter-video" onchange="filtrerExercicesAdmin()" aria-label="Vidéo de démonstration">
+        <option value="">Avec ou sans vidéo</option>
+        <option value="avec">Avec vidéo</option>
+        <option value="sans">Sans vidéo</option>
+      </select>
     </div>
 
     <div id="admin-exercices-feuille-liste"></div>
@@ -19357,7 +19362,10 @@ function filtrerExercicesAdmin() {
     const groupe = document.getElementById('exercices-filter-groupe')?.value || '';
     const materiel = document.getElementById('exercices-filter-materiel')?.value || '';
     const type = document.getElementById('exercices-filter-type')?.value || '';
+    const video = document.getElementById('exercices-filter-video')?.value || '';
     const correspond = adminExercicesCharges.filter(e => {
+      // Vidéo : lien saisi dans Administration, ou démonstration de la base.
+      if (video) { const v = videoExercice(e); if ((video === 'avec') !== !!(v && v.video)) return false; }
       if (type === '' && e.estRetire) return false;
       if (type === 'base' && !e.estBase) return false;
       if (type === 'perso' && (e.estBase || e.estRetire)) return false;
@@ -19375,7 +19383,7 @@ function filtrerExercicesAdmin() {
     // à administrer), puis on plafonne l'affichage de la base.
     const LIMITE_SANS_FILTRE = 150;
     if (type === 'utilises' || type === 'retires') correspond.sort((a, b) => (b.usages || 0) - (a.usages || 0));
-    const limiter = !nom && !createur && !groupe && !materiel && !type && correspond.length > LIMITE_SANS_FILTRE;
+    const limiter = !nom && !createur && !groupe && !materiel && !type && !video && correspond.length > LIMITE_SANS_FILTRE;
     rendreExercicesAdmin(limiter ? correspond.slice(0, LIMITE_SANS_FILTRE) : correspond, limiter ? correspond.length : null);
   }, 300);
 }
