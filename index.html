@@ -1535,6 +1535,11 @@
     .photos-avant-apres img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 12px; }
     .fiche-exo-video { border-radius: 14px; overflow: hidden; background: #282a2c; margin-bottom: 6px; }
     .fiche-exo-video video { display: block; width: 100%; max-height: 300px; object-fit: contain; background: #fff; }
+    .fiche-exo-video--mini { position: relative; aspect-ratio: 16 / 9; max-height: 300px; }
+    .fiche-exo-video--mini video { position: absolute; inset: 0; height: 100%; max-height: none; }
+    .fiche-exo-video--mini video.mini { filter: blur(1px); }
+    .fiche-exo-video--mini video.hd { opacity: 0; transition: opacity 0.25s; }
+    .fiche-exo-video--mini video.hd.prete { opacity: 1; }
     .palettes-perso { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .palette-perso {
       display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 0; border-radius: 12px; cursor: pointer;
@@ -2209,6 +2214,7 @@
     /* Glisser un exercice de la séance : à gauche = retirer (avec
        confirmation), à droite = remplacer. Le geste part de l'en-tête de
        l'exercice ; les lignes de série gardent leur propre glisser. */
+    .picker-suite { height: 1px; }
     .exo-swipe { position: relative; margin-bottom: 14px; border-radius: 16px; }
     .exo-swipe:last-child { margin-bottom: 6px; }
     .exo-swipe > .session-exo-bloc { position: relative; z-index: 1; margin-bottom: 0; transition: transform 0.25s ease; }
@@ -4468,7 +4474,7 @@
     </div>
     <div class="input-group" style="margin-bottom:12px;">
       <label for="picker-recherche" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Rechercher un exercice</label>
-      <input type="text" id="picker-recherche" placeholder="Rechercher un exercice…" autocomplete="off" oninput="rendrePickerExercices()">
+      <input type="text" id="picker-recherche" placeholder="Rechercher un exercice…" autocomplete="off" oninput="rechercherPickerExercices()">
     </div>
     <!-- Deux menus déroulants plutôt qu'un mur de puces (15 groupes + 8
          matériels, jusqu'à 25 boutons à la fois) : même filtrage, beaucoup
@@ -14854,10 +14860,13 @@ function medaillonExercice(exo, anime) {
   if (swBase) {
     const mini = 'assets/miniatures/' + swBase[0];
     if (anime) return `<video src="${mini}.mp4" poster="${mini}.jpg" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" style="background:#2b2c30;"></video>`;
-    // Listes (bibliothèque, sélecteurs : des centaines de lignes) : l'image
-    // locale s'affiche tout de suite, la mini-vidéo ne se charge et ne joue
-    // que lorsqu'elle est à l'écran (voir observerVignettesVideo).
-    return `<video class="vignette-differee" data-src="${mini}.mp4" poster="${mini}.jpg" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" style="background:#2b2c30;"></video>`;
+    // Listes (bibliothèque, sélecteurs : des centaines de lignes) : une
+    // simple image (chargée seulement près de l'écran), remplacée par la
+    // mini-vidéo uniquement quand la ligne reste visible un instant, et
+    // jamais plus de quelques vidéos à la fois (voir observerVignettesVideo).
+    // Des centaines de balises <video> faisaient ramer le défilement sur
+    // iPhone et téléchargeaient toutes leurs images d'aperçu d'un coup.
+    return `<img class="vignette-differee" src="${mini}.jpg" data-video="${mini}.mp4" alt="" loading="lazy" decoding="async" style="background:#2b2c30;">`;
   }
   // Vidéo ajoutée dans Administration : en séance, elle joue en boucle.
   if (anime && sw && sw.video && typeof exo.video === 'string') return videoVignetteHTML(sw.video, sw.poster, true);
@@ -14883,27 +14892,54 @@ function medaillonExercice(exo, anime) {
   if (v && v.video) return videoVignetteHTML(v.video, null, anime);
   return svgSilhouetteGroupe(exo.groupe);
 }
-/* Mini-vidéos des listes : lecture seulement quand elles sont visibles. Un
-   seul observateur pour toute la page ; les vignettes ajoutées plus tard
-   (rendu d'une liste) sont repérées par un MutationObserver. */
+/* Mini-vidéos des listes. Chaque vignette est d'abord une image ; quand
+   elle reste visible VIGNETTE_DELAI_MS (défilement arrêté), elle devient
+   une vidéo en boucle, et redevient une image en sortant de l'écran. Au
+   plus VIGNETTES_MAX vidéos jouent à la fois (les plus anciennes repassent
+   en image) : un iPhone ne décode que quelques vidéos sans saccader. */
+const VIGNETTES_MAX = 4, VIGNETTE_DELAI_MS = 350;
+const vignettesActives = [];
+function vignetteEnVideo(img) {
+  if (!img.isConnected || img.tagName !== 'IMG') return;
+  while (vignettesActives.length >= VIGNETTES_MAX) vignetteEnImage(vignettesActives[0]);
+  const v = document.createElement('video');
+  v.className = 'vignette-differee vignette-active';
+  v.muted = true; v.loop = true; v.playsInline = true; v.autoplay = true;
+  ['muted', 'loop', 'playsinline', 'autoplay', 'disablepictureinpicture', 'disableremoteplayback'].forEach(a => v.setAttribute(a, ''));
+  v.setAttribute('aria-hidden', 'true');
+  v.poster = img.src;
+  v.style.background = '#2b2c30';
+  v._image = img;
+  v.src = img.dataset.video;
+  img.replaceWith(v);
+  vignettesActives.push(v);
+  if (observateurVignettes) observateurVignettes.observe(v);
+  const p = v.play();
+  if (p && p.catch) p.catch(() => {});
+}
+function vignetteEnImage(v) {
+  const k = vignettesActives.indexOf(v);
+  if (k >= 0) vignettesActives.splice(k, 1);
+  if (observateurVignettes) observateurVignettes.unobserve(v);
+  try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {}
+  if (v.isConnected && v._image) { v.replaceWith(v._image); if (observateurVignettes) observateurVignettes.observe(v._image); }
+}
 const observateurVignettes = typeof IntersectionObserver === 'function' ? new IntersectionObserver(entrees => {
   entrees.forEach(en => {
-    const v = en.target;
-    if (en.isIntersecting) {
-      if (!v.getAttribute('src')) v.setAttribute('src', v.dataset.src);
-      const p = v.play();
-      if (p && p.catch) p.catch(() => {});
-    } else if (!v.paused) {
-      v.pause();
-    }
+    const el = en.target;
+    if (el.tagName === 'VIDEO') { if (!en.isIntersecting) vignetteEnImage(el); return; }
+    clearTimeout(el._attente);
+    if (en.isIntersecting) el._attente = setTimeout(() => vignetteEnVideo(el), VIGNETTE_DELAI_MS);
   });
-}, { rootMargin: '120px 0px' }) : null;
+}, { threshold: 0.6 }) : null;
 function observerVignettesVideo(racine) {
-  (racine || document).querySelectorAll('video.vignette-differee:not([data-observee])').forEach(v => {
-    v.dataset.observee = '1';
-    if (observateurVignettes) observateurVignettes.observe(v);
-    else { v.setAttribute('src', v.dataset.src); v.autoplay = true; }
+  if (!observateurVignettes) return;
+  (racine || document).querySelectorAll('img.vignette-differee:not([data-observee])').forEach(img => {
+    img.dataset.observee = '1';
+    observateurVignettes.observe(img);
   });
+  // Vidéos dont la liste a été remplacée : on libère leur place.
+  for (let k = vignettesActives.length - 1; k >= 0; k--) if (!vignettesActives[k].isConnected) vignettesActives.splice(k, 1);
 }
 if (typeof MutationObserver === 'function') {
   let attenteVignettes = null;
@@ -17041,8 +17077,14 @@ function rendrePickerExercices() {
     c.innerHTML = `<div class="vide">${pickerOnglet === 'tous' ? 'Aucun exercice ne correspond à ces filtres.' : 'Aucun exercice pratiqué ne correspond à ces filtres.'}</div>`;
     return;
   }
-  c.innerHTML = liste.map(e => {
-    const derniere = dernierePerfExercice(e.id);
+  // Dernière séance de chaque exercice, en un seul passage sur l'historique
+  // (au lieu d'un parcours complet par ligne).
+  const derniereDate = new Map();
+  musculationHistorique.forEach(h => h.exercices.forEach(x => {
+    if (!derniereDate.has(x.exerciceId) && x.series.some(s => s.fait)) derniereDate.set(x.exerciceId, h.date);
+  }));
+  const ligneHTML = e => {
+    const derniere = derniereDate.has(e.id) ? { date: derniereDate.get(e.id) } : null;
     const m = musclesExerciceTexte(e);
     const sousTitre = MATERIELS[e.materiel].label + (derniere ? ' · dernière fois ' + formatDateDisplay(derniere.date) : '');
     const n = niveaux[e.id];
@@ -17058,7 +17100,35 @@ function rendrePickerExercices() {
         ${jauge}
       </span>
     </button>`;
-  }).join('');
+  };
+  // Rendu par paquets : les premières lignes tout de suite, la suite quand
+  // on approche du bas de la liste. Créer 800 lignes d'un coup figeait
+  // l'ouverture (et chaque lettre tapée) pendant plusieurs secondes sur iPhone.
+  const PAQUET = 40;
+  let rendues = 0;
+  const generation = ++pickerGeneration;
+  const ajouterPaquet = () => {
+    if (generation !== pickerGeneration) return;
+    const morceau = liste.slice(rendues, rendues + PAQUET);
+    rendues += morceau.length;
+    const ancienne = c.querySelector('.picker-suite');
+    if (ancienne) ancienne.remove();
+    c.insertAdjacentHTML('beforeend', morceau.map(ligneHTML).join('') + (rendues < liste.length ? '<div class="picker-suite" aria-hidden="true"></div>' : ''));
+    const suite = c.querySelector('.picker-suite');
+    if (suite && typeof IntersectionObserver === 'function') {
+      const obs = new IntersectionObserver(en => { if (en.some(x => x.isIntersecting)) { obs.disconnect(); ajouterPaquet(); } }, { rootMargin: '600px 0px' });
+      obs.observe(suite);
+    } else if (suite) {
+      ajouterPaquet();
+    }
+  };
+  c.innerHTML = '';
+  ajouterPaquet();
+}
+let pickerGeneration = 0, pickerRechercheAttente = null;
+function rechercherPickerExercices() {
+  clearTimeout(pickerRechercheAttente);
+  pickerRechercheAttente = setTimeout(rendrePickerExercices, 150);
 }
 function choisirExercicePicker(id) {
   if (pickerMode === 'programme') {
@@ -17108,7 +17178,13 @@ function afficherFicheExerciceBiblio(id, options) {
   // ajoutée (Administration).
   const video = (!e.perso || typeof e.video === 'string') && videoExercice(e);
   if (video) {
-    html += `<div class="fiche-exo-video"><video src="${escapeHtml(video.video)}"${video.poster ? ` poster="${escapeHtml(video.poster)}"` : ''} autoplay muted loop playsinline preload="metadata" aria-label="Démonstration : ${escapeHtml(libelleExercice(e))}"></video></div>
+    // Comme l'agrandissement (agrandirVideoExercice) : la mini-vidéo locale
+    // (~10 Ko) joue tout de suite, la vidéo HD distante (~1 Mo) la recouvre
+    // en fondu dès qu'elle peut jouer. Avant, la fiche restait sur une image
+    // fixe distante pendant tout le téléchargement.
+    const brutFiche = !e.perso && typeof e.video !== 'string' && VIDEOS_SMARTWORKOUT[e.id];
+    const miniFiche = brutFiche ? 'assets/miniatures/' + brutFiche[0] : null;
+    html += `<div class="fiche-exo-video${miniFiche ? ' fiche-exo-video--mini' : ''}">${miniFiche ? `<video class="mini" src="${miniFiche}.mp4" poster="${miniFiche}.jpg" autoplay muted loop playsinline disablepictureinpicture aria-hidden="true"></video>` : ''}<video class="hd" src="${escapeHtml(video.video)}"${video.poster && !miniFiche ? ` poster="${escapeHtml(video.poster)}"` : ''} autoplay muted loop playsinline preload="auto" onplaying="this.classList.add('prete')" oncanplay="this.classList.add('prete')" aria-label="Démonstration : ${escapeHtml(libelleExercice(e))}"></video></div>
     <p class="note fiche-exo-note-source">Vidéo : <a href="${escapeHtml(video.page)}" target="_blank" rel="noopener" style="color:var(--accent);">SmartWorkout</a></p>`;
   } else if (media && media.img && media.img.length) {
     // Deux photos (départ/arrivée) qui alternent, comme Strong et la

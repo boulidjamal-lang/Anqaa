@@ -202,6 +202,25 @@ test("historique d'un programme : toucher un exercice ouvre sa courbe", () => av
   assert.deepEqual(r, { visible: true, courbe: true });
 }));
 
+test('la bibliothèque s\'ouvre vite et ne lance que quelques vidéos', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const t0 = performance.now(); ouvrirBibliotheque(); const duree = performance.now() - t0;
+    return { duree, lignes: document.querySelectorAll('#picker-liste-exercices .exo-ligne').length, total: toutesLesExercices().length };
+  });
+  assert.ok(r.total > 200);
+  assert.ok(r.lignes <= 60, `rendu progressif attendu, ${r.lignes} lignes d'un coup`);
+  assert.ok(r.duree < 200, `ouverture trop lente : ${Math.round(r.duree)} ms`);
+  for (let k = 0; k < 15; k++) { await page.evaluate(() => { document.querySelector('#picker-exercices-modal .modal-content').scrollTop += 1200; }); await page.waitForTimeout(50); }
+  await page.waitForTimeout(700);
+  const apres = await page.evaluate(() => ({ lignes: document.querySelectorAll('#picker-liste-exercices .exo-ligne').length, videos: document.querySelectorAll('#picker-liste-exercices video').length }));
+  assert.ok(apres.lignes > r.lignes, 'la suite se charge en défilant');
+  assert.ok(apres.videos <= 4, `${apres.videos} vidéos à la fois`);
+  // La recherche filtre toujours toute la base
+  await page.fill('#picker-recherche', 'développé couché');
+  await page.waitForTimeout(300);
+  assert.ok(await page.evaluate(() => document.querySelectorAll('#picker-liste-exercices .exo-ligne').length) > 0);
+}));
+
 test('les statistiques s\'affichent sur chaque onglet et chaque période', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     const t = todayStr();
