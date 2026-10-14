@@ -1883,6 +1883,10 @@
     .cardio-legende { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); }
     .cardio-legende i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
     .cardio-ajouter { margin-bottom: 12px; }
+    .jauge-pas:empty { display: none; }
+    .jauge-pas { margin-top: 10px; }
+    .jauge-pas-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 0.76rem; color: var(--text-muted); font-weight: 600; }
+    .jauge-pas-tete b { font-size: 0.8rem; font-weight: 800; flex: none; }
     .cardio-seance { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 0; background: none; border: 0; border-top: 1px solid var(--verre-brd); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
     .cardio-carte .cardio-seance:first-of-type { border-top: 0; padding-top: 2px; }
     .cardio-seance-ico { width: 40px; height: 40px; flex: none; border-radius: 12px; background: var(--verre-fort); display: flex; align-items: center; justify-content: center; }
@@ -2601,7 +2605,8 @@
       <h3 class="titre-depliant" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-sport note-poids')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-sport note-poids')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" /></svg> Pas &amp; séances</h3>
       <div class="input-group">
         <label for="daily-steps">Nombre de pas</label>
-        <input type="number" id="daily-steps" placeholder="ex : 8500" step="100" inputmode="numeric" onchange="sauvegarderParametresJour()">
+        <input type="number" id="daily-steps" placeholder="ex : 8500" step="100" inputmode="numeric" oninput="renderJaugePas(this.value)" onchange="sauvegarderParametresJour()">
+        <div id="jauge-pas" class="jauge-pas"></div>
       </div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px;">
@@ -5220,6 +5225,7 @@ function renderApp() {
   document.getElementById('objectif-select').value = dernierObjectifConnu(todayStr());
   majNoteRecomposition();
   document.getElementById('daily-steps').value = day.steps || '';
+  renderJaugePas(day.steps);
   afficherResumeMesures();
   
   renderWorkoutsList(day);
@@ -5412,22 +5418,47 @@ function cleZoneCardio(v) {
   return v >= OBJECTIF_CARDIO.haut ? 'mav' : v >= OBJECTIF_CARDIO.cible ? 'mev' : v >= OBJECTIF_CARDIO.min ? 'mv' : 'sous';
 }
 const NOMS_ZONE_CARDIO = { sous: 'Trop peu', mv: 'Un début', mev: 'Objectif atteint', mav: 'Au top' };
-// Même jauge que les zones de volume des muscles (barreZoneHTML), sans
-// tronçon « trop » : il n'y a pas de plafond recommandé pour le cardio.
-function barreCardioHTML(v) {
-  const O = OBJECTIF_CARDIO;
-  const val = Math.max(0, Math.min(O.fin, v));
-  const troncons = [[0, O.min, 'sous'], [O.min, O.cible, 'mv'], [O.cible, O.haut, 'mev'], [O.haut, O.fin, 'mav']];
+/* Même jauge que les zones de volume des muscles (barreZoneHTML), en 4
+   tronçons sans « trop » (gris, bleu, vert-jaune, vert) : seuils = les 3
+   frontières, fin = le bout de la barre. Sert au cardio et aux pas. */
+function barreSeuilsHTML(v, seuils, fin, texteEchelle) {
+  const val = Math.max(0, Math.min(fin, Number(v) || 0));
+  const bornes = [0, ...seuils, fin], cles = ['sous', 'mv', 'mev', 'mav'];
+  const troncons = cles.map((cle, k) => [bornes[k], bornes[k + 1], cle]);
   const segs = troncons.map(([a, b, cle]) => {
     const r = Math.max(0, Math.min(1, (val - a) / (b - a)));
     const c = ZONES_INFO[cle].couleur;
     return `<span class="zone-seg" style="flex:${b - a};"><i style="background:${c};"></i><b style="width:${r * 100}%;background:${c};"></b></span>`;
   }).join('');
   const idx = Math.max(0, troncons.findIndex(([a, b]) => val >= a && val < b));
-  const f = val / O.fin;
-  const gauche = `calc(${(f * 100).toFixed(3)}% - ${(f * 9).toFixed(2)}px + ${(val >= O.fin ? 3 : idx) * 3}px)`;
-  const ech = [O.min, O.cible, O.haut].map(x => `<span style="left:${(x / O.fin * 100).toFixed(2)}%">${x}</span>`).join('');
-  return `<div class="zone-barre" aria-hidden="true">${segs}<span class="zone-curseur${val > 0 ? '' : ' zone-curseur--vide'}" style="--c:${ZONES_INFO[cleZoneCardio(val)].couleur};left:clamp(8px, ${gauche}, calc(100% - 8px));"></span></div><div class="cardio-echelle" aria-hidden="true">${ech}</div>`;
+  const f = val / fin;
+  const gauche = `calc(${(f * 100).toFixed(3)}% - ${(f * 9).toFixed(2)}px + ${(val >= fin ? 3 : idx) * 3}px)`;
+  const cle = val >= seuils[2] ? 'mav' : val >= seuils[1] ? 'mev' : val >= seuils[0] ? 'mv' : 'sous';
+  const ech = seuils.map(x => `<span style="left:${(x / fin * 100).toFixed(2)}%">${texteEchelle ? texteEchelle(x) : x}</span>`).join('');
+  return `<div class="zone-barre" aria-hidden="true">${segs}<span class="zone-curseur${val > 0 ? '' : ' zone-curseur--vide'}" style="--c:${ZONES_INFO[cle].couleur};left:clamp(8px, ${gauche}, calc(100% - 8px));"></span></div><div class="cardio-echelle" aria-hidden="true">${ech}</div>`;
+}
+function barreCardioHTML(v) {
+  const O = OBJECTIF_CARDIO;
+  return barreSeuilsHTML(v, [O.min, O.cible, O.haut], O.fin);
+}
+
+/* Jauge des pas du jour (carte « Pas & séances ») : les études relient
+   environ 7 000 à 8 000 pas par jour à de nets bénéfices pour la santé,
+   moins de 5 000 correspond à un mode de vie sédentaire. Les pas restent
+   hors de la jauge cardio de la semaine : on ne connaît pas leur rythme. */
+const SEUILS_PAS = [5000, 7500, 10000], FIN_PAS = 13000;
+const NOMS_ZONE_PAS = { sous: 'Sédentaire', mv: 'Peu actif', mev: 'Actif', mav: 'Très actif' };
+function renderJaugePas(valeur) {
+  const zone = document.getElementById('jauge-pas');
+  if (!zone) return;
+  const pas = Math.max(0, Math.round(Number(valeur) || 0));
+  if (!pas) { zone.innerHTML = ''; return; }
+  const cle = pas >= SEUILS_PAS[2] ? 'mav' : pas >= SEUILS_PAS[1] ? 'mev' : pas >= SEUILS_PAS[0] ? 'mv' : 'sous';
+  const phrase = pas < SEUILS_PAS[1]
+    ? `Encore ${(SEUILS_PAS[1] - pas).toLocaleString('fr-FR')} pas pour 7 500, le repère santé.`
+    : pas < SEUILS_PAS[2] ? 'Repère santé atteint.' : 'Très belle journée de marche.';
+  zone.innerHTML = `<div class="jauge-pas-tete"><span>${phrase}</span><b style="color:${couleurTexteZone(cle)}">${NOMS_ZONE_PAS[cle]}</b></div>
+    ${barreSeuilsHTML(pas, SEUILS_PAS, FIN_PAS, x => (x / 1000).toLocaleString('fr-FR') + ' k')}`;
 }
 
 let modeSeance = 'muscu';
