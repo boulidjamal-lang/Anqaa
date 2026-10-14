@@ -221,6 +221,32 @@ test('la bibliothèque s\'ouvre vite et ne lance que quelques vidéos', () => av
   assert.ok(await page.evaluate(() => document.querySelectorAll('#picker-liste-exercices .exo-ligne').length) > 0);
 }));
 
+test("un lien d'image SmartWorkout collé comme vidéo est remplacé par la vraie vidéo", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const IMG_AB_COASTER = 'https://api.smartworkout.app/asset/image/4e939dab-2978-4d2f-82f0-74cafb543e9a';
+    const connu = videoExercice({ id: 'x', video: IMG_AB_COASTER });
+    const inconnu = videoExercice({ id: 'y', video: 'https://exemple.fr/photo.jpg' });
+    const vraieVideo = videoExercice({ id: 'z', video: 'https://exemple.fr/demo.mp4' });
+    // Vignette et fiche d'un exercice dont l'image est inconnue : une photo, pas un carré noir
+    const vignette = medaillonExercice({ id: 'y', nom: 'Test', groupe: 'abdominaux', materiel: 'poids_corps', video: 'https://exemple.fr/photo.jpg' });
+    // Correction en masse depuis l'Administration (faux Supabase)
+    window.__appels = [];
+    supa = { from: t => ({ upsert: async (l) => { window.__appels.push([t, l.id, l.donnees.video, l.donnees.img[0]]); return { error: null }; }, update: () => ({ eq: async () => ({ error: null }) }) }) };
+    adminExercicesCharges = [{ id: 'base1', nom: 'Relevé', groupe: 'abdominaux', materiel: 'poids_corps', estBase: true, video: IMG_AB_COASTER }, { id: 'base2', nom: 'Autre', groupe: 'abdominaux', materiel: 'poids_corps', estBase: true, video: 'https://exemple.fr/photo.jpg' }];
+    return { connu, inconnu, vraieVideo, vignetteImg: /^<img/.test(vignette), aCorriger: exercicesAvecImageCommeVideo().map(e => e.id) };
+  });
+  assert.equal(r.connu.video, 'https://api.smartworkout.app/asset/video/1e4902a0-05fc-4ab0-8fcd-5e745eb096af.mp4');
+  assert.equal(r.inconnu.video, null);
+  assert.equal(r.inconnu.poster, 'https://exemple.fr/photo.jpg');
+  assert.equal(r.vraieVideo.video, 'https://exemple.fr/demo.mp4');
+  assert.ok(r.vignetteImg, 'une image inconnue s\'affiche comme photo');
+  assert.deepEqual(r.aCorriger, ['base1']);
+  await page.evaluate(() => { window.chargerExercicesAdmin = async () => {}; window.consignerAction = async () => {}; });
+  await page.evaluate(() => corrigerVideosImagesAdmin());
+  const appels = await page.evaluate(() => window.__appels);
+  assert.deepEqual(appels, [['exercices_base_overrides', 'base1', 'https://api.smartworkout.app/asset/video/1e4902a0-05fc-4ab0-8fcd-5e745eb096af.mp4', 'https://api.smartworkout.app/asset/image/4e939dab-2978-4d2f-82f0-74cafb543e9a']]);
+}));
+
 test('les statistiques s\'affichent sur chaque onglet et chaque période', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     const t = todayStr();
