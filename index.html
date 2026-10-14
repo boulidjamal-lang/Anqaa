@@ -2229,6 +2229,8 @@
        confirmation), à droite = remplacer. Le geste part de l'en-tête de
        l'exercice ; les lignes de série gardent leur propre glisser. */
     .picker-suite { height: 1px; }
+    .picker-titre-bloc { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); margin: 4px 2px 8px; }
+    .picker-titre-bloc:not(:first-child) { margin-top: 16px; }
     .lien-depliant { background: none; border: 0; padding: 4px 2px; margin: 0 0 4px; font: inherit; font-size: 0.82rem; font-weight: 700; color: var(--primary); cursor: pointer; }
     .exo-swipe { position: relative; margin-bottom: 14px; border-radius: 16px; }
     .exo-swipe:last-child { margin-bottom: 6px; }
@@ -17268,12 +17270,62 @@ function rendrePickerExercices() {
     }
   };
   c.innerHTML = '';
+  const aRemplacer = exerciceARemplacer();
+  if (aRemplacer && !q && !groupeActif && !materielActif && pickerOnglet === 'tous') {
+    const similaires = exercicesSimilaires(aRemplacer, 6);
+    if (similaires.length) {
+      c.innerHTML = `<div class="picker-titre-bloc">Exercices similaires</div>${similaires.map(ligneHTML).join('')}<div class="picker-titre-bloc">Toute la bibliothèque</div>`;
+    }
+  }
   ajouterPaquet();
 }
 let pickerGeneration = 0, pickerRechercheAttente = null;
 function rechercherPickerExercices() {
   clearTimeout(pickerRechercheAttente);
   pickerRechercheAttente = setTimeout(rendrePickerExercices, 150);
+}
+/* Exercices similaires (remplacer un exercice) : même groupe musculaire
+   principal, classés par même type de mouvement (reconnu dans le nom),
+   muscles secondaires en commun, déjà pratiqués, même matériel. Les motifs
+   les plus précis passent en premier (« leg extension » avant
+   « extension », « presse à cuisses » avant « press »). */
+const MOTIFS_MOUVEMENT = [
+  ['leg extension', 'extension des jambes', 'extension de jambe'], ['leg curl', 'curl des ischio', 'curl ischio', 'flexion des jambes'],
+  ['presse a cuisses', 'presse a jambes', 'leg press', 'hack squat'], ['souleve de terre', 'deadlift', 'good morning'],
+  ['hip thrust', 'pont fessier', 'pont'], ['abduction'], ['adduction'], ['mollet'],
+  ['squat'], ['fente', 'split squat'], ['developpe', 'press'], ['ecarte', 'butterfly', 'pec deck'],
+  ['pompe'], ['dips'], ['curl'], ['extension', 'barre au front', 'kickback'], ['elevation'],
+  ['oiseau', 'face pull'], ['rowing'], ['tirage'], ['traction', 'chin up'], ['pullover'], ['haussement', 'shrug'],
+  ['crunch', 'releve', 'sit up'], ['planche', 'gainage'], ['rotation', 'russe', 'bucheron'], ['etirement', 'posture']
+];
+function motifMouvement(nom) {
+  const n = ' ' + normaliserRecherche(nom || '').replace(/[^a-z0-9]+/g, ' ') + ' ';
+  for (let k = 0; k < MOTIFS_MOUVEMENT.length; k++) if (MOTIFS_MOUVEMENT[k].some(m => n.includes(m))) return k;
+  return -1;
+}
+function exercicesSimilaires(exerciceId, combien) {
+  const a = trouverExercice(exerciceId);
+  if (!a) return [];
+  const motifA = motifMouvement(a.nom);
+  const secA = new Set(a.secondaires || []);
+  const pratiques = new Set(musculationHistorique.flatMap(h => h.exercices.map(x => x.exerciceId)));
+  return toutesLesExercices().filter(c => c.id !== a.id && c.groupe === a.groupe).map(c => {
+    let score = 0;
+    if (motifA >= 0 && motifMouvement(c.nom) === motifA) score += 6;
+    (c.secondaires || []).forEach(g => { if (secA.has(g)) score += 1.5; });
+    if (pratiques.has(c.id)) score += 2;
+    if (c.materiel === a.materiel) score += 1;
+    if (VIDEOS_SMARTWORKOUT[c.id]) score += 0.5;
+    return { c, score };
+  }).sort((x, y) => y.score - x.score).slice(0, combien || 6).map(x => x.c);
+}
+function exerciceARemplacer() {
+  const i = pickerRemplacerIndex;
+  if (i == null) return null;
+  const e = pickerMode === 'session-remplacer'
+    ? musculationSessionActive && musculationSessionActive.exercices[i]
+    : pickerMode === 'programme-remplacer' ? programmeEnEdition && programmeEnEdition.exercices[i] : null;
+  return e ? e.exerciceId : null;
 }
 function choisirExercicePicker(id) {
   if (pickerMode === 'programme') {

@@ -153,6 +153,21 @@ test('éditeur de programme : appui long pour déplacer un exercice', () => avec
   assert.equal(await page.locator('#programme-exercices-container .exo-en-programme-reordre').count(), 0, 'plus de flèches');
 }));
 
+test('remplacer un exercice propose des exercices similaires', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const squat = toutesLesExercices().find(e => /^squat avec barre$/i.test(e.nom)) || toutesLesExercices().find(e => /squat/i.test(e.nom));
+    allerA('seance'); choisirModeSeance('muscu'); demarrerSeanceLibre(); ajouterExerciceASession(squat.id);
+    document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+    remplacerExerciceSession(0);
+    const titres = [...document.querySelectorAll('#picker-liste-exercices .picker-titre-bloc')].map(x => x.textContent);
+    const lignes = [...document.querySelectorAll('#picker-liste-exercices .exo-ligne')].slice(0, 6).map(x => x.querySelector('.exo-ligne-nom').textContent);
+    return { squat: squat.nom, titres, lignes };
+  });
+  assert.deepEqual(r.titres, ['Exercices similaires', 'Toute la bibliothèque']);
+  assert.ok(r.lignes.filter(n => /squat/i.test(n)).length >= 4, 'des squats sont proposés pour remplacer un squat : ' + r.lignes.join(', '));
+  assert.ok(!r.lignes.includes(r.squat), "l'exercice remplacé n'est pas proposé");
+}));
+
 test('un programme se crée puis se supprime sans revenir', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     allerA('seance'); choisirModeSeance('muscu');
