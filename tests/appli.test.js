@@ -434,6 +434,34 @@ test('faisceaux du biceps et du triceps : règles et alertes', () => avecAppli({
   assert.deepEqual(r.figures, [1, 2], 'biceps de face, triceps de face et de dos');
 }));
 
+test('en-tête : ma photo et mon nom d\'utilisateur ouvrent le profil, plus de bouton Profil dans le menu', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const lire = () => ({ nom: document.getElementById('moi-entete-nom').textContent, img: !!document.querySelector('#moi-entete-avatar img') });
+    const res = {};
+    sessionUtilisateur = null; monPseudo = null; monProfil = null; majEnteteMoi();
+    res.deconnecte = lire();
+    sessionUtilisateur = { id: 'moi', email: 'jamal@x.fr' }; majEnteteMoi();
+    res.sansPseudo = lire();
+    monPseudo = { pseudo: 'jamal', partage_seances: true }; monProfil = { bio: '', avatar: 'data:image/jpeg;base64,/9j/4AAQ==' }; majEnteteMoi();
+    res.complet = lire();
+    sessionUtilisateur = null; majEnteteMoi();
+    res.apresDeconnexion = lire();
+    allerA('repas');
+    document.getElementById('moi-entete').click();
+    res.ecran = ecranActif;
+    res.boutonProfil = !!document.getElementById('nav-reglages');
+    res.position = getComputedStyle(document.querySelector('.app-bar')).position;
+    return res;
+  });
+  assert.deepEqual(r.deconnecte, { nom: 'Se connecter', img: false });
+  assert.deepEqual(r.sansPseudo, { nom: 'jamal', img: false });
+  assert.deepEqual(r.complet, { nom: '@jamal', img: true });
+  assert.equal(r.apresDeconnexion.img, false, 'jamais la photo du compte précédent');
+  assert.equal(r.ecran, 'reglages');
+  assert.equal(r.boutonProfil, false);
+  assert.equal(r.position, 'sticky');
+}));
+
 test('les statistiques s\'affichent sur chaque onglet et chaque période', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     const t = todayStr();
