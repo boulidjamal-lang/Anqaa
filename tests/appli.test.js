@@ -627,6 +627,52 @@ test("fil des gymbros dans l'onglet Activité : cartes, respect, respects reçus
   assert.equal(r.presse, 'true');
 }));
 
+test('profil : photo et bio, page profil d\'un gymbro, contenus piégés refusés', () => avecAppli({}, async ({ page, dialogues }) => {
+  const r = await page.evaluate(async () => {
+    const res = {};
+    res.avatars = [
+      estAvatarValide('data:image/jpeg;base64,/9j/4AAQ=='),
+      estAvatarValide('data:image/svg+xml;base64,PHN2Zz4='),
+      estAvatarValide('javascript:alert(1)'),
+      estAvatarValide('data:image/jpeg;base64,AA" onerror="x')
+    ];
+    res.html = avatarHTML('bob', 'javascript:alert(1)');
+    res.bios = ['Team prise de masse, 4 séances par semaine', 'je fais du support', 'constant et unique', 'fils de pute', 'Sale merde'].map(texteInterdit);
+    // Enregistrement : la bio passe par profils (upsert), une bio insultante est bloquée avant l'envoi.
+    const envois = [];
+    const reponse = data => ({ then: ok => Promise.resolve({ data, error: null }).then(ok) });
+    supa = { from: table => ({ upsert: ligne => { envois.push([table, ligne]); return reponse(null); }, select: () => ({ eq: () => ({ maybeSingle: () => reponse({ bio: 'ancienne', avatar: null }) }) }) }), rpc: () => reponse([]) };
+    sessionUtilisateur = { id: 'moi', email: 'moi@x.fr' };
+    await chargerMonProfil();
+    res.blocVisible = !document.getElementById('profil-perso').classList.contains('hidden');
+    res.bioAffichee = document.getElementById('profil-bio').value;
+    res.ok = await enregistrerProfil({ bio: '  Objectif : 100 kg au développé  ' });
+    res.refuse = await enregistrerProfil({ bio: 'bande de connards' });
+    res.envois = envois.map(([t, l]) => [t, l.utilisateur, l.bio]);
+    // Page profil d'un gymbro : photo, bio, chiffres.
+    profilsGymbros = { carl: { bio: 'Powerlifter <b>du dimanche</b>', avatar: 'data:image/jpeg;base64,/9j/4AAQ==', membreDepuis: Date.parse('2026-03-02') } };
+    const jour = todayStr();
+    const html = profilGymbroHTML('carl', [{ date: jour }, { date: decalerJours(jour, -7) }, { date: decalerJours(jour, -14) }, { date: decalerJours(jour, -35) }]);
+    const div = document.createElement('div'); div.innerHTML = html;
+    res.profil = { img: !!div.querySelector('img.avatar'), bio: div.querySelector('p').textContent, gras: !!div.querySelector('p b'), chiffres: [...div.querySelectorAll('.profil-gymbro-chiffres b')].map(b => b.textContent), depuis: div.querySelector('small').textContent };
+    return res;
+  });
+  assert.deepEqual(r.avatars, [true, false, false, false]);
+  assert.match(r.html, /^<span class="avatar"/);
+  assert.deepEqual(r.bios, [false, false, false, true, true]);
+  assert.ok(r.blocVisible);
+  assert.equal(r.bioAffichee, 'ancienne');
+  assert.equal(r.ok, true);
+  assert.equal(r.refuse, false);
+  assert.deepEqual(r.envois, [['profils', 'moi', 'Objectif : 100 kg au développé']]);
+  assert.ok(dialogues.some(d => /mot non autorisé/.test(d)));
+  assert.equal(r.profil.img, true);
+  assert.equal(r.profil.bio, 'Powerlifter <b>du dimanche</b>');
+  assert.equal(r.profil.gras, false);
+  assert.equal(r.profil.chiffres[1], '3', '3 semaines d\'affilée');
+  assert.equal(r.profil.depuis, 'Membre depuis mars 2026');
+}));
+
 test("des données piégées venant d'autres comptes ne s'exécutent jamais (Administration, Gymbro)", () => avecAppli({}, async ({ page }) => {
   await installerFauxSupabase(page);
   const etapes = [
@@ -644,7 +690,9 @@ test("des données piégées venant d'autres comptes ne s'exécutent jamais (Adm
     () => comparerGymbro('abc'),
     () => chargerLiensGymbro().then(() => ouvrirGymbro()),
     () => { const P = __seancePiegee(1).notes; filGymbrosDernier = Date.now(); filGymbros = [nettoyerSeanceFil({ pseudo: P, seance_id: 'x' + P, donnees: Object.assign(__seancePiegee(1), { programmeNom: P }), respects: 2 })]; respectsRecus = [{ pseudo: P, quand: 1 }]; renderFilGymbros(); },
-    () => comparerGymbro(document.querySelector('#gymbro-favoris .gymbro-puces button').textContent.replace(/^@/, '').replace(/ en attente$/, ''))
+    () => comparerGymbro(document.querySelector('#gymbro-favoris .gymbro-puces button').textContent.replace(/^.?@/, '').replace(/ en attente$/, '')),
+    () => { const P = __seancePiegee(1).notes; gymbroLiens = [{ pseudo: P, sens: 'envoyee', statut: 'acceptee' }]; profilsGymbros[P.toLowerCase()] = { bio: P, avatar: P, membreDepuis: Date.now() }; return comparerGymbro(P); },
+    () => { const P = __seancePiegee(1).notes; monProfil = { bio: P, avatar: 'data:image/jpeg;base64,AA" onerror="window.__xss=1' }; majUIProfilPerso(); }
   ];
   for (const etape of etapes) {
     await page.evaluate(`(${etape.toString()})()`);

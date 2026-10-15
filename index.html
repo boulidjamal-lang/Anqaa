@@ -2428,6 +2428,29 @@
     .gymbro-demande-actions { display: flex; gap: 6px; }
     .gymbro-accepter { background: var(--primary); color: var(--primary-txt); border-color: var(--primary); }
     .gymbro-puces small { font-weight: 600; opacity: 0.7; }
+    .avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 34px; height: 34px; border-radius: 50%;
+      background: color-mix(in srgb, var(--primary) 20%, transparent); color: var(--primary); font-weight: 800; object-fit: cover; overflow: hidden; }
+    .avatar--mini { width: 22px; height: 22px; font-size: 0.66rem; margin-right: 6px; vertical-align: middle; }
+    .avatar--grand { width: 64px; height: 64px; font-size: 1.5rem; }
+    .gymbro-puces button { display: inline-flex; align-items: center; }
+    .gymbro-demande-qui { display: flex; align-items: center; min-width: 0; }
+    .profil-perso { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 8px; }
+    .profil-avatar-btn { position: relative; border: 0; padding: 0; background: none; border-radius: 50%; cursor: pointer; flex: none; }
+    .profil-avatar-crayon { position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      background: var(--primary); color: var(--primary-txt); font-size: 0.7rem; box-shadow: 0 0 0 2px var(--bg); }
+    .profil-perso-texte { flex: 1; min-width: 0; }
+    .profil-perso-titre { display: block; font-weight: 700; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+    .profil-perso textarea { width: 100%; resize: none; font-family: inherit; font-size: 0.84rem; padding: 8px 10px; min-height: 0; }
+    .profil-bio-pied { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
+    .profil-bio-pied small { color: var(--text-muted); font-size: 0.68rem; }
+    .profil-gymbro { display: flex; gap: 14px; align-items: center; margin: 4px 0 10px; }
+    .profil-gymbro-texte { min-width: 0; }
+    .profil-gymbro-texte b { display: block; font-size: 1rem; }
+    .profil-gymbro-texte p { margin: 3px 0; font-size: 0.82rem; overflow-wrap: anywhere; }
+    .profil-gymbro-texte small { color: var(--text-muted); font-size: 0.72rem; }
+    .profil-gymbro-chiffres { display: flex; gap: 8px; }
+    .profil-gymbro-chiffres span { flex: 1; background: var(--verre-creux); border-radius: 12px; padding: 8px 10px; font-size: 0.74rem; color: var(--text-muted); }
+    .profil-gymbro-chiffres b { display: block; font-size: 1.05rem; color: var(--text); }
     .fil-respects { display: flex; gap: 8px; align-items: center; padding: 9px 12px; border-radius: 12px; background: var(--verre-creux); font-size: 0.78rem; margin: 0 0 10px; }
     .fil-respects--nouveau { background: color-mix(in srgb, var(--primary) 16%, transparent); }
     .fil-carte { background: var(--verre); border: 1px solid var(--verre-brd); border-radius: 16px; padding: 12px 14px; margin: 0 0 10px; }
@@ -3145,6 +3168,20 @@
     </div>
 
     <div class="bloc-verre" style="padding:15px; margin-bottom:16px;">
+      <!-- Photo de profil et bio : visibles seulement par les gymbros acceptés. -->
+      <div id="profil-perso" class="profil-perso hidden">
+        <button type="button" class="profil-avatar-btn" onclick="document.getElementById('profil-photo-input').click()" aria-label="Changer la photo de profil">
+          <span id="profil-avatar"></span><span class="profil-avatar-crayon" aria-hidden="true">✎</span>
+        </button>
+        <input type="file" id="profil-photo-input" accept="image/*" class="hidden" onchange="choisirPhotoProfil(this)">
+        <div class="profil-perso-texte input-group" style="margin:0;">
+          <label for="profil-bio" class="profil-perso-titre">Bio</label>
+          <textarea id="profil-bio" maxlength="160" rows="2" placeholder="Objectif, programme, salle… (facultatif)" oninput="majCompteurBio()" onblur="enregistrerBioProfil()"></textarea>
+          <div class="profil-bio-pied"><small id="profil-bio-compte">0/160</small>
+            <button type="button" class="lien-depliant hidden" id="profil-photo-retirer" onclick="retirerPhotoProfil()">Retirer la photo</button></div>
+        </div>
+      </div>
+      <p class="note hidden" id="profil-perso-note" style="margin:0 0 12px;">Ta photo et ta bio ne sont visibles que par tes gymbros acceptés.</p>
       <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
         <div style="min-width:0;">
           <div style="font-weight:700; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px;">Nom d'utilisateur</div>
@@ -10404,6 +10441,7 @@ function definirSessionUtilisateur(user) {
     fermerModal('compte-modal');
     verifierStatutCompte();
     chargerMonPseudo();
+    chargerMonProfil();
     chargerLiensGymbro();
     chargerFilGymbros(true);
     chargerRecettesPartagees();
@@ -10706,6 +10744,16 @@ function formeNormaliseePseudo(s) {
 // noms innocents (« kkk » deviendrait « k »).
 const PSEUDOS_PARTIEL_NORM = PSEUDOS_INTERDITS_PARTIEL.map(formeNormaliseePseudo).filter(m => m.length >= 4);
 const PSEUDOS_EXACT_NORM = PSEUDOS_INTERDITS_EXACT.map(formeNormaliseePseudo);
+// Pour les textes libres (bio du profil) : mêmes insultes, mais sans les
+// noms réservés (« team », « support »… sont des mots normaux dans une phrase).
+const TEXTE_EXACT_NORM = PSEUDOS_INTERDITS_EXACT.slice(0, PSEUDOS_INTERDITS_EXACT.indexOf('admin')).map(formeNormaliseePseudo);
+function texteInterdit(t) {
+  const brut = String(t || '').toLowerCase();
+  if (!brut.trim()) return false;
+  const tout = formeNormaliseePseudo(brut);
+  if (PSEUDOS_PARTIEL_NORM.some(m => tout.includes(m))) return true;
+  return brut.split(/[\s.,;:!?'’"()\-_/]+/).map(formeNormaliseePseudo).some(f => f && (TEXTE_EXACT_NORM.includes(f) || PSEUDOS_PARTIEL_NORM.some(m => f.includes(m))));
+}
 function pseudoInterdit(p) {
   const brut = String(p || '').toLowerCase();
   const formes = new Set([
@@ -11010,6 +11058,68 @@ language sql stable security definer set search_path = public as $$
   limit 50;
 $$;
 grant execute on function public.gymbro_respects_recus(int) to authenticated;
+
+--    Profil : photo (petite, compressée par l'appli) et courte bio, visibles
+--    seulement par la personne et ses gymbros acceptés. Bio filtrée comme
+--    les noms d'utilisateur (insultes), sans les noms réservés.
+create or replace function public.texte_acceptable(t text)
+returns boolean language plpgsql immutable as $fn$
+declare
+  partiel text[] := array[${PSEUDOS_PARTIEL_NORM.map(m => "'" + m + "'").join(',')}];
+  exact   text[] := array[${TEXTE_EXACT_NORM.map(m => "'" + m + "'").join(',')}];
+  f text; m text;
+begin
+  if t is null or btrim(t) = '' then return true; end if;
+  foreach m in array partiel loop
+    if position(m in public.forme_normalisee_pseudo(t)) > 0 then return false; end if;
+  end loop;
+  for f in select public.forme_normalisee_pseudo(x) from regexp_split_to_table(lower(t), '[[:space:][:punct:]]+') as x loop
+    continue when f = '';
+    if f = any(exact) then return false; end if;
+  end loop;
+  return true;
+end;
+$fn$;
+create or replace function public.est_mon_gymbro(p_utilisateur text)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from gymbros_liens l where l.statut = 'acceptee'
+    and ((l.demandeur = auth.uid()::text and l.cible = p_utilisateur)
+      or (l.cible = auth.uid()::text and l.demandeur = p_utilisateur)));
+$$;
+create table if not exists public.profils (
+  utilisateur text primary key,
+  bio         text check (bio is null or char_length(bio) <= 160),
+  avatar      text check (avatar is null or (length(avatar) <= 40000 and avatar ~ '^data:image/jpeg;base64,[A-Za-z0-9+/=]+$')),
+  maj         timestamptz not null default now()
+);
+alter table public.profils enable row level security;
+drop policy if exists "profils lecture" on public.profils;
+create policy "profils lecture" on public.profils for select to authenticated
+  using (utilisateur = auth.uid()::text or public.est_mon_gymbro(utilisateur));
+drop policy if exists "profils ajout" on public.profils;
+create policy "profils ajout" on public.profils for insert to authenticated
+  with check (utilisateur = auth.uid()::text and public.texte_acceptable(bio));
+drop policy if exists "profils modif" on public.profils;
+create policy "profils modif" on public.profils for update to authenticated
+  using (utilisateur = auth.uid()::text) with check (utilisateur = auth.uid()::text and public.texte_acceptable(bio));
+drop policy if exists "profils suppr" on public.profils;
+create policy "profils suppr" on public.profils for delete to authenticated
+  using (utilisateur = auth.uid()::text);
+
+-- Profils de mes gymbros acceptés (pseudo, bio, photo, date d'inscription).
+create or replace function public.gymbro_profils()
+returns table(pseudo text, bio text, avatar text, membre_depuis timestamptz)
+language sql stable security definer set search_path = public as $$
+  select p.pseudo, pr.bio, pr.avatar, p.cree_le
+  from gymbros_liens l
+  join pseudos p on p.utilisateur = case when l.demandeur = auth.uid()::text then l.cible else l.demandeur end
+  left join profils pr on pr.utilisateur = p.utilisateur
+  where auth.uid() is not null
+    and l.statut = 'acceptee'
+    and auth.uid()::text in (l.demandeur, l.cible)
+    and not exists (select 1 from comptes_bloques b where b.utilisateur = p.utilisateur);
+$$;
+grant execute on function public.gymbro_profils() to authenticated;
 
 -- 3) Exercices supprimés ou fusionnés par l'admin : ils ne peuvent plus
 --    être recréés par le cache d'un téléphone (même avec une ancienne
@@ -11417,6 +11527,7 @@ function majUIPseudo() {
     return;
   }
   v.textContent = monPseudo ? '@' + monPseudo.pseudo : 'Pas encore choisi';
+  majUIProfilPerso();
   if (note) note.textContent = '';
   if (partage) {
     partage.closest('label').classList.toggle('hidden', !monPseudo);
@@ -11439,6 +11550,157 @@ function ouvrirGymbro() {
     document.getElementById('gymbro-resultats').innerHTML = `<p class="note">Astuce : choisis aussi ton propre nom d'utilisateur pour que tes gymbros te trouvent. <button type="button" class="btn-icone" style="font-size:0.75rem;" onclick="ouvrirPseudoModal()">Choisir</button></p>`;
   }
 }
+/* --- Profil : photo et bio (table profils, voir SQL_GYMBRO_PHOTOS) ---
+   Visibles seulement par soi et ses gymbros acceptés (vérifié par le
+   serveur). La photo est recadrée en carré et compressée en JPEG ici
+   (~10 Ko), puis stockée telle quelle : pas de bucket, pas de lien signé. */
+let monProfil = null;            // { bio, avatar } ; null tant que non chargé
+let monProfilIndispo = false;    // SQL du profil pas encore exécuté
+let profilsGymbros = {};         // pseudo en minuscules -> { bio, avatar, membreDepuis }
+function estAvatarValide(a) { return typeof a === 'string' && a.length <= 40000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(a); }
+function avatarHTML(pseudo, avatar, classe) {
+  const c = 'avatar' + (classe ? ' ' + classe : '');
+  return estAvatarValide(avatar)
+    ? `<img class="${c}" src="${avatar}" alt="">`
+    : `<span class="${c}" aria-hidden="true">${escapeHtml(String(pseudo || '?').charAt(0).toUpperCase())}</span>`;
+}
+function avatarGymbro(pseudo, classe) {
+  const p = profilsGymbros[String(pseudo || '').toLowerCase()];
+  return avatarHTML(pseudo, p && p.avatar, classe);
+}
+async function chargerMonProfil() {
+  if (!supa || !sessionUtilisateur) return;
+  try {
+    const { data, error } = await supa.from('profils').select('bio,avatar').eq('utilisateur', sessionUtilisateur.id).maybeSingle();
+    if (error) throw error;
+    monProfil = { bio: (data && typeof data.bio === 'string') ? data.bio : '', avatar: data && estAvatarValide(data.avatar) ? data.avatar : null };
+    monProfilIndispo = false;
+  } catch (e) {
+    monProfil = null;
+    monProfilIndispo = estErreurSqlManquant(e);
+    if (!monProfilIndispo) console.warn('[Profil]', e.message || e);
+  }
+  majUIProfilPerso();
+}
+async function chargerProfilsGymbros() {
+  try {
+    const { data, error } = await supa.rpc('gymbro_profils');
+    if (error) throw error;
+    profilsGymbros = {};
+    (data || []).forEach(r => {
+      if (!r || typeof r.pseudo !== 'string' || !r.pseudo) return;
+      profilsGymbros[r.pseudo.toLowerCase()] = {
+        bio: typeof r.bio === 'string' ? r.bio.slice(0, 160) : '',
+        avatar: estAvatarValide(r.avatar) ? r.avatar : null,
+        membreDepuis: Date.parse(r.membre_depuis) || null
+      };
+    });
+  } catch (e) {
+    if (!estErreurSqlManquant(e)) console.warn('[Profils gymbros]', e.message || e);
+  }
+}
+function majUIProfilPerso() {
+  const bloc = document.getElementById('profil-perso');
+  if (!bloc) return;
+  const visible = !!(sessionUtilisateur && monProfil);
+  bloc.classList.toggle('hidden', !visible);
+  document.getElementById('profil-perso-note').classList.toggle('hidden', !visible);
+  if (!visible) return;
+  document.getElementById('profil-avatar').innerHTML = avatarHTML(monPseudo ? monPseudo.pseudo : (sessionUtilisateur.email || '?'), monProfil.avatar, 'avatar--grand');
+  const bio = document.getElementById('profil-bio');
+  if (document.activeElement !== bio) bio.value = monProfil.bio || '';
+  document.getElementById('profil-photo-retirer').classList.toggle('hidden', !monProfil.avatar);
+  majCompteurBio();
+}
+function majCompteurBio() {
+  const bio = document.getElementById('profil-bio');
+  const c = document.getElementById('profil-bio-compte');
+  if (bio && c) c.textContent = bio.value.length + '/160';
+}
+async function enregistrerProfil(champs) {
+  if (!supa || !sessionUtilisateur || !monProfil) return false;
+  const suivant = { bio: monProfil.bio || '', avatar: monProfil.avatar || null, ...champs };
+  suivant.bio = String(suivant.bio || '').trim().slice(0, 160);
+  if (texteInterdit(suivant.bio)) { alert('Cette bio contient un mot non autorisé. Modifie-la puis réessaie.'); return false; }
+  try {
+    const { error } = await supa.from('profils').upsert({ utilisateur: sessionUtilisateur.id, bio: suivant.bio || null, avatar: suivant.avatar, maj: new Date().toISOString() }, { onConflict: 'utilisateur' });
+    if (error) throw error;
+    monProfil = suivant;
+    majUIProfilPerso();
+    return true;
+  } catch (e) {
+    alert(estErreurSqlManquant(e) ? MESSAGE_SQL_MANQUANT : 'Enregistrement du profil impossible : ' + (e.message || e));
+    return false;
+  }
+}
+async function enregistrerBioProfil() {
+  const bio = document.getElementById('profil-bio');
+  if (!bio || !monProfil || bio.value.trim() === (monProfil.bio || '')) return;
+  if (!(await enregistrerProfil({ bio: bio.value }))) bio.focus();
+}
+/* Recadre au centre en carré et compresse en JPEG (qualité baissée tant
+   que l'image dépasse ~38 Ko). */
+function imageCarreeJpeg(fichier, cote) {
+  return new Promise((ok, ko) => {
+    const src = URL.createObjectURL(fichier);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(src);
+      const k = Math.min(img.naturalWidth, img.naturalHeight);
+      if (!k) { ko(new Error('Image illisible')); return; }
+      const c = document.createElement('canvas');
+      c.width = c.height = cote;
+      c.getContext('2d').drawImage(img, (img.naturalWidth - k) / 2, (img.naturalHeight - k) / 2, k, k, 0, 0, cote, cote);
+      let q = 0.85, url = c.toDataURL('image/jpeg', q);
+      while (url.length > 38000 && q > 0.35) { q -= 0.1; url = c.toDataURL('image/jpeg', q); }
+      if (estAvatarValide(url)) ok(url); else ko(new Error('Image trop lourde'));
+    };
+    img.onerror = () => { URL.revokeObjectURL(src); ko(new Error('Image illisible')); };
+    img.src = src;
+  });
+}
+async function choisirPhotoProfil(input) {
+  const fichier = input.files && input.files[0];
+  input.value = '';
+  if (!fichier) return;
+  try {
+    await enregistrerProfil({ avatar: await imageCarreeJpeg(fichier, 192) });
+  } catch (e) {
+    alert("Cette image n'a pas pu être utilisée (" + e.message + '). Essaie avec une autre photo.');
+  }
+}
+function retirerPhotoProfil() {
+  if (confirm('Retirer ta photo de profil ?')) enregistrerProfil({ avatar: null });
+}
+/* Semaines d'affilée avec au moins une séance, en comptant la semaine en
+   cours seulement si elle en a déjà une (sinon la série n'est pas encore
+   cassée : on part de la semaine dernière). */
+function semainesDAffilee(historique) {
+  const semaines = new Set(historique.filter(h => h && estDateIsoFil(h.date)).map(h => lundiDeLaSemaine(h.date)));
+  let lundi = lundiDeLaSemaine(todayStr());
+  if (!semaines.has(lundi)) lundi = decalerJours(lundi, -7);
+  let n = 0;
+  while (semaines.has(lundi)) { n++; lundi = decalerJours(lundi, -7); }
+  return n;
+}
+function profilGymbroHTML(pseudo, siennes) {
+  const prof = profilsGymbros[String(pseudo).toLowerCase()] || {};
+  const debutMois = todayStr().slice(0, 8) + '01';
+  const ceMois = siennes.filter(h => h && typeof h.date === 'string' && h.date >= debutMois).length;
+  const serie = semainesDAffilee(siennes);
+  const depuis = prof.membreDepuis ? new Date(prof.membreDepuis).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '';
+  return `<div class="profil-gymbro">
+    ${avatarGymbro(pseudo, 'avatar--grand')}
+    <div class="profil-gymbro-texte"><b>@${escapeHtml(pseudo)}</b>
+      ${prof.bio ? `<p>${escapeHtml(prof.bio)}</p>` : ''}
+      ${depuis ? `<small>Membre depuis ${escapeHtml(depuis)}</small>` : ''}</div>
+  </div>
+  <div class="profil-gymbro-chiffres">
+    <span><b>${ceMois}</b> séance${ceMois > 1 ? 's' : ''} ce mois-ci</span>
+    <span><b>${serie}</b> semaine${serie > 1 ? 's' : ''} d'affilée</span>
+  </div>`;
+}
+
 /* Demandes de gymbro (table gymbros_liens, voir SQL_GYMBRO_PHOTOS) :
    pour comparer ses séances avec quelqu'un, il faut qu'il accepte la
    demande. Pas de notification push : une pastille sur les boutons Gymbro
@@ -11462,6 +11724,7 @@ async function chargerLiensGymbro() {
       statut: r.statut === 'acceptee' ? 'acceptee' : 'attente'
     }));
     gymbroLiensActifs = true;
+    await chargerProfilsGymbros();
   } catch (e) {
     gymbroLiensActifs = false;
     if (!estErreurSqlManquant(e)) console.warn('[Gymbro] demandes indisponibles :', e.message || e);
@@ -11493,7 +11756,7 @@ function majPastilleGymbro() {
 }
 function renderGymbrosFavoris() {
   const c = document.getElementById('gymbro-favoris');
-  const puces = (liste, extra) => `<div class="gymbro-puces">${liste.map(p => `<button type="button" onclick="comparerGymbro(${argJs(p)})">@${escapeHtml(p)}${extra ? ` <small>${escapeHtml(extra)}</small>` : ''}</button>`).join('')}</div>`;
+  const puces = (liste, extra) => `<div class="gymbro-puces">${liste.map(p => `<button type="button" onclick="comparerGymbro(${argJs(p)})">${avatarGymbro(p, 'avatar--mini')}@${escapeHtml(p)}${extra ? ` <small>${escapeHtml(extra)}</small>` : ''}</button>`).join('')}</div>`;
   const titre = t => `<p class="note" style="margin:10px 0 6px; font-weight:700;">${t}</p>`;
   if (!gymbroLiensActifs) {
     const liste = (userProfile.gymbros || []);
@@ -11508,7 +11771,7 @@ function renderGymbrosFavoris() {
   let html = '';
   if (recues.length) {
     html += titre('Demandes reçues') + recues.map(l => `<div class="gymbro-demande">
-      <span><b>@${escapeHtml(l.pseudo)}</b> veut être ton gymbro</span>
+      <span class="gymbro-demande-qui">${avatarGymbro(l.pseudo, 'avatar--mini')}<span><b>@${escapeHtml(l.pseudo)}</b> veut être ton gymbro</span></span>
       <span class="gymbro-demande-actions">
         <button type="button" class="btn-icone gymbro-accepter" onclick="repondreGymbro(${argJs(l.pseudo)}, true)">Accepter</button>
         <button type="button" class="btn-icone" onclick="repondreGymbro(${argJs(l.pseudo)}, false)">Refuser</button>
@@ -11609,7 +11872,7 @@ function renderFilGymbros() {
       const stats = [r.duree ? `<span><b>${r.duree}</b> min</span>` : '', `<span><b>${r.series}</b> série${r.series > 1 ? 's' : ''}</span>`,
         r.volume ? `<span><b>${r.volume.toLocaleString('fr-FR')}</b> kg</span>` : ''].join('');
       return `<div class="fil-carte">
-        <div class="fil-tete"><span class="fil-avatar" aria-hidden="true">${escapeHtml(f.pseudo.charAt(0).toUpperCase())}</span>
+        <div class="fil-tete">${avatarGymbro(f.pseudo, 'fil-avatar')}
           <div class="fil-qui"><b>@${escapeHtml(f.pseudo)}</b><small>${escapeHtml(dateRelativeFil(f.donnees.date))} · ${escapeHtml(r.titre)}</small></div></div>
         <div class="fil-stats">${stats}</div>
         ${r.muscles.length ? `<div class="fil-ligne">${escapeHtml(r.muscles.join(' · '))}</div>` : ''}
@@ -11790,7 +12053,8 @@ async function comparerGymbro(pseudo) {
     <button type="button" class="btn-icone" onclick="retourRechercheGymbro()">‹ Retour</button>
     <button type="button" class="btn-icone" onclick="${gymbroLiensActifs ? 'annulerLienGymbro' : favori ? 'retirerGymbroFavori' : 'ajouterGymbroFavori'}(${argJs(pseudo)}${gymbroLiensActifs ? ', true' : ''})">${favori ? 'Retirer de mes gymbros' : '+ Ajouter à mes gymbros'}</button>
   </div>
-  <h4 style="margin:0 0 10px;">${escapeHtml(nomMoi)} vs ${escapeHtml(lui)}</h4>`;
+  ${profilGymbroHTML(pseudo, siennes)}
+  <h4 style="margin:14px 0 10px;">${escapeHtml(nomMoi)} vs ${escapeHtml(lui)}</h4>`;
 
   if (!siennes.length) {
     html += `<p class="note">@${escapeHtml(pseudo)} n'a aucune séance partagée sur les 90 derniers jours (ou a désactivé le partage).</p>`;
