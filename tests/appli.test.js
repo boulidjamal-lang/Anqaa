@@ -304,9 +304,9 @@ test('stats muscu : détail par faisceau et déséquilibres (pecs, épaules, dos
     ajouterSeanceTest(['Développé couché avec barre', 'Développé épaules avec haltères', 'Tractions prise large']);
   });
   let r = await lire();
-  assert.deepEqual(Object.keys(r).sort(), ['dos', 'epaules', 'pectoraux']);
+  assert.deepEqual(Object.keys(r).sort(), ['biceps', 'dos', 'epaules', 'pectoraux', 'triceps']);
   assert.deepEqual([r.pectoraux.lignes, r.epaules.lignes, r.dos.lignes], [3, 3, 2]);
-  const toutes = Object.values(r).flatMap(g => g.alertes).join(' | ');
+  const toutes = ['pectoraux', 'epaules', 'dos'].flatMap(g => r[g].alertes).join(' | ');
   for (const motif of [/postérieur/, /latéral/, /haut des pectoraux/i, /rowing/i]) assert.match(toutes, motif);
   // La somme des faisceaux retombe sur le total du groupe.
   const ecart = await page.evaluate(() => {
@@ -318,7 +318,7 @@ test('stats muscu : détail par faisceau et déséquilibres (pecs, épaules, dos
   // Compléter : incliné, rowing, oiseau, élévations latérales → plus d'alerte.
   await page.evaluate(() => ajouterSeanceTest(['Développé incliné avec haltères', 'Rowing barre buste penché', 'Reverse fly à la poulie', 'Élévation latérale avec haltères']));
   r = await lire();
-  assert.deepEqual(Object.values(r).flatMap(g => g.alertes), []);
+  assert.deepEqual(['pectoraux', 'epaules', 'dos'].flatMap(g => r[g].alertes), []);
 }));
 
 test('faisceaux : affichés sur la fiche, réglables dans Administration, données piégées ignorées', () => avecAppli({}, async ({ page }) => {
@@ -351,13 +351,13 @@ test('faisceaux : affichés sur la fiche, réglables dans Administration, donné
     delete exo.faisceaux;
     return res;
   });
-  assert.deepEqual(r.ficheEstimee, ['Pectoraux Haut Milieu', 'Épaules Antérieur']);
+  assert.deepEqual(r.ficheEstimee, ['Pectoraux Haut Milieu', 'Épaules Antérieur', 'Triceps Longue portion Vaste latéral Vaste médial']);
   assert.ok(r.noteEstimee);
   assert.deepEqual(r.avant, ['2', '1', '0']);
   assert.deepEqual(r.apres, ['1', '1', '2']);
   assert.deepEqual(r.enregistre, { pectoraux: { pec_haut: 1, pec_milieu: 1, pec_bas: 2 } });
   assert.equal(r.retourAuto, null);
-  assert.deepEqual(r.ficheChoisie, ['Pectoraux Haut Bas', 'Épaules Antérieur']);
+  assert.deepEqual(r.ficheChoisie, ['Pectoraux Haut Bas', 'Épaules Antérieur', 'Triceps Longue portion Vaste latéral Vaste médial']);
   assert.ok(Math.abs(r.poids.pec_bas - 1 / 1.4) < 1e-9 && Math.abs(r.poids.pec_haut - 0.4 / 1.4) < 1e-9);
   assert.deepEqual(r.piege, { pec_milieu: 0.6, pec_haut: 0.2, pec_bas: 0.2 });
 }));
@@ -398,6 +398,40 @@ test('faisceaux des jambes : règles, alertes et mannequin (fiche et statistique
   assert.equal(r.sansFigure, undefined, 'chaque détail par faisceau a son mannequin');
   assert.deepEqual(r.figuresFiche, ['Face', 'Dos']);
   assert.ok(r.colores > 4);
+}));
+
+test('faisceaux du biceps et du triceps : règles et alertes', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const exo = nom => { const e = toutesLesExercices().find(x => x.nom === nom); if (!e) throw new Error('exercice introuvable : ' + nom); return e; };
+    const principal = (nom, g) => Object.entries(niveauxDepuisPoids(repartitionFaisceaux(exo(nom), g))).filter(([, n]) => n === 2).map(([k]) => k).sort();
+    const res = {
+      incline: principal('Curl incliné assis pour biceps', 'biceps'),
+      pupitre: principal('Curl au pupitre avec barre', 'biceps'),
+      marteau: principal('Curl prise marteau', 'biceps'),
+      overhead: principal('Extension triceps unilatérale au-dessus de la tête', 'triceps'),
+      pushdown: principal('Extension des triceps à la corde', 'triceps'),
+      serre: principal('Développé couché prise serrée', 'triceps')
+    };
+    // Semaine : curls au pupitre et pushdowns seulement.
+    const series = n => Array.from({ length: n }, () => ({ poids: 30, reps: 10, fait: true, rir: 1 }));
+    musculationHistorique.unshift({ id: 'bras', date: todayStr(), exercices: ['Curl au pupitre avec barre', 'Extension des triceps à la corde'].map(n => ({ exerciceId: exo(n).id, series: series(6) })) });
+    allerA('stats'); choisirOngletStats('muscu');
+    renderZonesMuscu('muscu-zones-container');
+    res.alertes = {};
+    document.querySelectorAll('#muscu-zones-container details.faisceaux').forEach(d => { res.alertes[d.dataset.groupe] = [...d.querySelectorAll('.alerte-volume-seance')].map(a => a.textContent.trim()).join(' | '); });
+    res.figures = ['biceps', 'triceps'].map(g => document.querySelectorAll(`#muscu-zones-container details.faisceaux[data-groupe="${g}"] svg.figure-faisceaux`).length);
+    return res;
+  });
+  assert.deepEqual(r.incline, ['bic_long']);
+  assert.deepEqual(r.pupitre, ['bic_court']);
+  assert.deepEqual(r.marteau, ['bic_brachial']);
+  assert.deepEqual(r.overhead, ['tri_long']);
+  assert.deepEqual(r.pushdown, ['tri_lat']);
+  assert.deepEqual(r.serre, ['tri_lat']);
+  assert.match(r.alertes.biceps, /curl incliné/);
+  assert.match(r.alertes.biceps, /marteau/);
+  assert.match(r.alertes.triceps, /au-dessus de la tête/);
+  assert.deepEqual(r.figures, [1, 2], 'biceps de face, triceps de face et de dos');
 }));
 
 test('les statistiques s\'affichent sur chaque onglet et chaque période', () => avecAppli({}, async ({ page }) => {
