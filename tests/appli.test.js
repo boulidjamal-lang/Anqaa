@@ -455,11 +455,11 @@ test('en-tête : ma photo et mon nom d\'utilisateur ouvrent le profil, plus de b
   });
   assert.deepEqual(r.deconnecte, { nom: 'Se connecter', img: false });
   assert.deepEqual(r.sansPseudo, { nom: 'jamal', img: false });
-  assert.deepEqual(r.complet, { nom: '@jamal', img: true });
+  assert.deepEqual(r.complet, { nom: 'jamal', img: true });
   assert.equal(r.apresDeconnexion.img, false, 'jamais la photo du compte précédent');
   assert.equal(r.ecran, 'reglages');
   assert.equal(r.boutonProfil, false);
-  assert.equal(r.position, 'sticky');
+  assert.equal(r.position, 'relative', 'la barre défile avec la page, comme avant');
 }));
 
 test('les statistiques s\'affichent sur chaque onglet et chaque période', () => avecAppli({}, async ({ page }) => {

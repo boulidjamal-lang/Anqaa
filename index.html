@@ -504,7 +504,7 @@
 
     /* --- BARRE D'APPLICATION --- */
     .app-bar {
-      position: sticky; top: 0; z-index: 60;
+      position: relative; z-index: 60;
       padding: calc(7px + env(safe-area-inset-top, 0px)) 16px 7px;
       /* Fond plat, sans --verre-sheen : ce reflet est le plus lumineux en
          haut à gauche (radial-gradient à var(--lx)/var(--ly), plus le
@@ -11619,7 +11619,7 @@ function majEnteteMoi() {
   const nom = document.getElementById('moi-entete-nom');
   if (!av || !nom) return;
   const libelle = !sessionUtilisateur ? 'Se connecter'
-    : monPseudo ? '@' + monPseudo.pseudo
+    : monPseudo ? monPseudo.pseudo
     : (sessionUtilisateur.email || 'Mon profil').split('@')[0];
   nom.textContent = libelle;
   // Déconnecté : jamais la photo du compte précédent.
