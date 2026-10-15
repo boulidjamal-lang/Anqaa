@@ -9744,6 +9744,7 @@ function ouvrirFab() {
   f.setAttribute('aria-expanded', 'true');
   f.innerHTML = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>';
   document.getElementById('scrim').classList.add('visible');
+  if (typeof majPastilleGymbro === 'function') majPastilleGymbro();
 }
 function fermerFab() {
   fabOuvert = false;
@@ -9757,6 +9758,8 @@ function fermerFab() {
   }
   const sc = document.getElementById('scrim');
   if (sc) sc.classList.remove('visible');
+  // Le contenu du bouton vient d'être réécrit : sa pastille avec.
+  if (typeof majPastilleGymbro === 'function') majPastilleGymbro();
 }
 
 /* Rester appuyé sur le bouton flottant le détache pour le déplacer ailleurs
@@ -10443,6 +10446,7 @@ function definirSessionUtilisateur(user) {
     chargerMonPseudo();
     chargerMonProfil();
     chargerLiensGymbro();
+    compterAValiderAdmin();
     chargerFilGymbros(true);
     chargerRecettesPartagees();
     // La gate de connexion vient de se refermer : c'est le bon moment pour
@@ -11736,11 +11740,18 @@ function lienGymbro(pseudo) {
   return gymbroLiens.find(l => l.pseudo.toLowerCase() === p) || null;
 }
 function demandesGymbroRecues() { return gymbroLiens.filter(l => l.sens === 'recue' && l.statut === 'attente'); }
+/* Pastilles de la navigation et des boutons concernés :
+   - Gymbro : demandes reçues ; onglet Activité : demandes + nouveaux respects ;
+   - Administration (admin seulement) : aliments partagés à valider ;
+   - bouton principal de navigation : le total. */
 function majPastilleGymbro() {
   const demandes = demandesGymbroRecues().length;
-  // Boutons Gymbro : les demandes ; navigation : demandes + nouveaux respects.
+  const activite = demandes + nouveauxRespects().length;
+  const admin = estCompteAdmin() ? adminAValider.aliments : 0;
+  const parId = id => document.getElementById(id);
   const cibles = [...document.querySelectorAll('[onclick="ouvrirGymbro()"]').values()].map(b => [b, demandes])
-    .concat([document.getElementById('nav-seance'), document.getElementById('fab')].filter(Boolean).map(b => [b, demandes + nouveauxRespects().length]));
+    .concat([[parId('nav-seance'), activite], [parId('nav-admin'), admin], [parId('fab'), fabOuvert ? 0 : activite + admin],
+      [document.querySelector('[onclick="afficherFeuillAlimentsPersonalises()"]'), admin]].filter(([b]) => b));
   cibles.forEach(([b, n]) => {
     let pastille = b.querySelector(':scope > .pastille-gymbro');
     if (!n) { if (pastille) pastille.remove(); return; }
@@ -11751,7 +11762,7 @@ function majPastilleGymbro() {
       b.appendChild(pastille);
     }
     pastille.textContent = n > 9 ? '9+' : String(n);
-    pastille.setAttribute('aria-label', n + ' demande' + (n > 1 ? 's' : '') + ' de gymbro');
+    pastille.setAttribute('aria-label', n + ' élément' + (n > 1 ? 's' : '') + ' en attente');
   });
 }
 function renderGymbrosFavoris() {
@@ -20799,6 +20810,7 @@ window.addEventListener('load', () => {
     if (!document.hidden) {
       synchroniser('retour'); verifierNouvelleVersion();
       if (Date.now() - gymbroLiensDernierChargement > 60000) chargerLiensGymbro();
+      if (Date.now() - adminAValiderDernier > 60000) compterAValiderAdmin();
       chargerFilGymbros();
     }
   });
@@ -21196,6 +21208,26 @@ function ouvrirFeuilleReglagesTechniques() {
 /* =====================================================================
    ADMINISTRATION — aliments partagés
    ===================================================================== */
+/* Ce qui attend une action de l'administrateur, pour les pastilles : les
+   aliments créés par les utilisateurs et pas encore validés ni refusés.
+   Compté (sans rapatrier les lignes) à la connexion, au retour dans
+   l'appli et après chaque validation. */
+const adminAValider = { aliments: 0 };
+let adminAValiderDernier = 0;
+function estCompteAdmin() { return !!(sessionUtilisateur && sessionUtilisateur.email === ADMIN_EMAIL); }
+async function compterAValiderAdmin() {
+  if (!supa || !estCompteAdmin()) return;
+  adminAValiderDernier = Date.now();
+  try {
+    const { count, error } = await supa.from('aliments_partages').select('id', { count: 'exact', head: true })
+      .eq('valide', false).or('supprime.is.null,supprime.eq.false');
+    if (error) throw error;
+    adminAValider.aliments = Math.max(0, Number(count) || 0);
+  } catch (e) {
+    console.warn('[Admin] comptage des aliments à valider impossible :', e.message || e);
+  }
+  majPastilleGymbro();
+}
 
 async function afficherFeuillAlimentsPersonalises() {
   ['aliments-filter-nom', 'aliments-filter-createur', 'aliments-filter-date']
@@ -21254,6 +21286,7 @@ async function chargerAlimentsAdmin() {
     await completerStatutsAliments(adminAlimentsCharges);
     rendreAlimentsAdmin(adminAlimentsCharges);
     compterAnciensValides();
+    compterAValiderAdmin();
   } catch (e) {
     conteneur.innerHTML = '';
     const p = document.createElement('p');

@@ -673,6 +673,50 @@ test('profil : photo et bio, page profil d\'un gymbro, contenus piégés refusé
   assert.equal(r.profil.depuis, 'Membre depuis mars 2026');
 }));
 
+test('Administration : pastilles quand des aliments sont à valider (admin seulement)', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const requetes = [];
+    let restants = 3;
+    const chaine = () => {
+      const q = { filtres: [] };
+      const o = {
+        select: (cols, opts) => { q.select = [cols, opts]; return o; },
+        eq: (c, v) => { q.filtres.push(['eq', c, v]); return o; },
+        or: f => { q.filtres.push(['or', f]); return o; },
+        then: ok => { requetes.push(q); return Promise.resolve({ count: restants, error: null }).then(ok); }
+      };
+      return o;
+    };
+    supa = { from: table => { requetes.push(table); return chaine(); }, rpc: () => ({ then: ok => Promise.resolve({ data: [], error: null }).then(ok) }) };
+    const lire = () => ['nav-admin', 'fab'].map(id => document.querySelector('#' + id + ' > .pastille-gymbro')?.textContent || null)
+      .concat(document.querySelector('[onclick="afficherFeuillAlimentsPersonalises()"] > .pastille-gymbro')?.textContent || null);
+    const res = {};
+    // Compte ordinaire : rien n'est demandé, aucune pastille admin.
+    sessionUtilisateur = { id: 'u', email: 'quelquun@x.fr' };
+    await compterAValiderAdmin();
+    res.nonAdmin = { requetes: requetes.length, pastilles: lire() };
+    // Admin : 3 aliments à valider.
+    sessionUtilisateur = { id: 'admin', email: ADMIN_EMAIL };
+    await compterAValiderAdmin();
+    res.admin = lire();
+    ouvrirFab(); res.fabOuvert = lire()[1]; fermerFab(); res.fabFerme = lire()[1];
+    res.requete = requetes.slice(-2);
+    // Tout est validé : les pastilles disparaissent.
+    restants = 0;
+    await compterAValiderAdmin();
+    res.apres = lire();
+    return res;
+  });
+  assert.deepEqual(r.nonAdmin, { requetes: 0, pastilles: [null, null, null] });
+  assert.deepEqual(r.admin, ['3', '3', '3']);
+  assert.equal(r.fabOuvert, null, 'menu ouvert : chaque entrée a sa pastille');
+  assert.equal(r.fabFerme, '3', 'la pastille revient sur le bouton une fois le menu refermé');
+  assert.equal(r.requete[0], 'aliments_partages');
+  assert.deepEqual(r.requete[1].filtres, [['eq', 'valide', false], ['or', 'supprime.is.null,supprime.eq.false']]);
+  assert.deepEqual(r.requete[1].select[1], { count: 'exact', head: true });
+  assert.deepEqual(r.apres, [null, null, null]);
+}));
+
 test("des données piégées venant d'autres comptes ne s'exécutent jamais (Administration, Gymbro)", () => avecAppli({}, async ({ page }) => {
   await installerFauxSupabase(page);
   const etapes = [
