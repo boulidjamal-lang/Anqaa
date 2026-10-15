@@ -2421,6 +2421,15 @@
     .increment-ligne input { width: 84px; text-align: center; padding: 8px 4px; font-weight: 800; }
     .alerte-volume-seance { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 10px; padding: 9px 11px; border-radius: 12px;
       background: color-mix(in srgb, #ff9f0a 16%, transparent); font-size: 0.76rem; line-height: 1.4; }
+    .pastille-gymbro { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+      background: var(--danger); color: #fff; font-size: 0.66rem; font-weight: 800; line-height: 18px; text-align: center; pointer-events: none; z-index: 2; }
+    .gymbro-demande { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+      padding: 9px 11px; border-radius: 12px; background: var(--verre-creux); margin-bottom: 6px; font-size: 0.82rem; }
+    .gymbro-demande-actions { display: flex; gap: 6px; }
+    .gymbro-accepter { background: var(--primary); color: var(--primary-txt); border-color: var(--primary); }
+    .gymbro-puces small { font-weight: 600; opacity: 0.7; }
+    .gymbro-invitation { background: var(--verre-creux); border-radius: 14px; padding: 12px 14px; font-size: 0.86rem; }
+    .gymbro-invitation p { margin: 0 0 12px; }
     .alerte-volume-seance svg { width: 17px; height: 17px; flex: none; color: #ff9f0a; margin-top: 1px; }
     .btn-partage-stats { margin: 4px 0 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .partage-apercu { background: var(--verre-creux); border-radius: 16px; padding: 10px; display: flex; justify-content: center; margin-bottom: 10px; }
@@ -10376,6 +10385,7 @@ function definirSessionUtilisateur(user) {
     fermerModal('compte-modal');
     verifierStatutCompte();
     chargerMonPseudo();
+    chargerLiensGymbro();
     chargerRecettesPartagees();
     // La gate de connexion vient de se refermer : c'est le bon moment pour
     // éventuellement proposer l'installation, jamais avant (elle empilerait
@@ -10633,7 +10643,8 @@ async function deconnexionCompte() {
 /* =====================================================================
    NOM D'UTILISATEUR, GYMBRO ET PHOTOS DE PROGRESSION
    Trois fonctions qui ont besoin de Supabase au-delà des tables de base :
-   la table `pseudos`, la fonction `gymbro_seances` et le bucket de
+   la table `pseudos`, les demandes de gymbro (`gymbros_liens` et ses
+   fonctions), la fonction `gymbro_seances` et le bucket de
    stockage `photos-progression` (voir SQL_GYMBRO_PHOTOS, à exécuter une
    fois dans Supabase — copiable depuis Administration > Réglages
    techniques). Tant que ce SQL n'est pas passé, l'appli le dit
@@ -10773,10 +10784,110 @@ returns boolean language sql stable security definer set search_path = public as
 $$;
 grant execute on function public.pseudo_disponible(text) to anon, authenticated;
 
--- 2) Gymbro : renvoie les séances (90 derniers jours par défaut) d'un
---    compte retrouvé par son nom d'utilisateur, SEULEMENT s'il a laissé
---    le partage activé. La table des séances reste protégée par RLS :
---    cette fonction n'en expose que ça, et seulement à un compte connecté.
+-- 2) Gymbro : demandes entre comptes. Pour comparer ses séances avec
+--    quelqu'un, il faut lui envoyer une demande et qu'il l'accepte. Une
+--    ligne par paire (demandeur -> cible), en attente ou acceptée ; un
+--    refus ou un retrait supprime simplement la ligne. Aucune écriture
+--    directe dans la table : tout passe par les fonctions ci-dessous, qui
+--    vérifient qui fait quoi.
+create table if not exists public.gymbros_liens (
+  demandeur  text not null,
+  cible      text not null,
+  statut     text not null default 'attente' check (statut in ('attente', 'acceptee')),
+  cree_le    timestamptz not null default now(),
+  repondu_le timestamptz,
+  primary key (demandeur, cible),
+  check (demandeur <> cible)
+);
+alter table public.gymbros_liens enable row level security;
+drop policy if exists "gymbros liens lecture" on public.gymbros_liens;
+create policy "gymbros liens lecture" on public.gymbros_liens for select to authenticated
+  using (demandeur = auth.uid()::text or cible = auth.uid()::text);
+
+-- Envoyer une demande. Si l'autre m'avait déjà demandé, c'est accepté
+-- d'office. Au plus 30 demandes en attente par compte (anti-spam).
+create or replace function public.gymbro_demander(p_pseudo text)
+returns text language plpgsql security definer set search_path = public as $fn$
+declare
+  moi text := auth.uid()::text;
+  lui text;
+  existant text;
+begin
+  if moi is null then raise exception 'non_connecte'; end if;
+  if exists (select 1 from comptes_bloques b where b.utilisateur = moi) then raise exception 'compte_bloque'; end if;
+  select utilisateur into lui from pseudos where lower(pseudo) = lower(p_pseudo);
+  if lui is null then raise exception 'pseudo_inconnu'; end if;
+  if lui = moi then raise exception 'soi_meme'; end if;
+  update gymbros_liens set statut = 'acceptee', repondu_le = now()
+    where demandeur = lui and cible = moi and statut = 'attente';
+  if found then return 'acceptee'; end if;
+  select statut into existant from gymbros_liens
+    where (demandeur = moi and cible = lui) or (demandeur = lui and cible = moi) limit 1;
+  if existant is not null then return existant; end if;
+  if (select count(*) from gymbros_liens where demandeur = moi and statut = 'attente') >= 30 then
+    raise exception 'trop_de_demandes';
+  end if;
+  insert into gymbros_liens (demandeur, cible) values (moi, lui);
+  return 'attente';
+end;
+$fn$;
+grant execute on function public.gymbro_demander(text) to authenticated;
+
+-- Accepter ou refuser une demande reçue.
+create or replace function public.gymbro_repondre(p_pseudo text, p_accepter boolean)
+returns text language plpgsql security definer set search_path = public as $fn$
+declare
+  moi text := auth.uid()::text;
+  lui text;
+begin
+  if moi is null then raise exception 'non_connecte'; end if;
+  select utilisateur into lui from pseudos where lower(pseudo) = lower(p_pseudo);
+  if lui is null then raise exception 'pseudo_inconnu'; end if;
+  if p_accepter then
+    update gymbros_liens set statut = 'acceptee', repondu_le = now()
+      where demandeur = lui and cible = moi and statut = 'attente';
+    return case when found then 'acceptee' else 'aucune' end;
+  end if;
+  delete from gymbros_liens where demandeur = lui and cible = moi and statut = 'attente';
+  return 'refusee';
+end;
+$fn$;
+grant execute on function public.gymbro_repondre(text, boolean) to authenticated;
+
+-- Annuler une demande envoyée ou retirer un gymbro (dans les deux sens).
+create or replace function public.gymbro_retirer(p_pseudo text)
+returns void language plpgsql security definer set search_path = public as $fn$
+declare
+  moi text := auth.uid()::text;
+  lui text;
+begin
+  if moi is null then raise exception 'non_connecte'; end if;
+  select utilisateur into lui from pseudos where lower(pseudo) = lower(p_pseudo);
+  if lui is null then return; end if;
+  delete from gymbros_liens where (demandeur = moi and cible = lui) or (demandeur = lui and cible = moi);
+end;
+$fn$;
+grant execute on function public.gymbro_retirer(text) to authenticated;
+
+-- Mes liens : pseudo de l'autre, sens (envoyée / reçue) et statut.
+create or replace function public.gymbro_mes_liens()
+returns table(pseudo text, sens text, statut text, cree_le timestamptz)
+language sql stable security definer set search_path = public as $$
+  select p.pseudo,
+         case when l.demandeur = auth.uid()::text then 'envoyee' else 'recue' end,
+         l.statut, l.cree_le
+  from gymbros_liens l
+  join pseudos p on p.utilisateur = case when l.demandeur = auth.uid()::text then l.cible else l.demandeur end
+  where auth.uid() is not null
+    and (l.demandeur = auth.uid()::text or l.cible = auth.uid()::text)
+  order by l.cree_le desc;
+$$;
+grant execute on function public.gymbro_mes_liens() to authenticated;
+
+--    Séances d'un gymbro (90 derniers jours par défaut) : seulement si la
+--    demande a été acceptée (dans un sens ou dans l'autre) ET qu'il a
+--    laissé le partage activé. La table des séances reste protégée par
+--    RLS : cette fonction n'en expose que ça.
 create or replace function public.gymbro_seances(p_pseudo text, p_depuis date default (current_date - 90))
 returns table(donnees jsonb) language sql stable security definer set search_path = public as $$
   select s.donnees
@@ -10785,6 +10896,10 @@ returns table(donnees jsonb) language sql stable security definer set search_pat
   where auth.uid() is not null
     and lower(p.pseudo) = lower(p_pseudo)
     and p.partage_seances
+    and exists (select 1 from gymbros_liens l
+                where l.statut = 'acceptee'
+                  and ((l.demandeur = auth.uid()::text and l.cible = p.utilisateur)
+                    or (l.cible = auth.uid()::text and l.demandeur = p.utilisateur)))
     and not exists (select 1 from comptes_bloques b where b.utilisateur = p.utilisateur)
     and coalesce(s.donnees->>'date', '') >= p_depuis::text
   order by s.donnees->>'date' desc
@@ -11214,16 +11329,131 @@ function ouvrirGymbro() {
   document.getElementById('gymbro-vue-recherche').classList.remove('hidden');
   renderGymbrosFavoris();
   ouvrirModal('gymbro-modal');
+  // Liste à jour à chaque ouverture (une demande a pu arriver entre-temps).
+  chargerLiensGymbro().then(() => { if (!document.getElementById('gymbro-vue-recherche').classList.contains('hidden')) renderGymbrosFavoris(); });
   if (sessionUtilisateur && !monPseudo && !monPseudoIndispo) {
     document.getElementById('gymbro-resultats').innerHTML = `<p class="note">Astuce : choisis aussi ton propre nom d'utilisateur pour que tes gymbros te trouvent. <button type="button" class="btn-icone" style="font-size:0.75rem;" onclick="ouvrirPseudoModal()">Choisir</button></p>`;
   }
 }
+/* Demandes de gymbro (table gymbros_liens, voir SQL_GYMBRO_PHOTOS) :
+   pour comparer ses séances avec quelqu'un, il faut qu'il accepte la
+   demande. Pas de notification push : une pastille sur les boutons Gymbro
+   (et sur le bouton de navigation) indique les demandes reçues, relues à
+   la connexion, au retour dans l'appli et à chaque ouverture de Gymbro.
+   Tant que le SQL n'est pas exécuté, l'ancien fonctionnement (favoris
+   locaux, partage ouvert) reste en place. */
+let gymbroLiens = [];            // [{ pseudo, sens: 'envoyee' | 'recue', statut: 'attente' | 'acceptee' }]
+let gymbroLiensActifs = false;   // vrai dès que gymbro_mes_liens répond
+let gymbroLiensDernierChargement = 0;
+async function chargerLiensGymbro() {
+  if (!supa || !sessionUtilisateur) return;
+  gymbroLiensDernierChargement = Date.now();
+  try {
+    const { data, error } = await supa.rpc('gymbro_mes_liens');
+    if (error) throw error;
+    // Données venant d'autres comptes : on ne garde que des valeurs connues.
+    gymbroLiens = (data || []).filter(r => r && typeof r.pseudo === 'string' && r.pseudo).map(r => ({
+      pseudo: r.pseudo,
+      sens: r.sens === 'recue' ? 'recue' : 'envoyee',
+      statut: r.statut === 'acceptee' ? 'acceptee' : 'attente'
+    }));
+    gymbroLiensActifs = true;
+  } catch (e) {
+    gymbroLiensActifs = false;
+    if (!estErreurSqlManquant(e)) console.warn('[Gymbro] demandes indisponibles :', e.message || e);
+  }
+  majPastilleGymbro();
+}
+function lienGymbro(pseudo) {
+  const p = String(pseudo || '').toLowerCase();
+  return gymbroLiens.find(l => l.pseudo.toLowerCase() === p) || null;
+}
+function demandesGymbroRecues() { return gymbroLiens.filter(l => l.sens === 'recue' && l.statut === 'attente'); }
+function majPastilleGymbro() {
+  const n = demandesGymbroRecues().length;
+  const cibles = [...document.querySelectorAll('[onclick="ouvrirGymbro()"]'), document.getElementById('nav-seance'), document.getElementById('fab')].filter(Boolean);
+  cibles.forEach(b => {
+    let pastille = b.querySelector(':scope > .pastille-gymbro');
+    if (!n) { if (pastille) pastille.remove(); return; }
+    if (!pastille) {
+      pastille = document.createElement('span');
+      pastille.className = 'pastille-gymbro';
+      if (getComputedStyle(b).position === 'static') b.style.position = 'relative';
+      b.appendChild(pastille);
+    }
+    pastille.textContent = n > 9 ? '9+' : String(n);
+    pastille.setAttribute('aria-label', n + ' demande' + (n > 1 ? 's' : '') + ' de gymbro');
+  });
+}
 function renderGymbrosFavoris() {
   const c = document.getElementById('gymbro-favoris');
-  const liste = (userProfile.gymbros || []);
-  c.innerHTML = liste.length
-    ? `<p class="note" style="margin:0 0 6px; font-weight:700;">Mes gymbros</p><div class="gymbro-puces">${liste.map(p => `<button type="button" onclick="comparerGymbro(${argJs(p)})">@${escapeHtml(p)}</button>`).join('')}</div>`
-    : '';
+  const puces = (liste, extra) => `<div class="gymbro-puces">${liste.map(p => `<button type="button" onclick="comparerGymbro(${argJs(p)})">@${escapeHtml(p)}${extra ? ` <small>${escapeHtml(extra)}</small>` : ''}</button>`).join('')}</div>`;
+  const titre = t => `<p class="note" style="margin:10px 0 6px; font-weight:700;">${t}</p>`;
+  if (!gymbroLiensActifs) {
+    const liste = (userProfile.gymbros || []);
+    c.innerHTML = liste.length ? titre('Mes gymbros') + puces(liste) : '';
+    return;
+  }
+  const recues = demandesGymbroRecues();
+  const acceptes = gymbroLiens.filter(l => l.statut === 'acceptee').map(l => l.pseudo);
+  const envoyees = gymbroLiens.filter(l => l.sens === 'envoyee' && l.statut === 'attente').map(l => l.pseudo);
+  // Anciens favoris (avant les demandes) : à inviter, rien n'est envoyé sans toi.
+  const aInviter = (userProfile.gymbros || []).filter(p => !lienGymbro(p));
+  let html = '';
+  if (recues.length) {
+    html += titre('Demandes reçues') + recues.map(l => `<div class="gymbro-demande">
+      <span><b>@${escapeHtml(l.pseudo)}</b> veut être ton gymbro</span>
+      <span class="gymbro-demande-actions">
+        <button type="button" class="btn-icone gymbro-accepter" onclick="repondreGymbro(${argJs(l.pseudo)}, true)">Accepter</button>
+        <button type="button" class="btn-icone" onclick="repondreGymbro(${argJs(l.pseudo)}, false)">Refuser</button>
+      </span></div>`).join('');
+  }
+  if (acceptes.length) html += titre('Mes gymbros') + puces(acceptes);
+  if (envoyees.length) html += titre('Demandes envoyées') + puces(envoyees, 'en attente');
+  if (aInviter.length) html += titre('À inviter') + puces(aInviter);
+  c.innerHTML = html;
+}
+const ERREURS_GYMBRO = {
+  pseudo_inconnu: "Ce nom d'utilisateur n'existe plus.",
+  soi_meme: 'Tu ne peux pas t\'ajouter toi-même.',
+  trop_de_demandes: 'Tu as déjà 30 demandes en attente : attends qu\'elles soient acceptées ou annule-en.',
+  compte_bloque: 'Ton compte est suspendu.',
+  non_connecte: 'Connecte-toi pour ajouter un gymbro.'
+};
+function messageErreurGymbro(e) {
+  const m = String((e && e.message) || e || '');
+  const cle = Object.keys(ERREURS_GYMBRO).find(k => m.includes(k));
+  return cle ? ERREURS_GYMBRO[cle] : (estErreurSqlManquant(e) ? MESSAGE_SQL_MANQUANT : 'Erreur : ' + m);
+}
+async function demanderGymbro(pseudo) {
+  try {
+    const { error } = await supa.rpc('gymbro_demander', { p_pseudo: pseudo });
+    if (error) throw error;
+    userProfile.gymbros = (userProfile.gymbros || []).filter(p => p.toLowerCase() !== pseudo.toLowerCase());
+    saveData();
+  } catch (e) { alert(messageErreurGymbro(e)); }
+  await chargerLiensGymbro();
+  comparerGymbro(pseudo);
+}
+async function repondreGymbro(pseudo, accepter) {
+  try {
+    const { error } = await supa.rpc('gymbro_repondre', { p_pseudo: pseudo, p_accepter: !!accepter });
+    if (error) throw error;
+  } catch (e) { alert(messageErreurGymbro(e)); }
+  await chargerLiensGymbro();
+  if (accepter) comparerGymbro(pseudo);
+  else retourRechercheGymbro();
+}
+async function annulerLienGymbro(pseudo, retrait) {
+  if (retrait && !confirm('Retirer @' + pseudo + ' de tes gymbros ? Vous ne verrez plus vos séances l\'un de l\'autre.')) return;
+  try {
+    const { error } = await supa.rpc('gymbro_retirer', { p_pseudo: pseudo });
+    if (error) throw error;
+    userProfile.gymbros = (userProfile.gymbros || []).filter(p => p.toLowerCase() !== pseudo.toLowerCase());
+    saveData();
+  } catch (e) { alert(messageErreurGymbro(e)); }
+  await chargerLiensGymbro();
+  comparerGymbro(pseudo);
 }
 function rechercherGymbro(v) {
   clearTimeout(gymbroRechercheTimer);
@@ -11243,11 +11473,18 @@ async function lancerRechercheGymbro(v) {
     c.innerHTML = (data && data.length)
       ? data.map(r => `<button type="button" class="exo-ligne" onclick="comparerGymbro(${argJs(r.pseudo)})">
           <span style="flex:1; min-width:0;"><span class="exo-ligne-nom">@${escapeHtml(r.pseudo)}</span>
-          <span class="exo-ligne-meta">${r.partage_seances ? 'Comparer nos séances et nos charges' : 'Séances non partagées'}</span></span></button>`).join('')
+          <span class="exo-ligne-meta">${escapeHtml(etatRechercheGymbro(r))}</span></span></button>`).join('')
       : '<p class="note">Aucun utilisateur ne commence par « ' + escapeHtml(q) + ' ».</p>';
   } catch (e) {
     c.innerHTML = `<div class="error-box">${escapeHtml(estErreurSqlManquant(e) ? MESSAGE_SQL_MANQUANT : 'Erreur : ' + (e.message || e))}</div>`;
   }
+}
+function etatRechercheGymbro(r) {
+  if (!gymbroLiensActifs) return r.partage_seances ? 'Comparer nos séances et nos charges' : 'Séances non partagées';
+  const l = lienGymbro(r.pseudo);
+  if (!l) return 'Envoyer une demande de gymbro';
+  if (l.statut === 'acceptee') return r.partage_seances ? 'Gymbro · comparer nos séances' : 'Gymbro · séances non partagées';
+  return l.sens === 'recue' ? 'Te demande d\'être son gymbro' : 'Demande envoyée, en attente';
 }
 function ajouterGymbroFavori(pseudo) {
   userProfile.gymbros = userProfile.gymbros || [];
@@ -11274,6 +11511,25 @@ function statsPeriodeMuscu(historique, jours) {
 async function comparerGymbro(pseudo) {
   const c = document.getElementById('gymbro-comparaison');
   document.getElementById('gymbro-vue-recherche').classList.add('hidden');
+  const lien = gymbroLiensActifs ? lienGymbro(pseudo) : null;
+  if (gymbroLiensActifs && !(lien && lien.statut === 'acceptee')) {
+    const qui = '@' + escapeHtml(pseudo);
+    let corps;
+    if (!lien) {
+      corps = `<p>Pour comparer vos séances, ${qui} doit accepter ta demande. Il la verra la prochaine fois qu'il ouvrira l'appli.</p>
+        <button type="button" class="btn btn-primary" onclick="demanderGymbro(${argJs(pseudo)})">Envoyer une demande</button>`;
+    } else if (lien.sens === 'recue') {
+      corps = `<p>${qui} veut être ton gymbro : vous pourrez comparer vos séances et vos charges.</p>
+        <div style="display:flex; gap:8px;"><button type="button" class="btn btn-primary" onclick="repondreGymbro(${argJs(pseudo)}, true)">Accepter</button>
+        <button type="button" class="btn btn-secondaire" onclick="repondreGymbro(${argJs(pseudo)}, false)">Refuser</button></div>`;
+    } else {
+      corps = `<p>Demande envoyée. Dès que ${qui} l'aura acceptée, vous pourrez comparer vos séances.</p>
+        <button type="button" class="btn btn-secondaire" onclick="annulerLienGymbro(${argJs(pseudo)}, false)">Annuler la demande</button>`;
+    }
+    c.innerHTML = `<button type="button" class="btn-icone" onclick="retourRechercheGymbro()">‹ Retour</button>
+      <h4 style="margin:12px 0 8px;">${qui}</h4><div class="gymbro-invitation">${corps}</div>`;
+    return;
+  }
   c.innerHTML = '<div class="loader">Chargement des séances de @' + escapeHtml(pseudo) + '…</div>';
   let siennes = [];
   try {
@@ -11287,13 +11543,13 @@ async function comparerGymbro(pseudo) {
   }
   const depuis90 = decalerJours(todayStr(), -90);
   const miennes = musculationHistorique.filter(h => h.date >= depuis90);
-  const favori = (userProfile.gymbros || []).includes(pseudo);
+  const favori = gymbroLiensActifs || (userProfile.gymbros || []).includes(pseudo);
   const nomMoi = monPseudo ? '@' + monPseudo.pseudo : 'Moi';
   const lui = '@' + pseudo;
 
   let html = `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:12px;">
     <button type="button" class="btn-icone" onclick="retourRechercheGymbro()">‹ Retour</button>
-    <button type="button" class="btn-icone" onclick="${favori ? 'retirerGymbroFavori' : 'ajouterGymbroFavori'}(${argJs(pseudo)})">${favori ? 'Retirer de mes gymbros' : '+ Ajouter à mes gymbros'}</button>
+    <button type="button" class="btn-icone" onclick="${gymbroLiensActifs ? 'annulerLienGymbro' : favori ? 'retirerGymbroFavori' : 'ajouterGymbroFavori'}(${argJs(pseudo)}${gymbroLiensActifs ? ', true' : ''})">${favori ? 'Retirer de mes gymbros' : '+ Ajouter à mes gymbros'}</button>
   </div>
   <h4 style="margin:0 0 10px;">${escapeHtml(nomMoi)} vs ${escapeHtml(lui)}</h4>`;
 
@@ -20037,7 +20293,10 @@ window.addEventListener('load', () => {
   window.addEventListener('offline', () => majEtatSync('hors-ligne',
     'Hors ligne : les données restent sur cet appareil, l’envoi reprendra au retour du réseau.'));
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { synchroniser('retour'); verifierNouvelleVersion(); }
+    if (!document.hidden) {
+      synchroniser('retour'); verifierNouvelleVersion();
+      if (Date.now() - gymbroLiensDernierChargement > 60000) chargerLiensGymbro();
+    }
   });
   // Référence initiale (aucun rechargement à ce stade, juste la mémoriser) :
   // sans ça, un premier retour au premier plan n'aurait rien à comparer.

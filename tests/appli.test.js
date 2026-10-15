@@ -519,6 +519,59 @@ test('Administration : le pseudo de chaque compte est affiché et sert à la rec
   assert.match(r.fiche, /Pseudo@alice\.fit/);
 }));
 
+test('Gymbro : demande, pastille, acceptation, comparaison réservée aux gymbros acceptés', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const appels = [];
+    let liens = [
+      { pseudo: 'alice', sens: 'recue', statut: 'attente' },
+      { pseudo: 'bob', sens: 'envoyee', statut: 'attente' },
+      { pseudo: 'carl', sens: 'envoyee', statut: 'acceptee' }
+    ];
+    const reponse = data => ({ then: ok => Promise.resolve({ data, error: null }).then(ok) });
+    supa = {
+      rpc: (nom, args) => {
+        appels.push([nom, args]);
+        if (nom === 'gymbro_mes_liens') return reponse(liens);
+        if (nom === 'gymbro_repondre') { liens = liens.map(l => l.pseudo === args.p_pseudo ? { ...l, statut: 'acceptee' } : l); return reponse('acceptee'); }
+        if (nom === 'gymbro_demander') { liens.push({ pseudo: args.p_pseudo, sens: 'envoyee', statut: 'attente' }); return reponse('attente'); }
+        return reponse([]);
+      },
+      from: () => ({ select: () => reponse(null) })
+    };
+    sessionUtilisateur = { id: 'moi', email: 'moi@x.fr' };
+    const res = {};
+    await chargerLiensGymbro();
+    res.pastille = document.querySelector('#nav-seance .pastille-gymbro')?.textContent;
+    ouvrirGymbro();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.sections = [...document.querySelectorAll('#gymbro-favoris > p')].map(p => p.textContent);
+    document.querySelector('#gymbro-favoris .gymbro-accepter').click();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.reponse = appels.find(a => a[0] === 'gymbro_repondre');
+    res.pastilleApres = document.querySelectorAll('.pastille-gymbro').length;
+    res.seancesAlice = appels.some(a => a[0] === 'gymbro_seances' && a[1].p_pseudo === 'alice');
+    // Pas encore gymbro : pas de séances demandées, une invitation à la place.
+    const avant = appels.length;
+    await comparerGymbro('dave');
+    res.invitation = document.querySelector('#gymbro-comparaison .gymbro-invitation').textContent.includes('Envoyer une demande');
+    res.seancesDave = appels.slice(avant).some(a => a[0] === 'gymbro_seances');
+    document.querySelector('#gymbro-comparaison .gymbro-invitation .btn-primary').click();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.demande = appels.find(a => a[0] === 'gymbro_demander');
+    res.apresDemande = document.querySelector('#gymbro-comparaison .gymbro-invitation').textContent.includes('Annuler la demande');
+    return res;
+  });
+  assert.equal(r.pastille, '1');
+  assert.deepEqual(r.sections, ['Demandes reçues', 'Mes gymbros', 'Demandes envoyées']);
+  assert.deepEqual(r.reponse, ['gymbro_repondre', { p_pseudo: 'alice', p_accepter: true }]);
+  assert.equal(r.pastilleApres, 0);
+  assert.ok(r.seancesAlice, 'une fois acceptée, la comparaison charge les séances');
+  assert.ok(r.invitation);
+  assert.equal(r.seancesDave, false);
+  assert.deepEqual(r.demande, ['gymbro_demander', { p_pseudo: 'dave' }]);
+  assert.ok(r.apresDemande);
+}));
+
 test("des données piégées venant d'autres comptes ne s'exécutent jamais (Administration, Gymbro)", () => avecAppli({}, async ({ page }) => {
   await installerFauxSupabase(page);
   const etapes = [
@@ -533,7 +586,9 @@ test("des données piégées venant d'autres comptes ne s'exécutent jamais (Adm
     () => voirDetailHistorique(muscuContexteActuel.historique[0].id),
     () => voirDetailProgramme([...muscuGroupesProgrammesCourant.keys()][0]),
     () => ouvrirHistoriqueExercice(muscuContexteActuel.historique[0].exercices[0].exerciceId),
-    () => comparerGymbro('abc')
+    () => comparerGymbro('abc'),
+    () => chargerLiensGymbro().then(() => ouvrirGymbro()),
+    () => comparerGymbro(document.querySelector('#gymbro-favoris .gymbro-puces button').textContent.replace(/^@/, '').replace(/ en attente$/, ''))
   ];
   for (const etape of etapes) {
     await page.evaluate(`(${etape.toString()})()`);
