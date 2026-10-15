@@ -451,6 +451,17 @@ test('en-tête : ma photo et mon nom d\'utilisateur ouvrent le profil, plus de b
     res.ecran = ecranActif;
     res.boutonProfil = !!document.getElementById('nav-reglages');
     res.position = getComputedStyle(document.querySelector('.app-bar')).position;
+    // Halo de synchronisation autour de la photo (synchro configurée : puce visible).
+    const puce = document.getElementById('puce-sync');
+    puce.classList.remove('hidden');
+    res.halo = ['ok', 'erreur', 'sync'].map(e => { majEtatSync(e); return document.getElementById('moi-entete').dataset.sync; });
+    res.label = document.getElementById('moi-entete').getAttribute('aria-label');
+    res.puceVisible = getComputedStyle(puce).display;
+    res.compte = document.getElementById('reglages-puce-sync-txt').textContent;
+    puce.classList.add('hidden'); majEtatSync('attente');
+    res.sansSynchro = document.getElementById('moi-entete').dataset.sync || null;
+    const barre = document.querySelector('.app-bar-inner').getBoundingClientRect();
+    res.aDroite = Math.round(barre.right - document.getElementById('moi-entete').getBoundingClientRect().right) < 4;
     return res;
   });
   assert.deepEqual(r.deconnecte, { nom: 'Se connecter', img: false });
@@ -460,6 +471,12 @@ test('en-tête : ma photo et mon nom d\'utilisateur ouvrent le profil, plus de b
   assert.equal(r.ecran, 'reglages');
   assert.equal(r.boutonProfil, false);
   assert.equal(r.position, 'relative', 'la barre défile avec la page, comme avant');
+  assert.deepEqual(r.halo, ['ok', 'erreur', 'sync']);
+  assert.equal(r.label, 'Mon profil — synchronisation : Envoi…');
+  assert.equal(r.puceVisible, 'none', 'plus de voyant texte dans la barre');
+  assert.equal(r.compte, 'Synchronisation : Envoi…');
+  assert.equal(r.sansSynchro, null, 'pas de halo sans synchronisation configurée');
+  assert.ok(r.aDroite, 'photo et nom calés à droite');
 }));
 
 test('les statistiques s\'affichent sur chaque onglet et chaque période', () => avecAppli({}, async ({ page }) => {
