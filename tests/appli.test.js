@@ -462,6 +462,11 @@ test('en-tête : ma photo et mon nom d\'utilisateur ouvrent le profil, plus de b
     res.sansSynchro = document.getElementById('moi-entete').dataset.sync || null;
     const barre = document.querySelector('.app-bar-inner').getBoundingClientRect();
     res.aDroite = Math.round(barre.right - document.getElementById('moi-entete').getBoundingClientRect().right) < 4;
+    const logo = document.querySelector('.app-bar .logo-anqa').getBoundingClientRect();
+    res.logoAGauche = logo.width > 0 && logo.left - barre.left < 4;
+    // Le halo (anneau 2 px + lueur ~9 px) doit tenir dans la barre, sans déborder en haut.
+    const photo = document.getElementById('moi-entete-avatar').getBoundingClientRect();
+    res.margeHaut = Math.round(photo.top - document.querySelector('.app-bar').getBoundingClientRect().top);
     return res;
   });
   assert.deepEqual(r.deconnecte, { nom: 'Se connecter', img: false });
@@ -477,6 +482,8 @@ test('en-tête : ma photo et mon nom d\'utilisateur ouvrent le profil, plus de b
   assert.equal(r.compte, 'Synchronisation : Envoi…');
   assert.equal(r.sansSynchro, null, 'pas de halo sans synchronisation configurée');
   assert.ok(r.aDroite, 'photo et nom calés à droite');
+  assert.ok(r.logoAGauche, 'logo Anqā visible à gauche');
+  assert.ok(r.margeHaut >= 11, 'place pour le halo au-dessus de la photo : ' + r.margeHaut + ' px');
 }));
 
 test('les statistiques s\'affichent sur chaque onglet et chaque période', () => avecAppli({}, async ({ page }) => {
