@@ -3000,7 +3000,7 @@
     <div class="input-group">
       <label for="admin-recherche">Rechercher un compte</label>
       <div class="admin-select-ligne">
-        <input type="search" id="admin-recherche" placeholder="Email&hellip;" autocomplete="off"
+        <input type="search" id="admin-recherche" placeholder="Email ou pseudo&hellip;" autocomplete="off"
                oninput="rafraichirListeComptes()">
         <button class="btn btn-secondaire" type="button" onclick="chargerAdmin()" title="Actualiser" aria-label="Actualiser"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M8 16H3v5" /></svg></button>
       </div>
@@ -11464,6 +11464,7 @@ async function chargerAdmin() {
     const comptes = data || [];
     adminComptes = {};
     comptes.forEach(c => { adminComptes[c.utilisateur] = c; });
+    await chargerPseudosAdmin();
 
     rafraichirListeComptes();
     chargerApercuAdmin();
@@ -11958,6 +11959,21 @@ function filtrerParStatut(statut) {
   rafraichirListeComptes();
 }
 
+/* Pseudo de chaque compte (table pseudos, lisible par tout compte
+   connecté, comme dans Gymbro). Facultatif : sans réponse, la liste reste
+   affichée avec les emails seuls. */
+async function chargerPseudosAdmin() {
+  try {
+    const { data, error } = await supa.from('pseudos').select('utilisateur,pseudo');
+    if (error) throw error;
+    (data || []).forEach(r => {
+      if (adminComptes[r.utilisateur] && typeof r.pseudo === 'string') adminComptes[r.utilisateur].pseudo = r.pseudo;
+    });
+  } catch (e) {
+    console.warn('[Admin] pseudos indisponibles :', e.message);
+  }
+}
+
 /* Remplit le select a partir de adminComptes, en appliquant la recherche
    et le filtre courants. Separe du chargement reseau : taper dans le
    champ ne redemande rien a Supabase. */
@@ -11982,7 +11998,8 @@ function rafraichirListeComptes() {
     if (filtreStatutAdmin === 'tous' && c.statut === 'supprime' && !q) return false;
     if (!q) return true;
     const nom = (c.email || String(c.utilisateur)).toLowerCase();
-    return nom.includes(q);
+    const pseudo = (c.pseudo || '').toLowerCase();
+    return nom.includes(q) || (!!pseudo && (pseudo.includes(q.replace(/^@+/, '')) || ('@' + pseudo).includes(q)));
   });
 
   select.innerHTML = '';
@@ -11996,7 +12013,7 @@ function rafraichirListeComptes() {
     .forEach(c => {
       const o = document.createElement('option');
       o.value = c.utilisateur;
-      const nom = c.email || ('Compte ' + String(c.utilisateur).slice(0, 8));
+      const nom = (c.email || ('Compte ' + String(c.utilisateur).slice(0, 8))) + (c.pseudo ? ' · @' + c.pseudo : '');
       const marque = c.statut === 'suspendu' ? ' \u23f8'
         : c.statut === 'supprime' ? ' \ud83d\uddd1'
         : estInactif(c) ? ' \ud83d\udca4'
@@ -12465,6 +12482,7 @@ function remplirFicheCompteAdmin(user) {
 
   [
     ['Email', user.email || '—'],
+    ['Pseudo', user.pseudo ? '@' + user.pseudo : '—'],
     ['Genre', user.genre || '—'],
     ['Âge', user.age ? user.age + ' ans' : '—'],
     ['Taille', user.taille ? user.taille + ' cm' : '—'],
@@ -20325,7 +20343,7 @@ function afficherFeuillUtilisateur() {
     return;
   }
 
-  titre.textContent = user.email || ('Compte ' + String(user.utilisateur).slice(0, 8));
+  titre.textContent = (user.email || ('Compte ' + String(user.utilisateur).slice(0, 8))) + (user.pseudo ? ' · @' + user.pseudo : '');
   actions.style.display = 'block';
   stats.style.display = 'none';
 

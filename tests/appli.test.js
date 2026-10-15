@@ -489,10 +489,41 @@ for (const visite of ['generale', 'muscu']) {
   }));
 }
 
+test('Administration : le pseudo de chaque compte est affiché et sert à la recherche', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const comptes = [{ utilisateur: 'a1', email: 'alice@x.fr', maj: Date.now() }, { utilisateur: 'b2', email: 'bob@x.fr', maj: Date.now() - 1000 }];
+    const pseudos = [{ utilisateur: 'a1', pseudo: 'alice.fit' }];
+    const reponse = data => ({ then: ok => Promise.resolve({ data, error: null }).then(ok) });
+    supa = {
+      rpc: nom => reponse(nom === 'admin_liste_comptes' ? comptes : []),
+      from: table => ({ select: () => reponse(table === 'pseudos' ? pseudos : []) })
+    };
+    sessionUtilisateur = { id: 'admin', email: ADMIN_EMAIL };
+    allerA('admin');
+    await chargerAdmin();
+    const options = () => [...document.getElementById('admin-user-select').options].slice(1).map(o => o.textContent);
+    const res = { toutes: options() };
+    document.getElementById('admin-recherche').value = '@alice';
+    rafraichirListeComptes();
+    res.recherche = options();
+    const sel = document.getElementById('admin-user-select');
+    sel.value = 'a1'; afficherFeuillUtilisateur();
+    res.titre = document.getElementById('admin-user-email').textContent;
+    remplirFicheCompteAdmin(adminComptes.a1);
+    res.fiche = document.getElementById('admin-stats-fiche').textContent;
+    return res;
+  });
+  assert.deepEqual(r.toutes, ['alice@x.fr · @alice.fit', 'bob@x.fr']);
+  assert.deepEqual(r.recherche, ['alice@x.fr · @alice.fit']);
+  assert.equal(r.titre, 'alice@x.fr · @alice.fit');
+  assert.match(r.fiche, /Pseudo@alice\.fit/);
+}));
+
 test("des données piégées venant d'autres comptes ne s'exécutent jamais (Administration, Gymbro)", () => avecAppli({}, async ({ page }) => {
   await installerFauxSupabase(page);
   const etapes = [
     () => { allerA('admin'); return chargerAdmin(); },
+    () => { const sel = document.getElementById('admin-user-select'); sel.value = sel.options[1].value; afficherFeuillUtilisateur(); },
     () => chargerApercuAdmin(),
     () => ouvrirJournalAdmin(),
     () => chargerAlimentsAdmin(),
