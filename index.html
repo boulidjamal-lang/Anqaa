@@ -2331,6 +2331,22 @@
     .fiche-muscles { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 2px; }
     .fiche-muscles span { font-size: 0.74rem; padding: 3px 10px; border-radius: 999px; background: var(--verre-fort); }
     .fiche-muscles span.principal { background: color-mix(in srgb, var(--primary) 22%, transparent); color: var(--primary); font-weight: 700; }
+    .fiche-faisceaux-bloc { margin: 10px 0 2px; }
+    .fiche-faisceaux-titre { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); margin-bottom: 4px; }
+    .fiche-faisceaux { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 6px; }
+    .fiche-faisceaux-groupe { font-size: 0.74rem; font-weight: 700; min-width: 72px; }
+    .fiche-faisceaux span:not(.fiche-faisceaux-groupe) { font-size: 0.72rem; padding: 2px 9px; border-radius: 999px; background: var(--verre-fort); }
+    .fiche-faisceaux span.principal { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); font-weight: 700; }
+    /* Choix des faisceaux (Administration) : une pastille par faisceau,
+       qui passe de principal à un peu puis à non sollicité. */
+    .admin-faisceaux-groupe { margin: 0 0 10px; }
+    .admin-faisceaux-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.78rem; font-weight: 700; margin-bottom: 6px; }
+    .admin-faisceaux-tete small { font-weight: 600; color: var(--text-muted); }
+    .admin-faisceaux-tete button { background: none; border: 0; padding: 0; font: inherit; font-size: 0.72rem; font-weight: 700; color: var(--primary); cursor: pointer; }
+    .admin-faisceaux-puces { display: flex; flex-wrap: wrap; gap: 6px; }
+    .admin-faisceau { font: inherit; font-size: 0.76rem; padding: 6px 11px; border-radius: 999px; cursor: pointer; border: 1.5px dashed var(--verre-brd-vive); background: transparent; color: var(--text-muted); }
+    .admin-faisceau[data-niveau="1"] { border-style: solid; border-color: var(--accent); color: var(--accent); }
+    .admin-faisceau[data-niveau="2"] { border-style: solid; border-color: var(--accent); background: var(--accent); color: var(--bg); font-weight: 700; }
     .fh-barre { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
     .fh-chip { display: inline-flex; align-items: center; gap: 5px; font-family: inherit; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.4px; padding: 6px 10px; border-radius: 999px; border: 0; background: var(--verre-creux); color: var(--text); cursor: pointer; }
     .fh-chip i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
@@ -3665,15 +3681,20 @@
     </div>
     <div class="input-group">
       <label for="edit-exo-nom">Nom</label>
-      <input type="text" id="edit-exo-nom" autocomplete="off">
+      <input type="text" id="edit-exo-nom" autocomplete="off" oninput="renderFaisceauxAdmin()">
     </div>
     <div class="input-group">
       <label for="edit-exo-groupe">Groupe musculaire principal</label>
-      <select id="edit-exo-groupe"></select>
+      <select id="edit-exo-groupe" onchange="renderFaisceauxAdmin()"></select>
     </div>
     <div class="input-group">
       <label for="edit-exo-materiel">Matériel</label>
       <select id="edit-exo-materiel"></select>
+    </div>
+    <div class="input-group hidden" id="edit-exo-faisceaux-groupe">
+      <label>Faisceaux sollicités</label>
+      <div id="edit-exo-faisceaux"></div>
+      <p class="note" style="margin:2px 2px 0;">Touche un faisceau pour passer de principal à un peu, puis à non sollicité. Sert à la fiche de l'exercice et au détail par faisceau des statistiques.</p>
     </div>
     <div class="input-group" style="margin-bottom:8px;">
       <label for="edit-exo-video">Lien de la vidéo (vide = aucune vidéo)</label>
@@ -17420,6 +17441,25 @@ function choisirExercicePicker(id) {
     afficherFicheExerciceBiblio(id);
   }
 }
+/* Faisceaux sollicités, sur la fiche : un groupe par ligne (pectoraux,
+   épaules, dos parmi les muscles de l'exercice), principal en couleur. */
+function groupesAFaisceaux(exo, groupePrincipal) {
+  const principal = groupePrincipal || exo.groupe;
+  return [principal, ...(exo.secondaires || [])].filter((g, i, t) => FAISCEAUX[g] && t.indexOf(g) === i);
+}
+function faisceauxFicheHTML(exo) {
+  const groupes = groupesAFaisceaux(exo);
+  if (!groupes.length) return '';
+  const estime = groupes.some(g => !niveauxFaisceauxManuels(exo, g));
+  const lignes = groupes.map(g => {
+    const niveaux = niveauxFaisceauxManuels(exo, g) || niveauxDepuisPoids(repartitionFaisceauxEstimee(exo, g));
+    const puces = FAISCEAUX[g].filter(([cle]) => niveaux[cle]).map(([cle, , court]) =>
+      `<span class="${niveaux[cle] === 2 ? 'principal' : ''}">${escapeHtml(court)}</span>`).join('');
+    return `<div class="fiche-faisceaux"><span class="fiche-faisceaux-groupe">${escapeHtml(GROUPES_MUSCULAIRES[g])}</span>${puces}</div>`;
+  }).join('');
+  return `<div class="fiche-faisceaux-bloc"><div class="fiche-faisceaux-titre">Faisceaux</div>${lignes}
+    ${estime ? '<p class="note" style="margin:4px 0 0;">Estimés d\'après le type de mouvement.</p>' : ''}</div>`;
+}
 function afficherFicheExerciceBiblio(id, options) {
   const e = trouverExercice(id);
   if (!e) return;
@@ -17474,6 +17514,7 @@ function afficherFicheExerciceBiblio(id, options) {
   html += `<div class="fiche-bloc">
     <div class="fiche-bloc-titre">Muscles sollicités</div>
     <div class="fiche-muscles"><span class="principal">${escapeHtml(GROUPES_MUSCULAIRES[e.groupe] || '')}</span>${(e.secondaires || []).filter(g => g !== e.groupe && GROUPES_MUSCULAIRES[g]).map(g => `<span>${escapeHtml(GROUPES_MUSCULAIRES[g])}</span>`).join('')}</div>
+    ${faisceauxFicheHTML(e)}
     <div class="fiche-record" style="margin-top:6px;"><span>Matériel</span><b>${MATERIELS[e.materiel].ic} ${escapeHtml(MATERIELS[e.materiel].label)}</b></div>
   </div>`;
 
@@ -17988,10 +18029,35 @@ function estSerieDeTravail(x, ref) {
    est réparti entre les faisceaux. Les poids de chaque répartition font 1,
    si bien que la somme des faisceaux retombe sur le total du groupe. */
 const FAISCEAUX = {
-  pectoraux: [['pec_haut', 'Haut (claviculaire)'], ['pec_milieu', 'Milieu (sternal)'], ['pec_bas', 'Bas (abdominal)']],
-  epaules: [['delt_ant', 'Deltoïde antérieur'], ['delt_lat', 'Deltoïde latéral'], ['delt_post', 'Deltoïde postérieur']],
-  dos: [['dos_largeur', 'Grand dorsal (largeur)'], ['dos_epaisseur', 'Milieu du dos (épaisseur)']]
+  pectoraux: [['pec_haut', 'Haut (claviculaire)', 'Haut'], ['pec_milieu', 'Milieu (sternal)', 'Milieu'], ['pec_bas', 'Bas (abdominal)', 'Bas']],
+  epaules: [['delt_ant', 'Deltoïde antérieur', 'Antérieur'], ['delt_lat', 'Deltoïde latéral', 'Latéral'], ['delt_post', 'Deltoïde postérieur', 'Postérieur']],
+  dos: [['dos_largeur', 'Grand dorsal (largeur)', 'Largeur (grand dorsal)'], ['dos_epaisseur', 'Milieu du dos (épaisseur)', 'Épaisseur (milieu du dos)']]
 };
+/* Choix fait dans Administration (exo.faisceaux) : par groupe, un niveau
+   par faisceau — 2 = principal, 1 = un peu. Il passe avant l'estimation
+   par le nom. Ces données viennent du serveur (exercices partagés) : seuls
+   les faisceaux connus et les niveaux 1 ou 2 sont retenus. */
+const POIDS_NIVEAU_FAISCEAU = { 1: 0.4, 2: 1 };
+function niveauxFaisceauxManuels(exo, groupe) {
+  const brut = exo && exo.faisceaux && typeof exo.faisceaux === 'object' ? exo.faisceaux[groupe] : null;
+  if (!brut || typeof brut !== 'object' || !FAISCEAUX[groupe]) return null;
+  const niveaux = {};
+  FAISCEAUX[groupe].forEach(([cle]) => { const v = Number(brut[cle]); if (v === 1 || v === 2) niveaux[cle] = v; });
+  return Object.keys(niveaux).length ? niveaux : null;
+}
+function poidsDepuisNiveaux(niveaux) {
+  const total = Object.keys(niveaux).reduce((t, k) => t + POIDS_NIVEAU_FAISCEAU[niveaux[k]], 0);
+  const r = {};
+  Object.keys(niveaux).forEach(k => { r[k] = POIDS_NIVEAU_FAISCEAU[niveaux[k]] / total; });
+  return r;
+}
+/* Estimation (poids) → niveaux, pour afficher l'estimation comme un choix :
+   la moitié ou plus = principal, le reste = un peu. */
+function niveauxDepuisPoids(poids) {
+  const n = {};
+  Object.keys(poids || {}).forEach(k => { if (poids[k] >= 0.5) n[k] = 2; else if (poids[k] > 0) n[k] = 1; });
+  return n;
+}
 function contient(n, ...mots) { return mots.some(m => n.includes(m)); }
 const REGLES_FAISCEAUX = {
   pectoraux: n => {
@@ -18032,6 +18098,11 @@ const REGLES_FAISCEAUX = {
   }
 };
 function repartitionFaisceaux(exo, groupe) {
+  const manuels = niveauxFaisceauxManuels(exo, groupe);
+  if (manuels) return poidsDepuisNiveaux(manuels);
+  return repartitionFaisceauxEstimee(exo, groupe);
+}
+function repartitionFaisceauxEstimee(exo, groupe) {
   const noms = [exo.nom, exo.nomEn].map(t => ' ' + normaliserRecherche(t) + ' ');
   const parNom = regle => { for (const n of noms) { const r = regle(n); if (r) return r; } return null; };
   if (groupe === 'pectoraux') {
@@ -20775,7 +20846,7 @@ async function chargerExercicesAdmin() {
     }));
     const base = EXERCICES_BASE.map(e => ({
       id: e.id, nom: e.nom, nomEn: e.nomEn, groupe: e.groupe,
-      secondaires: e.secondaires, materiel: e.materiel, img: e.img, ins: e.ins, video: e.video,
+      secondaires: e.secondaires, materiel: e.materiel, img: e.img, ins: e.ins, video: e.video, faisceaux: e.faisceaux,
       email: 'Bibliothèque de base', estBase: true
     }));
     // Anciens exercices (retirés lors du passage à SmartWorkout, ou
@@ -20932,10 +21003,61 @@ function afficherChampImageExercice(ouvert) {
   document.getElementById('edit-exo-image-toggle').classList.toggle('hidden', !!ouvert);
   if (ouvert && !document.getElementById('edit-exo-image').value) document.getElementById('edit-exo-image').focus();
 }
+/* Faisceaux en cours d'édition : { exo, choix: { groupe: niveaux } } — un
+   groupe absent de choix suit l'estimation automatique. */
+let faisceauxEdition = null;
+function renderFaisceauxAdmin() {
+  const bloc = document.getElementById('edit-exo-faisceaux-groupe');
+  const c = document.getElementById('edit-exo-faisceaux');
+  if (!bloc || !c || !faisceauxEdition) return;
+  const groupe = document.getElementById('edit-exo-groupe').value;
+  const exo = { ...faisceauxEdition.exo, groupe, nom: document.getElementById('edit-exo-nom').value || faisceauxEdition.exo.nom };
+  const groupes = groupesAFaisceaux(exo, groupe);
+  bloc.classList.toggle('hidden', !groupes.length);
+  c.innerHTML = groupes.map(g => {
+    const choix = faisceauxEdition.choix[g];
+    const niveaux = choix || niveauxDepuisPoids(repartitionFaisceauxEstimee(exo, g));
+    return `<div class="admin-faisceaux-groupe" data-groupe="${escapeHtml(g)}">
+      <div class="admin-faisceaux-tete"><span>${escapeHtml(GROUPES_MUSCULAIRES[g])}</span>${choix
+        ? `<button type="button" onclick="faisceauxAutoAdmin(${argJs(g)})">Revenir à l'estimation</button>`
+        : '<small>Estimation automatique</small>'}</div>
+      <div class="admin-faisceaux-puces">${FAISCEAUX[g].map(([cle, , court]) => {
+        const n = niveaux[cle] || 0;
+        return `<button type="button" class="admin-faisceau" data-faisceau="${escapeHtml(cle)}" data-niveau="${n}" aria-label="${escapeHtml(court + ' : ' + ['non sollicité', 'un peu', 'principal'][n])}" onclick="basculerFaisceauAdmin(${argJs(g)}, ${argJs(cle)})">${escapeHtml(court)}${n === 2 ? ' · principal' : n === 1 ? ' · un peu' : ''}</button>`;
+      }).join('')}</div>
+    </div>`;
+  }).join('');
+}
+function basculerFaisceauAdmin(groupe, cle) {
+  if (!faisceauxEdition || !FAISCEAUX[groupe]) return;
+  const exo = { ...faisceauxEdition.exo, groupe: document.getElementById('edit-exo-groupe').value };
+  const niveaux = { ...(faisceauxEdition.choix[groupe] || niveauxDepuisPoids(repartitionFaisceauxEstimee(exo, groupe))) };
+  const suivant = { 0: 2, 2: 1, 1: 0 }[niveaux[cle] || 0];
+  if (suivant) niveaux[cle] = suivant; else delete niveaux[cle];
+  faisceauxEdition.choix[groupe] = niveaux;
+  renderFaisceauxAdmin();
+}
+function faisceauxAutoAdmin(groupe) {
+  if (!faisceauxEdition) return;
+  delete faisceauxEdition.choix[groupe];
+  renderFaisceauxAdmin();
+}
+/* Choix à enregistrer : seulement les groupes encore concernés et non
+   vides (aucun faisceau coché = retour à l'estimation). null si aucun. */
+function faisceauxAEnregistrer(groupe) {
+  if (!faisceauxEdition) return null;
+  const groupes = groupesAFaisceaux(faisceauxEdition.exo, groupe);
+  const r = {};
+  groupes.forEach(g => { const n = faisceauxEdition.choix[g]; if (n && Object.keys(n).length) r[g] = n; });
+  return Object.keys(r).length ? r : null;
+}
 function editerExerciceAdmin(exo) {
   const modal = document.getElementById('modal-edit-exercice-admin');
   if (!modal) return;
   modal.dataset.exerciceId = exo.id;
+  const choix = {};
+  Object.keys(FAISCEAUX).forEach(g => { const n = niveauxFaisceauxManuels(exo, g); if (n) choix[g] = n; });
+  faisceauxEdition = { exo, choix };
   remplirSelectsExercice('edit-exo-groupe', 'edit-exo-materiel');
   document.getElementById('edit-exo-nom').value = exo.nom || '';
   document.getElementById('edit-exo-groupe').value = exo.groupe || ORDRE_GROUPES[0];
@@ -20948,6 +21070,7 @@ function editerExerciceAdmin(exo) {
   const videoActuelle = videoExercice(exo);
   document.getElementById('edit-exo-video').value = (videoActuelle && videoActuelle.video) || '';
   modal.dataset.videoInitiale = (videoActuelle && videoActuelle.video) || '';
+  renderFaisceauxAdmin();
   modal.classList.add('show');
   majCoucheOuverte();
 }
@@ -20988,6 +21111,7 @@ async function sauvegarderEditionExerciceAdmin() {
   // On n'enregistre la vidéo que si elle a été modifiée : sinon l'exercice
   // continue de suivre la vidéo SmartWorkout d'origine.
   const videoModifiee = video !== (modal.dataset.videoInitiale || '');
+  const faisceaux = faisceauxAEnregistrer(groupe);
 
   try {
     if (original.estBase) {
@@ -20998,6 +21122,9 @@ async function sauvegarderEditionExerciceAdmin() {
       if (image) donnees.img = [image];
       if (videoModifiee) donnees.video = video;
       else if (typeof original.video === 'string') donnees.video = original.video;
+      // null (et pas absent) : la correction est fusionnée par-dessus
+      // l'exercice déjà chargé, il faut effacer un ancien choix.
+      donnees.faisceaux = faisceaux;
       const { error } = await supa
         .from('exercices_base_overrides')
         .upsert({ id, donnees, maj: Date.now(), modifie_par: sessionUtilisateur ? sessionUtilisateur.email : 'inconnu' }, { onConflict: 'id' });
@@ -21012,6 +21139,7 @@ async function sauvegarderEditionExerciceAdmin() {
       delete donnees.email; delete donnees.utilisateur; delete donnees.estBase;
       if (image) donnees.img = [image]; else delete donnees.img;
       if (videoModifiee) donnees.video = video;
+      if (faisceaux) donnees.faisceaux = faisceaux; else delete donnees.faisceaux;
       delete donnees.usages;
       const { error } = await supa
         .from('exercices_perso_musculation')

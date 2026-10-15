@@ -321,6 +321,47 @@ test('stats muscu : détail par faisceau et déséquilibres (pecs, épaules, dos
   assert.deepEqual(Object.values(r).flatMap(g => g.alertes), []);
 }));
 
+test('faisceaux : affichés sur la fiche, réglables dans Administration, données piégées ignorées', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const exo = toutesLesExercices().find(e => e.nom === 'Développé incliné avec haltères');
+    const res = {};
+    // Fiche : estimation (haut principal, milieu un peu ; antérieur pour les épaules).
+    afficherFicheExerciceBiblio(exo.id);
+    const lire = () => [...document.querySelectorAll('#fiche-exercice-container .fiche-faisceaux')].map(l => [...l.children].map(x => x.textContent.trim()).join(' '));
+    res.ficheEstimee = lire();
+    res.noteEstimee = /Estimés/.test(document.querySelector('#fiche-exercice-container .fiche-faisceaux-bloc').textContent);
+    fermerModal('fiche-exercice-modal');
+    // Administration : toucher « Bas » (non sollicité → principal), « Haut » (principal → un peu).
+    editerExerciceAdmin({ ...exo, estBase: true });
+    const puce = cle => document.querySelector(`#edit-exo-faisceaux [data-groupe="pectoraux"] [data-faisceau="${cle}"]`);
+    res.avant = ['pec_haut', 'pec_milieu', 'pec_bas'].map(c => puce(c).dataset.niveau);
+    puce('pec_bas').click(); puce('pec_haut').click();
+    res.apres = ['pec_haut', 'pec_milieu', 'pec_bas'].map(c => puce(c).dataset.niveau);
+    res.enregistre = faisceauxAEnregistrer(document.getElementById('edit-exo-groupe').value);
+    document.querySelector('#edit-exo-faisceaux [data-groupe="pectoraux"] .admin-faisceaux-tete button').click();
+    res.retourAuto = faisceauxAEnregistrer('pectoraux');
+    fermerModal('modal-edit-exercice-admin');
+    // Choix enregistré : il passe avant l'estimation, sur la fiche et dans les stats.
+    exo.faisceaux = { pectoraux: { pec_bas: 2, pec_haut: 1 } };
+    afficherFicheExerciceBiblio(exo.id);
+    res.ficheChoisie = lire();
+    res.poids = repartitionFaisceaux(exo, 'pectoraux');
+    // Données piégées (exercice partagé par un autre compte) : ignorées.
+    res.piege = repartitionFaisceaux({ nom: 'Développé couché', groupe: 'pectoraux', faisceaux: { pectoraux: { '<img src=x onerror=alert(1)>': 2, pec_haut: 7, constructor: 2 } } }, 'pectoraux');
+    delete exo.faisceaux;
+    return res;
+  });
+  assert.deepEqual(r.ficheEstimee, ['Pectoraux Haut Milieu', 'Épaules Antérieur']);
+  assert.ok(r.noteEstimee);
+  assert.deepEqual(r.avant, ['2', '1', '0']);
+  assert.deepEqual(r.apres, ['1', '1', '2']);
+  assert.deepEqual(r.enregistre, { pectoraux: { pec_haut: 1, pec_milieu: 1, pec_bas: 2 } });
+  assert.equal(r.retourAuto, null);
+  assert.deepEqual(r.ficheChoisie, ['Pectoraux Haut Bas', 'Épaules Antérieur']);
+  assert.ok(Math.abs(r.poids.pec_bas - 1 / 1.4) < 1e-9 && Math.abs(r.poids.pec_haut - 0.4 / 1.4) < 1e-9);
+  assert.deepEqual(r.piege, { pec_milieu: 0.6, pec_haut: 0.2, pec_bas: 0.2 });
+}));
+
 test('les statistiques s\'affichent sur chaque onglet et chaque période', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     const t = todayStr();
