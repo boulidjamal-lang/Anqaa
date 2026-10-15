@@ -2428,6 +2428,24 @@
     .gymbro-demande-actions { display: flex; gap: 6px; }
     .gymbro-accepter { background: var(--primary); color: var(--primary-txt); border-color: var(--primary); }
     .gymbro-puces small { font-weight: 600; opacity: 0.7; }
+    .fil-respects { display: flex; gap: 8px; align-items: center; padding: 9px 12px; border-radius: 12px; background: var(--verre-creux); font-size: 0.78rem; margin: 0 0 10px; }
+    .fil-respects--nouveau { background: color-mix(in srgb, var(--primary) 16%, transparent); }
+    .fil-carte { background: var(--verre); border: 1px solid var(--verre-brd); border-radius: 16px; padding: 12px 14px; margin: 0 0 10px; }
+    .fil-tete { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .fil-avatar { width: 34px; height: 34px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      background: color-mix(in srgb, var(--primary) 20%, transparent); color: var(--primary); font-weight: 800; }
+    .fil-qui { min-width: 0; }
+    .fil-qui b { display: block; font-size: 0.86rem; }
+    .fil-qui small { display: block; font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fil-stats { display: flex; gap: 14px; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 4px; }
+    .fil-stats b { color: var(--text); font-size: 0.92rem; }
+    .fil-ligne { font-size: 0.74rem; color: var(--text-muted); margin-top: 3px; }
+    .fil-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+    .fil-respect { font: inherit; font-size: 0.78rem; font-weight: 700; border-radius: 999px; padding: 6px 12px; cursor: pointer;
+      border: 1.5px solid var(--verre-brd-vive); background: transparent; color: var(--text); }
+    .fil-respect[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-txt); }
+    .fil-vide { margin: 0 0 10px; }
+    .fil-plus { width: 100%; min-height: auto; padding: 9px; font-size: 0.78rem; }
     .gymbro-invitation { background: var(--verre-creux); border-radius: 14px; padding: 12px 14px; font-size: 0.86rem; }
     .gymbro-invitation p { margin: 0 0 12px; }
     .alerte-volume-seance svg { width: 17px; height: 17px; flex: none; color: #ff9f0a; margin-top: 1px; }
@@ -2771,6 +2789,7 @@
       <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-bottom:6px; background:transparent;" onclick="ouvrirGymbro()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> Gymbro : comparer mes séances</button>
       </div>
       <div id="seance-mode-cardio" class="hidden"><div id="seance-cardio"></div></div>
+      <div id="fil-gymbros"></div>
     </div>
 
     <div id="seance-vue-active" class="hidden">
@@ -9394,7 +9413,7 @@ function allerA(nom) {
   window.scrollTo({ top: 0, behavior: 'auto' });
   reduireAppBar(false);
   if (nom === 'stats') { prepareStats(); }
-  if (nom === 'seance') { renderSeance(); choisirModeSeance(modeSeance, true); }
+  if (nom === 'seance') { renderSeance(); choisirModeSeance(modeSeance, true); chargerFilGymbros(); }
   if (nom === 'repas') { majNoteCleIA(); renderPremiersPas(); }
   // Les aliments ne sont chargés qu'à l'ouverture de leur feuille :
   // inutile d'interroger Supabase tant que personne ne les regarde.
@@ -10386,6 +10405,7 @@ function definirSessionUtilisateur(user) {
     verifierStatutCompte();
     chargerMonPseudo();
     chargerLiensGymbro();
+    chargerFilGymbros(true);
     chargerRecettesPartagees();
     // La gate de connexion vient de se refermer : c'est le bon moment pour
     // éventuellement proposer l'installation, jamais avant (elle empilerait
@@ -10907,6 +10927,90 @@ returns table(donnees jsonb) language sql stable security definer set search_pat
 $$;
 grant execute on function public.gymbro_seances(text, date) to authenticated;
 
+--    Fil des gymbros (onglet Activité) : séances récentes (14 jours par
+--    défaut, 31 au plus) de tous mes gymbros acceptés qui partagent leurs
+--    séances, avec le nombre de « respects » reçus et si j'en ai donné un.
+create table if not exists public.gymbros_respects (
+  seance_utilisateur text not null,
+  seance_id          text not null,
+  auteur             text not null,
+  cree_le            timestamptz not null default now(),
+  primary key (seance_utilisateur, seance_id, auteur)
+);
+alter table public.gymbros_respects enable row level security;
+drop policy if exists "gymbros respects lecture" on public.gymbros_respects;
+create policy "gymbros respects lecture" on public.gymbros_respects for select to authenticated
+  using (auteur = auth.uid()::text or seance_utilisateur = auth.uid()::text);
+
+create or replace function public.gymbro_fil(p_jours int default 14)
+returns table(pseudo text, seance_id text, donnees jsonb, respects int, mon_respect boolean)
+language sql stable security definer set search_path = public as $$
+  with amis as (
+    select case when l.demandeur = auth.uid()::text then l.cible else l.demandeur end as utilisateur
+    from gymbros_liens l
+    where l.statut = 'acceptee' and auth.uid()::text in (l.demandeur, l.cible)
+  )
+  select p.pseudo, s.id, s.donnees,
+         (select count(*)::int from gymbros_respects r where r.seance_utilisateur = s.utilisateur and r.seance_id = s.id),
+         exists (select 1 from gymbros_respects r where r.seance_utilisateur = s.utilisateur and r.seance_id = s.id and r.auteur = auth.uid()::text)
+  from amis a
+  join pseudos p on p.utilisateur = a.utilisateur and p.partage_seances
+  join seances_musculation s on s.utilisateur = a.utilisateur
+  where auth.uid() is not null
+    and not exists (select 1 from comptes_bloques b where b.utilisateur = a.utilisateur)
+    and coalesce(s.donnees->>'date', '') >= (current_date - least(greatest(coalesce(p_jours, 14), 1), 31))::text
+  order by s.donnees->>'date' desc, s.maj desc
+  limit 60;
+$$;
+grant execute on function public.gymbro_fil(int) to authenticated;
+
+-- Donner (ou reprendre) un respect sur la séance d'un gymbro.
+create or replace function public.gymbro_respect(p_pseudo text, p_seance text, p_actif boolean)
+returns int language plpgsql security definer set search_path = public as $fn$
+declare
+  moi text := auth.uid()::text;
+  lui text;
+  n int;
+begin
+  if moi is null then raise exception 'non_connecte'; end if;
+  if exists (select 1 from comptes_bloques b where b.utilisateur = moi) then raise exception 'compte_bloque'; end if;
+  select utilisateur into lui from pseudos where lower(pseudo) = lower(p_pseudo) and partage_seances;
+  if lui is null then raise exception 'pseudo_inconnu'; end if;
+  if not exists (select 1 from gymbros_liens l where l.statut = 'acceptee'
+                 and ((l.demandeur = moi and l.cible = lui) or (l.cible = moi and l.demandeur = lui))) then
+    raise exception 'pas_gymbro';
+  end if;
+  if not exists (select 1 from seances_musculation s where s.utilisateur = lui and s.id = p_seance) then
+    raise exception 'seance_inconnue';
+  end if;
+  if p_actif then
+    insert into gymbros_respects (seance_utilisateur, seance_id, auteur) values (lui, p_seance, moi)
+      on conflict do nothing;
+  else
+    delete from gymbros_respects where seance_utilisateur = lui and seance_id = p_seance and auteur = moi;
+  end if;
+  select count(*)::int into n from gymbros_respects where seance_utilisateur = lui and seance_id = p_seance;
+  return n;
+end;
+$fn$;
+grant execute on function public.gymbro_respect(text, text, boolean) to authenticated;
+
+-- Respects reçus sur mes séances (14 derniers jours par défaut).
+create or replace function public.gymbro_respects_recus(p_jours int default 14)
+returns table(pseudo text, seance_id text, seance_date text, cree_le timestamptz)
+language sql stable security definer set search_path = public as $$
+  select p.pseudo, r.seance_id, s.donnees->>'date', r.cree_le
+  from gymbros_respects r
+  join pseudos p on p.utilisateur = r.auteur
+  left join seances_musculation s on s.utilisateur = r.seance_utilisateur and s.id = r.seance_id
+  where auth.uid() is not null
+    and r.seance_utilisateur = auth.uid()::text
+    and r.cree_le >= now() - make_interval(days => least(greatest(coalesce(p_jours, 14), 1), 60))
+  order by r.cree_le desc
+  limit 50;
+$$;
+grant execute on function public.gymbro_respects_recus(int) to authenticated;
+
 -- 3) Exercices supprimés ou fusionnés par l'admin : ils ne peuvent plus
 --    être recréés par le cache d'un téléphone (même avec une ancienne
 --    version de l'appli). La ligne renvoyée est simplement ignorée.
@@ -11370,9 +11474,11 @@ function lienGymbro(pseudo) {
 }
 function demandesGymbroRecues() { return gymbroLiens.filter(l => l.sens === 'recue' && l.statut === 'attente'); }
 function majPastilleGymbro() {
-  const n = demandesGymbroRecues().length;
-  const cibles = [...document.querySelectorAll('[onclick="ouvrirGymbro()"]'), document.getElementById('nav-seance'), document.getElementById('fab')].filter(Boolean);
-  cibles.forEach(b => {
+  const demandes = demandesGymbroRecues().length;
+  // Boutons Gymbro : les demandes ; navigation : demandes + nouveaux respects.
+  const cibles = [...document.querySelectorAll('[onclick="ouvrirGymbro()"]').values()].map(b => [b, demandes])
+    .concat([document.getElementById('nav-seance'), document.getElementById('fab')].filter(Boolean).map(b => [b, demandes + nouveauxRespects().length]));
+  cibles.forEach(([b, n]) => {
     let pastille = b.querySelector(':scope > .pastille-gymbro');
     if (!n) { if (pastille) pastille.remove(); return; }
     if (!pastille) {
@@ -11413,11 +11519,144 @@ function renderGymbrosFavoris() {
   if (aInviter.length) html += titre('À inviter') + puces(aInviter);
   c.innerHTML = html;
 }
+/* --- Fil des gymbros (onglet Activité) ---
+   Séances récentes des gymbros acceptés, en cartes compactes, avec une
+   seule réaction : « 💪 Respect ». Rien n'est publié en plus : le fil se
+   calcule à partir des séances déjà partagées (gymbro_fil). Les données
+   viennent d'autres comptes : seuls des nombres, des dates valides et des
+   textes échappés sont affichés. */
+let filGymbros = null;            // null : pas disponible (SQL absent ou hors ligne)
+let filGymbrosDernier = 0;
+let filGymbrosVisibles = 8;
+let respectsRecus = [];
+const estDateIsoFil = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+function nouveauxRespects() { return respectsRecus.filter(r => r.quand > (Number(userProfile.respectsVus) || 0)); }
+async function chargerFilGymbros(force) {
+  if (!supa || !sessionUtilisateur) return;
+  if (!force && filGymbros && Date.now() - filGymbrosDernier < 120000) { renderFilGymbros(); return; }
+  filGymbrosDernier = Date.now();
+  try {
+    const [fil, recus] = await Promise.all([supa.rpc('gymbro_fil', { p_jours: 14 }), supa.rpc('gymbro_respects_recus', { p_jours: 14 })]);
+    if (fil.error) throw fil.error;
+    filGymbros = (fil.data || []).map(nettoyerSeanceFil).filter(Boolean);
+    respectsRecus = recus.error ? [] : (recus.data || []).filter(r => r && typeof r.pseudo === 'string' && r.pseudo)
+      .map(r => ({ pseudo: r.pseudo, quand: Date.parse(r.cree_le) || 0 }));
+  } catch (e) {
+    filGymbros = null;
+    if (!estErreurSqlManquant(e)) console.warn('[Fil gymbros]', e.message || e);
+  }
+  renderFilGymbros();
+  majPastilleGymbro();
+}
+function nettoyerSeanceFil(r) {
+  if (!r || typeof r.pseudo !== 'string' || !r.pseudo || typeof r.seance_id !== 'string') return null;
+  const d = r.donnees;
+  if (!d || !estDateIsoFil(d.date) || !Array.isArray(d.exercices)) return null;
+  return { pseudo: r.pseudo, id: r.seance_id, donnees: d, respects: Math.max(0, Math.floor(Number(r.respects) || 0)), monRespect: r.mon_respect === true };
+}
+function resumeSeanceFil(d) {
+  let series = 0, volume = 0, meilleure = null;
+  const parGroupe = {};
+  d.exercices.forEach(e => {
+    if (!e || !Array.isArray(e.series)) return;
+    const faites = e.series.filter(x => x && x.fait);
+    if (!faites.length) return;
+    series += faites.length;
+    const exo = trouverExercice(e.exerciceId);
+    if (exo && GROUPES_MUSCULAIRES[exo.groupe]) parGroupe[exo.groupe] = (parGroupe[exo.groupe] || 0) + faites.length;
+    faites.forEach(x => {
+      const p = Number(x.poids), r = Number(x.reps);
+      if (!(p > 0 && p < 1000 && r > 0 && r < 1000)) return;
+      volume += p * r;
+      if (!meilleure || p > meilleure.poids || (p === meilleure.poids && r > meilleure.reps))
+        meilleure = { poids: p, reps: Math.round(r), nom: exo ? libelleExercice(exo) : (typeof e.nom === 'string' && e.nom ? e.nom.slice(0, 60) : 'Exercice') };
+    });
+  });
+  let duree = Number(d.dureeMin);
+  if (!(duree > 0) && Number(d.fin) > Number(d.debut)) duree = Math.round((Number(d.fin) - Number(d.debut)) / 60000);
+  if (!(duree > 0 && duree < 600)) duree = 0;
+  return {
+    series, volume: Math.round(volume), meilleure, duree: Math.round(duree),
+    muscles: Object.keys(parGroupe).sort((a, b) => parGroupe[b] - parGroupe[a]).slice(0, 3).map(g => GROUPES_MUSCULAIRES[g]),
+    titre: typeof d.programmeNom === 'string' && d.programmeNom.trim() ? d.programmeNom.trim().slice(0, 60) : 'Séance libre'
+  };
+}
+function dateRelativeFil(iso) {
+  const n = Math.round((dateLocale(todayStr()) - dateLocale(iso)) / 86400000);
+  if (n <= 0) return "Aujourd'hui";
+  if (n === 1) return 'Hier';
+  if (n < 7) return 'Il y a ' + n + ' jours';
+  return dateLocale(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+function renderFilGymbros() {
+  const zone = document.getElementById('fil-gymbros');
+  if (!zone) return;
+  if (filGymbros === null) { zone.innerHTML = ''; return; }
+  const nouveaux = nouveauxRespects();
+  let html = '<div class="titre-section">Fil de tes gymbros</div>';
+  if (respectsRecus.length) {
+    const noms = [...new Set(respectsRecus.map(r => r.pseudo))];
+    const qui = noms.slice(0, 2).map(p => '@' + p).join(', ') + (noms.length > 2 ? ' et ' + (noms.length - 2) + ' autre' + (noms.length > 3 ? 's' : '') : '');
+    html += `<div class="fil-respects${nouveaux.length ? ' fil-respects--nouveau' : ''}"><span aria-hidden="true">💪</span><span><b>${respectsRecus.length} respect${respectsRecus.length > 1 ? 's' : ''}</b> reçu${respectsRecus.length > 1 ? 's' : ''} ces 14 derniers jours (${escapeHtml(qui)})</span></div>`;
+  }
+  if (!filGymbros.length) {
+    const acceptes = gymbroLiens.filter(l => l.statut === 'acceptee').length;
+    html += `<p class="note fil-vide">${acceptes ? 'Aucune séance partagée par tes gymbros ces 14 derniers jours.' : 'Ajoute des gymbros pour voir leurs séances ici et les encourager.'}
+      <button type="button" class="btn-icone" onclick="ouvrirGymbro()">${acceptes ? 'Mes gymbros' : 'Trouver un gymbro'}</button></p>`;
+  } else {
+    html += filGymbros.slice(0, filGymbrosVisibles).map((f, i) => {
+      const r = resumeSeanceFil(f.donnees);
+      const stats = [r.duree ? `<span><b>${r.duree}</b> min</span>` : '', `<span><b>${r.series}</b> série${r.series > 1 ? 's' : ''}</span>`,
+        r.volume ? `<span><b>${r.volume.toLocaleString('fr-FR')}</b> kg</span>` : ''].join('');
+      return `<div class="fil-carte">
+        <div class="fil-tete"><span class="fil-avatar" aria-hidden="true">${escapeHtml(f.pseudo.charAt(0).toUpperCase())}</span>
+          <div class="fil-qui"><b>@${escapeHtml(f.pseudo)}</b><small>${escapeHtml(dateRelativeFil(f.donnees.date))} · ${escapeHtml(r.titre)}</small></div></div>
+        <div class="fil-stats">${stats}</div>
+        ${r.muscles.length ? `<div class="fil-ligne">${escapeHtml(r.muscles.join(' · '))}</div>` : ''}
+        ${r.meilleure ? `<div class="fil-ligne">Meilleure série : ${escapeHtml(r.meilleure.nom)} · ${escapeHtml(String(r.meilleure.poids).replace('.', ','))} kg × ${r.meilleure.reps}</div>` : ''}
+        <div class="fil-actions">
+          <button type="button" class="fil-respect" aria-pressed="${f.monRespect}" onclick="basculerRespectFil(${i})"><span aria-hidden="true">💪</span> Respect${f.respects ? ' · ' + f.respects : ''}</button>
+          <button type="button" class="btn-icone" onclick="comparerDepuisFil(${argJs(f.pseudo)})">Comparer</button>
+        </div>
+      </div>`;
+    }).join('');
+    if (filGymbros.length > filGymbrosVisibles) html += `<button type="button" class="btn btn-secondaire fil-plus" onclick="filGymbrosVisibles += 8; renderFilGymbros()">Voir plus</button>`;
+  }
+  zone.innerHTML = html;
+  // Le fil est affiché : les respects reçus sont vus.
+  if (nouveaux.length && document.getElementById('ecran-seance')?.classList.contains('actif')) {
+    userProfile.respectsVus = Math.max(...nouveaux.map(r => r.quand));
+    saveData();
+    majPastilleGymbro();
+  }
+}
+async function basculerRespectFil(i) {
+  const f = filGymbros && filGymbros[i];
+  if (!f) return;
+  const actif = !f.monRespect;
+  f.monRespect = actif; f.respects = Math.max(0, f.respects + (actif ? 1 : -1));
+  renderFilGymbros();
+  try {
+    const { data, error } = await supa.rpc('gymbro_respect', { p_pseudo: f.pseudo, p_seance: f.id, p_actif: actif });
+    if (error) throw error;
+    if (Number.isFinite(Number(data))) f.respects = Math.max(0, Number(data));
+  } catch (e) {
+    f.monRespect = !actif; f.respects = Math.max(0, f.respects + (actif ? -1 : 1));
+    alert(messageErreurGymbro(e));
+  }
+  renderFilGymbros();
+}
+function comparerDepuisFil(pseudo) {
+  ouvrirGymbro();
+  comparerGymbro(pseudo);
+}
 const ERREURS_GYMBRO = {
   pseudo_inconnu: "Ce nom d'utilisateur n'existe plus.",
   soi_meme: 'Tu ne peux pas t\'ajouter toi-même.',
   trop_de_demandes: 'Tu as déjà 30 demandes en attente : attends qu\'elles soient acceptées ou annule-en.',
   compte_bloque: 'Ton compte est suspendu.',
+  pas_gymbro: "Vous n'êtes plus gymbros.",
+  seance_inconnue: "Cette séance n'existe plus.",
   non_connecte: 'Connecte-toi pour ajouter un gymbro.'
 };
 function messageErreurGymbro(e) {
@@ -20296,6 +20535,7 @@ window.addEventListener('load', () => {
     if (!document.hidden) {
       synchroniser('retour'); verifierNouvelleVersion();
       if (Date.now() - gymbroLiensDernierChargement > 60000) chargerLiensGymbro();
+      chargerFilGymbros();
     }
   });
   // Référence initiale (aucun rechargement à ce stade, juste la mémoriser) :
