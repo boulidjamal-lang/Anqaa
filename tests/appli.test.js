@@ -362,6 +362,44 @@ test('faisceaux : affichés sur la fiche, réglables dans Administration, donné
   assert.deepEqual(r.piege, { pec_milieu: 0.6, pec_haut: 0.2, pec_bas: 0.2 });
 }));
 
+test('faisceaux des jambes : règles, alertes et mannequin (fiche et statistiques)', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const exo = nom => { const e = toutesLesExercices().find(x => x.nom === nom); if (!e) throw new Error('exercice introuvable : ' + nom); return e; };
+    const res = {};
+    res.legExt = repartitionFaisceaux(exo('Extension des jambes'), 'quadriceps');
+    res.squat = niveauxDepuisPoids(repartitionFaisceaux(exo('Squat avec barre'), 'quadriceps'));
+    res.mollAssis = repartitionFaisceaux(exo('Élévation des mollets assis'), 'mollets');
+    res.abduction = repartitionFaisceaux(exo('Abduction de la hanche à la poulie'), 'fessiers');
+    res.curl = repartitionFaisceaux(exo('Curl des ischio-jambiers en position couchée'), 'ischios');
+    // Semaine : squats (sans les mollets en secondaire), leg curl et mollets debout seulement.
+    const series = n => Array.from({ length: n }, () => ({ poids: 50, reps: 8, fait: true, rir: 1 }));
+    musculationHistorique.unshift({ id: 'jambes', date: todayStr(), exercices: ['Squat avec haltères', 'Curl des ischio-jambiers en position couchée', 'Élévation des Mollets Debout'].map(n => ({ exerciceId: exo(n).id, series: series(6) })) });
+    allerA('stats'); choisirOngletStats('muscu');
+    renderZonesMuscu('muscu-zones-container');
+    res.alertes = {};
+    document.querySelectorAll('#muscu-zones-container details.faisceaux').forEach(d => {
+      res.alertes[d.dataset.groupe] = [...d.querySelectorAll('.alerte-volume-seance')].map(a => a.textContent.trim());
+      if (!d.querySelector('svg.figure-faisceaux')) res.sansFigure = (res.sansFigure || []).concat(d.dataset.groupe);
+    });
+    // Fiche : le mannequin montre les faisceaux, de face et de dos pour un squat.
+    afficherFicheExerciceBiblio(exo('Squat avec barre').id);
+    res.figuresFiche = [...document.querySelectorAll('#fiche-exercice-container .fiche-faisceaux-bloc figcaption')].map(f => f.textContent);
+    res.colores = document.querySelectorAll('#fiche-exercice-container .fiche-faisceaux-bloc svg path[style*="--fx-fiche"]').length;
+    return res;
+  });
+  assert.equal(r.legExt.quad_droit, 0.5);
+  assert.deepEqual(r.squat, { quad_ext: 2, quad_int: 2, quad_droit: 1 });
+  assert.ok(r.mollAssis.mol_soleaire > r.mollAssis.mol_gastro);
+  assert.ok(r.abduction.fes_moyen > r.abduction.fes_grand);
+  assert.ok(r.curl.isch_semi > r.curl.isch_biceps);
+  assert.match(r.alertes.quadriceps.join(' '), /leg extension/);
+  assert.match(r.alertes.ischios.join(' '), /mouvement de hanche/);
+  assert.match(r.alertes.mollets.join(' '), /mollets assis/);
+  assert.equal(r.sansFigure, undefined, 'chaque détail par faisceau a son mannequin');
+  assert.deepEqual(r.figuresFiche, ['Face', 'Dos']);
+  assert.ok(r.colores > 4);
+}));
+
 test('les statistiques s\'affichent sur chaque onglet et chaque période', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     const t = todayStr();

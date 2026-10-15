@@ -94,6 +94,9 @@
       --primary-txt: #ffffff;          /* texte pose SUR la couleur primaire */
       --primary-glow: rgba(0, 112, 58, 0.30);
       --accent: #1552c4;
+      /* Faisceaux musculaires : une couleur par faisceau (bleu, orange, turquoise),
+         et la couleur des faisceaux sur la fiche d'exercice (mannequin sombre). */
+      --fx-1: #2a78d6; --fx-2: #eb6834; --fx-3: #1baf7a; --fx-fiche: #4f9cff;
       --ai-color: #1552c4;
       --ai-solide: #3a5fa8;
       --danger: #c62828;
@@ -188,6 +191,7 @@
       --primary-txt: #04120a;
       --primary-glow: rgba(20, 181, 102, 0.32);
       --accent: #6aa2ff;
+      --fx-1: #3987e5; --fx-2: #d95926; --fx-3: #199e70; --fx-fiche: #4f9cff;
       --ai-color: #6aa2ff;
       --ai-solide: #3a5fa8;
       --danger: #ff6b6b;
@@ -2002,6 +2006,11 @@
     .faisceau-tete span:last-child { color: var(--text-muted); white-space: nowrap; }
     .faisceau-barre { height: 6px; border-radius: 3px; background: var(--verre-lo); overflow: hidden; }
     .faisceau-barre b { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+    .faisceau-pastille { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+    .faisceaux-figures { display: flex; justify-content: center; gap: 14px; margin: 0 0 10px; }
+    .faisceaux-figures figure { margin: 0; text-align: center; min-width: 0; }
+    .faisceaux-figures svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+    .faisceaux-figures figcaption { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); margin-top: 3px; }
     .faisceaux .alerte-volume-seance { margin: 4px 0 8px; }
     .faisceaux-note { font-size: 0.68rem; color: var(--text-muted); margin: 4px 0 0; }
     .zones-legende-item { background: var(--verre-creux); border-left: 3px solid; border-radius: 10px; padding: 8px 11px; font-size: 0.8rem; }
@@ -15723,7 +15732,11 @@ const SERIES_MIN_FAISCEAUX = 4;
 const RAPPEL_FAISCEAUX = {
   pectoraux: 'incliné → haut, décliné et dips → bas, à plat → surtout le milieu',
   epaules: 'développés et élévations frontales → antérieur, élévations latérales → latéral, oiseau et face pull → postérieur',
-  dos: 'tractions et tirages verticaux → largeur, rowings → épaisseur'
+  dos: 'tractions et tirages verticaux → largeur, rowings → épaisseur',
+  quadriceps: 'squats, presse et fentes → surtout les vastes, leg extension et sissy squat → droit fémoral',
+  ischios: 'leg curl et nordic → surtout le semi-tendineux, soulevé de terre roumain et good morning → surtout le biceps fémoral',
+  fessiers: 'hip thrust, squats et soulevés de terre → grand fessier, abductions et exercices sur une jambe → moyen fessier',
+  mollets: 'mollets debout → gastrocnémiens, mollets assis → soléaire, relevés de pointe de pied → tibial antérieur'
 };
 function alertesFaisceaux(groupe, f, total) {
   const v = cle => f[cle] || 0;
@@ -15742,6 +15755,23 @@ function alertesFaisceaux(groupe, f, total) {
       alertes.push('Il y a peu de tirages verticaux. Ajoute des tractions ou du tirage vertical pour la largeur du dos.');
     if (v('dos_epaisseur') < total * 0.35)
       alertes.push('Il y a peu de rowings. Ajoute du rowing pour l\'épaisseur du milieu du dos.');
+  } else if (groupe === 'quadriceps') {
+    if (v('quad_droit') < total * 0.2)
+      alertes.push('Le droit fémoral travaille peu dans les squats et la presse. Ajoute du leg extension.');
+  } else if (groupe === 'ischios') {
+    if (v('isch_biceps') < total * 0.4)
+      alertes.push('Tes ischios travaillent surtout en flexion du genou. Ajoute un mouvement de hanche (soulevé de terre roumain, good morning).');
+    if (v('isch_semi') < total * 0.4)
+      alertes.push('Tes ischios travaillent surtout en extension de hanche. Ajoute du leg curl.');
+  } else if (groupe === 'fessiers') {
+    if (v('fes_moyen') < total * 0.2)
+      alertes.push('Le moyen fessier est peu ciblé (stabilité du bassin et des genoux). Ajoute de l\'abduction de hanche ou des exercices sur une jambe.');
+  } else if (groupe === 'mollets') {
+    const mollet = v('mol_gastro') + v('mol_soleaire');
+    if (mollet >= SERIES_MIN_FAISCEAUX && v('mol_soleaire') < mollet * 0.3)
+      alertes.push('Le soléaire est peu travaillé. Ajoute des mollets assis (genoux pliés).');
+    if (mollet >= SERIES_MIN_FAISCEAUX && v('mol_gastro') < mollet * 0.3)
+      alertes.push('Les gastrocnémiens sont peu travaillés. Ajoute des mollets debout, jambes tendues.');
   }
   return alertes;
 }
@@ -15751,12 +15781,20 @@ function detailFaisceauxHTML(groupe, f) {
   const total = liste.reduce((s, [cle]) => s + (f[cle] || 0), 0);
   if (!(total > 0)) return '';
   const alertes = alertesFaisceaux(groupe, f, total);
+  // Une couleur par faisceau (la même sur la figure et sa barre) ; sur la
+  // figure, plus le faisceau a de séries, plus sa couleur est franche.
+  const max = Math.max(...liste.map(([cle]) => f[cle] || 0));
+  const couleurDe = cle => `var(--fx-${liste.findIndex(([k]) => k === cle) + 1})`;
+  const figure = figuresFaisceauxHTML([groupe], cle => {
+    if (!liste.some(([k]) => k === cle) || !(f[cle] > 0)) return null;
+    return { c: couleurDe(cle), o: (0.3 + 0.7 * f[cle] / max).toFixed(2) };
+  }, 118, false);
   const lignes = liste.map(([cle, nom]) => {
     const n = f[cle] || 0;
     const part = n / total * 100;
     return `<div class="faisceau-ligne">
-      <div class="faisceau-tete"><span>${escapeHtml(nom)}</span><span>${formatSeries(n)} série${arrondiSeries(n) >= 2 ? 's' : ''} · ${Math.round(part)} %</span></div>
-      <div class="faisceau-barre"><b style="width:${part.toFixed(1)}%;"></b></div>
+      <div class="faisceau-tete"><span><i class="faisceau-pastille" style="background:${couleurDe(cle)};"></i>${escapeHtml(nom)}</span><span>${formatSeries(n)} série${arrondiSeries(n) >= 2 ? 's' : ''} · ${Math.round(part)} %</span></div>
+      <div class="faisceau-barre"><b style="width:${part.toFixed(1)}%;background:${couleurDe(cle)};"></b></div>
     </div>`;
   }).join('');
   const avis = alertes.length
@@ -15766,7 +15804,7 @@ function detailFaisceauxHTML(groupe, f) {
     : `<p class="faisceaux-note">${total >= SERIES_MIN_FAISCEAUX ? 'Répartition équilibrée cette semaine.' : 'Encore trop peu de séries pour juger l\'équilibre entre les faisceaux.'}</p>`;
   return `<details class="faisceaux" data-groupe="${escapeHtml(groupe)}">
     <summary>Détail par faisceau${alertes.length ? ` <span class="faisceaux-alerte">· ${alertes.length} point${alertes.length > 1 ? 's' : ''} à surveiller</span>` : ''}</summary>
-    <div class="faisceaux-corps">${lignes}${avis}
+    <div class="faisceaux-corps">${figure}${lignes}${avis}
       <p class="faisceaux-note">Estimation d'après le type de mouvement : ${escapeHtml(RAPPEL_FAISCEAUX[groupe])}.</p>
     </div>
   </details>`;
@@ -17451,13 +17489,17 @@ function faisceauxFicheHTML(exo) {
   const groupes = groupesAFaisceaux(exo);
   if (!groupes.length) return '';
   const estime = groupes.some(g => !niveauxFaisceauxManuels(exo, g));
+  const niveauxPar = {};
+  groupes.forEach(g => { niveauxPar[g] = niveauxFaisceauxManuels(exo, g) || niveauxDepuisPoids(repartitionFaisceauxEstimee(exo, g)); });
+  const tous = Object.assign({}, ...groupes.map(g => niveauxPar[g]));
+  const figure = figuresFaisceauxHTML(groupes, cle => tous[cle] ? { c: 'var(--fx-fiche)', o: tous[cle] === 2 ? 1 : 0.45 } : null, 140, true);
   const lignes = groupes.map(g => {
-    const niveaux = niveauxFaisceauxManuels(exo, g) || niveauxDepuisPoids(repartitionFaisceauxEstimee(exo, g));
+    const niveaux = niveauxPar[g];
     const puces = FAISCEAUX[g].filter(([cle]) => niveaux[cle]).map(([cle, , court]) =>
       `<span class="${niveaux[cle] === 2 ? 'principal' : ''}">${escapeHtml(court)}</span>`).join('');
     return `<div class="fiche-faisceaux"><span class="fiche-faisceaux-groupe">${escapeHtml(GROUPES_MUSCULAIRES[g])}</span>${puces}</div>`;
   }).join('');
-  return `<div class="fiche-faisceaux-bloc"><div class="fiche-faisceaux-titre">Faisceaux</div>${lignes}
+  return `<div class="fiche-faisceaux-bloc"><div class="fiche-faisceaux-titre">Faisceaux</div>${figure}${lignes}
     ${estime ? '<p class="note" style="margin:4px 0 0;">Estimés d\'après le type de mouvement.</p>' : ''}</div>`;
 }
 function afficherFicheExerciceBiblio(id, options) {
@@ -18022,7 +18064,10 @@ function estSerieDeTravail(x, ref) {
    nom de l'exercice (biomécanique classique) : incliné → haut des pecs,
    décliné / dips → bas ; élévation latérale → deltoïde latéral, oiseau /
    face pull → postérieur, développés → antérieur ; tractions et tirages
-   verticaux → grand dorsal (largeur), rowings → milieu du dos (épaisseur).
+   verticaux → grand dorsal (largeur), rowings → milieu du dos (épaisseur) ;
+   leg extension → droit fémoral, squats et presse → vastes ; leg curl →
+   semi-tendineux, soulevés de terre roumains → biceps fémoral ; abduction
+   → moyen fessier ; mollets debout → gastrocnémiens, assis → soléaire.
    Le nom français prime ; le nom anglais ne sert que s'il ne dit rien
    (quelques traductions SmartWorkout se contredisent, ex. « Développé
    Couché Incliné » / « Decline Bench Press »). Un mouvement non reconnu
@@ -18031,7 +18076,11 @@ function estSerieDeTravail(x, ref) {
 const FAISCEAUX = {
   pectoraux: [['pec_haut', 'Haut (claviculaire)', 'Haut'], ['pec_milieu', 'Milieu (sternal)', 'Milieu'], ['pec_bas', 'Bas (abdominal)', 'Bas']],
   epaules: [['delt_ant', 'Deltoïde antérieur', 'Antérieur'], ['delt_lat', 'Deltoïde latéral', 'Latéral'], ['delt_post', 'Deltoïde postérieur', 'Postérieur']],
-  dos: [['dos_largeur', 'Grand dorsal (largeur)', 'Largeur (grand dorsal)'], ['dos_epaisseur', 'Milieu du dos (épaisseur)', 'Épaisseur (milieu du dos)']]
+  dos: [['dos_largeur', 'Grand dorsal (largeur)', 'Largeur (grand dorsal)'], ['dos_epaisseur', 'Milieu du dos (épaisseur)', 'Épaisseur (milieu du dos)']],
+  quadriceps: [['quad_droit', 'Droit fémoral (centre)', 'Droit fémoral'], ['quad_ext', 'Vaste externe', 'Vaste externe'], ['quad_int', 'Vaste interne', 'Vaste interne']],
+  ischios: [['isch_biceps', 'Biceps fémoral (extérieur)', 'Biceps fémoral'], ['isch_semi', 'Semi-tendineux et semi-membraneux (intérieur)', 'Semi-tendineux']],
+  fessiers: [['fes_grand', 'Grand fessier', 'Grand fessier'], ['fes_moyen', 'Moyen fessier', 'Moyen fessier']],
+  mollets: [['mol_gastro', 'Gastrocnémiens (jumeaux)', 'Gastrocnémiens'], ['mol_soleaire', 'Soléaire', 'Soléaire'], ['mol_tibial', 'Tibial antérieur', 'Tibial antérieur']]
 };
 /* Choix fait dans Administration (exo.faisceaux) : par groupe, un niveau
    par faisceau — 2 = principal, 1 = un peu. Il passe avant l'estimation
@@ -18052,10 +18101,12 @@ function poidsDepuisNiveaux(niveaux) {
   return r;
 }
 /* Estimation (poids) → niveaux, pour afficher l'estimation comme un choix :
-   la moitié ou plus = principal, le reste = un peu. */
+   principal = le faisceau le plus sollicité et tout faisceau à 40 % ou
+   plus (les deux vastes d'un squat), le reste = un peu. */
 function niveauxDepuisPoids(poids) {
   const n = {};
-  Object.keys(poids || {}).forEach(k => { if (poids[k] >= 0.5) n[k] = 2; else if (poids[k] > 0) n[k] = 1; });
+  const max = Math.max(0, ...Object.values(poids || {}));
+  Object.keys(poids || {}).forEach(k => { if (poids[k] >= 0.4 || (poids[k] > 0 && poids[k] >= max - 1e-9)) n[k] = 2; else if (poids[k] > 0) n[k] = 1; });
   return n;
 }
 function contient(n, ...mots) { return mots.some(m => n.includes(m)); }
@@ -18095,7 +18146,38 @@ const REGLES_FAISCEAUX = {
     if (contient(n, ' traction', ' tractions', 'pull up', 'pullup', 'chin up', 'chinup', 'tirage vertical', 'tirage poitrine', 'nuque', 'poulie haute', 'pulldown', 'pull down',
       'pullover', 'pull over', 'bras tendus', 'straight arm', 'muscle up', 'lever', 'grimper de corde', 'rope climb', 'suspension', 'tirage incline')) return { dos_largeur: 0.8, dos_epaisseur: 0.2 };
     return null;
+  },
+  quadriceps: n => {
+    if (contient(n, 'leg extension', 'extension des jambes', 'extension de jambe', 'extension de la jambe', 'extension du genou', 'extension terminale du genou', 'sissy', 'knee extension')) return { quad_droit: 0.5, quad_ext: 0.25, quad_int: 0.25 };
+    if (contient(n, 'flechisseur', 'hip flexor', 'releve de jambe', 'releve des jambes', 'releves de jambes', 'releve de genou', 'leg raise', 'knee raise', 'montee de genou')) return { quad_droit: 1 };
+    if (contient(n, 'squat', 'presse', 'press', 'fente', 'lunge', 'hack', 'step up', 'montee sur', 'pistol', 'chaise', 'wall sit', 'saut', 'jump', 'bulgare', 'split')) return { quad_ext: 0.45, quad_int: 0.4, quad_droit: 0.15 };
+    return null;
+  },
+  ischios: n => {
+    if (contient(n, 'leg curl', 'curl des ischio', 'curl ischio', 'curl des jambes', 'flexion des jambes', 'flexion de jambe', 'flexion du genou', 'flexion des genoux', 'nordic', 'nordique', 'glute ham', 'ischio jambiers glutea', 'hamstring curl', 'lying curl', 'seated curl')) return { isch_semi: 0.65, isch_biceps: 0.35 };
+    if (contient(n, 'souleve de terre', 'deadlift', 'roumain', 'romanian', 'jambes tendues', 'stiff leg', 'good morning', 'hyperextension', 'extension lombaire', 'extension du dos', 'extension de hanche', 'extension de la hanche', 'hip extension', 'back extension', 'swing', 'balancement', 'pull through', 'charniere', 'hinge')) return { isch_biceps: 0.65, isch_semi: 0.35 };
+    return null;
+  },
+  fessiers: n => {
+    if (contient(n, 'abduction', 'abducteur', 'fire hydrant', 'marche laterale', 'pas chasse', 'monster walk', 'marche monstre', 'clamshell', 'coquille', 'elevation laterale de la jambe', 'releve lateral', 'side lying', 'allonge sur le cote', 'side leg', 'lateral walk', 'crab walk', 'marche du crabe')) return { fes_moyen: 0.8, fes_grand: 0.2 };
+    if (contient(n, 'fente', 'lunge', 'bulgare', 'split squat', 'step up', 'montee sur', 'pistol', 'unilateral', 'une jambe', 'single leg', 'one leg', 'curtsy', 'reverence')) return { fes_grand: 0.65, fes_moyen: 0.35 };
+    if (contient(n, 'hip thrust', 'pont', 'bridge', 'squat', 'souleve', 'deadlift', 'kickback', 'coup de pied', 'extension de hanche', 'extension de la hanche', 'hip extension', 'presse', 'good morning', 'swing', 'balancement')) return { fes_grand: 0.85, fes_moyen: 0.15 };
+    return null;
+  },
+  mollets: n => {
+    if (contient(n, 'tibial', 'tibia', 'releve des orteils', 'releve de pointe', 'dorsiflexion', 'toe raise')) return { mol_tibial: 1 };
+    if (contient(n, 'assis', 'seated')) return { mol_soleaire: 0.75, mol_gastro: 0.25 };
+    if (contient(n, 'mollet', 'calf', 'calves', 'pointe des pieds', 'pointes de pieds', 'donkey', 'flexion plantaire')) return { mol_gastro: 0.75, mol_soleaire: 0.25 };
+    return null;
   }
+};
+/* Répartition quand rien n'est reconnu (jambes) : mouvement polyarticulaire
+   ou exercice non classé, à parts à peu près égales. */
+const FAISCEAUX_PAR_DEFAUT = {
+  quadriceps: { quad_droit: 1 / 3, quad_ext: 1 / 3, quad_int: 1 / 3 },
+  ischios: { isch_biceps: 0.5, isch_semi: 0.5 },
+  fessiers: { fes_grand: 0.75, fes_moyen: 0.25 },
+  mollets: { mol_gastro: 0.5, mol_soleaire: 0.5 }
 };
 function repartitionFaisceaux(exo, groupe) {
   const manuels = niveauxFaisceauxManuels(exo, groupe);
@@ -18117,6 +18199,10 @@ function repartitionFaisceauxEstimee(exo, groupe) {
       || { delt_ant: 1 / 3, delt_lat: 1 / 3, delt_post: 1 / 3 };
   }
   if (groupe === 'dos') return parNom(REGLES_FAISCEAUX.dos) || { dos_largeur: 0.5, dos_epaisseur: 0.5 };
+  // Mollets en muscle secondaire (leg curl, squats, sauts) : ce sont surtout
+  // les gastrocnémiens, qui croisent aussi le genou.
+  if (groupe === 'mollets' && exo.groupe !== 'mollets') return parNom(REGLES_FAISCEAUX.mollets) || { mol_gastro: 0.7, mol_soleaire: 0.3 };
+  if (FAISCEAUX_PAR_DEFAUT[groupe]) return parNom(REGLES_FAISCEAUX[groupe]) || FAISCEAUX_PAR_DEFAUT[groupe];
   return null;
 }
 function ajouterFaisceaux(acc, exo, groupe, n) {
@@ -18498,6 +18584,63 @@ function figureCorpsSVG(vue, c, femme, x) {
   }).join('');
   return `<svg x="${x}" y="0" width="205" height="440" viewBox="${planche.vb[vue]}">
     <path d="${planche.contour[vue]}" fill="#1b1c1f" stroke="#111113" stroke-width="1.2" vector-effect="non-scaling-stroke"/>${muscles}</svg>`;
+}
+/* Faisceaux sur le mannequin. Chaque pièce : [faisceau, n° du muscle dans
+   MANNEQUIN[sexe][vue], n° du tracé, rectangle de découpe ou null]. Les
+   jambes et le dos sont déjà dessinés muscle par muscle ; les pectoraux
+   (trois bandes) et les deltoïdes d'un seul tenant (avant ou arrière d'un
+   côté, latéral de l'autre) sont découpés. cadres : zone à montrer pour
+   chaque groupe, par vue. Généré à partir des tracés du mannequin. */
+const MANNEQUIN_FAISCEAUX = {"pieces":{"homme":{"face":[["pec_haut",0,0,[249,311,115,51]],["pec_milieu",0,0,[249,362,115,42]],["pec_bas",0,0,[249,404,115,37]],["pec_haut",0,1,[363,311,116,51]],["pec_milieu",0,1,[363,362,116,42]],["pec_bas",0,1,[363,404,116,37]],["delt_lat",7,0,[189,297,48,105]],["delt_ant",7,0,[237,297,48,105]],["delt_ant",7,1,[444,297,48,105]],["delt_lat",7,1,[492,297,48,105]],["quad_droit",9,0,null],["quad_droit",9,3,null],["quad_ext",9,1,null],["quad_ext",9,4,null],["quad_int",9,2,null],["quad_int",9,5,null],["mol_tibial",11,0,null],["mol_tibial",11,1,null],["mol_gastro",12,1,null],["mol_gastro",12,3,null],["mol_soleaire",12,0,null],["mol_soleaire",12,2,null]],"dos":[["delt_lat",2,0,[908,305,36,99]],["delt_post",2,0,[944,305,43,99]],["delt_post",2,1,[1180,305,43,99]],["delt_lat",2,1,[1223,305,36,99]],["dos_epaisseur",3,0,null],["dos_epaisseur",3,2,null],["dos_epaisseur",3,3,null],["dos_epaisseur",3,4,null],["dos_largeur",3,1,null],["dos_largeur",3,5,null],["fes_moyen",7,0,null],["fes_moyen",7,2,null],["fes_grand",7,1,null],["fes_grand",7,3,null],["isch_biceps",9,0,null],["isch_biceps",9,2,null],["isch_biceps",9,4,null],["isch_biceps",9,7,null],["isch_semi",9,1,null],["isch_semi",9,3,null],["isch_semi",9,5,null],["isch_semi",9,6,null],["mol_gastro",10,0,null],["mol_gastro",10,2,null],["mol_gastro",10,4,null],["mol_gastro",10,5,null],["mol_soleaire",10,1,null],["mol_soleaire",10,3,null],["mol_soleaire",10,6,null],["mol_soleaire",10,7,null]]},"femme":{"face":[["pec_haut",5,0,[209,313,114,49]],["pec_milieu",5,0,[209,362,114,41]],["pec_bas",5,0,[209,403,114,36]],["pec_haut",5,1,[318,313,114,49]],["pec_milieu",5,1,[318,362,114,41]],["pec_bas",5,1,[318,403,114,36]],["delt_ant",3,1,null],["delt_ant",3,3,null],["delt_lat",3,0,null],["delt_lat",3,2,null],["quad_droit",13,0,null],["quad_droit",13,3,null],["quad_ext",13,1,null],["quad_ext",13,4,null],["quad_int",13,2,null],["quad_int",13,5,null],["mol_tibial",15,0,null],["mol_tibial",15,1,null],["mol_gastro",16,0,null],["mol_gastro",16,2,null],["mol_soleaire",16,1,null],["mol_soleaire",16,3,null]],"dos":[["delt_lat",3,0,[985,282,36,96]],["delt_post",3,0,[1021,282,43,96]],["delt_post",3,1,[1225,282,40,96]],["delt_lat",3,1,[1265,282,34,96]],["dos_epaisseur",4,0,null],["dos_epaisseur",4,2,null],["dos_largeur",4,1,null],["dos_largeur",4,3,null],["fes_moyen",9,0,null],["fes_moyen",9,3,null],["fes_grand",9,1,null],["fes_grand",9,2,null],["isch_biceps",11,0,null],["isch_biceps",11,1,null],["isch_biceps",11,5,null],["isch_biceps",11,3,null],["isch_semi",11,2,null],["isch_semi",11,4,null],["mol_gastro",12,0,null],["mol_gastro",12,2,null],["mol_gastro",12,4,null],["mol_gastro",12,7,null],["mol_soleaire",12,1,null],["mol_soleaire",12,3,null],["mol_soleaire",12,5,null],["mol_soleaire",12,6,null]]}},"cadres":{"homme":{"face":{"pectoraux":[255,317,218,118],"epaules":[195,303,339,93],"quadriceps":[241,667,246,281],"mollets":[251,973,226,259]},"dos":{"epaules":[914,311,339,87],"dos":[956,323,255,262],"fessiers":[976,619,214,159],"ischios":[962,741,243,266],"mollets":[970,972,227,318]}},"femme":{"face":{"pectoraux":[215,319,211,114],"epaules":[167,285,307,85],"quadriceps":[195,622,251,347],"mollets":[227,1054,188,243]},"dos":{"epaules":[991,288,302,84],"dos":[1028,314,229,227],"fessiers":[1016,600,254,192],"ischios":[1016,760,254,241],"mollets":[1050,987,185,375]}}}};
+function femmeProfil() { return typeof userProfile !== 'undefined' && !!userProfile && userProfile.gender === 'f'; }
+let compteurDecoupeFaisceaux = 0;
+/* couleur(faisceau) -> { c: couleur CSS, o: opacité } ou null (neutre). */
+function figureFaisceauxSVG(vue, couleur, femme, cadre, hauteur) {
+  const sexe = femme ? 'femme' : 'homme';
+  const planche = MANNEQUIN[sexe];
+  const base = planche[vue].map(([slug, traces]) => traces.map(d => `<path d="${d}" fill="${slug === 'hair' ? '#2f3035' : '#3a3b40'}"/>`).join('')).join('');
+  let decoupes = '', dessus = '';
+  MANNEQUIN_FAISCEAUX.pieces[sexe][vue].forEach(([f, si, pi, rect]) => {
+    const c = couleur(f);
+    if (!c) return;
+    let attr = '';
+    if (rect) {
+      const id = 'decoupe-faisceau-' + (++compteurDecoupeFaisceaux);
+      decoupes += `<clipPath id="${id}"><rect x="${rect[0]}" y="${rect[1]}" width="${rect[2]}" height="${rect[3]}"/></clipPath>`;
+      attr = ` clip-path="url(#${id})"`;
+    }
+    dessus += `<path d="${planche[vue][si][1][pi]}" style="fill:${c.c}" fill-opacity="${c.o}"${attr}/>`;
+  });
+  const vb = cadre || planche.vb[vue].split(' ').map(Number);
+  const largeur = Math.round(hauteur * vb[2] / vb[3]);
+  return `<svg class="figure-faisceaux" width="${largeur}" height="${hauteur}" viewBox="${vb.join(' ')}" aria-hidden="true"><defs>${decoupes}</defs>
+    <path d="${planche.contour[vue]}" fill="#1b1c1f" stroke="#111113" stroke-width="1.2" vector-effect="non-scaling-stroke"/>${base}${dessus}</svg>`;
+}
+/* Zone à montrer pour ces groupes dans une vue (null si aucun n'y figure),
+   avec une marge et au moins un peu de hauteur pour garder le contexte. */
+function cadreFaisceaux(femme, vue, groupes) {
+  const cadres = MANNEQUIN_FAISCEAUX.cadres[femme ? 'femme' : 'homme'][vue];
+  const boites = groupes.map(g => cadres[g]).filter(Boolean);
+  if (!boites.length) return null;
+  let x0 = Math.min(...boites.map(b => b[0])), y0 = Math.min(...boites.map(b => b[1]));
+  let x1 = Math.max(...boites.map(b => b[0] + b[2])), y1 = Math.max(...boites.map(b => b[1] + b[3]));
+  const marge = 0.18 * Math.max(x1 - x0, y1 - y0);
+  x0 -= marge; x1 += marge; y0 -= marge; y1 += marge;
+  const hMin = (x1 - x0) * 0.55;
+  if (y1 - y0 < hMin) { const e = (hMin - (y1 - y0)) / 2; y0 -= e; y1 += e; }
+  return [x0, y0, x1 - x0, y1 - y0].map(Math.round);
+}
+/* Une figure par vue (face, dos) où les groupes ont des faisceaux ; avec
+   seulementColores, les vues sans aucun faisceau coloré sont omises. */
+function figuresFaisceauxHTML(groupes, couleur, hauteur, seulementColores) {
+  const femme = femmeProfil();
+  const sexe = femme ? 'femme' : 'homme';
+  const vues = ['face', 'dos'].filter(vue => {
+    const pieces = MANNEQUIN_FAISCEAUX.pieces[sexe][vue].filter(([f]) => groupes.some(g => FAISCEAUX[g].some(([cle]) => cle === f)));
+    return pieces.length && (!seulementColores || pieces.some(([f]) => couleur(f)));
+  });
+  if (!vues.length) return '';
+  return `<div class="faisceaux-figures">${vues.map(vue => `<figure>${figureFaisceauxSVG(vue, couleur, femme, cadreFaisceaux(femme, vue, groupes), hauteur)}<figcaption>${vue === 'face' ? 'Face' : 'Dos'}</figcaption></figure>`).join('')}</div>`;
 }
 /* La silhouette suit le sexe choisi à la création du compte (Profil) :
    femme -> mannequin féminin, sinon masculin. */
