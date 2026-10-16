@@ -7052,6 +7052,24 @@ function round1(v) { return v == null ? '' : Math.round(Number(v) * 10) / 10; }
    ===================================================================== */
 let cacheHistorique = null;
 
+/* Nom actuel d'un aliment, par code-barres. Les repas passés gardent le nom
+   qu'avait l'aliment ce jour-là : sans cette mémoire, un aliment renommé
+   (Administration, ou « Mes aliments ») restait affiché sous son ancien nom
+   dans « Déjà mangé ». Alimentée à chaque renommage et par les résultats de
+   recherche qui portent un code-barres connu de l'historique. */
+const NOMS_PAR_CODE_LS = 'anqaa_noms_par_code';
+let nomsParCode = (() => {
+  try { const o = JSON.parse(localStorage.getItem(NOMS_PAR_CODE_LS) || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; }
+})();
+function retenirNomParCode(code, nom) {
+  code = String(code || '').trim(); nom = String(nom || '').trim();
+  if (!code || !nom || nomsParCode[code] === nom) return false;
+  nomsParCode[code] = nom;
+  try { localStorage.setItem(NOMS_PAR_CODE_LS, JSON.stringify(nomsParCode)); } catch (e) {}
+  invaliderHistorique();
+  return true;
+}
+
 function construireHistorique() {
   const parCle = new Map();
   const jours = Object.keys(appData).sort();   // du plus ancien au plus récent
@@ -7067,10 +7085,12 @@ function construireHistorique() {
         const g = Number(it && it.grams);
         if (!nom || !(g > 0)) return;          // sans quantité, impossible de ramener à 100 g
 
-        const cle = nom.toLowerCase();
+        // Même code-barres = même produit, quel que soit le nom qu'il portait.
+        const code = it.code ? String(it.code).trim() : '';
+        const cle = code ? 'code:' + code : nom.toLowerCase();
         const f = 100 / g;
         const e = parCle.get(cle) || { nom, fois: 0 };
-        e.nom = nom;                            // la casse la plus récente gagne
+        e.nom = (code && nomsParCode[code]) || nom;   // nom actuel, sinon le plus récent
         e.fois++;
         e.dernierJour = ds;
         e.grammes = Math.round(g * 10) / 10;    // la dernière quantité utilisée
@@ -21424,27 +21444,38 @@ const afficherRechercheOrigine = afficherRecherche;
    recherche d'ingrédient dans « Créer une recette » s'en sert aussi,
    plutôt que de dupliquer la fusion des quatre sources. */
 async function rechercherTousAliments(query) {
-  const deja = chercherDansHistorique(query, 40);
-  const dejaNoms = new Set(deja.map(p => normaliserRecherche(p.name)));
-
   const [reponseBase, partages, usda] = await Promise.all([
     chercherAlimentsSupabase(query),
     chercherAlimentsPartages(query),
     chercherUSDA(query)
   ]);
 
+  /* Un code-barres de l'historique retrouvé dans la base ou les aliments
+     partagés : on retient son nom actuel (renommé entre-temps), l'aliment
+     perso l'emportant, avant de relire l'historique. */
+  const partagesF = partages.map(versFormatSuggestion);
+  const codesDeja = new Set(historique().filter(e => e.code).map(e => e.code));
+  partagesF.concat((reponseBase.aliments || []).slice().sort((a, b) => (a.source === 'perso') - (b.source === 'perso')))
+    .forEach(a => { const c = a.code ? String(a.code).trim() : ''; if (c && codesDeja.has(c)) retenirNomParCode(c, a.name); });
+
+  const deja = chercherDansHistorique(query, 40);
+  const dejaNoms = new Set(deja.map(p => normaliserRecherche(p.name)));
+  const dejaCodes = new Set(deja.filter(p => p.code).map(p => String(p.code).trim()));
+
   const vus = new Set(dejaNoms);
   const ajouter = (liste, out) => {
     liste.forEach(item => {
       const n = normaliserRecherche(item.name);
       if (vus.has(n)) return;
+      // Même code-barres qu'un aliment déjà mangé : c'est le même produit.
+      if (item.code && dejaCodes.has(String(item.code).trim())) return;
       vus.add(n);
       out.push(item);
     });
   };
 
   const suite = [];
-  ajouter(partages.map(versFormatSuggestion), suite);          // aliments des utilisateurs d'abord
+  ajouter(partagesF, suite);                                   // aliments des utilisateurs d'abord
   ajouter(reponseBase.aliments || [], suite);                  // puis la base CIQUAL
   ajouter(usda.map(versFormatSuggestion), suite);              // USDA en dernier recours
 
@@ -22108,6 +22139,7 @@ async function sauvegarderEditionAliment() {
       })
       .eq('id', id);
     if (error) throw error;
+    retenirNomParCode(val('edit-code-barre'), nom);
 
     {
       const avant = adminAlimentsCharges.find(x => String(x.id) === String(id)) || {};
@@ -22151,6 +22183,7 @@ async function sauvegarderAlimentBase(modal) {
     }
     if (error) throw error;
     cacheAliments.clear();
+    retenirNomParCode(val('edit-code-barre'), nom);
     const avantBase = (baseAlimentsAffiches || []).find(x => String(x.cle) === String(modal.dataset.cleBase)) || {};
     await consignerAction('aliment_base_modifie', modal.dataset.cleBase, nom, null, {
       avant: { nom: avantBase.nom, code_barre: avantBase.code_barre || '', kcal100: avantBase.kcal100, p100: avantBase.p100, c100: avantBase.c100, f100: avantBase.f100 },
