@@ -2546,6 +2546,12 @@
     #note-bilan-jour { margin: 0 0 8px; }
     #carte-bilan-jour #note-cle-ia { margin-top: 6px !important; }
     .carte-stats--compacte { padding: 10px 14px; margin-bottom: 10px; }
+    #ecran-repas .macro-item { cursor: pointer; border-radius: 10px; -webkit-tap-highlight-color: transparent; }
+    #ecran-repas .macro-item:active { background: var(--verre-lo); }
+    .macro-pastille { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 2px; }
+    .macro-stat { border-radius: 16px; transition: box-shadow 0.3s; }
+    .macro-stat--vise { animation: macroVise 1.8s ease-out; }
+    @keyframes macroVise { 0%, 40% { box-shadow: 0 0 0 2px var(--primary); } 100% { box-shadow: 0 0 0 2px transparent; } }
     .carte-stats--compacte:last-child { margin-bottom: 16px; }
     .carte-stats--compacte .carte-stats-haut { gap: 10px; }
     .carte-stats--compacte .carte-stats-titre { font-size: 0.64rem; }
@@ -2820,19 +2826,19 @@
       <div class="reste-kcal" id="reste-kcals">—</div>
       <div class="jauge"><i id="jauge-kcal"></i></div>
       <div class="macros-bar">
-        <div class="macro-item">
+        <div class="macro-item" role="button" tabindex="0" aria-label="Protéines : voir la courbe et l'objectif" onclick="event.stopPropagation(); ouvrirMacro('p')" onkeydown="if(event.key==='Enter'){event.stopPropagation(); ouvrirMacro('p');}">
           <div class="macro-val" id="total-p">0 / 0g</div>
           <div class="macro-lbl">Protéines</div>
           <div class="macro-jauge" id="piste-p"><i id="jauge-p" style="background:var(--protein)"></i></div>
           <div class="macro-pct" id="pct-p">0 %</div>
         </div>
-        <div class="macro-item">
+        <div class="macro-item" role="button" tabindex="0" aria-label="Glucides : voir la courbe et l'objectif" onclick="event.stopPropagation(); ouvrirMacro('c')" onkeydown="if(event.key==='Enter'){event.stopPropagation(); ouvrirMacro('c');}">
           <div class="macro-val" id="total-c">0 / 0g</div>
           <div class="macro-lbl">Glucides</div>
           <div class="macro-jauge" id="piste-c"><i id="jauge-c" style="background:var(--carbs)"></i></div>
           <div class="macro-pct" id="pct-c">0 %</div>
         </div>
-        <div class="macro-item">
+        <div class="macro-item" role="button" tabindex="0" aria-label="Lipides : voir la courbe et l'objectif" onclick="event.stopPropagation(); ouvrirMacro('f')" onkeydown="if(event.key==='Enter'){event.stopPropagation(); ouvrirMacro('f');}">
           <div class="macro-val" id="total-f">0 / 0g</div>
           <div class="macro-lbl">Lipides</div>
           <div class="macro-jauge" id="piste-f"><i id="jauge-f" style="background:var(--fat)"></i></div>
@@ -3027,8 +3033,21 @@
       <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6" /><path d="m22 7-8.5 8.5-5-5L2 17" /></svg> Calories (consommées vs objectif)</div>
       <div class="chart-container"><canvas id="caloriesChart"></canvas></div>
 
-      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.4 13.7A6.5 6.5 0 1 0 6.28 6.6c-1.1 3.13-.78 3.9-3.18 6.08A3 3 0 0 0 5 18c4 0 8.4-1.8 11.4-4.3" /><path d="m18.5 6 1.754 3.5a6.48 6.48 0 0 1-1.854 8.2C15.4 20.2 11 22 7 22a3 3 0 0 1-2.68-1.66L2.4 16.5" /><circle cx="12.5" cy="8.5" r="2.5" /></svg> Macronutriments</div>
-      <div class="chart-container"><canvas id="macrosChart"></canvas></div>
+      <!-- Une macro par graphique, chacune face à son objectif du jour (qui
+           varie avec le poids et l'activité). Toucher une macro dans le
+           résumé de Repas du jour ouvre ce détail sur la bonne (ouvrirMacro). -->
+      <div class="macro-stat" id="macro-stat-p">
+        <div class="titre-section"><i class="macro-pastille" style="background:var(--protein)"></i> Protéines (g) — consommées vs objectif</div>
+        <div class="chart-container"><canvas id="macroChart-p"></canvas></div>
+      </div>
+      <div class="macro-stat" id="macro-stat-c">
+        <div class="titre-section"><i class="macro-pastille" style="background:var(--carbs)"></i> Glucides (g) — consommés vs objectif</div>
+        <div class="chart-container"><canvas id="macroChart-c"></canvas></div>
+      </div>
+      <div class="macro-stat" id="macro-stat-f">
+        <div class="titre-section"><i class="macro-pastille" style="background:var(--fat)"></i> Lipides (g) — consommés vs objectif</div>
+        <div class="chart-container"><canvas id="macroChart-f"></canvas></div>
+      </div>
 
       <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg> Eau bue (vs objectif)</div>
       <div class="chart-container"><canvas id="eauChart"></canvas></div>
@@ -5300,7 +5319,7 @@ let detectedBufferGemini = [];
 let typeDetectionGemini = 'aliment'; // 'aliment' ou 'recette' — déterminé par Gemini à l'analyse
 let nomRecetteGemini = '';
 
-let caloriesChartInstance = null, macrosChartInstance = null, stepsChartInstance = null, workoutChartInstance = null;
+let caloriesChartInstance = null, macroChartsInstances = {}, stepsChartInstance = null, workoutChartInstance = null;
 let eauChartInstance = null;
 let compoChartsInstances = [];
 let poidsChartInstance = null;
@@ -8631,6 +8650,7 @@ const JOURS_STATS = 365;
 function buildMasterArrays() {
   globalMasterLabels = []; globalMasterConsumed = []; globalMasterTarget = [];
   globalMasterProtein = []; globalMasterCarbs = []; globalMasterFat = [];
+  globalMasterCibleP = []; globalMasterCibleC = []; globalMasterCibleF = [];
   globalMasterSteps = []; globalMasterWorkoutData = {}; globalMasterEauBue = [];
   globalMasterEauObjectif = [];
   globalMasterWeight = []; globalMasterRempli = []; globalMasterSportMin = [];
@@ -8656,6 +8676,7 @@ function buildMasterArrays() {
     if (d) {
       const totals = sumMeals(getDay(ds)); const t = computeTargets(getDay(ds), ds);
       globalMasterConsumed.push(totals.kcal); globalMasterTarget.push(t.target);
+      globalMasterCibleP.push(t.protein); globalMasterCibleC.push(t.carbs); globalMasterCibleF.push(t.fat);
       globalMasterProtein.push(totals.p); globalMasterCarbs.push(totals.c); globalMasterFat.push(totals.f);
       globalMasterSteps.push(Number(d.steps) || 0);
       globalMasterEauBue.push(Number(d.eauMl) || 0);
@@ -8693,6 +8714,7 @@ function buildMasterArrays() {
          qu'un trou de saisie, et l'échelle de l'axe s'en trouvait écrasée.
          Chart.js laisse simplement un vide sur une valeur nulle. */
       globalMasterConsumed.push(null); globalMasterTarget.push(null);
+      globalMasterCibleP.push(null); globalMasterCibleC.push(null); globalMasterCibleF.push(null);
       globalMasterProtein.push(null); globalMasterCarbs.push(null); globalMasterFat.push(null);
       globalMasterSteps.push(null);
       globalMasterEauBue.push(null);
@@ -8712,6 +8734,7 @@ function buildMasterArrays() {
 }
 
 let globalMasterLabels = [], globalMasterConsumed = [], globalMasterTarget = [];
+let globalMasterCibleP = [], globalMasterCibleC = [], globalMasterCibleF = [];
 let globalMasterProtein = [], globalMasterCarbs = [], globalMasterFat = [], globalMasterSteps = [];
 let globalMasterEauBue = [], globalMasterEauObjectif = [];
 let globalMasterWorkoutData = {};
@@ -9053,6 +9076,18 @@ function ouvrirStats(onglet) {
   if (ecranActif !== 'stats') ecranAvantStats = ecranActif;
   allerA('stats');
   choisirOngletStats(onglet);
+}
+/* Repas du jour › une macro du résumé : ouvre le détail Nutrition sur le
+   graphique de cette macro, mis en évidence un instant. */
+function ouvrirMacro(cle) {
+  ouvrirStats('nutrition');
+  setTimeout(() => {
+    const bloc = document.getElementById('macro-stat-' + cle);
+    if (!bloc) return;
+    bloc.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    bloc.classList.remove('macro-stat--vise'); void bloc.offsetWidth;
+    bloc.classList.add('macro-stat--vise');
+  }, 250);
 }
 function fermerStats() {
   allerA(ecranAvantStats && ecranAvantStats !== 'stats' ? ecranAvantStats : 'repas');
@@ -9471,14 +9506,23 @@ function renderChartsNutrition(s, e) {
       { label: 'Objectif', data: globalMasterTarget.slice(s, e + 1), borderColor: cAccent, borderDash: [5, 5], tension: 0.35, pointRadius: 0, fill: false, borderWidth: 2, spanGaps: false }
     ] }, options: optionsGraphiqueBase(p, { avecLegende: true })
   });
-  if (macrosChartInstance) macrosChartInstance.destroy();
-  macrosChartInstance = new Chart(document.getElementById('macrosChart'), {
-    type: 'bar',
-    data: { labels, datasets: [
-      { label: 'Prot.', data: globalMasterProtein.slice(s, e + 1), backgroundColor: cProt, borderRadius: rayonPileBarres(0, 3, 5), borderSkipped: false },
-      { label: 'Gluc.', data: globalMasterCarbs.slice(s, e + 1), backgroundColor: cGluc, borderRadius: rayonPileBarres(1, 3, 5), borderSkipped: false },
-      { label: 'Lip.', data: globalMasterFat.slice(s, e + 1), backgroundColor: cLip, borderRadius: rayonPileBarres(2, 3, 5), borderSkipped: false }
-    ] }, options: Object.assign({}, optionsGraphiqueBase(p, { avecLegende: true }), { scales: Object.assign({}, baseOpts.scales, { x: Object.assign({ stacked: true }, baseOpts.scales.x), y: Object.assign({ stacked: true }, baseOpts.scales.y) }) })
+  // Une macro par graphique : empilées, les trois se lisaient mal et sans
+  // objectif. Ici la quantité du jour en aire pleine, l'objectif du jour en
+  // pointillés (comme Calories), une échelle propre à chaque macro.
+  Object.values(macroChartsInstances).forEach(c => c.destroy());
+  macroChartsInstances = {};
+  [['p', 'Protéines', globalMasterProtein, globalMasterCibleP, cProt],
+   ['c', 'Glucides', globalMasterCarbs, globalMasterCibleC, cGluc],
+   ['f', 'Lipides', globalMasterFat, globalMasterCibleF, cLip]].forEach(([cle, nom, valeurs, cibles, couleur]) => {
+    const canvas = document.getElementById('macroChart-' + cle);
+    if (!canvas) return;
+    macroChartsInstances[cle] = new Chart(canvas, {
+      type: 'line',
+      data: { labels, datasets: [
+        { label: nom + ' (g)', data: valeurs.slice(s, e + 1), borderColor: couleur, backgroundColor: couleurAlpha(couleur, 0.16), tension: 0.35, fill: true, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2, spanGaps: false },
+        { label: 'Objectif', data: cibles.slice(s, e + 1), borderColor: p.texte, borderDash: [5, 5], tension: 0.35, pointRadius: 0, fill: false, borderWidth: 2, spanGaps: false }
+      ] }, options: optionsGraphiqueBase(p, { avecLegende: true })
+    });
   });
   // Même traitement visuel que le graphique Calories juste au-dessus : une
   // ligne lissée avec aire remplie, plutôt que des barres plates — pour une
@@ -10190,7 +10234,7 @@ function initFabDeplacable() {
    ===================================================================== */
 const TOUR_ETAPES = [
   { titre: 'Bienvenue sur Anqā', texte: "Un tour rapide de l'appli : la nutrition, l'activité, les statistiques et ton profil. Tu peux le quitter à tout moment et le revoir depuis Profil › Réglages (engrenage). Une visite dédiée à la musculation existe aussi." },
-  { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: "Calories consommées, ce qu'il te reste et la répartition protéines / glucides / lipides. Touche la carte pour voir le détail de ta dépense du jour." },
+  { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: "Calories consommées, ce qu'il te reste et la répartition protéines / glucides / lipides. Touche une macro pour voir sa courbe face à ton objectif, ou le reste de la carte pour le détail de ta dépense du jour." },
   { ecran: 'repas', cible: '#cartes-stats-repas', titre: 'Poids et nutrition', texte: "Ton poids et ta nutrition des 14 derniers jours, d'un coup d'œil. Touche une carte pour le détail : courbe de poids et composition corporelle, ou calories et macros." },
   { ecran: 'repas', cible: '.ajout-rapide', titre: 'Ajouter à un repas', texte: "Toujours en bas de l'écran : quatre façons d'ajouter, une recette, un aliment, une photo ou un code-barres. Le repas visé est demandé juste après." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-recette', titre: 'Recette', texte: "Tes recettes enregistrées, et celles partagées par l'équipe : une portion s'ajoute en un toucher, macros déjà calculées." },

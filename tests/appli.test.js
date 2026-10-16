@@ -520,6 +520,32 @@ test("barre d'ajout flottante : toujours visible sur Repas du jour, absente aill
   assert.equal(await page.isVisible('#ajout-rapide'), false);
 }));
 
+test('Repas du jour : toucher une macro ouvre sa courbe face à son objectif', () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => {
+    const t = todayStr();
+    for (let k = 0; k < 10; k++) { const d = shiftDate(t, -k); getDay(d).meals[MEALS[0]].push({ name: 'Test', kcal: 1800, p: 120 + k, c: 200, f: 60 }); saveData(d); }
+    allerA('repas'); renderApp();
+  });
+  await page.click('#ecran-repas .macro-item:nth-child(1)');
+  // Le reste de la carte ouvre toujours la dépense, mais pas la macro.
+  assert.equal(await page.evaluate(() => document.getElementById('depense-modal').classList.contains('show')), false);
+  await page.waitForFunction(() => Object.keys(macroChartsInstances).length === 3);
+  await page.waitForTimeout(400);
+  const r = await page.evaluate(() => {
+    const c = macroChartsInstances.p, b = document.getElementById('macro-stat-p').getBoundingClientRect();
+    const cible = computeTargets(getDay(todayStr()), todayStr()).protein;
+    return { ecran: ecranActif, titre: document.getElementById('stats-titre').textContent,
+      series: c.data.datasets.map(d => d.label), dernier: c.data.datasets[0].data.at(-1), objectif: c.data.datasets[1].data.at(-1) === cible,
+      visible: b.top >= 0 && b.bottom <= innerHeight, vise: document.getElementById('macro-stat-p').classList.contains('macro-stat--vise'),
+      ancien: !!document.getElementById('macrosChart') };
+  });
+  assert.deepEqual(r, { ecran: 'stats', titre: 'Ma nutrition', series: ['Protéines (g)', 'Objectif'], dernier: 120, objectif: true, visible: true, vise: true, ancien: false });
+  await page.click('#ecran-stats .stats-entete button');
+  await page.click('#ecran-repas .macro-item:nth-child(3)');
+  await page.waitForTimeout(700);
+  assert.ok(await page.evaluate(() => document.getElementById('macro-stat-f').classList.contains('macro-stat--vise')));
+}));
+
 test('cartes de stats : poids et nutrition sur Repas du jour, cardio et muscu dans Activité, chacune ouvre son détail', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     const t = todayStr();
