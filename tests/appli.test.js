@@ -506,6 +506,74 @@ test('les statistiques s\'affichent sur chaque onglet et chaque période', () =>
   assert.deepEqual(r, { semaines: true, allure: true, records: 3 });
 }));
 
+test('cartes de stats : poids et nutrition sur Repas du jour, cardio et muscu dans Activité, chacune ouvre son détail', () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => {
+    const t = todayStr();
+    userProfile.mesures = userProfile.mesures || {};
+    for (let k = 1; k <= 30; k++) {
+      const d = shiftDate(t, -k), jour = getDay(d);
+      jour.weight = 80 - k * 0.1;
+      jour.meals[MEALS[0]].push({ name: 'Test', kcal: 2000 + k, p: 140, c: 200, f: 60 });
+      if (k % 3 === 0) jour.workouts.push({ type: 'course', time: 30, distance: 5, intensite: 2 });
+      if (k % 7 === 0) userProfile.mesures[d] = { poids: jour.weight, grassePct: 18 + k / 30, muscleKg: 36, osKg: 3.2, eauPct: 58 };
+      saveData(d);
+    }
+    musculationHistorique.unshift({ id: 'h-test', programmeNom: 'Test', date: t, debut: Date.now(), fin: Date.now(), dureeMin: 50, maj: Date.now(),
+      exercices: [{ exerciceId: 'x', nom: 'Développé couché', series: [{ poids: 60, reps: 10, fait: true }, { poids: 60, reps: 9, fait: true }] }] });
+    allerA('repas'); renderApp();
+  });
+  // Plus d'entrée « Statistiques » dans le menu du bouton flottant.
+  assert.equal(await page.$('#nav-stats'), null);
+  const repas = await page.evaluate(() => [...document.querySelectorAll('#cartes-stats-repas .carte-stats')].map(c => c.id));
+  assert.deepEqual(repas, ['carte-stats-poids', 'carte-stats-nutrition']);
+  assert.match(await page.textContent('#carte-stats-poids .carte-stats-valeur'), /79,9\s*kg/);
+  assert.match(await page.textContent('#carte-stats-poids'), /Masse grasse/);
+
+  // Poids : la carte ouvre le détail, 4 petits graphiques de composition, pas de bilan IA.
+  await page.click('#carte-stats-poids');
+  // Les graphiques se dessinent 120 ms après l'ouverture (écran visible).
+  await page.waitForFunction(() => compoChartsInstances.length > 0);
+  let r = await page.evaluate(() => ({
+    ecran: ecranActif, titre: document.getElementById('stats-titre').textContent,
+    cases: document.querySelectorAll('#compo-grille .compo-case').length,
+    vides: document.querySelectorAll('#compo-grille .compo-case--vide').length,
+    graphiques: compoChartsInstances.length,
+    bilan: !document.querySelector('#ecran-stats .stats-bilan').classList.contains('hidden'),
+    ongletsCaches: document.getElementById('stats-onglets-nav').classList.contains('hidden')
+  }));
+  assert.equal(r.ecran, 'stats');
+  assert.match(r.titre, /Poids/);
+  assert.deepEqual([r.cases, r.vides, r.graphiques, r.bilan, r.ongletsCaches], [4, 0, 4, false, true]);
+  await page.click('#ecran-stats .stats-entete button');
+  assert.equal(await page.evaluate(() => ecranActif), 'repas');
+
+  // Nutrition : le bilan IA de la période est là, et seulement là.
+  await page.click('#carte-stats-nutrition');
+  r = await page.evaluate(() => ({ ecran: ecranActif, bilan: !document.querySelector('#ecran-stats .stats-bilan').classList.contains('hidden') }));
+  assert.deepEqual(r, { ecran: 'stats', bilan: true });
+  await page.evaluate(() => choisirPeriodeStats('perso'));
+  await page.click('#ecran-stats .stats-entete button');
+
+  // Cardio : sous la carte « Cette semaine », retour vers Activité.
+  await page.evaluate(() => { allerA('seance'); choisirModeSeance('cardio'); });
+  assert.ok(await page.isVisible('#carte-stats-cardio'));
+  await page.click('#carte-stats-cardio');
+  assert.equal(await page.evaluate(() => ecranActif), 'stats');
+  await page.click('#ecran-stats .stats-entete button');
+  assert.equal(await page.evaluate(() => ecranActif), 'seance');
+
+  // Muscu : en haut de Activité › Musculation.
+  await page.evaluate(() => choisirModeSeance('muscu'));
+  assert.match(await page.textContent('#carte-stats-muscu-carte'), /1 séance cette semaine/);
+  await page.click('#carte-stats-muscu-carte');
+  r = await page.evaluate(() => ({ ecran: ecranActif, titre: document.getElementById('stats-titre').textContent, nav: !!document.getElementById('muscu-soustabs-nav').offsetHeight }));
+  assert.equal(r.ecran, 'stats');
+  assert.match(r.titre, /Muscu/i);
+  assert.ok(r.nav);
+  await page.click('#ecran-stats .stats-entete button');
+  assert.equal(await page.evaluate(() => ecranActif), 'seance');
+}));
+
 test('après le questionnaire : « Par où commencer ? » puis la carte « Premiers pas »', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     document.getElementById('onb-age').value = 30;

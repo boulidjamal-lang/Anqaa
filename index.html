@@ -2472,6 +2472,30 @@
     .profil-gymbro-chiffres { display: flex; gap: 8px; }
     .profil-gymbro-chiffres span { flex: 1; background: var(--verre-creux); border-radius: 12px; padding: 8px 10px; font-size: 0.74rem; color: var(--text-muted); }
     .profil-gymbro-chiffres b { display: block; font-size: 1.05rem; color: var(--text); }
+    /* Cartes de statistiques (Repas du jour, Activité) et fenêtre de détail. */
+    .carte-stats { cursor: pointer; padding: 14px 16px; }
+    .carte-stats-haut { display: flex; align-items: center; gap: 14px; }
+    .carte-stats-texte { flex: 1; min-width: 0; }
+    .carte-stats-titre { font-weight: 700; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+    .carte-stats-valeur { display: flex; align-items: baseline; gap: 6px; margin-top: 2px; }
+    .carte-stats-valeur b { font-size: 1.45rem; font-weight: 800; }
+    .carte-stats-valeur span { color: var(--text-muted); font-weight: 700; font-size: 0.86rem; }
+    .carte-stats-ligne { font-size: 0.76rem; font-weight: 700; color: var(--primary); margin-top: 2px; }
+    .carte-stats-graph { flex: none; overflow: visible; }
+    .carte-stats-chevron { color: var(--text-muted); font-size: 1.2rem; }
+    .carte-stats-cases { display: flex; gap: 6px; margin-top: 10px; }
+    .carte-stats-cases span { flex: 1; min-width: 0; background: var(--verre-creux); border-radius: 10px; padding: 6px 8px; font-size: 0.66rem; color: var(--text-muted); }
+    .carte-stats-cases b { display: block; font-size: 0.86rem; color: var(--text); }
+    .carte-stats-pied { font-size: 0.66rem; color: var(--text-muted); margin-top: 6px; }
+    .stats-entete { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+    .stats-entete .titre-ecran { margin: 0; }
+    .compo-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+    .compo-case { background: var(--verre); border: 1px solid var(--verre-brd); border-radius: 14px; padding: 10px 10px 6px; min-width: 0; }
+    .compo-case--vide .compo-graph { display: none; }
+    .compo-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); }
+    .compo-tete b { color: var(--text); font-size: 0.9rem; }
+    .compo-tete small { font-size: 0.66rem; }
+    .compo-graph { height: 96px; margin-top: 4px; }
     .fil-respects { display: flex; gap: 8px; align-items: center; padding: 9px 12px; border-radius: 12px; background: var(--verre-creux); font-size: 0.78rem; margin: 0 0 10px; }
     .fil-respects--nouveau { background: color-mix(in srgb, var(--primary) 16%, transparent); }
     .fil-carte { background: var(--verre); border: 1px solid var(--verre-brd); border-radius: 16px; padding: 12px 14px; margin: 0 0 10px; }
@@ -2750,6 +2774,10 @@
       </div>
     </div>
 
+    <!-- Statistiques, là où elles servent : poids et composition, nutrition.
+         Chaque carte ouvre sa fenêtre de détail (ancien écran Statistiques). -->
+    <div id="cartes-stats-repas"></div>
+
     <!-- Ajout rapide : un seul jeu de boutons pour toute la journée (au lieu
          d'un bouton « Ajouter un aliment » sous chaque repas) — le repas visé
          est demandé juste après (voir choisirModeAjout). -->
@@ -2825,6 +2853,7 @@
       </div>
       <div id="seance-mode-muscu">
       <div id="seance-lancer">
+      <div id="carte-stats-muscu"></div>
       <div id="programmes-liste-container"></div>
       <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-top:12px; margin-bottom:6px;" onclick="ouvrirBibliotheque()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></svg> Parcourir les exercices</button>
       <div style="display:flex; gap:8px; margin-bottom:6px;">
@@ -2887,13 +2916,19 @@
 
   <!-- ================= ÉCRAN 3 : STATISTIQUES ================= -->
   <section id="ecran-stats" class="ecran" role="region" aria-label="Statistiques">
-    <h2 class="titre-ecran"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg></span> Statistiques</h2>
+    <!-- Plus d'écran Statistiques dans le menu : cette section est la fenêtre
+         de détail ouverte depuis les cartes (Repas du jour, Activité), une
+         catégorie à la fois. « Retour » ramène là d'où on vient. -->
+    <div class="stats-entete">
+      <button type="button" class="btn-icone" onclick="fermerStats()" aria-label="Retour">‹ Retour</button>
+      <h2 class="titre-ecran" id="stats-titre">Statistiques</h2>
+    </div>
 
     <!-- Organisation : d'abord la catégorie (Corps, Nutrition, Activité,
          Muscu), puis une seule période pour tout l'écran, en pastilles
          (7 j … Tout) ; « Perso » ouvre les curseurs pour une plage précise.
          Le bilan IA de la période, en bas, couvre toutes les catégories. -->
-    <div class="segment stats-onglets-nav" id="stats-onglets-nav" role="group" aria-label="Catégorie de statistiques">
+    <div class="segment stats-onglets-nav hidden" id="stats-onglets-nav" role="group" aria-label="Catégorie de statistiques">
       <button type="button" onclick="choisirOngletStats('poids')" aria-pressed="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></svg> Corps</button>
       <button type="button" onclick="choisirOngletStats('nutrition')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg> Nutrition</button>
       <button type="button" onclick="choisirOngletStats('activite')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.2 12h3.3l1.5-3 3 6 1.5-3h8.3" /></svg> Cardio</button>
@@ -2924,7 +2959,7 @@
       <p class="note note-repliee" id="note-tendance" style="margin: -6px 2px 4px;"></p>
 
       <div class="titre-depliant titre-section" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-compo')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-compo')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z" /><path d="m14.5 12.5 2-2" /><path d="m11.5 9.5 2-2" /><path d="m8.5 6.5 2-2" /><path d="m17.5 15.5 2-2" /></svg> Composition corporelle (balance à impédancemétrie)</div>
-      <div class="chart-container"><canvas id="compoChart"></canvas></div>
+      <div class="compo-grille" id="compo-grille"></div>
       <p class="note note-repliee" id="note-compo" style="margin: -6px 2px 4px;"></p>
     </div>
 
@@ -3319,7 +3354,6 @@
     <!-- Tout en haut de la pile, le plus loin du bouton : c'est l'onglet le
          moins utilisé au quotidien. -->
     <button class="fab-action hidden" id="nav-admin" onclick="allerA('admin')"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" /><path d="M5 21h14" /></svg></span> Administration</button>
-    <button class="fab-action" id="nav-stats" onclick="allerA('stats')"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg></span> Statistiques</button>
     <button class="fab-action" id="nav-seance" onclick="allerA('seance')"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg></span> Activité</button>
     <button class="fab-action" id="nav-repas" onclick="allerA('repas')"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg></span> Repas du jour</button>
   </div>
@@ -4689,7 +4723,7 @@
       <li><b>4 à 7 exercices par séance.</b>
         <span>Commence par les gros mouvements polyarticulaires (squat, développé, rowing, soulevé de terre, tractions), quand tu es frais ; termine par l'isolation (curl, élévations latérales, extensions…).</span></li>
       <li><b>Vise la « zone idéale » pour chaque muscle.</b>
-        <span>Commence ton cycle dans la zone « progression », puis monte vers la zone idéale sans tomber dans « trop » : environ 10 à 20 séries par muscle et par semaine, réparties sur 2 séances ou plus ; 2 à 4 séries par exercice. Le suivi est automatique dans Statistiques › Muscu › Semaine, et en haut de l'écran pendant la séance.</span></li>
+        <span>Commence ton cycle dans la zone « progression », puis monte vers la zone idéale sans tomber dans « trop » : environ 10 à 20 séries par muscle et par semaine, réparties sur 2 séances ou plus ; 2 à 4 séries par exercice. Le suivi est automatique dans Activité › Musculation › Mes stats muscu › Semaine, et en haut de l'écran pendant la séance.</span></li>
       <li><b>Choisis ta fourchette de répétitions.</b>
         <span>5–8 pour la force sur les gros mouvements, 8–12 pour la prise de muscle, 12–20 pour l'endurance, ou pour l'isolation si 8–12 te donne des douleurs. Arrête chaque série à 1–3 répétitions de l'échec.</span></li>
       <li><b>Repose-toi assez.</b>
@@ -5197,7 +5231,7 @@ let nomRecetteGemini = '';
 
 let caloriesChartInstance = null, macrosChartInstance = null, stepsChartInstance = null, workoutChartInstance = null;
 let eauChartInstance = null;
-let compoChartInstance = null;
+let compoChartsInstances = [];
 let poidsChartInstance = null;
 
 let userProfile = { height: 175, age: 25, gender: 'm', weight: 70 };
@@ -5433,6 +5467,146 @@ function mealKcal(day, mealId) {
   return Math.round(day.meals[mealId].reduce((s, it) => s + (Number(it.kcal) || 0), 0));
 }
 
+/* =====================================================================
+   CARTES DE STATISTIQUES (Repas du jour, Activité) : un aperçu chiffré
+   avec un petit graphique ; un toucher ouvre la fenêtre de détail de la
+   catégorie (ouvrirStats). Calculées directement depuis les données du
+   téléphone, sans attendre l'écran de statistiques.
+   ===================================================================== */
+function fmtUneDecimale(v) { return String(Math.round(v * 10) / 10).replace('.', ','); }
+function courbeMiniSVG(valeurs, couleur) {
+  const W = 110, H = 40;
+  const connues = valeurs.filter(v => v != null);
+  if (connues.length < 2) return '';
+  let min = Math.min(...connues), max = Math.max(...connues);
+  if (max - min < 0.4) { const m = (max + min) / 2; min = m - 0.2; max = m + 0.2; }
+  const y = v => (H - (v - min) / (max - min) * H).toFixed(1);
+  const pts = valeurs.map((v, i) => v == null ? null : `${(i / (valeurs.length - 1) * W).toFixed(1)},${y(v)}`).filter(Boolean).join(' ');
+  return `<svg class="carte-stats-graph" width="${W}" height="${H}" viewBox="-2 -2 ${W + 4} ${H + 4}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${couleur}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function barresMiniSVG(valeurs, couleur, cible) {
+  const W = 110, H = 40;
+  const max = Math.max(1, ...valeurs, cible || 0) * 1.1, bw = W / valeurs.length;
+  const yCible = cible ? (H - cible / max * H).toFixed(1) : null;
+  return `<svg class="carte-stats-graph" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">${valeurs.map((v, i) => {
+    const h = Math.max(v > 0 ? 2 : 0, v / max * H);
+    return `<rect x="${(i * bw + 1.5).toFixed(1)}" y="${(H - h).toFixed(1)}" width="${Math.max(1, bw - 3).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${couleur}" opacity="${i === valeurs.length - 1 ? 1 : 0.55}"/>`;
+  }).join('')}${yCible ? `<line x1="0" x2="${W}" y1="${yCible}" y2="${yCible}" stroke="var(--text-muted)" stroke-dasharray="3 3" stroke-width="1.2"/>` : ''}</svg>`;
+}
+function carteStatsHTML(o) {
+  return `<div class="carte-stats fitness-card" id="${o.id}" role="button" tabindex="0" aria-label="${escapeHtml(o.titre)} : ouvrir le détail"
+      onclick="ouvrirStats('${o.onglet}')" onkeydown="if(event.key==='Enter')ouvrirStats('${o.onglet}')">
+    <div class="carte-stats-haut"><div class="carte-stats-texte">
+      <div class="carte-stats-titre">${escapeHtml(o.titre)}</div>
+      <div class="carte-stats-valeur"><b>${escapeHtml(o.valeur)}</b><span>${escapeHtml(o.unite || '')}</span></div>
+      ${o.ligne ? `<div class="carte-stats-ligne">${escapeHtml(o.ligne)}</div>` : ''}
+    </div>${o.graphique || ''}<span class="carte-stats-chevron" aria-hidden="true">›</span></div>
+    ${o.cases && o.cases.length ? `<div class="carte-stats-cases">${o.cases.map(([l, v]) => `<span><b>${escapeHtml(v)}</b>${escapeHtml(l)}</span>`).join('')}</div>` : ''}
+    ${o.pied ? `<div class="carte-stats-pied">${escapeHtml(o.pied)}</div>` : ''}
+  </div>`;
+}
+/* Tendance du poids : moyenne des pesées des 7 jours finissant à cette date. */
+function tendancePoidsAu(pesees, d) {
+  const f = pesees.filter(([x]) => x <= d && x > decalerJours(d, -7));
+  return f.length ? f.reduce((t, [, v]) => t + v, 0) / f.length : null;
+}
+function carteStatsPoidsHTML() {
+  const auj = todayStr();
+  const pesees = Object.keys(appData).filter(d => d <= auj && Number(appData[d] && appData[d].weight) > 0).sort().map(d => [d, Number(appData[d].weight)]);
+  if (!pesees.length) {
+    return carteStatsHTML({ id: 'carte-stats-poids', onglet: 'poids', titre: 'Poids et composition', valeur: '—', unite: '',
+      ligne: 'Ajoute ta première pesée dans Profil › Mesures corporelles pour suivre ta tendance.' });
+  }
+  const dernier = pesees[pesees.length - 1][1];
+  const serie = []; for (let i = 20; i >= 0; i--) serie.push(tendancePoidsAu(pesees, decalerJours(auj, -i)));
+  const t0 = tendancePoidsAu(pesees, auj), t7 = tendancePoidsAu(pesees, decalerJours(auj, -7));
+  const recentes = pesees.filter(([d]) => d > decalerJours(auj, -14)).length;
+  const pente = t0 != null && t7 != null && recentes >= 2 ? t0 - t7 : null;
+  const ligne = pente == null ? 'Pèse-toi au moins deux fois en deux semaines pour voir ta tendance.'
+    : (Math.abs(pente) < 0.05 ? '→ stable' : (pente < 0 ? '↘ ' : '↗ ') + fmtSigne(pente, ' kg') + ' / semaine');
+  // Dernière composition connue (Mesures corporelles ou balance Withings).
+  const mesures = userProfile.mesures || {};
+  const dm = Object.keys(mesures).filter(d => d <= auj && mesures[d] && (mesures[d].grassePct > 0 || mesures[d].muscleKg > 0 || mesures[d].eauPct > 0)).sort().pop();
+  let cases = [], pied = '';
+  if (dm) {
+    const m = mesures[dm], poidsM = Number(m.poids) || dernierPoidsConnu(dm);
+    if (m.grassePct > 0) cases.push(['Masse grasse', fmtUneDecimale(m.grassePct) + ' %']);
+    if (m.muscleKg > 0 && poidsM > 0) cases.push(['Muscle', fmtUneDecimale(m.muscleKg / poidsM * 100) + ' %']);
+    if (m.eauPct > 0) cases.push(['Hydratation', fmtUneDecimale(m.eauPct) + ' %']);
+    pied = 'Composition mesurée le ' + dateLocale(dm).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+  }
+  return carteStatsHTML({ id: 'carte-stats-poids', onglet: 'poids', titre: 'Poids et composition', valeur: fmtUneDecimale(dernier), unite: 'kg',
+    ligne, graphique: courbeMiniSVG(serie, 'var(--primary)'), cases, pied });
+}
+function carteStatsNutritionHTML() {
+  const auj = todayStr();
+  const kcal = [], cibles = [], prot = [], eau = [];
+  for (let i = 14; i >= 1; i--) {
+    const d = decalerJours(auj, -i);
+    const jour = appData[d];
+    const t = jour ? sumMeals(jour) : null;
+    if (t && t.kcal > 0) {
+      kcal.push(t.kcal); cibles.push(computeTargets(jour, d).target); prot.push(t.p);
+      if (Number(jour.eauMl) > 0) eau.push(Number(jour.eauMl));
+    } else kcal.push(0);
+  }
+  const remplis = kcal.filter(v => v > 0);
+  if (!remplis.length) {
+    return carteStatsHTML({ id: 'carte-stats-nutrition', onglet: 'nutrition', titre: 'Ma nutrition · 14 jours', valeur: '—', unite: '',
+      ligne: 'Note tes repas quelques jours pour voir tes moyennes ici.' });
+  }
+  const moy = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+  const cibleMoy = Math.round(moy(cibles));
+  let dansCible = 0, k = 0;
+  kcal.forEach(v => { if (v > 0) { if (Math.abs(v - cibles[k]) <= cibles[k] * 0.1) dansCible++; k++; } });
+  const cases = [['Objectif moyen', cibleMoy.toLocaleString('fr-FR') + ' kcal'], ['Protéines', fmtUneDecimale(moy(prot) / dernierPoidsConnu(auj)) + ' g/kg']];
+  if (eau.length) cases.push(['Eau / jour', fmtUneDecimale(moy(eau) / 1000) + ' L']);
+  return carteStatsHTML({ id: 'carte-stats-nutrition', onglet: 'nutrition', titre: 'Ma nutrition · 14 jours', valeur: Math.round(moy(remplis)).toLocaleString('fr-FR'), unite: 'kcal / jour',
+    ligne: dansCible + ' jour' + (dansCible > 1 ? 's' : '') + ' sur ' + remplis.length + ' dans la cible', graphique: barresMiniSVG(kcal, 'var(--primary)', cibleMoy), cases });
+}
+function renderCartesStatsRepas() {
+  const c = document.getElementById('cartes-stats-repas');
+  if (c) c.innerHTML = carteStatsPoidsHTML() + carteStatsNutritionHTML();
+}
+function carteStatsCardioHTML() {
+  const auj = todayStr();
+  const semaines = []; for (let w = 7; w >= 0; w--) semaines.push(bilanSemaineCardio(lundiDe(shiftDate(auj, -7 * w))).equiv);
+  // Les 4 dernières semaines complètes (la semaine en cours n'est pas finie).
+  const completes = semaines.slice(3, 7);
+  const moy = Math.round(completes.reduce((a, b) => a + b, 0) / Math.max(1, completes.length));
+  const atteint = completes.filter(v => v >= OBJECTIF_CARDIO.cible).length;
+  const depuis30 = shiftDate(auj, -29);
+  const recentes = seancesCardio().filter(({ date }) => date >= depuis30);
+  const km = recentes.reduce((t, { w }) => t + (Number(w.distance) || 0), 0);
+  const pas = []; for (let i = 14; i >= 1; i--) { const j = appData[shiftDate(auj, -i)]; if (j && Number(j.steps) > 0) pas.push(Number(j.steps)); }
+  const cases = [['Séances · 30 j', String(recentes.length)]];
+  if (km > 0) cases.push(['Distance · 30 j', fmtUneDecimale(km) + ' km']);
+  if (pas.length) cases.push(['Pas / jour', Math.round(pas.reduce((a, b) => a + b, 0) / pas.length).toLocaleString('fr-FR')]);
+  return carteStatsHTML({ id: 'carte-stats-cardio', onglet: 'activite', titre: 'Mes stats cardio · 8 semaines', valeur: String(moy), unite: 'min / semaine',
+    ligne: 'Objectif de ' + OBJECTIF_CARDIO.cible + ' min atteint ' + atteint + ' semaine' + (atteint > 1 ? 's' : '') + ' sur 4',
+    graphique: barresMiniSVG(semaines, 'var(--fx-1)', OBJECTIF_CARDIO.cible), cases });
+}
+function carteStatsMuscuHTML() {
+  const auj = todayStr();
+  const lundiActuel = lundiDeLaSemaine(auj);
+  const semaines = []; for (let w = 7; w >= 0; w--) { const l = decalerJours(lundiActuel, -7 * w); semaines.push(musculationHistorique.filter(h => h.date >= l && h.date <= decalerJours(l, 6)).length); }
+  const quatre = semaines.slice(3, 7);
+  const moy = quatre.reduce((a, b) => a + b, 0) / 4;
+  const cetteSemaine = musculationHistorique.filter(h => h.date >= lundiActuel && h.date <= auj);
+  const series = cetteSemaine.reduce((t, h) => t + h.exercices.reduce((n, e) => n + (e.series || []).filter(x => x && x.fait).length, 0), 0);
+  const groupes = seriesSemaine(lundiActuel, false);
+  const travailles = Object.keys(groupes).filter(g => groupes[g] > 0).length;
+  const depuis30 = decalerJours(auj, -29);
+  return carteStatsHTML({ id: 'carte-stats-muscu-carte', onglet: 'muscu', titre: 'Mes stats muscu · 8 semaines', valeur: fmtUneDecimale(moy), unite: 'séances / semaine',
+    ligne: cetteSemaine.length + ' séance' + (cetteSemaine.length > 1 ? 's' : '') + ' cette semaine',
+    graphique: barresMiniSVG(semaines, 'var(--fx-1)'),
+    cases: [['Séances · 30 j', String(musculationHistorique.filter(h => h.date >= depuis30 && h.date <= auj).length)], ['Séries cette sem.', String(series)], ['Muscles travaillés', String(travailles)]] });
+}
+function renderCarteStatsMuscu() {
+  const c = document.getElementById('carte-stats-muscu');
+  if (c) c.innerHTML = musculationHistorique.length ? carteStatsMuscuHTML() : '';
+}
+
 function renderApp() {
   const day = getDay(currentDate);
   document.getElementById('date-display').textContent = formatDateDisplay(currentDate);
@@ -5447,6 +5621,7 @@ function renderApp() {
   renderMeals(day);
   updateSummary(day);
   majBoutonAujourdhui();
+  renderCartesStatsRepas();
 }
 
 function majBoutonAujourdhui() {
@@ -5657,6 +5832,7 @@ function renderCardio() {
       ${repart}
       <p class="note" style="margin:8px 0 0;">${phrase}${equilibre} Recommandé : ${OBJECTIF_CARDIO.cible} à ${OBJECTIF_CARDIO.haut} min par semaine, 1 min intense compte double.</p>
     </div>
+    ${seancesCardio().length ? carteStatsCardioHTML() : ''}
     <button type="button" class="btn btn-primary cardio-ajouter" onclick="ouvrirCardio()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Ajouter une séance cardio</button>
     <div class="bloc-verre cardio-carte">
       <div class="cardio-titre">Dernières séances</div>
@@ -8783,11 +8959,29 @@ function bornesMuscuIso() {
    mettreAJourStats()/mettreAJourStatsNutrition()/mettreAJourStatsMuscu()).
    Le premier onglet (Poids) est actif par défaut à l'entrée sur l'écran
    (classe stats-tab-actif posée directement dans le HTML). */
+const TITRES_STATS = { poids: 'Poids et composition', nutrition: 'Ma nutrition', activite: 'Mes stats cardio', muscu: 'Mes stats muscu' };
 function choisirOngletStats(nom) {
   document.querySelectorAll('#ecran-stats .stats-tab').forEach(t => {
     t.classList.toggle('stats-tab-actif', t.dataset.tab === nom);
   });
   majSegment('stats-onglets-nav', ['poids', 'nutrition', 'activite', 'muscu'], nom);
+  const titre = document.getElementById('stats-titre');
+  if (titre) titre.textContent = TITRES_STATS[nom] || 'Statistiques';
+  // Le bilan IA couvre toute la période (nutrition, poids, activité,
+  // muscu) : il vit dans la fenêtre Nutrition.
+  const bilan = document.querySelector('#ecran-stats .stats-bilan');
+  if (bilan) bilan.classList.toggle('hidden', nom !== 'nutrition');
+}
+/* Ouvre la fenêtre de statistiques d'une catégorie depuis sa carte, et y
+   revient avec « Retour ». */
+let ecranAvantStats = 'repas';
+function ouvrirStats(onglet) {
+  if (ecranActif !== 'stats') ecranAvantStats = ecranActif;
+  allerA('stats');
+  choisirOngletStats(onglet);
+}
+function fermerStats() {
+  allerA(ecranAvantStats && ecranAvantStats !== 'stats' ? ecranAvantStats : 'repas');
 }
 // Deuxième niveau d'onglets, à l'intérieur de l'onglet Musculation (voir
 // commentaire sur .stats-soustab dans le CSS) : classe différente de
@@ -9135,20 +9329,38 @@ function renderChartsPoids(s, e) {
      spanGaps relie les mesures entre elles par-dessus les semaines sans
      pesée détaillée : sans cela, une mesure par semaine donnerait un nuage
      de points isolés plutôt qu'une tendance. */
-  if (compoChartInstance) compoChartInstance.destroy();
-  compoChartInstance = new Chart(document.getElementById('compoChart'), {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        { label: 'Masse grasse (%)', data: globalMasterGrasse.slice(s, e + 1), borderColor: cLip, backgroundColor: 'transparent', tension: 0.35, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2.5, spanGaps: true },
-        { label: 'Muscle (%)', data: globalMasterMuscle.slice(s, e + 1), borderColor: cPrimaire, backgroundColor: 'transparent', tension: 0.35, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2.5, spanGaps: true },
-        { label: 'Os (%)', data: globalMasterOs.slice(s, e + 1), borderColor: cGluc, backgroundColor: 'transparent', tension: 0.35, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2.5, spanGaps: true },
-        { label: 'Hydratation (%)', data: globalMasterEau.slice(s, e + 1), borderColor: cAccent, backgroundColor: 'transparent', tension: 0.35, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2.5, spanGaps: true }
-      ]
-    },
-    options: optionsGraphiqueBase(p, { avecLegende: true, beginAtZero: false })
-  });
+  /* --- COMPOSITION CORPORELLE : un petit graphique par mesure, chacun
+     avec sa propre échelle (sur une échelle commune de 0 à 60 %, 2 points
+     de masse grasse en moins ne se voyaient pas). Valeur la plus récente de
+     la période et évolution depuis la première mesure. spanGaps relie les
+     mesures par-dessus les semaines sans pesée détaillée. --- */
+  compoChartsInstances.forEach(c => c.destroy());
+  compoChartsInstances = [];
+  const grilleCompo = document.getElementById('compo-grille');
+  if (grilleCompo) {
+    const mesuresCompo = [
+      ['Masse grasse', globalMasterGrasse, cLip],
+      ['Muscle', globalMasterMuscle, cPrimaire],
+      ['Os', globalMasterOs, cGluc],
+      ['Hydratation', globalMasterEau, cAccent]
+    ];
+    grilleCompo.innerHTML = mesuresCompo.map(([nom], k) => `<div class="compo-case"><div class="compo-tete"><span>${nom}</span><span id="compo-val-${k}"></span></div><div class="compo-graph"><canvas id="compo-chart-${k}"></canvas></div></div>`).join('');
+    mesuresCompo.forEach(([nom, serie, couleur], k) => {
+      const valeurs = serie.slice(s, e + 1);
+      const connues = valeurs.filter(v => v != null);
+      const val = document.getElementById('compo-val-' + k);
+      if (!connues.length) { val.textContent = '—'; val.parentNode.parentNode.classList.add('compo-case--vide'); return; }
+      const derniere = connues[connues.length - 1], ecart = derniere - connues[0];
+      val.innerHTML = `<b>${String(Math.round(derniere * 10) / 10).replace('.', ',')} %</b>`
+        + (connues.length > 1 ? ` <small>${escapeHtml(fmtSigne(ecart, ' pt' + (Math.abs(ecart) >= 2 ? 's' : '')))}</small>` : '');
+      const opts = optionsGraphiqueBase(p, { avecLegende: false, beginAtZero: false });
+      compoChartsInstances.push(new Chart(document.getElementById('compo-chart-' + k), {
+        type: 'line',
+        data: { labels, datasets: [{ label: nom + ' (%)', data: valeurs, borderColor: couleur, backgroundColor: couleur, tension: 0.3, pointRadius: 2.5, pointHoverRadius: 5, borderWidth: 2, spanGaps: true }] },
+        options: Object.assign({}, opts, { maintainAspectRatio: false })
+      }));
+    });
+  }
   majNoteCompo(s, e);
 }
 
@@ -9904,6 +10116,7 @@ function initFabDeplacable() {
 const TOUR_ETAPES = [
   { titre: 'Bienvenue sur Anqā', texte: "Un tour rapide de l'appli : la nutrition, l'activité, les statistiques et ton profil. Tu peux le quitter à tout moment et le revoir depuis Profil › Réglages (engrenage). Une visite dédiée à la musculation existe aussi." },
   { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: "Calories consommées, ce qu'il te reste et la répartition protéines / glucides / lipides. Touche la carte pour voir le détail de ta dépense du jour." },
+  { ecran: 'repas', cible: '#cartes-stats-repas', titre: 'Poids et nutrition', texte: "Ton poids et ta nutrition des 14 derniers jours, d'un coup d'œil. Touche une carte pour le détail : courbe de poids et composition corporelle, ou calories et macros." },
   { ecran: 'repas', cible: '.ajout-rapide', titre: 'Ajouter à un repas', texte: "Quatre façons d'ajouter : une recette, un aliment, une photo ou un code-barres. Le repas visé est demandé juste après." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-recette', titre: 'Recette', texte: "Tes recettes enregistrées, et celles partagées par l'équipe : une portion s'ajoute en un toucher, macros déjà calculées." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-manuel', titre: 'Aliment', texte: "Recherche dans la base d'aliments, avec en premier ce que tu manges souvent. Un aliment introuvable ? Saisis-le : il reste à toi, et rejoint la base commune une fois validé." },
@@ -9917,9 +10130,8 @@ const TOUR_ETAPES = [
   { fab: true, cible: '#nav-seance', titre: 'Activité', texte: 'Ta musculation (programmes, séances, bibliothèque d’exercices) et ton cardio. La visite « Musculation » détaille la partie muscu.' },
   { ecran: 'seance', cible: '#seance-mode-nav', titre: 'Musculation ou cardio', texte: "Bascule entre tes séances de musculation et ton cardio : course, vélo, natation, marche, rameur, HIIT, sport co." },
   { ecran: 'seance', modeCardio: true, cible: '#seance-cardio .cardio-carte', titre: 'Ta semaine de cardio', texte: "L'objectif conseillé : 150 à 300 min par semaine, une minute intense comptant double. La jauge montre où tu en es, la barre en dessous ta répartition facile / modérée / intense. Ajoute une séance avec le bouton juste en dessous : durée, distance, intensité." },
-  { fab: true, cible: '#nav-stats', titre: 'Statistiques', texte: 'Poids, composition, nutrition et musculation, sur la période de ton choix.' },
-  { ecran: 'stats', cible: '#stats-onglets-nav', titre: 'Quatre catégories', texte: 'Corps (poids et composition), Nutrition, Cardio (minutes par semaine, allure, records, pas) et Muscu (semaine, progression, séances, programmes).' },
-  { ecran: 'stats', cible: '#stats-periode', titre: 'Choisir une période', texte: "Une seule période pour tout l'écran : 7 jours, 30 jours, 3 mois… ou « Perso » pour la régler aux curseurs. Le bilan IA, en bas, l'analyse en entier." },
+  { ecran: 'seance', modeCardio: true, cible: '#carte-stats-cardio', titre: 'Tes stats cardio', texte: "Tes minutes des 8 dernières semaines, tes séances, ta distance et tes pas. Touche la carte pour le détail : allure, records et pas jour par jour." },
+  { ecran: 'stats', avant: () => { ouvrirStats('nutrition'); }, cible: '#stats-periode', titre: 'Le détail d’une carte', texte: "Chaque carte de stats ouvre son détail. Choisis la période : 7 jours, 30 jours, 3 mois… ou « Perso » pour la régler aux curseurs. En Nutrition, le bilan IA l'analyse en entier. « ‹ Retour » te ramène où tu étais." },
   { cible: '#moi-entete', titre: 'Ton profil', texte: 'Touche ta photo ou ton nom d’utilisateur, en haut : ton compte, ton objectif, tes informations et tes mesures corporelles.' },
   { ecran: 'reglages', cible: '#carte-objectif', titre: 'Ton objectif', texte: "Maintien, sèche, prise de masse ou recomposition : il règle tes calories et tes macros. En changer ne réécrit jamais ton historique." },
   { ecran: 'reglages', cible: '.btn-engrenage', titre: 'Réglages', texte: "Thème clair ou sombre, palette de couleurs, densité d'affichage, installation sur l'écran d'accueil, et les deux visites guidées." },
@@ -9968,7 +10180,8 @@ const TOUR_MUSCU = [
     texte: () => "Ta dernière série faite, touche « Terminer la séance » : elle rejoint ton historique avec tes records (1RM, charge, volume, répétitions) et compte dans la dépense de ta journée."
       + (musculationSessionActive && musculationSessionActive.demo ? " Ici, rien n'est enregistré : la démonstration se ferme à l'étape suivante." : '') },
   // C. Après la séance
-  { ecran: 'stats', avant: () => { choisirOngletStats('muscu'); }, cible: '#muscu-soustabs-nav', titre: 'Tes statistiques', texte: "Statistiques › Muscu : Semaine (jauges et corps de la semaine, 8 dernières semaines), Progression (courbe, records et niveau de force par exercice), Séances (historique) et Programmes." },
+  { ecran: 'seance', cible: '#carte-stats-muscu-carte', titre: 'Tes stats muscu', texte: "En haut de l'écran Activité › Musculation : tes séances par semaine sur 8 semaines, tes séries et les muscles travaillés cette semaine. Touche la carte pour le détail." },
+  { ecran: 'stats', avant: () => { ouvrirStats('muscu'); }, cible: '#muscu-soustabs-nav', titre: 'Le détail muscu', texte: "Semaine (jauges et corps de la semaine, 8 dernières semaines), Progression (courbe, records et niveau de force par exercice), Séances (historique) et Programmes." },
   { titre: 'Bon entraînement !', texte: "Tu peux revoir cette visite à tout moment depuis Profil › Réglages." }
 ];
 let tourListe = TOUR_ETAPES;
@@ -16386,6 +16599,7 @@ function renderSeance() {
   afficherVueSeance();
   renderListeProgrammes();
   majBandeauSeanceFlottant();
+  renderCarteStatsMuscu();
 }
 
 function afficherVueSeance() {
@@ -20890,6 +21104,9 @@ window.addEventListener('load', () => {
   traiterRetourWithings();
   let ecran = 'repas';
   try { ecran = localStorage.getItem('elite_ecran') || 'repas'; } catch (e) {}
+  // La fenêtre de statistiques s'ouvre depuis une carte : au lancement, on
+  // revient à l'écran principal plutôt que d'y rester sans « Retour » utile.
+  if (ecran === 'stats') ecran = 'repas';
   allerA(ecran);
 });
 
