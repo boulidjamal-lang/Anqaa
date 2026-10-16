@@ -1577,13 +1577,29 @@
     .aide-routine-etapes { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
     .aide-routine-etapes li { font-size: 0.84rem; }
     .aide-routine-etapes li span { display: block; color: var(--text-muted); font-size: 0.78rem; margin-top: 2px; line-height: 1.45; }
-    .ajout-rapide { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 0 0 16px; }
-    .ajout-rapide button {
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-      min-height: 68px; padding: 10px 4px; border: 0; border-radius: 16px; cursor: pointer;
-      background: var(--verre-fort); color: var(--text); font-family: inherit; font-weight: 700; font-size: 0.72rem;
+    /* Barre flottante d'ajout (Repas du jour) : alignée sur le bouton de
+       navigation (même hauteur, même marge basse), à sa gauche. Sous le
+       voile du menu (#scrim, z-index 75), masquée quand une couche est
+       ouverte, comme le bouton. */
+    .ajout-rapide {
+      display: none; grid-template-columns: repeat(4, 1fr); gap: 2px;
+      position: fixed; z-index: 74;
+      left: max(16px, calc(50% - 264px)); right: 92px; bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+      max-width: 452px; padding: 4px; border-radius: 21px;
+      background: var(--barre); box-shadow: var(--ombre-haute), 0 0 0 1px var(--verre-brd) inset;
+      -webkit-backdrop-filter: blur(var(--verre-flou)) saturate(var(--verre-sat));
+      backdrop-filter: blur(var(--verre-flou)) saturate(var(--verre-sat));
+      transition: opacity 0.25s ease, transform 0.25s ease;
     }
-    .ajout-rapide button .icone-ui { width: 22px; height: 22px; color: var(--primary); }
+    body.sur-repas .ajout-rapide { display: grid; }
+    body.couche-ouverte .ajout-rapide { opacity: 0; pointer-events: none; transform: translateY(14px); }
+    .ajout-rapide button {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+      min-height: 52px; padding: 4px 2px; border: 0; border-radius: 17px; cursor: pointer;
+      background: transparent; color: var(--text); font-family: inherit; font-weight: 700; font-size: 0.66rem;
+    }
+    .ajout-rapide button:active { background: var(--verre-fort); }
+    .ajout-rapide button .icone-ui { width: 21px; height: 21px; color: var(--primary); }
     .feuille-action--suggere { box-shadow: 0 0 0 2px var(--primary) inset; }
     .lien-depense { margin-top: 6px; font-size: 0.74rem; font-weight: 700; color: var(--primary); }
     .profil-entete { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
@@ -2778,16 +2794,6 @@
          Chaque carte ouvre sa fenêtre de détail (ancien écran Statistiques). -->
     <div id="cartes-stats-repas"></div>
 
-    <!-- Ajout rapide : un seul jeu de boutons pour toute la journée (au lieu
-         d'un bouton « Ajouter un aliment » sous chaque repas) — le repas visé
-         est demandé juste après (voir choisirModeAjout). -->
-    <div class="ajout-rapide" role="group" aria-label="Ajouter à un repas">
-      <button type="button" onclick="choisirModeAjout('recette')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h20" /><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8" /><path d="m4 8 16-4" /><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8" /></svg><span>Recette</span></button>
-      <button type="button" onclick="choisirModeAjout('manuel')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.528V3a1 1 0 0 1 1-1h0" /><path d="M18.237 21A15 15 0 0 0 22 11a6 6 0 0 0-10-4.472A6 6 0 0 0 2 11a15.1 15.1 0 0 0 3.763 10 3 3 0 0 0 3.648.648 5.5 5.5 0 0 1 5.178 0A3 3 0 0 0 18.237 21" /></svg><span>Aliment</span></button>
-      <button type="button" onclick="choisirModeAjout('photo')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /><circle cx="12" cy="13" r="3" /></svg><span>Photo</span></button>
-      <button type="button" onclick="choisirModeAjout('barcode')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2" /><path d="M17 3h2a2 2 0 0 1 2 2v2" /><path d="M21 17v2a2 2 0 0 1-2 2h-2" /><path d="M7 21H5a2 2 0 0 1-2-2v-2" /><path d="M8 7v10" /><path d="M12 7v10" /><path d="M17 7v10" /></svg><span>Code-barres</span></button>
-    </div>
-
     <div class="bloc-verre" id="bloc-eau" style="margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;">
         <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg> Eau bue</h3>
@@ -3347,6 +3353,20 @@
   <div class="courbe-pe-zone"><canvas id="courbe-pe-canvas"></canvas></div>
   <p class="courbe-pe-astuce">Tourne ton téléphone pour élargir la courbe · variation en % depuis la première séance affichée</p>
 </div>
+
+  <!-- Ajout rapide : un seul jeu de boutons pour toute la journée (au lieu
+       d'un bouton « Ajouter un aliment » sous chaque repas) — le repas visé
+       est demandé juste après (voir choisirModeAjout). Barre flottante en bas
+       de l'écran Repas du jour, toujours à portée de pouce : placée hors de
+       <main>, car l'animation d'entrée des écrans (transform) ferait de la
+       section le repère de position: fixed le temps de l'animation. Visible
+       seulement avec body.sur-repas (voir allerA). -->
+  <div class="ajout-rapide" id="ajout-rapide" role="group" aria-label="Ajouter à un repas">
+    <button type="button" onclick="choisirModeAjout('recette')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h20" /><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8" /><path d="m4 8 16-4" /><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8" /></svg><span>Recette</span></button>
+    <button type="button" onclick="choisirModeAjout('manuel')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.528V3a1 1 0 0 1 1-1h0" /><path d="M18.237 21A15 15 0 0 0 22 11a6 6 0 0 0-10-4.472A6 6 0 0 0 2 11a15.1 15.1 0 0 0 3.763 10 3 3 0 0 0 3.648.648 5.5 5.5 0 0 1 5.178 0A3 3 0 0 0 18.237 21" /></svg><span>Aliment</span></button>
+    <button type="button" onclick="choisirModeAjout('photo')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /><circle cx="12" cy="13" r="3" /></svg><span>Photo</span></button>
+    <button type="button" onclick="choisirModeAjout('barcode')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2" /><path d="M17 3h2a2 2 0 0 1 2 2v2" /><path d="M21 17v2a2 2 0 0 1-2 2h-2" /><path d="M7 21H5a2 2 0 0 1-2-2v-2" /><path d="M8 7v10" /><path d="M12 7v10" /><path d="M17 7v10" /></svg><span>Code-barres</span></button>
+  </div>
 
 <!-- ============ NAVIGATION : tout passe par le bouton flottant ============ -->
 <nav class="fab-zone" id="fab-zone" aria-label="Navigation principale">
@@ -9682,6 +9702,7 @@ function allerA(nom) {
   if (f) f.innerHTML = ECRAN_ICONE[nom] || '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg>';
   try { localStorage.setItem('elite_ecran', nom); } catch (err) {}
   if (fabOuvert) fermerFab();
+  document.body.classList.toggle('sur-repas', nom === 'repas');
   document.body.classList.toggle('sur-stats', nom === 'stats');
   document.body.classList.toggle('sur-seance', nom === 'seance');
   document.body.classList.toggle('sur-reglages', nom === 'reglages');
@@ -10117,7 +10138,7 @@ const TOUR_ETAPES = [
   { titre: 'Bienvenue sur Anqā', texte: "Un tour rapide de l'appli : la nutrition, l'activité, les statistiques et ton profil. Tu peux le quitter à tout moment et le revoir depuis Profil › Réglages (engrenage). Une visite dédiée à la musculation existe aussi." },
   { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: "Calories consommées, ce qu'il te reste et la répartition protéines / glucides / lipides. Touche la carte pour voir le détail de ta dépense du jour." },
   { ecran: 'repas', cible: '#cartes-stats-repas', titre: 'Poids et nutrition', texte: "Ton poids et ta nutrition des 14 derniers jours, d'un coup d'œil. Touche une carte pour le détail : courbe de poids et composition corporelle, ou calories et macros." },
-  { ecran: 'repas', cible: '.ajout-rapide', titre: 'Ajouter à un repas', texte: "Quatre façons d'ajouter : une recette, un aliment, une photo ou un code-barres. Le repas visé est demandé juste après." },
+  { ecran: 'repas', cible: '.ajout-rapide', titre: 'Ajouter à un repas', texte: "Toujours en bas de l'écran : quatre façons d'ajouter, une recette, un aliment, une photo ou un code-barres. Le repas visé est demandé juste après." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-recette', titre: 'Recette', texte: "Tes recettes enregistrées, et celles partagées par l'équipe : une portion s'ajoute en un toucher, macros déjà calculées." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-manuel', titre: 'Aliment', texte: "Recherche dans la base d'aliments, avec en premier ce que tu manges souvent. Un aliment introuvable ? Saisis-le : il reste à toi, et rejoint la base commune une fois validé." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-photo', titre: 'Photo ou description', texte: "Prends en photo ou décris ton assiette : l'IA estime les aliments, les quantités et les macros." },

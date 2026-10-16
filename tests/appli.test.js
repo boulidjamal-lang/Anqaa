@@ -506,6 +506,20 @@ test('les statistiques s\'affichent sur chaque onglet et chaque période', () =>
   assert.deepEqual(r, { semaines: true, allure: true, records: 3 });
 }));
 
+test("barre d'ajout flottante : toujours visible sur Repas du jour, absente ailleurs", () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => { allerA('repas'); window.scrollTo(0, document.body.scrollHeight); });
+  await page.waitForTimeout(150);
+  const r = await page.evaluate(() => {
+    const b = document.getElementById('ajout-rapide').getBoundingClientRect();
+    return { pos: getComputedStyle(document.getElementById('ajout-rapide')).position, dansEcran: b.top >= 0 && b.bottom <= innerHeight, boutons: document.querySelectorAll('#ajout-rapide button').length };
+  });
+  assert.deepEqual(r, { pos: 'fixed', dansEcran: true, boutons: 4 });
+  await page.click('#ajout-rapide button:nth-child(2)');
+  assert.ok(await page.evaluate(() => document.body.classList.contains('couche-ouverte')));
+  await page.evaluate(() => { fermerFeuilles(); allerA('seance'); });
+  assert.equal(await page.isVisible('#ajout-rapide'), false);
+}));
+
 test('cartes de stats : poids et nutrition sur Repas du jour, cardio et muscu dans Activité, chacune ouvre son détail', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     const t = todayStr();
