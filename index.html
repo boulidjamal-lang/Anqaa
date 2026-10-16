@@ -2503,6 +2503,15 @@
     .carte-stats-cases span { flex: 1; min-width: 0; background: var(--verre-creux); border-radius: 10px; padding: 6px 8px; font-size: 0.66rem; color: var(--text-muted); }
     .carte-stats-cases b { display: block; font-size: 0.86rem; color: var(--text); }
     .carte-stats-pied { font-size: 0.66rem; color: var(--text-muted); margin-top: 6px; }
+    .carte-stats--compacte { padding: 10px 14px; margin-bottom: 10px; }
+    .carte-stats--compacte:last-child { margin-bottom: 16px; }
+    .carte-stats--compacte .carte-stats-haut { gap: 10px; }
+    .carte-stats--compacte .carte-stats-titre { font-size: 0.64rem; }
+    .carte-stats--compacte .carte-stats-valeur { margin-top: 0; gap: 5px; }
+    .carte-stats--compacte .carte-stats-valeur b { font-size: 1.15rem; }
+    .carte-stats--compacte .carte-stats-valeur span { font-size: 0.76rem; }
+    .carte-stats--compacte .carte-stats-ligne { font-size: 0.68rem; margin-top: 0; }
+    .carte-stats--compacte .carte-stats-graph { width: 84px; height: 30px; }
     .stats-entete { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
     .stats-entete .titre-ecran { margin: 0; }
     .compo-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
@@ -5514,7 +5523,10 @@ function barresMiniSVG(valeurs, couleur, cible) {
   }).join('')}${yCible ? `<line x1="0" x2="${W}" y1="${yCible}" y2="${yCible}" stroke="var(--text-muted)" stroke-dasharray="3 3" stroke-width="1.2"/>` : ''}</svg>`;
 }
 function carteStatsHTML(o) {
-  return `<div class="carte-stats fitness-card" id="${o.id}" role="button" tabindex="0" aria-label="${escapeHtml(o.titre)} : ouvrir le détail"
+  // Version compacte (Repas du jour) : une ligne, sans les cases ni le pied ;
+  // le détail reste dans la fenêtre qui s'ouvre au toucher.
+  if (o.compacte) { o = Object.assign({}, o, { cases: null, pied: '' }); }
+  return `<div class="carte-stats fitness-card${o.compacte ? ' carte-stats--compacte' : ''}" id="${o.id}" role="button" tabindex="0" aria-label="${escapeHtml(o.titre)} : ouvrir le détail"
       onclick="ouvrirStats('${o.onglet}')" onkeydown="if(event.key==='Enter')ouvrirStats('${o.onglet}')">
     <div class="carte-stats-haut"><div class="carte-stats-texte">
       <div class="carte-stats-titre">${escapeHtml(o.titre)}</div>
@@ -5534,7 +5546,7 @@ function carteStatsPoidsHTML() {
   const auj = todayStr();
   const pesees = Object.keys(appData).filter(d => d <= auj && Number(appData[d] && appData[d].weight) > 0).sort().map(d => [d, Number(appData[d].weight)]);
   if (!pesees.length) {
-    return carteStatsHTML({ id: 'carte-stats-poids', onglet: 'poids', titre: 'Poids et composition', valeur: '—', unite: '',
+    return carteStatsHTML({ id: 'carte-stats-poids', onglet: 'poids', compacte: true, titre: 'Poids et composition', valeur: '—', unite: '',
       ligne: 'Ajoute ta première pesée dans Profil › Mesures corporelles pour suivre ta tendance.' });
   }
   const dernier = pesees[pesees.length - 1][1];
@@ -5555,7 +5567,7 @@ function carteStatsPoidsHTML() {
     if (m.eauPct > 0) cases.push(['Hydratation', fmtUneDecimale(m.eauPct) + ' %']);
     pied = 'Composition mesurée le ' + dateLocale(dm).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
   }
-  return carteStatsHTML({ id: 'carte-stats-poids', onglet: 'poids', titre: 'Poids et composition', valeur: fmtUneDecimale(dernier), unite: 'kg',
+  return carteStatsHTML({ id: 'carte-stats-poids', onglet: 'poids', compacte: true, titre: 'Poids et composition', valeur: fmtUneDecimale(dernier), unite: 'kg',
     ligne, graphique: courbeMiniSVG(serie, 'var(--primary)'), cases, pied });
 }
 function carteStatsNutritionHTML() {
@@ -5572,7 +5584,7 @@ function carteStatsNutritionHTML() {
   }
   const remplis = kcal.filter(v => v > 0);
   if (!remplis.length) {
-    return carteStatsHTML({ id: 'carte-stats-nutrition', onglet: 'nutrition', titre: 'Ma nutrition · 14 jours', valeur: '—', unite: '',
+    return carteStatsHTML({ id: 'carte-stats-nutrition', onglet: 'nutrition', compacte: true, titre: 'Ma nutrition · 14 jours', valeur: '—', unite: '',
       ligne: 'Note tes repas quelques jours pour voir tes moyennes ici.' });
   }
   const moy = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
@@ -5581,7 +5593,7 @@ function carteStatsNutritionHTML() {
   kcal.forEach(v => { if (v > 0) { if (Math.abs(v - cibles[k]) <= cibles[k] * 0.1) dansCible++; k++; } });
   const cases = [['Objectif moyen', cibleMoy.toLocaleString('fr-FR') + ' kcal'], ['Protéines', fmtUneDecimale(moy(prot) / dernierPoidsConnu(auj)) + ' g/kg']];
   if (eau.length) cases.push(['Eau / jour', fmtUneDecimale(moy(eau) / 1000) + ' L']);
-  return carteStatsHTML({ id: 'carte-stats-nutrition', onglet: 'nutrition', titre: 'Ma nutrition · 14 jours', valeur: Math.round(moy(remplis)).toLocaleString('fr-FR'), unite: 'kcal / jour',
+  return carteStatsHTML({ id: 'carte-stats-nutrition', onglet: 'nutrition', compacte: true, titre: 'Ma nutrition · 14 jours', valeur: Math.round(moy(remplis)).toLocaleString('fr-FR'), unite: 'kcal / jour',
     ligne: dansCible + ' jour' + (dansCible > 1 ? 's' : '') + ' sur ' + remplis.length + ' dans la cible', graphique: barresMiniSVG(kcal, 'var(--primary)', cibleMoy), cases });
 }
 function renderCartesStatsRepas() {

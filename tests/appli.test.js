@@ -541,7 +541,10 @@ test('cartes de stats : poids et nutrition sur Repas du jour, cardio et muscu da
   const repas = await page.evaluate(() => [...document.querySelectorAll('#cartes-stats-repas .carte-stats')].map(c => c.id));
   assert.deepEqual(repas, ['carte-stats-poids', 'carte-stats-nutrition']);
   assert.match(await page.textContent('#carte-stats-poids .carte-stats-valeur'), /79,9\s*kg/);
-  assert.match(await page.textContent('#carte-stats-poids'), /Masse grasse/);
+  // Version compacte : une ligne, le détail (composition, etc.) est dans la fenêtre.
+  const hauteurs = await page.evaluate(() => ['#carte-stats-poids', '#carte-stats-nutrition'].map(c => document.querySelector(c).getBoundingClientRect().height));
+  assert.ok(hauteurs.every(h => h <= 80), 'cartes trop hautes : ' + hauteurs);
+  assert.equal(await page.$('#cartes-stats-repas .carte-stats-cases'), null);
 
   // Poids : la carte ouvre le détail, 4 petits graphiques de composition, pas de bilan IA.
   await page.click('#carte-stats-poids');
