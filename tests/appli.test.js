@@ -514,6 +514,10 @@ test("barre d'ajout flottante : toujours visible sur Repas du jour, absente aill
     return { pos: getComputedStyle(document.getElementById('ajout-rapide')).position, dansEcran: b.top >= 0 && b.bottom <= innerHeight, boutons: document.querySelectorAll('#ajout-rapide button').length };
   });
   assert.deepEqual(r, { pos: 'fixed', dansEcran: true, boutons: 4 });
+  // Même hauteur et même ligne que le bouton de navigation, même avec des libellés plus grands.
+  await page.addStyleTag({ content: '#ajout-rapide button { font-size: 0.95rem !important; }' });
+  const h = await page.evaluate(() => { const a = document.getElementById('ajout-rapide').getBoundingClientRect(), f = document.getElementById('fab').getBoundingClientRect(); return [a.height, f.height, a.bottom, f.bottom].map(Math.round); });
+  assert.equal(h[0], h[1]); assert.equal(h[2], h[3]);
   await page.click('#ajout-rapide button:nth-child(2)');
   assert.ok(await page.evaluate(() => document.body.classList.contains('couche-ouverte')));
   await page.evaluate(() => { fermerFeuilles(); allerA('seance'); });
@@ -527,8 +531,8 @@ test('Repas du jour : toucher une macro ouvre sa courbe face à son objectif', (
     allerA('repas'); renderApp();
   });
   await page.click('#ecran-repas .macro-item:nth-child(1)');
-  // Le reste de la carte ouvre toujours la dépense, mais pas la macro.
-  assert.equal(await page.evaluate(() => document.getElementById('depense-modal').classList.contains('show')), false);
+  // La macro vise sa courbe, pas la dépense (en haut du détail Nutrition).
+  assert.equal(await page.evaluate(() => document.getElementById('bloc-depense').classList.contains('macro-stat--vise')), false);
   await page.waitForFunction(() => Object.keys(macroChartsInstances).length === 3);
   await page.waitForTimeout(400);
   const r = await page.evaluate(() => {
@@ -540,6 +544,14 @@ test('Repas du jour : toucher une macro ouvre sa courbe face à son objectif', (
       ancien: !!document.getElementById('macrosChart') };
   });
   assert.deepEqual(r, { ecran: 'stats', titre: 'Ma nutrition', series: ['Protéines (g)', 'Objectif'], dernier: 120, objectif: true, visible: true, vise: true, ancien: false });
+  await page.click('#ecran-stats .stats-entete button');
+  // Le reste du résumé : plus de fenêtre « dépense », c'est le détail
+  // Nutrition qui s'ouvre, dépense estimée du jour en tête.
+  await page.click('#ecran-repas .summary-card h1');
+  const dep = await page.evaluate(() => ({ ecran: ecranActif, modale: !!document.getElementById('depense-modal'),
+    dansNutrition: !!document.querySelector('#ecran-stats .stats-tab[data-tab="nutrition"] #bloc-depense'),
+    lignes: document.querySelectorAll('#detail-depense > div').length, visible: document.getElementById('bloc-depense').getBoundingClientRect().top < innerHeight }));
+  assert.deepEqual(dep, { ecran: 'stats', modale: false, dansNutrition: true, lignes: 7, visible: true });
   await page.click('#ecran-stats .stats-entete button');
   await page.click('#ecran-repas .macro-item:nth-child(3)');
   await page.waitForTimeout(700);
@@ -574,10 +586,16 @@ test("« Déjà mangé » suit le nouveau nom d'un aliment renommé (même code-
   assert.match(r.noms[1], /Kok'o oeufs durs/);
   assert.doesNotMatch(r.noms.join(' '), /handgekookte/);
   assert.deepEqual(r.deja[0], ["Kok'o - oeufs dur", 3]);
+  // Les repas notés prennent le nouveau nom ; valeurs et poids inchangés.
+  const repas = await page.evaluate(() => [-3, -1].map(k => getDay(shiftDate(todayStr(), k))).map((j, i) => (i ? j.meals[MEALS[1]] : j.meals[MEALS[0]])[0]).map(it => [it.name, it.code, it.grams, it.kcal]));
+  assert.deepEqual(repas, [["Kok'o - oeufs dur", '5413828000650', 86, 114], ["Kok'o - oeufs dur", '5413828000650', 50, 66]]);
   // × : retire l'entrée de « Déjà mangé », sans toucher aux repas.
   await page.evaluate(() => document.querySelectorAll('#off-suggestions-list .off-retirer')[1].click());
   const restant = await page.evaluate(() => ({ deja: chercherDansHistorique('kok', 10).map(p => p.name), repas: getDay(shiftDate(todayStr(), -1)).meals[MEALS[2]].length, masques: Object.keys(userProfile.dejaMangeMasques) }));
   assert.deepEqual(restant, { deja: ["Kok'o - oeufs dur"], repas: 1, masques: ["kok'o oeufs durs"] });
+  // Renommage dans Administration : l'ancien nom disparaît aussi des repas sans code-barres.
+  const admin = await page.evaluate(() => { const n = renommerDansHistorique({ ancienNom: "Kok'o oeufs durs", codes: [''], nouveauNom: 'Oeufs durs maison' }); const it = getDay(shiftDate(todayStr(), -1)).meals[MEALS[2]][0]; return [n, it.name, it.grams, it.kcal]; });
+  assert.deepEqual(admin, [1, 'Oeufs durs maison', 86, 114]);
   // Retenu d'une ouverture à l'autre (sans réseau) et appliqué tout de suite après un renommage.
   const apres = await page.evaluate(() => { nomsParCode = JSON.parse(localStorage.getItem('anqaa_noms_par_code')); invaliderHistorique(); retenirNomParCode('5413828000650', 'Oeufs durs Kokou'); return chercherDansHistorique('', 10)[0].name; });
   assert.equal(apres, 'Oeufs durs Kokou');

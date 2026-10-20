@@ -1594,6 +1594,9 @@
       position: fixed; z-index: 74;
       left: max(16px, calc(50% - 264px)); right: 92px; bottom: calc(18px + env(safe-area-inset-bottom, 0px));
       max-width: 452px; padding: 4px; border-radius: 21px;
+      /* Même hauteur que le bouton de navigation (.fab, 60px), quelle que
+         soit la police : sans hauteur fixe, les libellés l'allongeaient. */
+      height: 60px; box-sizing: border-box; align-items: stretch;
       background: var(--barre); box-shadow: var(--ombre-haute), 0 0 0 1px var(--verre-brd) inset;
       -webkit-backdrop-filter: blur(var(--verre-flou)) saturate(var(--verre-sat));
       backdrop-filter: blur(var(--verre-flou)) saturate(var(--verre-sat));
@@ -1603,7 +1606,7 @@
     body.couche-ouverte .ajout-rapide { opacity: 0; pointer-events: none; transform: translateY(14px); }
     .ajout-rapide button {
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-      min-height: 52px; padding: 4px 2px; border: 0; border-radius: 17px; cursor: pointer;
+      height: 100%; min-height: 0; padding: 2px; border: 0; border-radius: 17px; cursor: pointer; overflow: hidden;
       background: transparent; color: var(--text); font-family: inherit; font-weight: 700; font-size: 0.66rem;
     }
     .ajout-rapide button:active { background: var(--verre-fort); }
@@ -2827,7 +2830,7 @@
   <section id="ecran-repas" class="ecran actif" role="region" aria-label="Repas">
     <h2 class="titre-ecran"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg></span> Repas du jour</h2>
     <div id="premiers-pas"></div>
-    <div class="summary-card" role="button" tabindex="0" onclick="ouvrirModal('depense-modal')" onkeydown="if(event.key==='Enter')ouvrirModal('depense-modal')" style="cursor:pointer;" aria-label="Calories du jour — toucher pour voir la dépense estimée">
+    <div class="summary-card" role="button" tabindex="0" onclick="ouvrirDepense()" onkeydown="if(event.key==='Enter')ouvrirDepense()" style="cursor:pointer;" aria-label="Calories du jour — toucher pour voir la dépense estimée et ta nutrition">
       <span class="libelle">Calories consommées</span>
       <h1 id="total-kcals">0</h1>
       <div class="target-kcal" id="target-kcals-display">Objectif : 0 kcal</div>
@@ -3035,6 +3038,43 @@
     </div>
 
     <div class="stats-tab" data-tab="nutrition">
+      <!-- Dépense estimée du jour affiché dans Repas du jour (ancienne fenêtre
+           « Calories estimées du jour ») : toucher le résumé des calories
+           ouvre ce détail Nutrition, en haut. -->
+      <div class="bloc-verre" id="bloc-depense">
+        <h3 style="margin-top:0;margin-bottom:10px;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4" /></svg> Dépense estimée <span id="depense-jour" style="color:var(--text-muted);"></span></h3>
+        <div id="detail-depense" class="note" style="margin:0;"></div>
+        <details style="margin-top:12px;">
+          <summary style="cursor:pointer;font-size:0.75rem;color:var(--text-muted);font-weight:700;">D'où viennent ces chiffres ?</summary>
+          <p class="note" style="margin:10px 0 0;">
+            Métabolisme de base : formule de Mifflin-St Jeor (poids, taille, âge, sexe).
+            Si un % de masse grasse est enregistré dans Mesures corporelles (saisi à
+            la main ou importé depuis la balance Withings), la formule Katch-McArdle
+            prend le relais et se base sur ta masse maigre plutôt que ton poids total
+            — plus précis pour les profils très musclés ou avec un taux de masse
+            grasse élevé. L'objectif de protéines se base aussi sur la masse maigre
+            dans ce cas (les lipides restent sur le poids total, leur plancher étant
+            hormonal, pas lié au tissu maigre). L'objectif "Recomposition" reprend
+            les calories du maintien mais des protéines au niveau d'une sèche : c'est
+            la combinaison qui permet de prendre du muscle et perdre du gras en même
+            temps, à condition de continuer à progresser en charge à l'entraînement.
+            Le facteur × 1,2 correspond à un mode de vie sédentaire — il inclut déjà
+            environ 4 000 pas, c'est pourquoi seuls les pas au-delà sont ajoutés.
+            Les séances utilisent les MET du <em>Compendium of Physical Activities</em>
+            et ton poids. Quand la distance est notée (course, marche, vélo), le MET
+            suit ta vitesse réelle ; sinon, celui du sport, ajusté par l'intensité
+            notée. On retire ton propre métabolisme de repos (âge, sexe, taille, poids
+            ou masse maigre) sur la durée de la séance : l'heure de sport remplace une
+            heure de repos déjà comptée, elle ne s'y ajoute pas.
+            Pour une séance de musculation trackée dans l'onglet Activité, le temps de
+            repos entre les séries n'est pas compté comme de l'effort (il se passe à
+            un rythme proche du repos, déjà compté ailleurs) : seul le nombre de
+            séries réellement faites compte, à raison d'environ 40 secondes d'effort
+            par série. Une séance de musculation ajoutée à la main dans Activité
+            (sans détail des séries) reste calculée sur sa durée totale déclarée.
+          </p>
+        </details>
+      </div>
       <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg> Chiffres clés</div>
       <div class="grille-cles" id="grille-cles-nutrition"></div>
 
@@ -4432,49 +4472,6 @@
 </div>
 
 <!-- ================= DÉPENSE ESTIMÉE (tap sur les calories du jour) ================= -->
-<div id="depense-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-depense">
-  <div class="modal-content" style="max-width:480px;">
-    <div class="modal-entete">
-      <h3 id="titre-depense">Calories estimées du jour</h3>
-      <button class="close-modal" onclick="fermerModal('depense-modal')" aria-label="Fermer">&times;</button>
-    </div>
-    <div class="bloc-verre" id="bloc-depense">
-      <h3 style="margin-top:0;margin-bottom:10px;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4" /></svg> Dépense estimée</h3>
-      <div id="detail-depense" class="note" style="margin:0;"></div>
-      <details style="margin-top:12px;">
-        <summary style="cursor:pointer;font-size:0.75rem;color:var(--text-muted);font-weight:700;">D'où viennent ces chiffres ?</summary>
-        <p class="note" style="margin:10px 0 0;">
-          Métabolisme de base : formule de Mifflin-St Jeor (poids, taille, âge, sexe).
-          Si un % de masse grasse est enregistré dans Mesures corporelles (saisi à
-          la main ou importé depuis la balance Withings), la formule Katch-McArdle
-          prend le relais et se base sur ta masse maigre plutôt que ton poids total
-          — plus précis pour les profils très musclés ou avec un taux de masse
-          grasse élevé. L'objectif de protéines se base aussi sur la masse maigre
-          dans ce cas (les lipides restent sur le poids total, leur plancher étant
-          hormonal, pas lié au tissu maigre). L'objectif "Recomposition" reprend
-          les calories du maintien mais des protéines au niveau d'une sèche : c'est
-          la combinaison qui permet de prendre du muscle et perdre du gras en même
-          temps, à condition de continuer à progresser en charge à l'entraînement.
-          Le facteur × 1,2 correspond à un mode de vie sédentaire — il inclut déjà
-          environ 4 000 pas, c'est pourquoi seuls les pas au-delà sont ajoutés.
-          Les séances utilisent les MET du <em>Compendium of Physical Activities</em>
-          et ton poids. Quand la distance est notée (course, marche, vélo), le MET
-          suit ta vitesse réelle ; sinon, celui du sport, ajusté par l'intensité
-          notée. On retire ton propre métabolisme de repos (âge, sexe, taille, poids
-          ou masse maigre) sur la durée de la séance : l'heure de sport remplace une
-          heure de repos déjà comptée, elle ne s'y ajoute pas.
-          Pour une séance de musculation trackée dans l'onglet Activité, le temps de
-          repos entre les séries n'est pas compté comme de l'effort (il se passe à
-          un rythme proche du repos, déjà compté ailleurs) : seul le nombre de
-          séries réellement faites compte, à raison d'environ 40 secondes d'effort
-          par série. Une séance de musculation ajoutée à la main dans Activité
-          (sans détail des séries) reste calculée sur sa durée totale déclarée.
-        </p>
-      </details>
-    </div>
-  </div>
-</div>
-
 <!-- ================= NOM D'UTILISATEUR ================= -->
 <div id="pseudo-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-pseudo">
   <div class="modal-content" style="max-width:420px;">
@@ -6476,6 +6473,9 @@ function majDetailDepense(day, t) {
   if (lien && t && t.tdee) lien.textContent = 'Dépense estimée : ' + t.tdee + ' kcal ›';
   const el = document.getElementById('detail-depense');
   if (!el) return;
+  // Ce bloc vit dans le détail Nutrition (sur une période) : il dit de quel jour il parle.
+  const jourDep = document.getElementById('depense-jour');
+  if (jourDep) jourDep.textContent = '· ' + (currentDate === todayStr() ? "aujourd'hui" : dateLocale(currentDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
   const lignes = [
     ['Métabolisme de base', t.bmr + ' kcal'],
     ['Vie courante (× 1,2)', Math.round(t.bmr * 0.2) + ' kcal'],
@@ -7083,11 +7083,54 @@ let nomsParCode = (() => {
 })();
 function retenirNomParCode(code, nom) {
   code = String(code || '').trim(); nom = String(nom || '').trim();
-  if (!code || !nom || nomsParCode[code] === nom) return false;
-  nomsParCode[code] = nom;
-  try { localStorage.setItem(NOMS_PAR_CODE_LS, JSON.stringify(nomsParCode)); } catch (e) {}
+  if (!code || !nom) return false;
+  const change = nomsParCode[code] !== nom;
+  if (change) {
+    nomsParCode[code] = nom;
+    try { localStorage.setItem(NOMS_PAR_CODE_LS, JSON.stringify(nomsParCode)); } catch (e) {}
+  }
+  // Même nom déjà retenu : des repas peuvent encore porter l'ancien.
+  const n = renommerDansHistorique({ codes: [code], nouveauNom: nom });
+  if (change || n) invaliderHistorique();
+  return change || n > 0;
+}
+
+/* L'historique des repas suit la base : un aliment renommé (Administration,
+   ou nouveau nom retrouvé par code-barres dans la base) prend son nouveau
+   nom dans tous les repas déjà notés. Seul le nom change : calories,
+   macros et poids de chaque repas restent ceux du jour où il a été noté.
+   Sont concernés : les repas au même code-barres, ceux à l'ancien nom, et
+   les saisies sans code-barres sous un nom déjà vu avec ce code (même
+   produit noté à la main), qui reçoivent alors le code-barres. */
+function renommerDansHistorique({ ancienNom, codes, nouveauNom, nouveauCode }) {
+  nouveauNom = String(nouveauNom || '').trim();
+  if (!nouveauNom) return 0;
+  const lesCodes = new Set((codes || []).map(c => String(c || '').trim()).filter(Boolean));
+  const nomsVus = new Set();
+  if (ancienNom && String(ancienNom).trim()) nomsVus.add(String(ancienNom).trim().toLowerCase());
+  const chaqueAliment = f => Object.keys(appData).forEach(ds => {
+    const j = appData[ds];
+    if (j && j.meals) Object.values(j.meals).forEach(l => Array.isArray(l) && l.forEach(it => it && f(it, ds)));
+  });
+  if (lesCodes.size) chaqueAliment(it => { if (it.code && lesCodes.has(String(it.code).trim()) && it.name) nomsVus.add(String(it.name).trim().toLowerCase()); });
+  const code = String(nouveauCode || '').trim() || (lesCodes.size === 1 ? [...lesCodes][0] : '');
+  const jours = new Set();
+  let n = 0;
+  chaqueAliment((it, ds) => {
+    const sonCode = it.code ? String(it.code).trim() : '';
+    const parCode = sonCode && lesCodes.has(sonCode);
+    const parNom = !sonCode && it.name && nomsVus.has(String(it.name).trim().toLowerCase());
+    if (!parCode && !parNom) return;
+    if (it.name === nouveauNom && (sonCode || !code)) return;
+    it.name = nouveauNom;
+    if (!sonCode && code) it.code = code;
+    jours.add(ds); n++;
+  });
+  if (!n) return 0;
+  jours.forEach(ds => saveData(ds));
   invaliderHistorique();
-  return true;
+  if (typeof renderApp === 'function' && jours.has(currentDate)) { try { renderApp(); } catch (e) {} }
+  return n;
 }
 
 function construireHistorique() {
@@ -9159,6 +9202,13 @@ function ouvrirMacro(cle) {
     bloc.classList.add('macro-stat--vise');
   }, 250);
 }
+/* Résumé des calories (Repas du jour) › détail Nutrition, dépense du jour en haut. */
+function ouvrirDepense() {
+  ouvrirStats('nutrition');
+  window.scrollTo(0, 0);
+  const b = document.getElementById('bloc-depense');
+  if (b) { b.classList.remove('macro-stat--vise'); void b.offsetWidth; b.classList.add('macro-stat--vise'); }
+}
 function fermerStats() {
   allerA(ecranAvantStats && ecranAvantStats !== 'stats' ? ecranAvantStats : 'repas');
 }
@@ -10304,7 +10354,7 @@ function initFabDeplacable() {
    ===================================================================== */
 const TOUR_ETAPES = [
   { titre: 'Bienvenue sur Anqā', texte: "Un tour rapide de l'appli : la nutrition, l'activité, les statistiques et ton profil. Tu peux le quitter à tout moment et le revoir depuis Profil › Réglages (engrenage). Une visite dédiée à la musculation existe aussi." },
-  { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: "Calories consommées, ce qu'il te reste et la répartition protéines / glucides / lipides. Touche une macro pour voir sa courbe face à ton objectif, ou le reste de la carte pour le détail de ta dépense du jour." },
+  { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: "Calories consommées, ce qu'il te reste et la répartition protéines / glucides / lipides. Touche une macro pour voir sa courbe face à ton objectif, ou le reste de la carte pour ta dépense estimée du jour et ta nutrition." },
   { ecran: 'repas', cible: '#cartes-stats-repas', titre: 'Poids et nutrition', texte: "Ton poids et ta nutrition des 14 derniers jours, d'un coup d'œil. Touche une carte pour le détail : courbe de poids et composition corporelle, ou calories et macros." },
   { ecran: 'repas', cible: '.ajout-rapide', titre: 'Ajouter à un repas', texte: "Toujours en bas de l'écran : quatre façons d'ajouter, une recette, un aliment, une photo ou un code-barres. Le repas visé est demandé juste après." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-recette', titre: 'Recette', texte: "Tes recettes enregistrées, et celles partagées par l'équipe : une portion s'ajoute en un toucher, macros déjà calculées." },
@@ -22189,7 +22239,10 @@ async function sauvegarderEditionAliment() {
       })
       .eq('id', id);
     if (error) throw error;
-    retenirNomParCode(val('edit-code-barre'), nom);
+    {
+      const av = adminAlimentsCharges.find(x => String(x.id) === String(id)) || {};
+      renommerDansHistorique({ ancienNom: av.nom, codes: [av.code_barre, val('edit-code-barre')], nouveauNom: nom, nouveauCode: val('edit-code-barre') });
+    }
 
     {
       const avant = adminAlimentsCharges.find(x => String(x.id) === String(id)) || {};
@@ -22233,8 +22286,8 @@ async function sauvegarderAlimentBase(modal) {
     }
     if (error) throw error;
     cacheAliments.clear();
-    retenirNomParCode(val('edit-code-barre'), nom);
     const avantBase = (baseAlimentsAffiches || []).find(x => String(x.cle) === String(modal.dataset.cleBase)) || {};
+    renommerDansHistorique({ ancienNom: avantBase.nom, codes: [avantBase.code_barre, val('edit-code-barre')], nouveauNom: nom, nouveauCode: val('edit-code-barre') });
     await consignerAction('aliment_base_modifie', modal.dataset.cleBase, nom, null, {
       avant: { nom: avantBase.nom, code_barre: avantBase.code_barre || '', kcal100: avantBase.kcal100, p100: avantBase.p100, c100: avantBase.c100, f100: avantBase.f100 },
       apres: { nom, code_barre: val('edit-code-barre').trim(), kcal100: nombre('edit-kcal', 2000), p100: nombre('edit-p100', 200), c100: nombre('edit-c100', 200), f100: nombre('edit-f100', 200) }
