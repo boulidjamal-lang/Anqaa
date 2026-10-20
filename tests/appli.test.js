@@ -989,6 +989,31 @@ test("des données piégées dans ses propres données ne s'exécutent jamais", 
   }
 }));
 
+test('styles visuels : choix dans Réglages, gardé au redémarrage, chaque style sur chaque écran', () => avecAppli({}, async ({ page }) => {
+  const ids = await page.evaluate(() => STYLES_VISUELS.map(s => s.id));
+  assert.deepEqual(ids, ['', 'epure', 'editorial', 'brutal', 'terminal', 'sport', 'fil', 'systeme', 'bataillon']);
+  assert.equal(await page.evaluate(() => document.querySelectorAll('#styles-visuels .style-visuel').length), 9);
+  // Toucher une vignette applique le style et l'enregistre (profil + local).
+  await page.evaluate(() => { allerA('reglages'); ouvrirModal('reglages-modal'); });
+  await page.click('#styles-visuels .style-visuel:nth-child(8)');
+  let r = await page.evaluate(() => ({ attr: document.documentElement.getAttribute('data-style'), local: localStorage.getItem('anqaa_style'), profil: userProfile.style,
+    choisi: document.querySelector('#styles-visuels .style-visuel.choisi .style-visuel-nom').textContent,
+    couleur: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(), palettesInactives: document.getElementById('palettes-perso').classList.contains('palettes-inactives') }));
+  assert.deepEqual(r, { attr: 'systeme', local: 'systeme', profil: 'systeme', choisi: 'Système', couleur: '#0077c8', palettesInactives: true });
+  // Au redémarrage, posé avant l'appli (pas de flash de l'habillage d'origine).
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  assert.equal(await page.evaluate(() => document.documentElement.getAttribute('data-style')), 'systeme');
+  await page.waitForFunction(() => typeof allerA === 'function' && typeof Chart !== 'undefined');
+  await page.evaluate(() => { connexionObligatoire = false; const sp = document.getElementById('splash-screen'); if (sp) sp.style.display = 'none'; });
+  // Chaque style, chaque écran : aucune erreur (vérifiée par avecAppli).
+  for (const id of ids) {
+    await page.evaluate(id => { choisirStyle(id); for (const e of ['repas', 'seance', 'reglages', 'repas']) allerA(e); ouvrirStats('nutrition'); ouvrirStats('muscu'); fermerStats(); }, id);
+  }
+  // Revenir au style Anqā retire tout.
+  r = await page.evaluate(() => { choisirStyle(''); return [document.documentElement.hasAttribute('data-style'), localStorage.getItem('anqaa_style'), userProfile.style]; });
+  assert.deepEqual(r, [false, null, '']);
+}));
+
 test('le thème sombre ne casse aucun écran', () => avecAppli({ theme: 'dark' }, async ({ page }) => {
   for (const ecran of ['repas', 'seance', 'stats', 'reglages']) {
     await page.evaluate(e => allerA(e), ecran);

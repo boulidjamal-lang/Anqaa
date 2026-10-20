@@ -1574,6 +1574,18 @@
     .fiche-exo-video--mini video.hd { opacity: 0; transition: opacity 0.25s; }
     .fiche-exo-video--mini video.hd.prete { opacity: 1; }
     .palettes-perso { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .palettes-perso.palettes-inactives { opacity: .45; pointer-events: none; }
+    .styles-visuels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .style-visuel {
+      display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 6px; border: 0; border-radius: 12px; cursor: pointer;
+      background: var(--verre-creux); color: var(--text); font-family: inherit; text-align: left; min-width: 0;
+    }
+    .style-visuel.choisi { box-shadow: 0 0 0 2px var(--primary) inset; }
+    .style-visuel-apercu { position: relative; display: flex; align-items: center; height: 44px; padding: 0 9px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(128,128,128,.25); }
+    .style-visuel-apercu b { font-size: 1.15rem; font-weight: 700; }
+    .style-visuel-apercu i { position: absolute; left: 9px; right: 9px; bottom: 7px; height: 4px; border-radius: 2px; }
+    .style-visuel-nom { font-weight: 800; font-size: 0.74rem; padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .style-visuel small { font-size: 0.6rem; color: var(--text-muted); padding: 0 2px; line-height: 1.25; }
     .palette-perso {
       display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 0; border-radius: 12px; cursor: pointer;
       background: var(--verre-creux); color: var(--text); font-family: inherit; font-weight: 700; font-size: 0.74rem; text-align: left;
@@ -2653,6 +2665,570 @@
       font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.7px; font-weight: 800;
       color: var(--accent); margin-bottom: 12px;
     }
+
+    /* =====================================================================
+       STYLES VISUELS (Réglages › Apparence › Style) : huit habillages complets
+       de l'appli, choisis par l'utilisateur. Chacun ne s'applique que sous
+       html:root[data-style="…"] (posé au démarrage, voir le script de thème) et
+       remplace les couleurs, les polices et la forme des blocs ; sans style
+       choisi, l'appli garde son habillage d'origine.
+       ===================================================================== */
+    /* --- Épuré --- */
+    html:root[data-style="epure"] body::before { display: none !important; }
+    html:root[data-style="epure"] .summary-card,
+    html:root[data-style="epure"] .fitness-card,
+    html:root[data-style="epure"] .analysis-card,
+    html:root[data-style="epure"] .meal-card,
+    html:root[data-style="epure"] .bloc-verre,
+    html:root[data-style="epure"] .carte-stats { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important; margin: 0 !important; }
+    html:root[data-style="epure"] .macros-bar { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
+    html:root[data-style="epure"] #ecran-repas .macro-item { border-radius: 0 !important; }
+    html:root[data-style="epure"] .btn-icone,
+    html:root[data-style="epure"] .filtre-chip,
+    html:root[data-style="epure"] .meal-kcals { background: transparent !important; box-shadow: none !important; }
+    html:root[data-style="epure"] .date-nav,
+    html:root[data-style="epure"] .app-bar { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    html:root[data-style="epure"] .date-nav button { background: transparent !important; }
+    html:root[data-style="epure"] .meal-header { border-bottom: 0 !important; }
+    html:root[data-style="epure"] #carte-pas-seances input { box-shadow: none !important; }
+    html:root[data-style="epure"] .summary-card,
+    html:root[data-style="epure"] .fitness-card,
+    html:root[data-style="epure"] .analysis-card,
+    html:root[data-style="epure"] .meal-card,
+    html:root[data-style="epure"] .bloc-verre,
+    html:root[data-style="epure"] .carte-stats { padding: 14px 2px !important; border-bottom: 1px solid var(--verre-brd) !important; }
+    html:root[data-style="epure"] .macros-bar { padding: 8px 0 0 !important; }
+    html:root[data-style="epure"] .date-nav { background: transparent !important; border-bottom: 1px solid var(--verre-brd) !important; border-radius: 0 !important; }
+    html:root[data-style="epure"] .btn-icone,
+    html:root[data-style="epure"] .filtre-chip { border: 0 !important; color: var(--primary) !important; }
+    html:root[data-style="epure"] .meal-kcals { color: var(--text-muted) !important; border: 0 !important; }
+    html:root[data-style="epure"] #carte-pas-seances input { background: transparent !important; border-bottom: 1.5px solid var(--verre-brd) !important; border-radius: 0 !important; }
+    html:root[data-style="epure"] .btn-analysis { background: transparent !important; border: 1.5px solid var(--ai-color) !important; }
+    html:root[data-style="epure"] .jauge { height: 4px !important; }
+    html:root[data-style="epure"] #ecran-repas .summary-card > h1 { font-size: 2.6rem !important; font-weight: 800 !important; }
+    html:root[data-style="epure"] .titre-section { margin: 22px 0 2px !important; }
+    /* --- Éditorial --- */
+    html:root[data-style="editorial"] body::before { display: none !important; }
+    html:root[data-style="editorial"] .summary-card,
+    html:root[data-style="editorial"] .fitness-card,
+    html:root[data-style="editorial"] .analysis-card,
+    html:root[data-style="editorial"] .meal-card,
+    html:root[data-style="editorial"] .bloc-verre,
+    html:root[data-style="editorial"] .carte-stats { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important; margin: 0 !important; }
+    html:root[data-style="editorial"] .macros-bar { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
+    html:root[data-style="editorial"] #ecran-repas .macro-item { border-radius: 0 !important; }
+    html:root[data-style="editorial"] .btn-icone,
+    html:root[data-style="editorial"] .filtre-chip,
+    html:root[data-style="editorial"] .meal-kcals { background: transparent !important; box-shadow: none !important; }
+    html:root[data-style="editorial"] .date-nav,
+    html:root[data-style="editorial"] .app-bar { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    html:root[data-style="editorial"] .date-nav button { background: transparent !important; }
+    html:root[data-style="editorial"] .meal-header { border-bottom: 0 !important; }
+    html:root[data-style="editorial"] #carte-pas-seances input { box-shadow: none !important; }
+    html:root[data-style="editorial"][data-theme="light"] { --bg:#f5efe3;--barre:#f5efe3;--text:#1f1a14;--text-muted:#7a6e5f;--primary:#b4441c;--verre-brd:rgba(31,26,20,.18);--verre-creux:transparent;--ai-color:#1f1a14; }
+    html:root[data-style="editorial"][data-theme="dark"] { --bg:#15120e;--barre:#15120e;--text:#efe6d6;--text-muted:#a39682;--primary:#e0774b;--verre-brd:rgba(239,230,214,.18);--verre-creux:transparent;--ai-color:#efe6d6; }
+    html:root[data-style="editorial"] body,
+    html:root[data-style="editorial"] button,
+    html:root[data-style="editorial"] input { font-family: 'Nunito', sans-serif !important; }
+    html:root[data-style="editorial"] .titre-ecran,
+    html:root[data-style="editorial"] .titre-section,
+    html:root[data-style="editorial"] .meal-title,
+    html:root[data-style="editorial"] #ecran-repas .summary-card > h1,
+    html:root[data-style="editorial"] .carte-stats-valeur b,
+    html:root[data-style="editorial"] .date-display,
+    html:root[data-style="editorial"] .app-bar h2 { font-family: 'Fraunces', serif !important; letter-spacing: 0 !important; text-transform: none !important; }
+    html:root[data-style="editorial"] .titre-ecran { font-size: 1.9rem !important; font-weight: 700 !important; border-bottom: 3px double var(--text) !important; padding-bottom: 6px; }
+    html:root[data-style="editorial"] .titre-ecran .ic { display: none !important; }
+    html:root[data-style="editorial"] #ecran-repas .summary-card > h1 { font-size: 3.4rem !important; font-weight: 400 !important; color: var(--text) !important; }
+    html:root[data-style="editorial"] .summary-card,
+    html:root[data-style="editorial"] .fitness-card,
+    html:root[data-style="editorial"] .analysis-card,
+    html:root[data-style="editorial"] .meal-card,
+    html:root[data-style="editorial"] .bloc-verre,
+    html:root[data-style="editorial"] .carte-stats { padding: 14px 0 !important; border-bottom: 1px solid var(--verre-brd) !important; }
+    html:root[data-style="editorial"] .titre-section { font-size: 1.15rem !important; font-weight: 700 !important; color: var(--text) !important; border-bottom: 3px double var(--verre-brd); padding-bottom: 4px; margin: 26px 0 0 !important; }
+    html:root[data-style="editorial"] .titre-section .icone-ui,
+    html:root[data-style="editorial"] .meal-title .icone-ui,
+    html:root[data-style="editorial"] #bloc-eau h3 .icone-ui,
+    html:root[data-style="editorial"] #carte-pas-seances h3 .icone-ui { display: none !important; }
+    html:root[data-style="editorial"] .meal-title { font-size: 1.15rem !important; font-style: italic; }
+    html:root[data-style="editorial"] .carte-stats-titre,
+    html:root[data-style="editorial"] .libelle,
+    html:root[data-style="editorial"] #bloc-eau h3,
+    html:root[data-style="editorial"] #carte-pas-seances > h3 { font-family: 'Fraunces', serif !important; font-style: italic; text-transform: none !important; letter-spacing: 0 !important; font-size: .95rem !important; color: var(--text-muted) !important; font-weight: 400 !important; }
+    html:root[data-style="editorial"] .jauge { height: 2px !important; }
+    html:root[data-style="editorial"] .jauge > i { background: var(--text) !important; }
+    html:root[data-style="editorial"] .macro-jauge { height: 2px !important; }
+    html:root[data-style="editorial"] .btn-icone,
+    html:root[data-style="editorial"] .filtre-chip { color: var(--primary) !important; text-decoration: underline; text-underline-offset: 3px; border: 0 !important; }
+    html:root[data-style="editorial"] .btn-analysis { background: var(--text) !important; color: var(--bg) !important; border-radius: 0 !important; }
+    html:root[data-style="editorial"] .date-nav { background: transparent !important; border-radius: 0 !important; }
+    html:root[data-style="editorial"] #carte-pas-seances input { background: transparent !important; border: 0 !important; border-bottom: 1px solid var(--text) !important; border-radius: 0 !important; font-family: 'Fraunces', serif !important; font-size: 1.2rem !important; }
+    /* --- Néo-brutaliste --- */
+    html:root[data-style="brutal"] body::before { display: none !important; }
+    html:root[data-style="brutal"] .summary-card,
+    html:root[data-style="brutal"] .fitness-card,
+    html:root[data-style="brutal"] .analysis-card,
+    html:root[data-style="brutal"] .meal-card,
+    html:root[data-style="brutal"] .bloc-verre,
+    html:root[data-style="brutal"] .carte-stats { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important; margin: 0 !important; }
+    html:root[data-style="brutal"] .macros-bar { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
+    html:root[data-style="brutal"] #ecran-repas .macro-item { border-radius: 0 !important; }
+    html:root[data-style="brutal"] .btn-icone,
+    html:root[data-style="brutal"] .filtre-chip,
+    html:root[data-style="brutal"] .meal-kcals { background: transparent !important; box-shadow: none !important; }
+    html:root[data-style="brutal"] .date-nav,
+    html:root[data-style="brutal"] .app-bar { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    html:root[data-style="brutal"] .date-nav button { background: transparent !important; }
+    html:root[data-style="brutal"] .meal-header { border-bottom: 0 !important; }
+    html:root[data-style="brutal"] #carte-pas-seances input { box-shadow: none !important; }
+    html:root[data-style="brutal"][data-theme="light"] { --bg:#fff8e7;--barre:#fff8e7;--text:#111;--text-muted:#333;--primary:#111;--verre-brd:#111;--ai-color:#111;--ink:#111;--fond-carte:#fff; }
+    html:root[data-style="brutal"][data-theme="dark"] { --bg:#1a1a1a;--barre:#1a1a1a;--text:#fff;--text-muted:#ddd;--primary:#fff;--verre-brd:#fff;--ai-color:#111;--ink:#fff;--fond-carte:#262626; }
+    html:root[data-style="brutal"] body,
+    html:root[data-style="brutal"] button,
+    html:root[data-style="brutal"] input { font-family: 'Space Grotesk', sans-serif !important; }
+    html:root[data-style="brutal"] .summary-card,
+    html:root[data-style="brutal"] .fitness-card,
+    html:root[data-style="brutal"] .analysis-card,
+    html:root[data-style="brutal"] .meal-card,
+    html:root[data-style="brutal"] .bloc-verre,
+    html:root[data-style="brutal"] .carte-stats,
+    html:root[data-style="brutal"] .date-nav { border: 2.5px solid var(--ink) !important; box-shadow: 5px 5px 0 var(--ink) !important; background: var(--fond-carte) !important; padding: 14px !important; margin: 0 5px 16px 0 !important; border-radius: 0 !important; }
+    html:root[data-style="brutal"] .summary-card { background: #ffe14d !important; color: #111 !important; }
+    html:root[data-style="brutal"] .summary-card * { color: #111 !important; }
+    html:root[data-style="brutal"] #bloc-eau { background: #9fd8ff !important; }
+    html:root[data-style="brutal"] #bloc-eau * { color: #111 !important; }
+    html:root[data-style="brutal"] #carte-stats-poids { background: #b9f6ca !important; }
+    html:root[data-style="brutal"] #carte-stats-nutrition { background: #ffc6e0 !important; }
+    html:root[data-style="brutal"] #carte-stats-poids *,
+    html:root[data-style="brutal"] #carte-stats-nutrition * { color: #111 !important; }
+    html:root[data-style="brutal"] #ecran-repas .summary-card > h1 { font-size: 3rem !important; font-weight: 700 !important; }
+    html:root[data-style="brutal"] .titre-ecran,
+    html:root[data-style="brutal"] .titre-section { font-weight: 700 !important; text-transform: uppercase; letter-spacing: 1px !important; }
+    html:root[data-style="brutal"] .titre-section { font-size: .9rem !important; color: var(--text) !important; }
+    html:root[data-style="brutal"] .macro-item + .macro-item { border-left: 2.5px solid #111 !important; }
+    html:root[data-style="brutal"] .btn-icone,
+    html:root[data-style="brutal"] .filtre-chip { border: 2px solid currentColor !important; border-radius: 0 !important; font-weight: 700 !important; color: inherit !important; }
+    html:root[data-style="brutal"] .jauge,
+    html:root[data-style="brutal"] .macro-jauge { height: 10px !important; border: 2px solid #111 !important; border-radius: 0 !important; background: #fff !important; }
+    html:root[data-style="brutal"] .jauge > i,
+    html:root[data-style="brutal"] .macro-jauge > i { border-radius: 0 !important; }
+    html:root[data-style="brutal"] .meal-kcals { border: 2px solid var(--ink) !important; border-radius: 0 !important; color: var(--text) !important; }
+    html:root[data-style="brutal"] .btn-analysis { background: #7c4dff !important; color: #fff !important; border: 2.5px solid var(--ink) !important; box-shadow: 4px 4px 0 var(--ink) !important; border-radius: 0 !important; }
+    html:root[data-style="brutal"] #carte-pas-seances input { border: 2px solid var(--ink) !important; border-radius: 0 !important; }
+    /* --- Terminal --- */
+    html:root[data-style="terminal"] body::before { display: none !important; }
+    html:root[data-style="terminal"] .summary-card,
+    html:root[data-style="terminal"] .fitness-card,
+    html:root[data-style="terminal"] .analysis-card,
+    html:root[data-style="terminal"] .meal-card,
+    html:root[data-style="terminal"] .bloc-verre,
+    html:root[data-style="terminal"] .carte-stats { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important; margin: 0 !important; }
+    html:root[data-style="terminal"] .macros-bar { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
+    html:root[data-style="terminal"] #ecran-repas .macro-item { border-radius: 0 !important; }
+    html:root[data-style="terminal"] .btn-icone,
+    html:root[data-style="terminal"] .filtre-chip,
+    html:root[data-style="terminal"] .meal-kcals { background: transparent !important; box-shadow: none !important; }
+    html:root[data-style="terminal"] .date-nav,
+    html:root[data-style="terminal"] .app-bar { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    html:root[data-style="terminal"] .date-nav button { background: transparent !important; }
+    html:root[data-style="terminal"] .meal-header { border-bottom: 0 !important; }
+    html:root[data-style="terminal"] #carte-pas-seances input { box-shadow: none !important; }
+    html:root[data-style="terminal"][data-theme="light"] { --bg:#f4f4ef;--barre:#f4f4ef;--text:#1b1b1b;--text-muted:#6b6b6b;--primary:#0a7d32;--verre-brd:#1b1b1b;--ai-color:#0a7d32; }
+    html:root[data-style="terminal"][data-theme="dark"] { --bg:#050805;--barre:#050805;--text:#c9f7cf;--text-muted:#5f8a66;--primary:#39ff6a;--verre-brd:#2c4a31;--ai-color:#39ff6a; }
+    html:root[data-style="terminal"] body,
+    html:root[data-style="terminal"] button,
+    html:root[data-style="terminal"] input,
+    html:root[data-style="terminal"] * { font-family: 'JetBrains Mono', monospace !important; }
+    html:root[data-style="terminal"] .summary-card,
+    html:root[data-style="terminal"] .fitness-card,
+    html:root[data-style="terminal"] .analysis-card,
+    html:root[data-style="terminal"] .meal-card,
+    html:root[data-style="terminal"] .bloc-verre,
+    html:root[data-style="terminal"] .carte-stats { padding: 12px 0 !important; border-bottom: 1px dashed var(--verre-brd) !important; }
+    html:root[data-style="terminal"] .titre-ecran { font-size: 1rem !important; }
+    html:root[data-style="terminal"] .titre-ecran .ic { display: none !important; }
+    html:root[data-style="terminal"] .titre-ecran::before,
+    html:root[data-style="terminal"] .titre-section::before,
+    html:root[data-style="terminal"] .meal-title::before { content: '> '; color: var(--primary); }
+    html:root[data-style="terminal"] .titre-section .icone-ui,
+    html:root[data-style="terminal"] .meal-title .icone-ui,
+    html:root[data-style="terminal"] #bloc-eau h3 .icone-ui,
+    html:root[data-style="terminal"] #carte-pas-seances h3 .icone-ui { display: none !important; }
+    html:root[data-style="terminal"] .titre-section { color: var(--primary) !important; font-size: .8rem !important; }
+    html:root[data-style="terminal"] #ecran-repas .summary-card > h1 { font-size: 2.6rem !important; font-weight: 700 !important; letter-spacing: -2px !important; }
+    html:root[data-style="terminal"] .meal-title { font-size: .9rem !important; text-transform: uppercase; }
+    html:root[data-style="terminal"] .jauge,
+    html:root[data-style="terminal"] .macro-jauge { height: 8px !important; border-radius: 0 !important; background: repeating-linear-gradient(90deg, var(--verre-brd) 0 6px, transparent 6px 8px) !important; }
+    html:root[data-style="terminal"] .jauge > i,
+    html:root[data-style="terminal"] .macro-jauge > i { border-radius: 0 !important; background-image: repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 8px) !important; }
+    html:root[data-style="terminal"] .btn-icone,
+    html:root[data-style="terminal"] .filtre-chip { color: var(--primary) !important; border: 0 !important; }
+    html:root[data-style="terminal"] .btn-icone::before,
+    html:root[data-style="terminal"] .filtre-chip::before { content: '['; }
+    html:root[data-style="terminal"] .btn-icone::after,
+    html:root[data-style="terminal"] .filtre-chip::after { content: ']'; }
+    html:root[data-style="terminal"] .meal-kcals { color: var(--primary) !important; border: 0 !important; }
+    html:root[data-style="terminal"] .date-nav { background: transparent !important; border: 1px dashed var(--verre-brd) !important; border-radius: 0 !important; }
+    html:root[data-style="terminal"] .btn-analysis { background: transparent !important; border: 1px solid var(--primary) !important; color: var(--primary) !important; border-radius: 0 !important; }
+    html:root[data-style="terminal"] #carte-pas-seances input { background: transparent !important; border: 1px dashed var(--verre-brd) !important; border-radius: 0 !important; }
+    /* --- Sport --- */
+    html:root[data-style="sport"] body::before { display: none !important; }
+    html:root[data-style="sport"] .summary-card,
+    html:root[data-style="sport"] .fitness-card,
+    html:root[data-style="sport"] .analysis-card,
+    html:root[data-style="sport"] .meal-card,
+    html:root[data-style="sport"] .bloc-verre,
+    html:root[data-style="sport"] .carte-stats { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important; margin: 0 !important; }
+    html:root[data-style="sport"] .macros-bar { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
+    html:root[data-style="sport"] #ecran-repas .macro-item { border-radius: 0 !important; }
+    html:root[data-style="sport"] .btn-icone,
+    html:root[data-style="sport"] .filtre-chip,
+    html:root[data-style="sport"] .meal-kcals { background: transparent !important; box-shadow: none !important; }
+    html:root[data-style="sport"] .date-nav,
+    html:root[data-style="sport"] .app-bar { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    html:root[data-style="sport"] .date-nav button { background: transparent !important; }
+    html:root[data-style="sport"] .meal-header { border-bottom: 0 !important; }
+    html:root[data-style="sport"] #carte-pas-seances input { box-shadow: none !important; }
+    html:root[data-style="sport"][data-theme="light"] { --bg:#ffffff;--barre:#ffffff;--text:#0b0b0b;--text-muted:#6b7280;--primary:#00b86b;--verre-brd:rgba(0,0,0,.08); }
+    html:root[data-style="sport"][data-theme="dark"] { --bg:#000000;--barre:#000000;--text:#ffffff;--text-muted:#8a8f98;--primary:#00f08c;--verre-brd:rgba(255,255,255,.08); }
+    html:root[data-style="sport"] body,
+    html:root[data-style="sport"] button,
+    html:root[data-style="sport"] input { font-family: 'Barlow Condensed', sans-serif !important; }
+    html:root[data-style="sport"] .summary-card,
+    html:root[data-style="sport"] .fitness-card,
+    html:root[data-style="sport"] .analysis-card,
+    html:root[data-style="sport"] .meal-card,
+    html:root[data-style="sport"] .bloc-verre,
+    html:root[data-style="sport"] .carte-stats { padding: 10px 0 10px 14px !important; margin: 0 0 14px !important; border-left: 4px solid var(--rail, var(--primary)) !important; }
+    html:root[data-style="sport"] .summary-card { --rail: var(--primary); }
+    html:root[data-style="sport"] #carte-stats-poids { --rail: #4f8cff; }
+    html:root[data-style="sport"] #carte-stats-nutrition { --rail: #ff9f1a; }
+    html:root[data-style="sport"] #bloc-eau { --rail: #22d3ee; }
+    html:root[data-style="sport"] .meal-card { --rail: #ff5a5f; }
+    html:root[data-style="sport"] #carte-pas-seances { --rail: #a78bfa; }
+    html:root[data-style="sport"] #carte-bilan-jour { --rail: #facc15; }
+    html:root[data-style="sport"] .titre-ecran { font-size: 1.6rem !important; font-weight: 800 !important; text-transform: uppercase; letter-spacing: 1px !important; }
+    html:root[data-style="sport"] .titre-section,
+    html:root[data-style="sport"] .libelle,
+    html:root[data-style="sport"] .carte-stats-titre,
+    html:root[data-style="sport"] #bloc-eau h3,
+    html:root[data-style="sport"] #carte-pas-seances > h3,
+    html:root[data-style="sport"] .macro-lbl { text-transform: uppercase !important; letter-spacing: 2.5px !important; font-weight: 700 !important; }
+    html:root[data-style="sport"] #ecran-repas .summary-card > h1 { font-size: 4.4rem !important; font-weight: 800 !important; line-height: .9 !important; letter-spacing: 0 !important; }
+    html:root[data-style="sport"] .carte-stats-valeur b { font-size: 2rem !important; font-weight: 800 !important; }
+    html:root[data-style="sport"] .macro-val { font-size: 1.15rem !important; font-weight: 800 !important; }
+    html:root[data-style="sport"] .meal-title { font-size: 1.25rem !important; font-weight: 800 !important; text-transform: uppercase; }
+    html:root[data-style="sport"] .food-name { font-size: 1.05rem !important; }
+    html:root[data-style="sport"] .food-item-ligne b,
+    html:root[data-style="sport"] .food-kcal { font-size: 1.15rem !important; }
+    html:root[data-style="sport"] .jauge { height: 10px !important; border-radius: 2px !important; }
+    html:root[data-style="sport"] .jauge > i { border-radius: 2px !important; }
+    html:root[data-style="sport"] .btn-icone,
+    html:root[data-style="sport"] .filtre-chip { font-size: 1rem !important; font-weight: 700 !important; color: var(--text) !important; text-transform: uppercase; border: 1px solid var(--verre-brd) !important; border-radius: 2px !important; }
+    html:root[data-style="sport"] .meal-kcals { font-size: 1.05rem !important; color: var(--text) !important; }
+    html:root[data-style="sport"] .date-nav { background: transparent !important; border-radius: 0 !important; }
+    html:root[data-style="sport"] .date-display { text-transform: uppercase; letter-spacing: 2px; font-size: 1.1rem !important; }
+    html:root[data-style="sport"] .btn-analysis { border-radius: 2px !important; text-transform: uppercase; letter-spacing: 2px; background: var(--text) !important; color: var(--bg) !important; }
+    html:root[data-style="sport"] #carte-pas-seances input { background: transparent !important; border: 0 !important; font-size: 1.6rem !important; font-weight: 800 !important; }
+    /* --- Fil de la journée --- */
+    html:root[data-style="fil"] body::before { display: none !important; }
+    html:root[data-style="fil"] .summary-card,
+    html:root[data-style="fil"] .fitness-card,
+    html:root[data-style="fil"] .analysis-card,
+    html:root[data-style="fil"] .meal-card,
+    html:root[data-style="fil"] .bloc-verre,
+    html:root[data-style="fil"] .carte-stats { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important; margin: 0 !important; }
+    html:root[data-style="fil"] .macros-bar { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
+    html:root[data-style="fil"] #ecran-repas .macro-item { border-radius: 0 !important; }
+    html:root[data-style="fil"] .btn-icone,
+    html:root[data-style="fil"] .filtre-chip,
+    html:root[data-style="fil"] .meal-kcals { background: transparent !important; box-shadow: none !important; }
+    html:root[data-style="fil"] .date-nav,
+    html:root[data-style="fil"] .app-bar { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    html:root[data-style="fil"] .date-nav button { background: transparent !important; }
+    html:root[data-style="fil"] .meal-header { border-bottom: 0 !important; }
+    html:root[data-style="fil"] #carte-pas-seances input { box-shadow: none !important; }
+    html:root[data-style="fil"][data-theme="light"] { --bg:#fbfaf8;--barre:#fbfaf8;--text:#2b2b33;--text-muted:#8b8a93;--primary:#6c5ce7;--verre-brd:rgba(43,43,51,.08); }
+    html:root[data-style="fil"][data-theme="dark"] { --bg:#141318;--barre:#141318;--text:#ecebf3;--text-muted:#8e8c9a;--primary:#a29bfe;--verre-brd:rgba(236,235,243,.08); }
+    html:root[data-style="fil"] body,
+    html:root[data-style="fil"] button,
+    html:root[data-style="fil"] input { font-family: 'Nunito', sans-serif !important; }
+    html:root[data-style="fil"] .summary-card,
+    html:root[data-style="fil"] #cartes-stats-repas,
+    html:root[data-style="fil"] #bloc-eau,
+    html:root[data-style="fil"] #carte-pas-seances,
+    html:root[data-style="fil"] #carte-bilan-jour { margin: 0 -16px !important; padding: 18px 16px !important; }
+    html:root[data-style="fil"][data-theme="light"] .summary-card { background: #ece9ff !important; }
+    html:root[data-style="fil"][data-theme="dark"] .summary-card { background: #241f3d !important; }
+    html:root[data-style="fil"][data-theme="light"] #cartes-stats-repas { background: #fff4e6 !important; }
+    html:root[data-style="fil"][data-theme="dark"] #cartes-stats-repas { background: #2b2216 !important; }
+    html:root[data-style="fil"][data-theme="light"] #bloc-eau { background: #e6f6ff !important; }
+    html:root[data-style="fil"][data-theme="dark"] #bloc-eau { background: #13262f !important; }
+    html:root[data-style="fil"][data-theme="light"] #carte-pas-seances { background: #eafaf0 !important; }
+    html:root[data-style="fil"][data-theme="dark"] #carte-pas-seances { background: #142a1d !important; }
+    html:root[data-style="fil"] #cartes-stats-repas .carte-stats { padding: 6px 0 !important; }
+    html:root[data-style="fil"] #ecran-repas .summary-card > h1 { font-size: 3rem !important; font-weight: 800 !important; color: var(--primary) !important; }
+    html:root[data-style="fil"] .titre-section { margin: 22px 0 6px !important; }
+    html:root[data-style="fil"] #meals-container { position: relative; padding-left: 26px; margin-top: 8px; }
+    html:root[data-style="fil"] #meals-container::before { content: ''; position: absolute; left: 7px; top: 12px; bottom: 12px; width: 2px; background: var(--verre-brd); }
+    html:root[data-style="fil"] #meals-container .meal-card { position: relative; padding: 6px 0 14px !important; }
+    html:root[data-style="fil"] #meals-container .meal-card::before { content: ''; position: absolute; left: -25px; top: 10px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); border: 3px solid var(--primary); box-sizing: border-box; }
+    html:root[data-style="fil"] .meal-title { font-weight: 800 !important; }
+    html:root[data-style="fil"] .food-item { border-bottom: 0 !important; padding: 5px 0 !important; }
+    html:root[data-style="fil"] .btn-icone,
+    html:root[data-style="fil"] .filtre-chip { color: var(--primary) !important; border: 0 !important; font-weight: 800 !important; }
+    html:root[data-style="fil"] .meal-kcals { color: var(--primary) !important; }
+    html:root[data-style="fil"] .date-nav { background: transparent !important; }
+    html:root[data-style="fil"] .btn-analysis { background: var(--primary) !important; color: #fff !important; border-radius: 999px !important; }
+    html:root[data-style="fil"] #carte-pas-seances input { background: transparent !important; border: 0 !important; font-size: 1.4rem !important; font-weight: 800 !important; }
+    /* --- Système --- */
+    html:root[data-style="systeme"] body::before { display: none !important; }
+    html:root[data-style="systeme"] .summary-card,
+    html:root[data-style="systeme"] .fitness-card,
+    html:root[data-style="systeme"] .analysis-card,
+    html:root[data-style="systeme"] .meal-card,
+    html:root[data-style="systeme"] .bloc-verre,
+    html:root[data-style="systeme"] .carte-stats,
+    html:root[data-style="systeme"] .date-nav { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    html:root[data-style="systeme"] .macros-bar { background: transparent !important; box-shadow: none !important; }
+    html:root[data-style="systeme"] #ecran-repas .macro-item { border-radius: 0 !important; }
+    html:root[data-style="systeme"] .date-nav button { background: transparent !important; }
+    html:root[data-style="systeme"] .titre-section .icone-ui,
+    html:root[data-style="systeme"] .meal-title .icone-ui,
+    html:root[data-style="systeme"] .titre-ecran .ic,
+    html:root[data-style="systeme"] #bloc-eau h3 .icone-ui,
+    html:root[data-style="systeme"] #carte-pas-seances h3 .icone-ui { display: none !important; }
+    html:root[data-style="systeme"] .titre-ecran { flex-wrap: wrap; }
+    html:root[data-style="systeme"] .titre-ecran::before { flex-basis: 100%; }
+    html:root[data-style="systeme"] #cartes-stats-repas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    html:root[data-style="systeme"] #cartes-stats-repas .carte-stats { margin: 0 !important; }
+    html:root[data-style="systeme"] #cartes-stats-repas .carte-stats-haut { flex-wrap: wrap; }
+    html:root[data-style="systeme"] #cartes-stats-repas .carte-stats-chevron { display: none; }
+    html:root[data-style="systeme"] #cartes-stats-repas .carte-stats-graph { width: 100% !important; height: 26px !important; }
+    html:root[data-style="systeme"] .app-bar { background: transparent !important; box-shadow: none !important; }
+    html:root[data-style="systeme"] { --bg:#03060f; --barre:#03060f; --text:#e6f4ff; --text-muted:#7fa6c9; --primary:#3ad1ff; --lueur:rgba(58,209,255,.55); --panneau:rgba(8,22,48,.78); --verre-brd:rgba(58,209,255,.25); --ai-color:#3ad1ff; }
+    html:root[data-style="systeme"][data-theme="light"] { --bg:#e9f1fb; --barre:#e9f1fb; --text:#06142b; --text-muted:#456285; --primary:#0077c8; --lueur:rgba(0,119,200,.35); --panneau:rgba(255,255,255,.82); --verre-brd:rgba(0,119,200,.25); --ai-color:#0077c8; }
+    html:root[data-style="systeme"] body { background: linear-gradient(rgba(58,209,255,.05) 1px, transparent 1px) 0 0 / 100% 32px, linear-gradient(90deg, rgba(58,209,255,.05) 1px, transparent 1px) 0 0 / 32px 100%, radial-gradient(90% 60% at 50% 0%, rgba(40,90,200,.28), transparent 70%), var(--bg) !important; background-attachment: fixed !important; }
+    html:root[data-style="systeme"] body::after { content: ''; position: fixed; left: 0; right: 0; height: 120px; top: -120px; pointer-events: none; z-index: 3; background: linear-gradient(transparent, rgba(58,209,255,.07), transparent); animation: st-systeme-balayage 5s linear infinite; }
+    @keyframes st-systeme-balayage { to { transform: translateY(calc(100vh + 240px)); } }
+    html:root[data-style="systeme"] body,
+    html:root[data-style="systeme"] button,
+    html:root[data-style="systeme"] input { font-family: 'Rajdhani', sans-serif !important; font-weight: 600; }
+    html:root[data-style="systeme"] .summary-card,
+    html:root[data-style="systeme"] .fitness-card,
+    html:root[data-style="systeme"] .analysis-card,
+    html:root[data-style="systeme"] .meal-card,
+    html:root[data-style="systeme"] .bloc-verre,
+    html:root[data-style="systeme"] .carte-stats,
+    html:root[data-style="systeme"] .date-nav { border: 1px solid var(--primary) !important; border-radius: 2px !important; margin: 0 0 14px !important; padding: 14px 16px !important; background: linear-gradient(var(--primary),var(--primary)) top left/14px 2px, linear-gradient(var(--primary),var(--primary)) top left/2px 14px, linear-gradient(var(--primary),var(--primary)) top right/14px 2px, linear-gradient(var(--primary),var(--primary)) top right/2px 14px, linear-gradient(var(--primary),var(--primary)) bottom left/14px 2px, linear-gradient(var(--primary),var(--primary)) bottom left/2px 14px, linear-gradient(var(--primary),var(--primary)) bottom right/14px 2px, linear-gradient(var(--primary),var(--primary)) bottom right/2px 14px, linear-gradient(180deg, rgba(58,209,255,.08), transparent 40%), var(--panneau) !important; background-repeat: no-repeat !important; box-shadow: 0 0 14px var(--lueur), inset 0 0 18px rgba(58,209,255,.12) !important; animation: st-systeme-ouverture .6s ease-out both; }
+    @keyframes st-systeme-ouverture { 0% { opacity: 0; transform: scaleY(.04); } 60% { opacity: 1; transform: scaleY(1.02); } 70% { opacity: .5; } 100% { transform: none; } }
+    html:root[data-style="systeme"] .titre-ecran { justify-content: center; text-align: center; font-family: 'Orbitron' !important; font-weight: 900 !important; font-size: 1.15rem !important; letter-spacing: 4px !important; text-transform: uppercase; color: #fff !important; text-shadow: 0 0 8px var(--primary), 0 0 18px var(--primary); }
+    html:root[data-style="systeme"][data-theme="light"] .titre-ecran { color: var(--text) !important; text-shadow: 0 0 10px var(--lueur); }
+    html:root[data-style="systeme"] .titre-ecran::before { content: '[ SYSTÈME ]'; font-size: .62rem; letter-spacing: 6px; color: var(--primary); text-shadow: none; margin-bottom: 4px; }
+    html:root[data-style="systeme"] #ecran-repas .summary-card { padding-top: 38px !important; position: relative; }
+    html:root[data-style="systeme"] .summary-card::before { content: '— QUÊTE QUOTIDIENNE —'; position: absolute; top: 12px; left: 0; right: 0; text-align: center; font-family: 'Orbitron'; font-weight: 700; font-size: .7rem; letter-spacing: 4px; color: var(--primary); text-shadow: 0 0 8px var(--lueur); }
+    html:root[data-style="systeme"] .reste-kcal { white-space: nowrap; }
+    html:root[data-style="systeme"] .titre-section { font-family: 'Orbitron' !important; font-weight: 700 !important; font-size: .74rem !important; letter-spacing: 4px !important; color: var(--primary) !important; text-transform: uppercase; margin: 20px 0 8px !important; }
+    html:root[data-style="systeme"] .titre-section::before { content: '◆ '; }
+    html:root[data-style="systeme"] .titre-section::after { content: ''; display: inline-block; vertical-align: middle; width: 40%; height: 1px; margin-left: 10px; background: linear-gradient(90deg, var(--primary), transparent); }
+    html:root[data-style="systeme"] .libelle,
+    html:root[data-style="systeme"] .carte-stats-titre,
+    html:root[data-style="systeme"] #bloc-eau h3,
+    html:root[data-style="systeme"] #carte-pas-seances > h3,
+    html:root[data-style="systeme"] .macro-lbl { font-family: 'Rajdhani' !important; font-weight: 700 !important; letter-spacing: 3px !important; text-transform: uppercase !important; color: var(--text-muted) !important; }
+    html:root[data-style="systeme"] #bloc-eau h3::before { content: '[ '; color: var(--primary); }
+    html:root[data-style="systeme"] #bloc-eau h3::after { content: ' ]'; color: var(--primary); }
+    html:root[data-style="systeme"] #carte-pas-seances > h3::before { content: '[ '; color: var(--primary); }
+    html:root[data-style="systeme"] #carte-pas-seances > h3::after { content: ' ]'; color: var(--primary); }
+    html:root[data-style="systeme"] #ecran-repas .summary-card > h1 { font-family: 'Orbitron' !important; font-weight: 900 !important; font-size: 3rem !important; color: #fff !important; letter-spacing: 2px !important; text-shadow: 0 0 10px var(--primary), 0 0 24px var(--primary); animation: st-systeme-pulsation 2.4s ease-in-out infinite; }
+    html:root[data-style="systeme"][data-theme="light"] #ecran-repas .summary-card > h1 { color: var(--primary) !important; text-shadow: 0 0 12px var(--lueur); }
+    @keyframes st-systeme-pulsation { 50% { text-shadow: 0 0 4px var(--primary), 0 0 10px var(--primary); } }
+    html:root[data-style="systeme"] .target-kcal,
+    html:root[data-style="systeme"] .reste-kcal { font-family: 'Rajdhani' !important; letter-spacing: 1px; }
+    html:root[data-style="systeme"] .reste-kcal::after { content: ' [EN COURS]'; color: #ffcc4d; font-size: .7rem; letter-spacing: 2px; }
+    html:root[data-style="systeme"] .carte-stats-valeur b,
+    html:root[data-style="systeme"] .macro-val { font-family: 'Orbitron' !important; font-weight: 700 !important; letter-spacing: 1px; }
+    html:root[data-style="systeme"] .carte-stats-valeur b { font-size: 1.25rem !important; text-shadow: 0 0 8px var(--lueur); }
+    html:root[data-style="systeme"] .jauge,
+    html:root[data-style="systeme"] .macro-jauge { height: 6px !important; border-radius: 0 !important; background: rgba(58,209,255,.1) !important; border: 1px solid rgba(58,209,255,.35); box-shadow: none !important; }
+    html:root[data-style="systeme"] .jauge > i,
+    html:root[data-style="systeme"] .macro-jauge > i { border-radius: 0 !important; box-shadow: 0 0 10px currentColor, 0 0 3px #fff; }
+    html:root[data-style="systeme"] #jauge-kcal,
+    html:root[data-style="systeme"] #jauge-eau { background: var(--primary) !important; color: var(--primary); }
+    html:root[data-style="systeme"] .btn-icone,
+    html:root[data-style="systeme"] .filtre-chip { background: rgba(58,209,255,.06) !important; color: var(--primary) !important; border: 1px solid var(--primary) !important; border-radius: 0 !important; font-family: 'Rajdhani' !important; font-weight: 700 !important; letter-spacing: 1px; text-transform: uppercase; box-shadow: inset 0 0 8px rgba(58,209,255,.15) !important; }
+    html:root[data-style="systeme"] .meal-header { border-bottom: 1px solid var(--verre-brd) !important; }
+    html:root[data-style="systeme"] .meal-title { font-family: 'Orbitron' !important; font-weight: 700 !important; font-size: .9rem !important; letter-spacing: 2px; text-transform: uppercase; }
+    html:root[data-style="systeme"] .meal-title::before { content: '▸ '; color: var(--primary); }
+    html:root[data-style="systeme"] .meal-kcals { background: transparent !important; color: var(--primary) !important; border: 1px solid var(--primary) !important; border-radius: 0 !important; font-family: 'Orbitron' !important; font-size: .7rem !important; }
+    html:root[data-style="systeme"] .food-item { border-bottom: 1px solid rgba(58,209,255,.12) !important; }
+    html:root[data-style="systeme"] .food-name { font-size: 1rem !important; }
+    html:root[data-style="systeme"] .btn-analysis { background: rgba(58,209,255,.12) !important; color: #fff !important; border: 1px solid var(--primary) !important; border-radius: 0 !important; font-family: 'Orbitron' !important; letter-spacing: 3px; text-transform: uppercase; font-size: .8rem !important; box-shadow: 0 0 16px var(--lueur) !important; }
+    html:root[data-style="systeme"][data-theme="light"] .btn-analysis { color: var(--primary) !important; }
+    html:root[data-style="systeme"] .date-display { font-family: 'Orbitron' !important; letter-spacing: 3px; text-transform: uppercase; font-size: .85rem !important; }
+    html:root[data-style="systeme"] #carte-pas-seances input { background: transparent !important; border: 1px solid var(--primary) !important; border-radius: 0 !important; font-family: 'Orbitron' !important; color: var(--primary) !important; box-shadow: none !important; }
+    /* --- Bataillon --- */
+    html:root[data-style="bataillon"] body::before { display: none !important; }
+    html:root[data-style="bataillon"] .summary-card,
+    html:root[data-style="bataillon"] .fitness-card,
+    html:root[data-style="bataillon"] .analysis-card,
+    html:root[data-style="bataillon"] .meal-card,
+    html:root[data-style="bataillon"] .bloc-verre,
+    html:root[data-style="bataillon"] .carte-stats,
+    html:root[data-style="bataillon"] .date-nav { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    html:root[data-style="bataillon"] .macros-bar { background: transparent !important; box-shadow: none !important; }
+    html:root[data-style="bataillon"] #ecran-repas .macro-item { border-radius: 0 !important; }
+    html:root[data-style="bataillon"] .date-nav button { background: transparent !important; }
+    html:root[data-style="bataillon"] .titre-section .icone-ui,
+    html:root[data-style="bataillon"] .meal-title .icone-ui,
+    html:root[data-style="bataillon"] .titre-ecran .ic,
+    html:root[data-style="bataillon"] #bloc-eau h3 .icone-ui,
+    html:root[data-style="bataillon"] #carte-pas-seances h3 .icone-ui { display: none !important; }
+    html:root[data-style="bataillon"] .titre-ecran { flex-wrap: wrap; }
+    html:root[data-style="bataillon"] .titre-ecran::before { flex-basis: 100%; }
+    html:root[data-style="bataillon"] #cartes-stats-repas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    html:root[data-style="bataillon"] #cartes-stats-repas .carte-stats { margin: 0 !important; }
+    html:root[data-style="bataillon"] #cartes-stats-repas .carte-stats-haut { flex-wrap: wrap; }
+    html:root[data-style="bataillon"] #cartes-stats-repas .carte-stats-chevron { display: none; }
+    html:root[data-style="bataillon"] #cartes-stats-repas .carte-stats-graph { width: 100% !important; height: 26px !important; }
+    html:root[data-style="bataillon"] .app-bar { background: transparent !important; box-shadow: none !important; }
+    html:root[data-style="bataillon"] { --bg:#0f0e0c; --barre:#0f0e0c; --text:#e9dfc9; --text-muted:#9c8f76; --primary:#c62f22; --vert:#3e5a45; --cuir:#1d1a15; --laiton:#a8874f; --verre-brd:rgba(168,135,79,.3); --ai-color:#e9dfc9; }
+    html:root[data-style="bataillon"][data-theme="light"] { --bg:#d9ccae; --barre:#d9ccae; --text:#1f1a12; --text-muted:#5e5340; --primary:#a3231a; --cuir:#ece2c9; --laiton:#7a5f30; --verre-brd:rgba(60,45,20,.3); --ai-color:#1f1a12; }
+    html:root[data-style="bataillon"] body { background: radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 3px 3px, radial-gradient(120% 80% at 50% 0%, transparent 40%, rgba(0,0,0,.55)), var(--bg) !important; background-attachment: fixed !important; }
+    html:root[data-style="bataillon"][data-theme="light"] body { background: radial-gradient(rgba(60,40,10,.06) 1px, transparent 1px) 0 0 / 3px 3px, radial-gradient(120% 80% at 50% 0%, transparent 50%, rgba(80,50,10,.3)), var(--bg) !important; }
+    html:root[data-style="bataillon"] body::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 3; opacity: .35; mix-blend-mode: overlay; background: repeating-linear-gradient(0deg, rgba(0,0,0,.25) 0 1px, transparent 1px 3px); animation: st-bataillon-grain .25s steps(2) infinite; }
+    @keyframes st-bataillon-grain { 50% { transform: translateY(1px); } }
+    html:root[data-style="bataillon"] body,
+    html:root[data-style="bataillon"] button,
+    html:root[data-style="bataillon"] input { font-family: 'Oswald', sans-serif !important; font-weight: 500; }
+    html:root[data-style="bataillon"] .summary-card,
+    html:root[data-style="bataillon"] .fitness-card,
+    html:root[data-style="bataillon"] .analysis-card,
+    html:root[data-style="bataillon"] .meal-card,
+    html:root[data-style="bataillon"] .bloc-verre,
+    html:root[data-style="bataillon"] .carte-stats,
+    html:root[data-style="bataillon"] .date-nav { background: linear-gradient(180deg, rgba(255,255,255,.03), transparent), var(--cuir) !important; border: 1px solid var(--verre-brd) !important; border-left: 4px solid var(--primary) !important; border-radius: 0 !important; margin: 0 0 14px !important; padding: 14px 16px !important; box-shadow: 0 8px 18px rgba(0,0,0,.45) !important; }
+    html:root[data-style="bataillon"] .titre-ecran { font-family: 'Bebas Neue' !important; font-weight: 400 !important; font-size: 2.6rem !important; letter-spacing: 3px !important; color: var(--primary) !important; line-height: 1; text-shadow: 2px 2px 0 rgba(0,0,0,.6), 0 0 1px #000; }
+    html:root[data-style="bataillon"] .titre-ecran::before { content: 'RAPPORT N° 104 — JOUR EN COURS'; font-family: 'Special Elite'; font-size: .7rem; letter-spacing: 2px; color: var(--text-muted); text-shadow: none; }
+    html:root[data-style="bataillon"] .titre-ecran::after { content: ''; flex-basis: 100%; height: 3px; margin-top: 4px; background: linear-gradient(90deg, var(--primary), var(--primary) 60%, transparent); }
+    html:root[data-style="bataillon"] .titre-section { font-family: 'Bebas Neue' !important; font-weight: 400 !important; font-size: 1.35rem !important; letter-spacing: 3px !important; color: var(--text) !important; text-transform: uppercase; margin: 20px 0 8px !important; border-bottom: 1px solid var(--verre-brd); padding-bottom: 2px; }
+    html:root[data-style="bataillon"] .titre-section::before { content: '■ '; color: var(--primary); }
+    html:root[data-style="bataillon"] .libelle,
+    html:root[data-style="bataillon"] .carte-stats-titre,
+    html:root[data-style="bataillon"] #bloc-eau h3,
+    html:root[data-style="bataillon"] #carte-pas-seances > h3,
+    html:root[data-style="bataillon"] .macro-lbl { font-family: 'Special Elite' !important; font-weight: 400 !important; letter-spacing: 1px !important; text-transform: uppercase !important; color: var(--text-muted) !important; }
+    html:root[data-style="bataillon"] #bloc-eau h3::after { content: ' · gourde'; text-transform: none; }
+    html:root[data-style="bataillon"] #carte-pas-seances > h3::after { content: ' · marche'; text-transform: none; }
+    html:root[data-style="bataillon"] .summary-card .libelle::before { content: 'RATIONS · '; color: var(--primary); }
+    html:root[data-style="bataillon"] #ecran-repas .summary-card > h1 { font-family: 'Bebas Neue' !important; font-weight: 400 !important; font-size: 4.4rem !important; letter-spacing: 2px !important; color: var(--text) !important; line-height: .9 !important; text-shadow: 3px 3px 0 var(--primary); }
+    html:root[data-style="bataillon"] .carte-stats-valeur b { font-family: 'Bebas Neue' !important; font-weight: 400 !important; letter-spacing: 1.5px; font-size: 1.9rem !important; }
+    html:root[data-style="bataillon"] .macro-val { font-family: 'Oswald' !important; font-weight: 700 !important; font-size: 1rem !important; }
+    html:root[data-style="bataillon"] .target-kcal,
+    html:root[data-style="bataillon"] .reste-kcal { font-family: 'Special Elite' !important; }
+    html:root[data-style="bataillon"] .jauge,
+    html:root[data-style="bataillon"] .macro-jauge { height: 12px !important; border-radius: 2px !important; background: linear-gradient(180deg, #2a2721, #151310) !important; border: 1px solid var(--laiton); box-shadow: inset 0 1px 2px rgba(0,0,0,.8) !important; position: relative; }
+    html:root[data-style="bataillon"][data-theme="light"] .jauge,
+    html:root[data-style="bataillon"][data-theme="light"] .macro-jauge { background: linear-gradient(180deg, #bfb08f, #a89a79) !important; }
+    html:root[data-style="bataillon"] .jauge > i,
+    html:root[data-style="bataillon"] .macro-jauge > i { border-radius: 1px !important; background-image: linear-gradient(180deg, rgba(255,255,255,.35), transparent 50%, rgba(0,0,0,.25)) !important; }
+    html:root[data-style="bataillon"] #jauge-kcal { background-color: var(--primary) !important; }
+    html:root[data-style="bataillon"] #jauge-eau { background-color: #6e8fa3 !important; }
+    html:root[data-style="bataillon"] .btn-icone,
+    html:root[data-style="bataillon"] .filtre-chip { background: linear-gradient(180deg, #3a352c, #24211b) !important; color: var(--text) !important; border: 1px solid var(--laiton) !important; border-radius: 2px !important; font-family: 'Oswald' !important; text-transform: uppercase; letter-spacing: 1px; box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 2px 0 #000 !important; }
+    html:root[data-style="bataillon"][data-theme="light"] .btn-icone,
+    html:root[data-style="bataillon"][data-theme="light"] .filtre-chip { background: linear-gradient(180deg, #efe6d0, #d6c8a6) !important; box-shadow: inset 0 1px 0 #fff, 0 2px 0 rgba(60,40,10,.4) !important; }
+    html:root[data-style="bataillon"] .meal-header { border-bottom: 1px dashed var(--verre-brd) !important; }
+    html:root[data-style="bataillon"] .meal-title { font-family: 'Bebas Neue' !important; font-weight: 400 !important; font-size: 1.4rem !important; letter-spacing: 2px; }
+    html:root[data-style="bataillon"] .meal-kcals { background: var(--primary) !important; color: #f4e9d2 !important; border-radius: 0 !important; font-family: 'Special Elite' !important; transform: rotate(-3deg); border: 1px dashed rgba(255,255,255,.4) !important; }
+    html:root[data-style="bataillon"] .food-item { border-bottom: 1px solid rgba(168,135,79,.15) !important; }
+    html:root[data-style="bataillon"] .food-name { font-family: 'Oswald' !important; font-size: .95rem !important; letter-spacing: .3px; }
+    html:root[data-style="bataillon"] .btn-analysis { background: var(--primary) !important; color: #f4e9d2 !important; border-radius: 0 !important; font-family: 'Bebas Neue' !important; font-size: 1.3rem !important; letter-spacing: 3px; box-shadow: 0 3px 0 #000 !important; }
+    html:root[data-style="bataillon"] .date-display { font-family: 'Special Elite' !important; text-transform: uppercase; letter-spacing: 2px; }
+    html:root[data-style="bataillon"] #carte-pas-seances input { background: transparent !important; border: 0 !important; border-bottom: 2px solid var(--primary) !important; border-radius: 0 !important; font-family: 'Bebas Neue' !important; font-size: 1.8rem !important; box-shadow: none !important; }
+    /* --- Autres écrans (Activité, Statistiques, Profil, fenêtres) --- */
+    html:root[data-style="epure"] .cle { background: transparent !important; border-radius: 0 !important; box-shadow: none !important; border-bottom: 1px solid var(--verre-brd) !important; padding: 10px 2px !important; }
+    html:root[data-style="epure"] .btn-secondaire { background: transparent !important; color: var(--primary) !important; box-shadow: none !important; border: 1px solid var(--verre-brd) !important; }
+    html:root[data-style="epure"] .segment { background: transparent !important; border-radius: 0 !important; border-bottom: 1px solid var(--verre-brd) !important; box-shadow: none !important; }
+    html:root[data-style="epure"] .segment button[aria-pressed="true"] { background: transparent !important; color: var(--primary) !important; border-radius: 0 !important; box-shadow: inset 0 -2px 0 var(--primary) !important; }
+    html:root[data-style="epure"] .input-group input,
+    html:root[data-style="epure"] .input-group select,
+    html:root[data-style="epure"] .input-group textarea,
+    html:root[data-style="epure"] #modal-cardio input { background: transparent !important; border: 0 !important; border-bottom: 1.5px solid var(--verre-brd) !important; border-radius: 0 !important; box-shadow: none !important; }
+    html:root[data-style="editorial"] .cle { background: transparent !important; border-radius: 0 !important; box-shadow: none !important; border-bottom: 1px solid var(--verre-brd) !important; padding: 10px 2px !important; }
+    html:root[data-style="editorial"] .btn-secondaire { background: transparent !important; color: var(--primary) !important; box-shadow: none !important; border: 1px solid var(--verre-brd) !important; }
+    html:root[data-style="editorial"] .segment { background: transparent !important; border-radius: 0 !important; border-bottom: 1px solid var(--verre-brd) !important; box-shadow: none !important; }
+    html:root[data-style="editorial"] .segment button[aria-pressed="true"] { background: transparent !important; color: var(--primary) !important; border-radius: 0 !important; box-shadow: inset 0 -2px 0 var(--primary) !important; }
+    html:root[data-style="editorial"] .input-group input,
+    html:root[data-style="editorial"] .input-group select,
+    html:root[data-style="editorial"] .input-group textarea,
+    html:root[data-style="editorial"] #modal-cardio input { background: transparent !important; border: 0 !important; border-bottom: 1.5px solid var(--verre-brd) !important; border-radius: 0 !important; box-shadow: none !important; }
+    html:root[data-style="editorial"] .cle-val { font-family: 'Fraunces', serif !important; font-weight: 400 !important; font-size: 1.6rem !important; }
+    html:root[data-style="editorial"] .btn-secondaire { border: 0 !important; text-decoration: underline; text-underline-offset: 3px; }
+    html:root[data-style="brutal"] .cle,
+    html:root[data-style="brutal"] .btn-secondaire { background: var(--fond-carte) !important; border: 2.5px solid var(--ink) !important; border-radius: 0 !important; box-shadow: 4px 4px 0 var(--ink) !important; color: var(--text) !important; }
+    html:root[data-style="brutal"] .segment { background: var(--fond-carte) !important; border: 2.5px solid var(--ink) !important; border-radius: 0 !important; box-shadow: 4px 4px 0 var(--ink) !important; }
+    html:root[data-style="brutal"] .segment button { border-radius: 0 !important; }
+    html:root[data-style="brutal"] .segment button[aria-pressed="true"] { background: #ffe14d !important; color: #111 !important; box-shadow: none !important; }
+    html:root[data-style="brutal"] .input-group input,
+    html:root[data-style="brutal"] .input-group select,
+    html:root[data-style="brutal"] .input-group textarea,
+    html:root[data-style="brutal"] #modal-cardio input { background: var(--fond-carte) !important; border: 2.5px solid var(--ink) !important; border-radius: 0 !important; box-shadow: none !important; }
+    html:root[data-style="terminal"] .cle { background: transparent !important; border: 1px dashed var(--verre-brd) !important; border-radius: 0 !important; box-shadow: none !important; }
+    html:root[data-style="terminal"] .btn-secondaire { background: transparent !important; color: var(--primary) !important; border: 1px solid var(--primary) !important; border-radius: 0 !important; box-shadow: none !important; }
+    html:root[data-style="terminal"] .segment { background: transparent !important; border: 1px dashed var(--verre-brd) !important; border-radius: 0 !important; }
+    html:root[data-style="terminal"] .segment button { border-radius: 0 !important; }
+    html:root[data-style="terminal"] .segment button[aria-pressed="true"] { background: var(--primary) !important; color: var(--bg) !important; box-shadow: none !important; }
+    html:root[data-style="terminal"] .input-group input,
+    html:root[data-style="terminal"] .input-group select,
+    html:root[data-style="terminal"] .input-group textarea,
+    html:root[data-style="terminal"] #modal-cardio input { background: transparent !important; border: 1px dashed var(--verre-brd) !important; border-radius: 0 !important; box-shadow: none !important; }
+    html:root[data-style="sport"] .cle { background: transparent !important; border-radius: 0 !important; box-shadow: none !important; border-left: 3px solid var(--primary) !important; padding: 6px 0 6px 12px !important; }
+    html:root[data-style="sport"] .cle-val { font-family: 'Barlow Condensed', sans-serif !important; font-size: 1.9rem !important; font-weight: 800 !important; }
+    html:root[data-style="sport"] .cle-lbl { letter-spacing: 2px !important; }
+    html:root[data-style="sport"] .btn-secondaire { background: transparent !important; border: 1px solid var(--verre-brd) !important; border-radius: 2px !important; box-shadow: none !important; text-transform: uppercase; letter-spacing: 1px; }
+    html:root[data-style="sport"] .segment { background: transparent !important; border-radius: 2px !important; border: 1px solid var(--verre-brd) !important; }
+    html:root[data-style="sport"] .segment button { border-radius: 2px !important; text-transform: uppercase; letter-spacing: 1.5px; }
+    html:root[data-style="sport"] .segment button[aria-pressed="true"] { background: var(--text) !important; color: var(--bg) !important; box-shadow: none !important; }
+    html:root[data-style="sport"] .input-group input,
+    html:root[data-style="sport"] .input-group select,
+    html:root[data-style="sport"] .input-group textarea,
+    html:root[data-style="sport"] #modal-cardio input { border-radius: 2px !important; box-shadow: none !important; }
+    html:root[data-style="fil"] .cle { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; padding: 8px 2px !important; }
+    html:root[data-style="fil"] .btn-secondaire { background: transparent !important; color: var(--primary) !important; box-shadow: none !important; font-weight: 800 !important; }
+    html:root[data-style="fil"] .segment { background: transparent !important; box-shadow: none !important; }
+    html:root[data-style="fil"] .segment button { border-radius: 99px !important; }
+    html:root[data-style="fil"] .segment button[aria-pressed="true"] { background: var(--primary) !important; color: #fff !important; box-shadow: none !important; }
+    html:root[data-style="fil"] .input-group input,
+    html:root[data-style="fil"] .input-group select,
+    html:root[data-style="fil"] .input-group textarea,
+    html:root[data-style="fil"] #modal-cardio input { border-radius: 99px !important; box-shadow: none !important; }
+    html:root[data-style="systeme"] .cle { background: var(--panneau) !important; border: 1px solid var(--verre-brd) !important; border-radius: 0 !important; box-shadow: inset 0 0 12px rgba(58,209,255,.1) !important; }
+    html:root[data-style="systeme"] .cle-val { font-family: 'Orbitron', sans-serif !important; font-size: 1.1rem !important; text-shadow: 0 0 8px var(--lueur); }
+    html:root[data-style="systeme"] .cle-lbl { letter-spacing: 2.5px !important; color: var(--primary) !important; }
+    html:root[data-style="systeme"] .btn-secondaire { background: rgba(58,209,255,.06) !important; color: var(--primary) !important; border: 1px solid var(--primary) !important; border-radius: 0 !important; box-shadow: inset 0 0 8px rgba(58,209,255,.15) !important; text-transform: uppercase; letter-spacing: 1px; }
+    html:root[data-style="systeme"] .segment { background: transparent !important; border: 1px solid var(--primary) !important; border-radius: 0 !important; box-shadow: 0 0 10px var(--lueur) !important; }
+    html:root[data-style="systeme"] .segment button { border-radius: 0 !important; text-transform: uppercase; letter-spacing: 2px; }
+    html:root[data-style="systeme"] .segment button[aria-pressed="true"] { background: rgba(58,209,255,.18) !important; color: var(--text) !important; box-shadow: inset 0 0 10px rgba(58,209,255,.4) !important; }
+    html:root[data-style="systeme"] .input-group input,
+    html:root[data-style="systeme"] .input-group select,
+    html:root[data-style="systeme"] .input-group textarea,
+    html:root[data-style="systeme"] #modal-cardio input { background: rgba(58,209,255,.05) !important; border: 1px solid var(--verre-brd) !important; border-radius: 0 !important; box-shadow: none !important; }
+    html:root[data-style="bataillon"] .cle { background: var(--cuir) !important; border: 1px solid var(--verre-brd) !important; border-left: 3px solid var(--primary) !important; border-radius: 0 !important; box-shadow: none !important; }
+    html:root[data-style="bataillon"] .cle-val { font-family: 'Bebas Neue', sans-serif !important; font-weight: 400 !important; font-size: 1.8rem !important; letter-spacing: 1.5px; }
+    html:root[data-style="bataillon"] .cle-lbl { font-family: 'Special Elite', monospace !important; font-weight: 400 !important; }
+    html:root[data-style="bataillon"] .btn-secondaire { background: linear-gradient(180deg, #3a352c, #24211b) !important; color: var(--text) !important; border: 1px solid var(--laiton) !important; border-radius: 2px !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 2px 0 #000 !important; text-transform: uppercase; letter-spacing: 1px; }
+    html:root[data-style="bataillon"] .segment { background: var(--cuir) !important; border: 1px solid var(--laiton) !important; border-radius: 2px !important; }
+    html:root[data-style="bataillon"] .segment button { border-radius: 1px !important; text-transform: uppercase; letter-spacing: 1.5px; }
+    html:root[data-style="bataillon"] .segment button[aria-pressed="true"] { background: var(--primary) !important; color: #f4e9d2 !important; box-shadow: none !important; }
+    html:root[data-style="bataillon"] .input-group input,
+    html:root[data-style="bataillon"] .input-group select,
+    html:root[data-style="bataillon"] .input-group textarea,
+    html:root[data-style="bataillon"] #modal-cardio input { background: transparent !important; border: 0 !important; border-bottom: 2px solid var(--primary) !important; border-radius: 0 !important; box-shadow: none !important; }
+    html:root[data-style="terminal"] .btn-icone, html:root[data-style="terminal"] .filtre-chip { white-space: nowrap; padding-left: 2px !important; padding-right: 2px !important; }
+    html:root[data-style="bataillon"][data-theme="light"] .btn-secondaire { background: linear-gradient(180deg, #efe6d0, #d6c8a6) !important; box-shadow: inset 0 1px 0 #fff, 0 2px 0 rgba(60,40,10,.4) !important; }
+    @media (prefers-reduced-motion: reduce) { html:root[data-style] *, html:root[data-style] body::after { animation: none !important; } }
   </style>
 </head>
 <body>
@@ -2687,6 +3263,21 @@
       niveau = Math.max(0, Math.min(4, niveau));
       document.documentElement.setAttribute('data-theme', t);
       document.documentElement.setAttribute('data-densite', String(niveau));
+      // Style visuel (voir STYLES_VISUELS) : posé avant le premier affichage,
+      // polices comprises, pour ne pas voir l'habillage d'origine une frame.
+      var st = localStorage.getItem('anqaa_style');
+      var polSt = { editorial: 'Fraunces:opsz,wght@9..144,400;9..144,700&family=Nunito:wght@600;800', brutal: 'Space+Grotesk:wght@500;700',
+        terminal: 'JetBrains+Mono:wght@400;700', sport: 'Barlow+Condensed:wght@500;700;800', fil: 'Nunito:wght@600;800',
+        systeme: 'Rajdhani:wght@500;600;700&family=Orbitron:wght@700;900', bataillon: 'Bebas+Neue&family=Oswald:wght@500;700&family=Special+Elite' };
+      if (st && (st === 'epure' || polSt[st])) {
+        document.documentElement.setAttribute('data-style', st);
+        if (polSt[st]) {
+          var lienSt = document.createElement('link');
+          lienSt.rel = 'stylesheet'; lienSt.id = 'polices-style';
+          lienSt.href = 'https://fonts.googleapis.com/css2?family=' + polSt[st] + '&display=swap';
+          document.head.appendChild(lienSt);
+        }
+      }
       var mtc = document.getElementById('meta-theme-color');
       if (mtc) mtc.setAttribute('content', t === 'dark' ? '#06070a' : '#eaeef5');
       // Pareil pour le manifest (ses propres background_color/theme_color,
@@ -4410,7 +5001,14 @@
     </div>
 
     <div class="input-group">
+      <label>Style</label>
+      <div class="styles-visuels" id="styles-visuels"></div>
+      <small class="note" style="display:block; margin-top:6px;">Change tout l'habillage : couleurs, polices, forme des blocs. Fonctionne en clair comme en sombre.</small>
+    </div>
+
+    <div class="input-group">
       <label>Couleurs</label>
+      <small class="note hidden" id="note-palettes-style" style="display:block; margin:0 0 6px;">Les couleurs ne s'appliquent qu'au style Anqā : les autres styles ont les leurs.</small>
       <div class="palettes-perso" id="palettes-perso"></div>
       <small class="note" style="display:block; margin-top:6px;">Ton choix ne change que ton appli, sur tous tes appareils.</small>
     </div>
@@ -10058,7 +10656,79 @@ function appliquerTheme(t) {
 // Plus de bouton dans l'en-tete (retiré) : seul le choix explicite dans les
 // réglages (choisirTheme, via le segment Clair/Sombre) appelle encore
 // appliquerTheme().
-function choisirTheme(t) { appliquerTheme(t); renderChoixPalettePerso(); }
+function choisirTheme(t) { appliquerTheme(t); renderChoixPalettePerso(); renderChoixStyle(); majCouleurBarreStyle(); }
+
+/* =====================================================================
+   STYLES VISUELS — Réglages › Apparence › Style. Un habillage complet de
+   l'appli (couleurs, polices, forme des blocs, animations), au choix de
+   chaque utilisateur. Le choix vit dans son profil (synchronisé entre ses
+   appareils) et en local (anqaa_style) pour être posé dès le démarrage.
+   Les règles CSS sont dans la feuille principale, sous html[data-style].
+   Les polices ne sont chargées que pour le style choisi.
+   ===================================================================== */
+const STYLES_VISUELS = [
+  { id: '', nom: 'Anqā', detail: 'Le style d’origine', clair: ['#eaeef5', '#0e1420', '#00703a'], sombre: ['#06070a', '#f4f7fb', '#14b566'], police: "'Outfit', sans-serif" },
+  { id: 'epure', nom: 'Épuré', detail: 'À plat, sans cartes', clair: ['#eaeef5', '#0e1420', '#00703a'], sombre: ['#06070a', '#f4f7fb', '#14b566'], police: "'Outfit', sans-serif" },
+  { id: 'editorial', nom: 'Éditorial', detail: 'Comme un journal', clair: ['#f5efe3', '#1f1a14', '#b4441c'], sombre: ['#15120e', '#efe6d6', '#e0774b'], police: "'Fraunces', Georgia, serif", polices: 'Fraunces:opsz,wght@9..144,400;9..144,700&family=Nunito:wght@600;800' },
+  { id: 'brutal', nom: 'Néo-brutaliste', detail: 'Contours noirs, aplats vifs', clair: ['#fff8e7', '#111111', '#ffe14d'], sombre: ['#1a1a1a', '#ffffff', '#ffe14d'], police: "'Space Grotesk', sans-serif", polices: 'Space+Grotesk:wght@500;700' },
+  { id: 'terminal', nom: 'Terminal', detail: 'Écran de console', clair: ['#f4f4ef', '#1b1b1b', '#0a7d32'], sombre: ['#050805', '#c9f7cf', '#39ff6a'], police: "'JetBrains Mono', monospace", polices: 'JetBrains+Mono:wght@400;700' },
+  { id: 'sport', nom: 'Sport', detail: 'Montre de sport', clair: ['#ffffff', '#0b0b0b', '#00b86b'], sombre: ['#000000', '#ffffff', '#00f08c'], police: "'Barlow Condensed', sans-serif", polices: 'Barlow+Condensed:wght@500;700;800' },
+  { id: 'fil', nom: 'Fil de la journée', detail: 'Bandeaux pastel, ligne de temps', clair: ['#fbfaf8', '#2b2b33', '#6c5ce7'], sombre: ['#141318', '#ecebf3', '#a29bfe'], police: "'Nunito', sans-serif", polices: 'Nunito:wght@600;800' },
+  { id: 'systeme', nom: 'Système', detail: 'Fenêtres holographiques, quête du jour', clair: ['#e9f1fb', '#06142b', '#0077c8'], sombre: ['#03060f', '#e6f4ff', '#3ad1ff'], police: "'Orbitron', sans-serif", polices: 'Rajdhani:wght@500;600;700&family=Orbitron:wght@700;900' },
+  { id: 'bataillon', nom: 'Bataillon', detail: 'Rapport militaire', clair: ['#d9ccae', '#1f1a12', '#a3231a'], sombre: ['#0f0e0c', '#e9dfc9', '#c62f22'], police: "'Bebas Neue', 'Oswald', sans-serif", polices: 'Bebas+Neue&family=Oswald:wght@500;700&family=Special+Elite' }
+];
+const STYLE_LS = 'anqaa_style';
+function styleActif() {
+  const id = (userProfile && userProfile.style) || '';
+  return STYLES_VISUELS.some(x => x.id === id) ? id : '';
+}
+function chargerPolicesStyle(st) {
+  let lien = document.getElementById('polices-style');
+  if (!st || !st.polices) { if (lien) lien.remove(); return; }
+  const href = 'https://fonts.googleapis.com/css2?family=' + st.polices + '&display=swap';
+  if (lien && lien.getAttribute('href') === href) return;
+  if (!lien) { lien = document.createElement('link'); lien.rel = 'stylesheet'; lien.id = 'polices-style'; document.head.appendChild(lien); }
+  lien.href = href;
+}
+// Barre d'état du téléphone à la couleur de fond du style.
+function majCouleurBarreStyle() {
+  const mtc = document.getElementById('meta-theme-color');
+  const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+  if (mtc && bg) mtc.setAttribute('content', bg);
+}
+function appliquerStyleUtilisateur() {
+  const id = styleActif();
+  const st = STYLES_VISUELS.find(x => x.id === id);
+  if (id) document.documentElement.setAttribute('data-style', id);
+  else document.documentElement.removeAttribute('data-style');
+  try { if (id) localStorage.setItem(STYLE_LS, id); else localStorage.removeItem(STYLE_LS); } catch (e) {}
+  chargerPolicesStyle(st);
+  majCouleurBarreStyle();
+  renderChoixStyle();
+  // Les graphiques lisent les couleurs au dessin : on les redessine.
+  if (typeof ecranActif !== 'undefined' && ecranActif === 'stats' && typeof majToutesStats === 'function') { try { majToutesStats(); } catch (e) {} }
+}
+function choisirStyle(id) {
+  userProfile.style = id || '';
+  saveData();
+  appliquerStyleUtilisateur();
+}
+function renderChoixStyle() {
+  const c = document.getElementById('styles-visuels');
+  if (!c) return;
+  const sombre = document.documentElement.getAttribute('data-theme') === 'dark';
+  const actif = styleActif();
+  c.innerHTML = STYLES_VISUELS.map(st => {
+    const [bg, texte, accent] = sombre ? st.sombre : st.clair;
+    return `<button type="button" class="style-visuel${st.id === actif ? ' choisi' : ''}" onclick="choisirStyle(${argJs(st.id)})" aria-pressed="${st.id === actif}">
+      <span class="style-visuel-apercu" style="background:${bg};color:${texte};font-family:${st.police};"><b>Aa</b><i style="background:${accent};"></i></span>
+      <span class="style-visuel-nom">${escapeHtml(st.nom)}</span><small>${escapeHtml(st.detail)}</small></button>`;
+  }).join('');
+  const pal = document.getElementById('palettes-perso');
+  if (pal) pal.classList.toggle('palettes-inactives', !!actif);
+  const notePal = document.getElementById('note-palettes-style');
+  if (notePal) notePal.classList.toggle('hidden', !actif);
+}
 
 /* =====================================================================
    COULEURS DE L'APPLICATION — réglage admin (voir afficherFeuilleCouleursAdmin).
@@ -10114,6 +10784,7 @@ function couleursEffectives() {
   return p ? p.donnees : couleursAppActuelles;
 }
 function appliquerCouleursUtilisateur() {
+  try { appliquerStyleUtilisateur(); } catch (e) {}
   const p = palettePersoActive();
   try {
     if (p) localStorage.setItem(COULEURS_PERSO_KEY, JSON.stringify(p.donnees));
