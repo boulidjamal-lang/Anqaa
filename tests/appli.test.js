@@ -1092,6 +1092,51 @@ test("scan : un produit déjà dans notre base s'affiche sous notre nom, pas cel
   assert.deepEqual(r.b, [['Oeufs durs maison', 'Trouvé dans : OpenFoodFacts'], 1, false]);
 }));
 
+test("Administration : les doublons d'aliments sont fusionnés au lieu d'apparaître deux fois", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const T = confSupabase().table;
+    const att = (id, nom, code_barre, cree_le) => ({ id, nom, code_barre, cree_le, valide: false, supprime: false });
+    const db = {
+      aliments_partages: [
+        att('A', 'Skyr nature', '123', '2026-10-01'), att('B', 'Skyr Nature', '', '2026-10-02'),          // même nom
+        att('C', 'Galette', '555', '2026-10-01'), att('D', 'Galette maison', '555', '2026-10-03'),       // même code-barres
+        att('E', "Kok'o", '777', '2026-10-04'),                                                          // déjà validé
+        { id: 'F', nom: "Kok'o - oeufs dur", code_barre: '777', cree_le: '2026-09-01', valide: true, supprime: false },
+        att('G', 'Pomme', '999', '2026-10-05'),                                                          // déjà dans la base d'aliments
+        att('H', 'Unique', '', '2026-10-05'),                                                            // seul : gardé
+        att('I', 'Wrap', '', '2026-10-01'), att('J', 'wrap', '42', '2026-10-02')                         // le gardé récupère le code
+      ],
+      [T]: [{ id: 1, nom: 'Pomme Gala', code_barre: '999' }]
+    };
+    const majs = [];
+    const requete = table => {
+      const filtres = []; let maj = null;
+      const b = {
+        select: () => b, limit: () => b, or: () => b,
+        eq: (c, v) => { filtres.push(x => String(x[c]) === String(v)); return b; },
+        in: (c, vals) => { filtres.push(x => vals.map(String).includes(String(x[c]))); return b; },
+        update: v => { maj = v; return b; },
+        then: (ok, ko) => {
+          const lignes = (db[table] || []).filter(x => filtres.every(f => f(x)));
+          if (maj) { lignes.forEach(x => Object.assign(x, maj)); majs.push([lignes.map(x => x.id).sort().join(','), Object.keys(maj).join(',')]); }
+          return Promise.resolve({ data: maj ? null : lignes, error: null }).then(ok, ko);
+        }
+      };
+      return b;
+    };
+    supa = { from: requete, rpc: async () => ({ data: null, error: null }) };
+    sessionUtilisateur = { id: 'admin', email: ADMIN_EMAIL };
+    detecterSchemaAliments = async () => ({ vide: false, nom: 'nom', codeBarre: 'code_barre', cle: 'id' });
+    const n = await fusionnerDoublonsAliments(true);
+    const restants = db.aliments_partages.filter(a => !a.supprime).map(a => a.id + (a.code_barre ? ':' + a.code_barre : '')).sort();
+    return { n, restants, majs, parQui: db.aliments_partages.find(a => a.id === 'B').supprime_par };
+  });
+  assert.equal(r.n, 5);
+  assert.deepEqual(r.restants, ['A:123', 'C:555', 'F:777', 'H', 'I:42']);
+  assert.deepEqual(r.majs, [['B,D,E,G,J', 'supprime,supprime_par,supprime_le'], ['I', 'code_barre']]);
+  assert.match(r.parQui, /^fusion/);
+}));
+
 test('styles visuels : choix dans Réglages, gardé au redémarrage, chaque style sur chaque écran', () => avecAppli({}, async ({ page }) => {
   const ids = await page.evaluate(() => STYLES_VISUELS.map(s => s.id));
   assert.deepEqual(ids, ['', 'epure', 'editorial', 'brutal', 'terminal', 'sport', 'fil', 'systeme', 'bataillon']);

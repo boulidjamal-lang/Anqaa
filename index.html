@@ -14122,6 +14122,7 @@ const LIBELLES_ACTION = {
   aliment_valide: '\u2705 Aliment valid\u00e9',
   aliment_devalide: '\u21a9 Validation d\u2019aliment retir\u00e9e',
   aliment_base_modifie: '\u270f Aliment de la base modifi\u00e9',
+  aliments_fusionnes: '\ud83d\udd17 Doublons d\u2019aliments fusionn\u00e9s',
   aliment_base_supprime: '\ud83d\uddd1 Aliment de la base supprim\u00e9',
   aliments_copies_ciqual_retires: '\ud83e\uddf9 Copies d\u2019aliments de la base retir\u00e9es',
   exercice_base_modifie: '\u270f Exercice de base modifi\u00e9',
@@ -22469,9 +22470,102 @@ function ouvrirFeuilleReglagesTechniques() {
 const adminAValider = { aliments: 0 };
 let adminAValiderDernier = 0;
 function estCompteAdmin() { return !!(sessionUtilisateur && sessionUtilisateur.email === ADMIN_EMAIL); }
+/* Doublons d'aliments à valider : un même produit ajouté par plusieurs
+   comptes avant validation (chacun ne voit pas l'ajout en attente des
+   autres), ou un produit déjà validé / déjà dans la base d'aliments.
+   Plutôt que de les présenter séparément, on les FUSIONNE : même
+   code-barres ou même nom = même aliment.
+   - déjà dans la base d'aliments ou déjà validé : les ajouts en attente
+     sont retirés (l'aliment existant reste, sous son nom) ;
+   - sinon : le plus ancien en attente est gardé (il récupère le code-barres
+     d'un doublon s'il n'en avait pas), les autres sont retirés.
+   Seuls des aliments EN ATTENTE sont retirés, jamais un validé. Réservé à
+   l'admin (lui seul voit les ajouts en attente de tout le monde) ; lancé à
+   l'ouverture de la liste et avant le comptage des pastilles. */
+let fusionAlimentsDerniere = 0;
+async function fusionnerDoublonsAliments(force) {
+  if (!supa || !estCompteAdmin()) return 0;
+  if (!force && Date.now() - fusionAlimentsDerniere < 5 * 60e3) return 0;
+  fusionAlimentsDerniere = Date.now();
+  try {
+    const champs = 'id,nom,code_barre,valide,cree_le';
+    const pasRetire = 'supprime.is.null,supprime.eq.false';
+    const att = await supa.from('aliments_partages').select(champs).eq('valide', false).or(pasRetire).limit(1000);
+    if (att.error) throw att.error;
+    const enAttente = (att.data || []).filter(a => a && a.id != null);
+    if (!enAttente.length) return 0;
+    const code = a => String(a.code_barre || '').trim();
+    const codes = [...new Set(enAttente.map(code).filter(Boolean))];
+    const noms = [...new Set(enAttente.map(a => String(a.nom || '').trim()).filter(Boolean))];
+    // Validés qui leur ressemblent (même code-barres ou même nom).
+    const valides = [];
+    const lireValides = async (col, vals) => {
+      if (!vals.length) return;
+      const r = await supa.from('aliments_partages').select(champs).eq('valide', true).or(pasRetire).in(col, vals);
+      if (!r.error) valides.push(...(r.data || []).filter(a => a && a.id != null));
+    };
+    await lireValides('code_barre', codes);
+    await lireValides('nom', noms);
+    // Base d'aliments : codes-barres et noms déjà présents.
+    const baseCodes = new Set(), baseNoms = new Set();
+    const sch = await detecterSchemaAliments().catch(() => null);
+    if (sch && !sch.vide && sch.nom) {
+      const table = confSupabase().table;
+      const lireBase = async (col, vals) => {
+        if (!col || !vals.length) return;
+        const r = await supa.from(table).select(sch.codeBarre ? sch.nom + ',' + sch.codeBarre : sch.nom).in(col, vals);
+        (r.data || []).forEach(x => {
+          if (sch.codeBarre && x[sch.codeBarre]) baseCodes.add(String(x[sch.codeBarre]).trim());
+          if (x[sch.nom]) baseNoms.add(normaliserRecherche(x[sch.nom]));
+        });
+      };
+      await lireBase(sch.codeBarre, codes);
+      await lireBase(sch.nom, noms);
+    }
+    // Groupes : union de tout ce qui partage un code-barres ou un nom.
+    const lignes = enAttente.concat(valides.filter(v => !enAttente.some(a => String(a.id) === String(v.id))));
+    const parent = lignes.map((_, i) => i);
+    const racine = i => parent[i] === i ? i : (parent[i] = racine(parent[i]));
+    const premier = new Map();
+    lignes.forEach((a, i) => {
+      [code(a) && 'c:' + code(a), a.nom && 'n:' + normaliserRecherche(a.nom)].filter(Boolean).forEach(k => {
+        if (premier.has(k)) parent[racine(i)] = racine(premier.get(k)); else premier.set(k, i);
+      });
+    });
+    const groupes = new Map();
+    lignes.forEach((a, i) => { const r = racine(i); if (!groupes.has(r)) groupes.set(r, []); groupes.get(r).push(a); });
+    const aRetirer = [], codesAGarder = [];
+    const date = a => String(a.cree_le || '');
+    groupes.forEach(g => {
+      const attente = g.filter(a => !a.valide).sort((x, y) => date(x) < date(y) ? -1 : 1);
+      if (!attente.length) return;
+      const dansBase = g.some(a => (code(a) && baseCodes.has(code(a))) || baseNoms.has(normaliserRecherche(a.nom || '')));
+      if (dansBase || g.some(a => a.valide)) { aRetirer.push(...attente); return; }
+      if (attente.length < 2) return;
+      const garde = attente[0];
+      aRetirer.push(...attente.slice(1));
+      const codeDoublon = attente.slice(1).map(code).find(Boolean);
+      if (!code(garde) && codeDoublon) codesAGarder.push([garde.id, codeDoublon]);
+    });
+    if (!aRetirer.length) return 0;
+    const qui = 'fusion (' + (sessionUtilisateur ? sessionUtilisateur.email : 'admin') + ')';
+    const { error } = await supa.from('aliments_partages')
+      .update({ supprime: true, supprime_par: qui, supprime_le: new Date().toISOString() })
+      .in('id', aRetirer.map(a => a.id));
+    if (error) throw error;
+    for (const [id, c] of codesAGarder) await supa.from('aliments_partages').update({ code_barre: c }).eq('id', id);
+    cacheVider();
+    consignerAction('aliments_fusionnes', null, aRetirer.length + ' doublon(s) fusionné(s)', null, aRetirer.map(a => a.nom).join(', '));
+    return aRetirer.length;
+  } catch (e) {
+    console.warn('[Admin] fusion des doublons impossible :', e.message || e);
+    return 0;
+  }
+}
 async function compterAValiderAdmin() {
   if (!supa || !estCompteAdmin()) return;
   adminAValiderDernier = Date.now();
+  await fusionnerDoublonsAliments();
   try {
     const { count, error } = await supa.from('aliments_partages').select('id', { count: 'exact', head: true })
       .eq('valide', false).or('supprime.is.null,supprime.eq.false');
@@ -22527,6 +22621,7 @@ async function chargerAlimentsAdmin() {
 
   if (!supa) { attente.textContent = 'Pas de connexion à Supabase.'; return; }
 
+  await fusionnerDoublonsAliments(true);
   try {
     const { data, error } = await supa.rpc('admin_aliments', {
       p_createur: lire('aliments-filter-createur'),
