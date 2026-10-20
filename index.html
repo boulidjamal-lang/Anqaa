@@ -1482,6 +1482,14 @@
       font-size: 0.85rem; cursor: pointer; min-height: 46px;
     }
     .off-suggestion:last-child { border-bottom: none; }
+    .off-ligne-historique { display: flex; align-items: stretch; border-bottom: 1px solid var(--verre-brd); }
+    .off-ligne-historique:last-child { border-bottom: none; }
+    .off-ligne-historique .off-suggestion { flex: 1; min-width: 0; border-bottom: 0; }
+    .off-retirer {
+      flex: none; width: 44px; border: 0; background: transparent; cursor: pointer;
+      color: var(--text-muted); font-size: 1.25rem; font-family: inherit;
+    }
+    .off-retirer:active { color: var(--danger); }
     .off-nom { font-weight: 600; font-size: 0.85rem; }
     .off-meta { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
     .off-section {
@@ -6994,7 +7002,19 @@ function afficherSuggestionsOFF(products, probleme) {
     el.appendChild(bas);
 
     el.addEventListener('click', () => selectionnerProduitOFF(p));
-    container.appendChild(el);
+    if (p.source === 'historique' && p.cleHistorique) {
+      const ligne = document.createElement('div');
+      ligne.className = 'off-ligne-historique';
+      const retirer = document.createElement('button');
+      retirer.type = 'button';
+      retirer.className = 'off-retirer';
+      retirer.textContent = '×';
+      retirer.setAttribute('aria-label', 'Retirer « ' + nomAffiche + ' » de Déjà mangé');
+      retirer.title = 'Retirer de Déjà mangé';
+      retirer.addEventListener('click', ev => { ev.stopPropagation(); masquerDejaMange(p.cleHistorique); });
+      ligne.appendChild(el); ligne.appendChild(retirer);
+      container.appendChild(ligne);
+    } else container.appendChild(el);
   });
   /* L'historique a répondu mais pas la base : on le signale en pied de liste
      plutôt que de laisser croire que la base n'a rien d'autre à proposer. */
@@ -7074,6 +7094,21 @@ function construireHistorique() {
   const parCle = new Map();
   const jours = Object.keys(appData).sort();   // du plus ancien au plus récent
 
+  /* Un même produit noté tantôt avec son code-barres, tantôt à la main sous
+     le même nom : les entrées sans code se rattachent à ce code. Le nom
+     actuel retenu pour un code compte aussi (aliment renommé). */
+  const codeParNom = new Map();
+  Object.keys(nomsParCode).forEach(c => codeParNom.set(String(nomsParCode[c]).trim().toLowerCase(), c));
+  jours.forEach(ds => {
+    const j = appData[ds];
+    if (!j || !j.meals) return;
+    Object.values(j.meals).forEach(liste => Array.isArray(liste) && liste.forEach(it => {
+      const nom = (it && it.name || '').trim().toLowerCase();
+      if (nom && it.code && !codeParNom.has(nom)) codeParNom.set(nom, String(it.code).trim());
+    }));
+  });
+  const masques = (userProfile && userProfile.dejaMangeMasques) || {};
+
   jours.forEach(ds => {
     const j = appData[ds];
     if (!j || !j.meals) return;
@@ -7086,7 +7121,7 @@ function construireHistorique() {
         if (!nom || !(g > 0)) return;          // sans quantité, impossible de ramener à 100 g
 
         // Même code-barres = même produit, quel que soit le nom qu'il portait.
-        const code = it.code ? String(it.code).trim() : '';
+        const code = it.code ? String(it.code).trim() : (codeParNom.get(nom.toLowerCase()) || '');
         const cle = code ? 'code:' + code : nom.toLowerCase();
         const f = 100 / g;
         const e = parCle.get(cle) || { nom, fois: 0 };
@@ -7099,7 +7134,8 @@ function construireHistorique() {
         e.c100 = Math.round((Number(it.c) || 0) * f * 10) / 10;
         e.f100 = Math.round((Number(it.f) || 0) * f * 10) / 10;
         if (it.unite) e.unite = it.unite;
-        if (it.code) e.code = String(it.code);
+        if (code) e.code = code;
+        e.cle = cle;
         parCle.set(cle, e);
       });
     });
@@ -7108,7 +7144,7 @@ function construireHistorique() {
   /* Tri : d'abord ce qui revient le plus souvent, puis ce qui a été mangé
      récemment. Un aliment mangé vingt fois doit passer devant celui mangé
      une seule fois hier — mais à fréquence égale, le plus récent tranche. */
-  return Array.from(parCle.values()).sort((a, b) => {
+  return Array.from(parCle.values()).filter(e => !(masques[e.cle] && e.dernierJour <= masques[e.cle])).sort((a, b) => {
     if (a.fois !== b.fois) return b.fois - a.fois;
     return a.dernierJour < b.dernierJour ? 1 : -1;
   });
@@ -7122,6 +7158,19 @@ function historique() {
   return cacheHistorique;
 }
 function invaliderHistorique() { cacheHistorique = null; }
+/* Retire une entrée de « Déjà mangé » sans toucher aux repas passés. Elle
+   revient d'elle-même si l'aliment est remangé ensuite. Gardé dans le
+   profil, donc synchronisé entre appareils. */
+function masquerDejaMange(cle) {
+  if (!cle) return;
+  userProfile.dejaMangeMasques = Object.assign({}, userProfile.dejaMangeMasques, { [cle]: todayStr() });
+  userProfile.maj = Date.now();
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(userProfile)); } catch (e) {}
+  if (typeof planifierSync === 'function') planifierSync();
+  invaliderHistorique();
+  const champ = document.getElementById('man-name');
+  afficherRecherche(champ ? champ.value.trim() : '', !(champ && champ.value.trim().length >= 2));
+}
 
 // Un aliment de l'historique prend la forme attendue par la liste de suggestions.
 function entreeVersProduit(e) {
@@ -7129,6 +7178,7 @@ function entreeVersProduit(e) {
     name: e.nom,
     badge: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>',
     source: 'historique',
+    cleHistorique: e.cle,
     grammes: e.grammes,
     code: e.code,
     unite: e.unite,

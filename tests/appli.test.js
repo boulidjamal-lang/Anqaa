@@ -553,21 +553,31 @@ test("« Déjà mangé » suit le nouveau nom d'un aliment renommé (même code-
     getDay(jours[0]).meals[MEALS[0]].push({ name: "Kok'o handgekookte gepelde eieren", grams: 86, kcal: 114, p: 11, c: 1, f: 8, code: '5413828000650' });
     getDay(jours[1]).meals[MEALS[0]].push({ name: "Kok'o handgekookte gepelde eieren", grams: 86, kcal: 114, p: 11, c: 1, f: 8, code: '5413828000650' });
     getDay(jours[2]).meals[MEALS[0]].push({ name: 'Yaourt nature', grams: 125, kcal: 70, p: 5, c: 6, f: 2 });
+    // Même produit noté à la main (sans code-barres) sous l'ancien nom : rattaché au code.
+    getDay(jours[2]).meals[MEALS[1]].push({ name: "Kok'o handgekookte gepelde eieren", grams: 50, kcal: 66, p: 6, c: 0, f: 5 });
+    // Autre saisie à la main, jamais vue avec un code : reste à part.
+    getDay(jours[2]).meals[MEALS[2]].push({ name: "Kok'o oeufs durs", grams: 86, kcal: 114, p: 11, c: 1, f: 8 });
     jours.forEach(saveData); invaliderHistorique();
     // La base renvoie l'aliment perso renommé, avec le même code-barres.
     window.chercherAlimentsSupabase = async () => ({ aliments: [
       { name: "Kok'o - oeufs dur", source: 'perso', code: '5413828000650', nutriments: { 'energy-kcal_100g': 132 } }
     ], probleme: '' });
     await afficherRecherche('kok', false);
-    const noms = [...document.querySelectorAll('#off-suggestions-list button')].map(b => b.textContent);
+    const noms = [...document.querySelectorAll('#off-suggestions-list .off-suggestion')].map(b => b.textContent);
     const deja = chercherDansHistorique('', 10).map(p => [p.name, p.fois]);
     return { noms, deja };
   });
-  // Une seule entrée, au nouveau nom, comptée deux fois ; plus de doublon dans « Mes aliments ».
-  assert.equal(r.noms.length, 1, JSON.stringify(r.noms));
+  // Le produit au code-barres : une seule entrée au nouveau nom (3 fois, dont la
+  // saisie à la main) ; plus de doublon dans « Mes aliments ».
+  assert.equal(r.noms.length, 2, JSON.stringify(r.noms));
   assert.match(r.noms[0], /Kok'o - oeufs dur/);
+  assert.match(r.noms[1], /Kok'o oeufs durs/);
   assert.doesNotMatch(r.noms.join(' '), /handgekookte/);
-  assert.deepEqual(r.deja[0], ["Kok'o - oeufs dur", 2]);
+  assert.deepEqual(r.deja[0], ["Kok'o - oeufs dur", 3]);
+  // × : retire l'entrée de « Déjà mangé », sans toucher aux repas.
+  await page.evaluate(() => document.querySelectorAll('#off-suggestions-list .off-retirer')[1].click());
+  const restant = await page.evaluate(() => ({ deja: chercherDansHistorique('kok', 10).map(p => p.name), repas: getDay(shiftDate(todayStr(), -1)).meals[MEALS[2]].length, masques: Object.keys(userProfile.dejaMangeMasques) }));
+  assert.deepEqual(restant, { deja: ["Kok'o - oeufs dur"], repas: 1, masques: ["kok'o oeufs durs"] });
   // Retenu d'une ouverture à l'autre (sans réseau) et appliqué tout de suite après un renommage.
   const apres = await page.evaluate(() => { nomsParCode = JSON.parse(localStorage.getItem('anqaa_noms_par_code')); invaliderHistorique(); retenirNomParCode('5413828000650', 'Oeufs durs Kokou'); return chercherDansHistorique('', 10)[0].name; });
   assert.equal(apres, 'Oeufs durs Kokou');
