@@ -1018,6 +1018,49 @@ test("Repas du jour allégé : idées dans « Recette », pas dans Activité, bi
   assert.ok(await page.evaluate(() => document.getElementById('macros-popup-modal').classList.contains('show')));
 }));
 
+test('tout aliment ajouté part en validation dans la base, sauf s\'il y est déjà', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    // Fausse base : aliments partagés + base d'aliments, avec les requêtes réellement faites.
+    const T = confSupabase().table;
+    const db = { aliments_partages: [], [T]: [{ id: 1, nom: 'Pomme', code_barre: '999' }] };
+    const envoyes = [];
+    const requete = table => {
+      const filtres = []; let ligne = null;
+      const b = {
+        select: () => b, limit: () => b, single: () => b,
+        ilike: (c, v) => { filtres.push(x => String(x[c] || '').toLowerCase() === v.replace(/\\(.)/g, '$1').toLowerCase()); return b; },
+        eq: (c, v) => { filtres.push(x => String(x[c]) === String(v)); return b; },
+        insert: l => { ligne = l; return b; },
+        then: (ok, ko) => {
+          if (ligne) { (db[table] = db[table] || []).push(ligne); envoyes.push(ligne); return Promise.resolve({ data: ligne, error: null }).then(ok, ko); }
+          return Promise.resolve({ data: (db[table] || []).filter(x => filtres.every(f => f(x))), error: null }).then(ok, ko);
+        }
+      };
+      return b;
+    };
+    supa = { from: requete };
+    sessionUtilisateur = { id: 'u1', email: 'membre@x.fr' };
+    detecterSchemaAliments = async () => ({ vide: false, nom: 'nom', codeBarre: 'code_barre', cle: 'id' });
+    const attendre = () => new Promise(res => setTimeout(res, 50));
+    activeMealId = 'lunch';
+    // 1) Produit scanné (OpenFoodFacts) : envoyé, en attente de validation.
+    currentScannedFood = { name: 'Skyr nature', code: '123', kcal100: 60, p100: 10, c100: 4, f100: 0.2, unite: 'g', source: 'OpenFoodFacts' };
+    document.getElementById('barcode-grams').value = 150;
+    ajouterAlimentBarcode(); await attendre();
+    // 2) Le même rescanné : pas de doublon.
+    ajouterAlimentBarcode(); await attendre();
+    // 3) Produit scanné déjà dans la base d'aliments (même code-barres) : rien.
+    currentScannedFood = { name: 'Pomme Gala', code: '999', kcal100: 52, p100: 0.3, c100: 14, f100: 0.2, unite: 'g', source: 'OpenFoodFacts' };
+    ajouterAlimentBarcode(); await attendre();
+    // 4) Repris de « Déjà mangé » et absent de la base : envoyé.
+    addItemToMeal('lunch', { name: 'Galette maison', grams: 100, kcal: 200, p: 5, c: 30, f: 6 }, { source: 'historique' }); await attendre();
+    // 5) Pris tel quel dans notre base : rien.
+    addItemToMeal('lunch', { name: 'Riz', grams: 100, kcal: 130, p: 3, c: 28, f: 0 }, { partager: false }); await attendre();
+    return envoyes.map(e => [e.nom, e.code_barre, e.source, e.kcal100, 'valide' in e]);
+  });
+  assert.deepEqual(r, [['Skyr nature', '123', 'scan', 60, false], ['Galette maison', '', 'historique', 200, false]]);
+}));
+
 test('styles visuels : choix dans Réglages, gardé au redémarrage, chaque style sur chaque écran', () => avecAppli({}, async ({ page }) => {
   const ids = await page.evaluate(() => STYLES_VISUELS.map(s => s.id));
   assert.deepEqual(ids, ['', 'epure', 'editorial', 'brutal', 'terminal', 'sport', 'fil', 'systeme', 'bataillon']);

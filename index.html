@@ -7960,8 +7960,8 @@ function validerAjoutManuel() {
   // Le code-barres suit l'aliment quand il vient d'OpenFoodFacts ou de
   // l'historique : c'est ce qui permet de retrouver le produit exact plus tard.
   if (codeCourant) item.code = codeCourant;
-  const dejaEnBase = !!sourceCourante && normaliserRecherche(name) === normaliserRecherche(nomSourceCourant);
-  addItemToMeal(activeMealId, item, { partager: !dejaEnBase });
+  const dejaEnBase = ['base', 'perso', 'partage'].includes(sourceCourante) && normaliserRecherche(name) === normaliserRecherche(nomSourceCourant);
+  addItemToMeal(activeMealId, item, { partager: !dejaEnBase, source: sourceCourante === 'usda' ? 'usda' : sourceCourante === 'historique' ? 'historique' : 'manuel' });
   if (item.unite === 'ml') ajouterEau(Math.round(g));
   fermerModal('manual-modal');
 }
@@ -7971,14 +7971,13 @@ function addItemToMeal(mealId, item, options) {
   day.meals[mealId || 'lunch'].push(item);
   saveData(currentDate);
   invaliderHistorique();
-  // Aliment pris tel quel dans une base existante (CIQUAL, USDA,
-  // OpenFoodFacts, aliments partagés, déjà mangé…) : il n'a rien à faire
-  // dans « Aliments partagés », qui ne doit recevoir que les aliments
-  // réellement créés par les utilisateurs.
+  // Aliment pris tel quel dans NOTRE base (base d'aliments, mes aliments,
+  // aliments partagés) ou portion de recette : rien à envoyer. Tout le reste
+  // (OpenFoodFacts, USDA, déjà mangé, saisie, photo) part en validation.
   if (options && options.partager === false) { renderMeals(day); updateSummary(day); return; }
   // Le repas est enregistré avant tout : l'envoi vers la base vient après et
   // ne peut ni ralentir ni faire échouer la saisie.
-  enregistrerAlimentDansBase(item);
+  enregistrerAlimentDansBase(item, options && options.source);
   renderMeals(day);
   updateSummary(day);
 }
@@ -8870,7 +8869,7 @@ function ajouterAlimentBarcode() {
     code: currentScannedFood.code || undefined,
     kcal: currentScannedFood.kcal100 * f, p: currentScannedFood.p100 * f,
     c: currentScannedFood.c100 * f, f: currentScannedFood.f100 * f
-  }, { partager: false });
+  }, { partager: currentScannedFood.source !== 'ta base perso', source: 'scan' });
   // Un produit détecté en ml est une boisson : sa quantité compte aussi
   // pour l'hydratation du jour, sans geste en plus. Compte toute boisson
   // (pas seulement l'eau littérale) — soda, jus, lait apportent aussi de
@@ -9021,7 +9020,7 @@ function ajouterIngredientsGemini() {
       c: a.c100 * (a.grams / 100), f: a.f100 * (a.grams / 100)
     };
     day.meals[activeMealId || 'lunch'].push(item);
-    enregistrerAlimentDansBase(item);
+    enregistrerAlimentDansBase(item, 'photo');
   });
   saveData(currentDate);
   invaliderHistorique();
@@ -15192,22 +15191,54 @@ function ficheDepuisItem(item) {
   };
 }
 
-function enregistrerAlimentDansBase(item) {
+/* Tout aliment ajouté à un repas rejoint la base (Aliments partagés), en
+   attente de validation par l'admin (valide = false, imposé côté serveur) :
+   saisi à la main, scanné, trouvé dans OpenFoodFacts ou USDA, détecté en
+   photo, ou repris de « Déjà mangé ». Sauf s'il y est déjà : même
+   code-barres ou même nom, dans les aliments partagés (refusés compris pour
+   l'admin, qui les voit tous) ou dans la base d'aliments. Vérifié une seule
+   fois par aliment et par session. */
+const alimentsDejaVerifies = new Set();
+function echapperIlike(t) { return String(t).replace(/[\\%_]/g, c => '\\' + c); }
+async function alimentDejaEnBase(nom, code) {
+  const nomExact = echapperIlike(nom);
+  const requetes = [supa.from('aliments_partages').select('id').ilike('nom', nomExact).limit(1)];
+  if (code) requetes.push(supa.from('aliments_partages').select('id').eq('code_barre', code).limit(1));
+  const sch = await detecterSchemaAliments().catch(() => null);
+  if (sch && !sch.vide && sch.nom) {
+    const table = confSupabase().table;
+    requetes.push(supa.from(table).select(sch.cle || sch.nom).ilike(sch.nom, nomExact).limit(1));
+    if (code && sch.codeBarre) requetes.push(supa.from(table).select(sch.cle || sch.nom).eq(sch.codeBarre, code).limit(1));
+  }
+  const reponses = await Promise.all(requetes);
+  if (reponses.some(r => r.error)) throw new Error('vérification impossible');
+  return reponses.some(r => r.data && r.data.length);
+}
+async function enregistrerAlimentDansBase(item, source) {
   // Un aliment issu d'une recette (structure en ingrédients) n'est pas un
   // aliment unique : il ne rejoint jamais la base partagée.
   if (item && Array.isArray(item.ingredients) && item.ingredients.length) return;
   const fiche = ficheDepuisItem(item);
-  if (!fiche) return;
-  // L'appel n'est pas attendu : un échec réseau ne doit pas retarder la
-  // saisie du repas (l'aliment reste de toute façon dans l'historique local).
-  enregistrerAlimentPartage({
+  if (!fiche || !supa || !sessionUtilisateur) return;
+  const cle = (fiche.code || '') + '|' + normaliserRecherche(fiche.nom);
+  if (alimentsDejaVerifies.has(cle)) return;
+  alimentsDejaVerifies.add(cle);
+  // Jamais attendu par l'appelant : un échec réseau ne doit pas retarder la
+  // saisie du repas (l'aliment reste de toute façon dans l'historique).
+  try {
+    if (await alimentDejaEnBase(fiche.nom, fiche.code)) return;
+  } catch (e) {
+    alimentsDejaVerifies.delete(cle);   // réessayé au prochain ajout
+    return;
+  }
+  await enregistrerAlimentPartage({
     nom: fiche.nom,
     kcal100: fiche.kcal,
     p100: fiche.prot,
     c100: fiche.gluc,
     f100: fiche.lip,
     code_barre: fiche.code,
-    source: 'manuel'
+    source: source || 'manuel'
   });
 }
 
