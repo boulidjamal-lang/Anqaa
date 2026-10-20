@@ -66,7 +66,9 @@ test('ajouter un aliment met à jour le résumé du jour', () => avecAppli({}, a
 }));
 
 test('les pas remplissent la jauge et la dépense', () => avecAppli({}, async ({ page }) => {
-  await page.evaluate(() => allerA('repas'));
+  // Les pas sont dans l'écran Activité (plus dans Repas du jour).
+  await page.evaluate(() => allerA('seance'));
+  assert.equal(await page.$('#ecran-repas #carte-pas-seances'), null);
   assert.match(await page.textContent('#jauge-pas'), /Indique tes pas/);
   const avant = await page.evaluate(() => computeTargets(getDay(todayStr()), todayStr()).tdee);
   await page.fill('#daily-steps', '8500');
@@ -534,7 +536,8 @@ test('Repas du jour : toucher une macro ouvre sa courbe face à son objectif', (
   // La macro vise sa courbe, pas la dépense (en haut du détail Nutrition).
   assert.equal(await page.evaluate(() => document.getElementById('bloc-depense').classList.contains('macro-stat--vise')), false);
   await page.waitForFunction(() => Object.keys(macroChartsInstances).length === 3);
-  await page.waitForTimeout(400);
+  // Défilement doux jusqu'à la courbe (le bilan du jour est au-dessus).
+  await page.waitForFunction(() => { const b = document.getElementById('macro-stat-p').getBoundingClientRect(); return b.top >= 0 && b.bottom <= innerHeight; }, null, { timeout: 3000 });
   const r = await page.evaluate(() => {
     const c = macroChartsInstances.p, b = document.getElementById('macro-stat-p').getBoundingClientRect();
     const cible = computeTargets(getDay(todayStr()), todayStr()).protein;
@@ -987,6 +990,32 @@ test("des données piégées dans ses propres données ne s'exécutent jamais", 
     await page.waitForTimeout(200);
     assert.equal(await injectionsTrouvees(page), 0, 'code injecté exécuté après : ' + etape.toString());
   }
+}));
+
+test("Repas du jour allégé : idées dans « Recette », pas dans Activité, bilan dans Ma nutrition", () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => {
+    const j = getDay(todayStr());
+    j.meals[MEALS[0]].push({ name: "Flocons d'avoine", grams: 80, kcal: 300, p: 10, c: 50, f: 6 });
+    saveData(todayStr()); allerA('repas'); renderApp();
+  });
+  const r = await page.evaluate(() => ({
+    idees: !!document.querySelector('#ecran-repas [onclick*="chercherRecettesMacros"]'),
+    ideesDansRecette: !!document.querySelector('#feuille-choix-recette [onclick*="chercherRecettesMacros"]'),
+    pasDansActivite: !!document.querySelector('#ecran-seance #carte-pas-seances'),
+    bilanDansNutrition: !!document.querySelector('#ecran-stats .stats-tab[data-tab="nutrition"] #carte-bilan-jour'),
+    bilanDansRepas: !!document.querySelector('#ecran-repas #carte-bilan-jour'),
+    vides: document.querySelectorAll('#meals-container .meal-card--vide').length,
+    listesVides: document.querySelectorAll('#meals-container .meal-card--vide .food-list').length,
+    macrosAliment: getComputedStyle(document.querySelector('#ecran-repas .food-macros')).display,
+    pct: getComputedStyle(document.getElementById('pct-p')).display
+  }));
+  assert.deepEqual(r, { idees: false, ideesDansRecette: true, pasDansActivite: true, bilanDansNutrition: true, bilanDansRepas: false, vides: 3, listesVides: 0, macrosAliment: 'none', pct: 'none' });
+  // Eau sur une ligne : boutons à droite du titre.
+  const eau = await page.evaluate(() => { const t = document.querySelector('#bloc-eau h3').getBoundingClientRect(), b = document.querySelector('#bloc-eau .eau-boutons').getBoundingClientRect(); return b.left > t.right - 1 && Math.abs(b.top - t.top) < 30; });
+  assert.ok(eau);
+  // Toucher un aliment ouvre sa fenêtre (poids et macros).
+  await page.click('#ecran-repas .food-info');
+  assert.ok(await page.evaluate(() => document.getElementById('macros-popup-modal').classList.contains('show')));
 }));
 
 test('styles visuels : choix dans Réglages, gardé au redémarrage, chaque style sur chaque écran', () => avecAppli({}, async ({ page }) => {
