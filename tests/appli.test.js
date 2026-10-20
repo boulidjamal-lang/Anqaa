@@ -1061,6 +1061,37 @@ test('tout aliment ajouté part en validation dans la base, sauf s\'il y est dé
   assert.deepEqual(r, [['Skyr nature', '123', 'scan', 60, false], ['Galette maison', '', 'historique', 200, false]]);
 }));
 
+test("scan : un produit déjà dans notre base s'affiche sous notre nom, pas celui d'OpenFoodFacts", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const db = { aliments_partages: [{ nom: "Kok'o - oeufs dur", kcal100: 132, p100: 12, c100: 1, f100: 9, code_barre: '5413828000650', valide: false, createur_id: 'u1', supprime: false }] };
+    const requete = table => {
+      const filtres = [];
+      const b = { select: () => b, limit: () => b, eq: (c, v) => { filtres.push(x => String(x[c]) === String(v)); return b; },
+        then: (ok, ko) => Promise.resolve({ data: (db[table] || []).filter(x => filtres.every(f => f(x))), error: null }).then(ok, ko) };
+      return b;
+    };
+    supa = { from: requete };
+    sessionUtilisateur = { id: 'u1', email: 'membre@x.fr' };
+    detecterSchemaAliments = async () => null;
+    let appelsOFF = 0;
+    const fetchOrigine = window.fetch;
+    window.fetch = async url => { appelsOFF++; return { json: async () => ({ status: 1, product: { product_name: 'Kok\'o handgekookte gepelde eieren', brands: 'Kok\'o', nutriments: { 'energy-kcal_100g': 132 } } }) }; };
+    const lire = () => [document.getElementById('barcode-name').value, (document.getElementById('barcode-source') || {}).textContent];
+    // 1) Dans notre base (en attente, créé par moi) : notre nom, sans OpenFoodFacts.
+    await chercherProduitOFFParCode('5413828000650');
+    const a = [lire(), appelsOFF, currentScannedFood.dansNotreBase];
+    // 2) Pas dans notre base mais déjà renommé chez nous : OpenFoodFacts, sous notre nom.
+    db.aliments_partages = [];
+    nomsParCode['5413828000650'] = 'Oeufs durs maison';
+    await chercherProduitOFFParCode('5413828000650');
+    const b = [lire(), appelsOFF, !!currentScannedFood.dansNotreBase];
+    window.fetch = fetchOrigine;
+    return { a, b };
+  });
+  assert.deepEqual(r.a, [["Kok'o - oeufs dur", 'Trouvé dans : ta base'], 0, true]);
+  assert.deepEqual(r.b, [['Oeufs durs maison', 'Trouvé dans : OpenFoodFacts'], 1, false]);
+}));
+
 test('styles visuels : choix dans Réglages, gardé au redémarrage, chaque style sur chaque écran', () => avecAppli({}, async ({ page }) => {
   const ids = await page.evaluate(() => STYLES_VISUELS.map(s => s.id));
   assert.deepEqual(ids, ['', 'epure', 'editorial', 'brutal', 'terminal', 'sport', 'fil', 'systeme', 'bataillon']);

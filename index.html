@@ -8652,12 +8652,35 @@ async function corrigerUnitesTousComptes() {
   }
 }
 
+/* Un code-barres déjà dans NOTRE base (aliments partagés : validés, ou les
+   miens en attente ; l'admin les voit tous, hors retirés). */
+async function chercherPartageParCode(code) {
+  if (!supa) return null;
+  try {
+    const r = await supa.from('aliments_partages').select('nom,kcal100,p100,c100,f100,code_barre,valide,createur_id,supprime').eq('code_barre', String(code)).limit(10);
+    if (r.error || !r.data) return null;
+    const moi = sessionUtilisateur && sessionUtilisateur.id;
+    const lignes = r.data.filter(a => !a.supprime && (a.valide || String(a.createur_id) === String(moi) || estCompteAdmin()));
+    const a = lignes.find(x => x.valide) || lignes[0];
+    if (!a || !a.nom) return null;
+    return { name: a.nom, code: String(code), marque: '', kcal100: Math.round(Number(a.kcal100) || 0), p100: Number(a.p100) || 0, c100: Number(a.c100) || 0, f100: Number(a.f100) || 0,
+      unite: uniteProbableParNom(a.nom), sansDonneesNutrition: false, source: 'ta base', dansNotreBase: true };
+  } catch (e) { return null; }
+}
+
 async function chercherProduitOFFParCode(code) {
   code = String(code).trim();
   let trouve = null;
 
-  // 1) OpenFoodFacts en premier : la base la plus complète et la plus à jour.
-  try {
+  // 0) D'abord NOTRE base : un produit qu'on a déjà (renommé, corrigé,
+  //    validé dans Administration) s'affiche sous son nom à nous, jamais
+  //    sous celui d'OpenFoodFacts.
+  trouve = await chercherPartageParCode(code);
+  if (!trouve) { trouve = await chercherBaseParCode(code); if (trouve) trouve.dansNotreBase = true; }
+  if (trouve) retenirNomParCode(code, trouve.name);
+
+  // 1) Sinon OpenFoodFacts : la base publique la plus complète.
+  if (!trouve) try {
     const r = await fetch(`https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(code)}.json`);
     const j = await r.json();
     if (j.status === 1) {
@@ -8683,14 +8706,19 @@ async function chercherProduitOFFParCode(code) {
     }
   } catch (e) { /* réseau indisponible : on continue quand même vers ce qu'on a déjà */ }
 
+  // Trouvé dans OpenFoodFacts mais déjà connu sous un autre nom (renommé
+  // chez nous, hors ligne de la base au moment du scan) : notre nom gagne.
+  if (trouve && trouve.source === 'OpenFoodFacts') {
+    const h = chercherHistoriqueParCode(code);
+    const notreNom = nomsParCode[code] || (h && h.nom);
+    if (notreNom) { trouve.name = notreNom; trouve.marque = ''; }
+  }
+
   // 2) Sinon, ce qu'on a déjà mangé avec ce code-barres (le plus rapide, hors ligne).
   if (!trouve) {
     const h = chercherHistoriqueParCode(code);
     if (h) trouve = { name: h.nom, code, marque: '', kcal100: h.kcal100 || 0, p100: h.p100 || 0, c100: h.c100 || 0, f100: h.f100 || 0, unite: h.unite || 'g', sansDonneesNutrition: false, source: 'ton historique' };
   }
-
-  // 3) Sinon, la base perso synchronisée (utile si scanné depuis un autre appareil).
-  if (!trouve) trouve = await chercherBaseParCode(code);
 
   if (trouve) {
     currentScannedFood = trouve;
@@ -8869,7 +8897,7 @@ function ajouterAlimentBarcode() {
     code: currentScannedFood.code || undefined,
     kcal: currentScannedFood.kcal100 * f, p: currentScannedFood.p100 * f,
     c: currentScannedFood.c100 * f, f: currentScannedFood.f100 * f
-  }, { partager: currentScannedFood.source !== 'ta base perso', source: 'scan' });
+  }, { partager: !currentScannedFood.dansNotreBase, source: 'scan' });
   // Un produit détecté en ml est une boisson : sa quantité compte aussi
   // pour l'hydratation du jour, sans geste en plus. Compte toute boisson
   // (pas seulement l'eau littérale) — soda, jus, lait apportent aussi de
