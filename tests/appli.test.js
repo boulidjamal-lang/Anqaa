@@ -508,22 +508,30 @@ test('les statistiques s\'affichent sur chaque onglet et chaque période', () =>
   assert.deepEqual(r, { semaines: true, allure: true, records: 3 });
 }));
 
-test("barre d'ajout flottante : toujours visible sur Repas du jour, absente ailleurs", () => avecAppli({}, async ({ page }) => {
-  await page.evaluate(() => { allerA('repas'); window.scrollTo(0, document.body.scrollHeight); });
-  await page.waitForTimeout(150);
-  const r = await page.evaluate(() => {
-    const b = document.getElementById('ajout-rapide').getBoundingClientRect();
-    return { pos: getComputedStyle(document.getElementById('ajout-rapide')).position, dansEcran: b.top >= 0 && b.bottom <= innerHeight, boutons: document.querySelectorAll('#ajout-rapide button').length };
+test("barre d'onglets : Repas, Activité, +, Progrès, Profil ; plus de bouton flottant", () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => allerA('repas'));
+  let r = await page.evaluate(() => {
+    const n = document.getElementById('onglets'), b = n.getBoundingClientRect();
+    return { pos: getComputedStyle(n).position, dansEcran: b.top >= 0 && b.bottom <= innerHeight, boutons: n.querySelectorAll('button').length,
+      actif: document.querySelector('#onglets .onglet.actif').id, fab: getComputedStyle(document.getElementById('fab-zone')).display, ajout: getComputedStyle(document.getElementById('ajout-rapide')).display };
   });
-  assert.deepEqual(r, { pos: 'fixed', dansEcran: true, boutons: 4 });
-  // Même hauteur et même ligne que le bouton de navigation, même avec des libellés plus grands.
-  await page.addStyleTag({ content: '#ajout-rapide button { font-size: 0.95rem !important; }' });
-  const h = await page.evaluate(() => { const a = document.getElementById('ajout-rapide').getBoundingClientRect(), f = document.getElementById('fab').getBoundingClientRect(); return [a.height, f.height, a.bottom, f.bottom].map(Math.round); });
-  assert.equal(h[0], h[1]); assert.equal(h[2], h[3]);
-  await page.click('#ajout-rapide button:nth-child(2)');
-  assert.ok(await page.evaluate(() => document.body.classList.contains('couche-ouverte')));
-  await page.evaluate(() => { fermerFeuilles(); allerA('seance'); });
-  assert.equal(await page.isVisible('#ajout-rapide'), false);
+  assert.deepEqual(r, { pos: 'fixed', dansEcran: true, boutons: 5, actif: 'onglet-repas', fab: 'none', ajout: 'none' });
+  // Chaque onglet mène à son écran et devient l'onglet actif.
+  for (const [id, ecran] of [['onglet-seance', 'seance'], ['onglet-profil', 'reglages'], ['onglet-progres', 'stats'], ['onglet-repas', 'repas']]) {
+    await page.click('#' + id);
+    r = await page.evaluate(() => [ecranActif, document.querySelector('#onglets .onglet.actif').id]);
+    assert.deepEqual(r, [ecran, 'onglet-' + (ecran === 'reglages' ? 'profil' : ecran === 'stats' ? 'progres' : ecran)]);
+  }
+  // Progrès montre les quatre catégories ; une carte n'en montre qu'une.
+  await page.click('#onglet-progres');
+  assert.equal(await page.evaluate(() => document.getElementById('stats-onglets-nav').classList.contains('hidden')), false);
+  await page.evaluate(() => ouvrirStats('nutrition'));
+  assert.equal(await page.evaluate(() => document.getElementById('stats-onglets-nav').classList.contains('hidden')), true);
+  // « + » : ajouter au repas du moment ; la barre s'efface derrière la feuille.
+  await page.evaluate(() => allerA('repas'));
+  await page.click('#onglet-plus');
+  r = await page.evaluate(() => ({ feuille: document.getElementById('feuille-repas').classList.contains('show'), cache: document.body.classList.contains('couche-ouverte'), titre: document.getElementById('feuille-repas-titre').textContent }));
+  assert.equal(r.feuille, true); assert.equal(r.cache, true); assert.match(r.titre, /^Ajouter à : /);
 }));
 
 test('Repas du jour : toucher une macro ouvre sa courbe face à son objectif', () => avecAppli({}, async ({ page }) => {
@@ -625,9 +633,10 @@ test('cartes de stats : poids et nutrition sur Repas du jour, cardio et muscu da
   const repas = await page.evaluate(() => [...document.querySelectorAll('#cartes-stats-repas .carte-stats')].map(c => c.id));
   assert.deepEqual(repas, ['carte-stats-poids', 'carte-stats-nutrition']);
   assert.match(await page.textContent('#carte-stats-poids .carte-stats-valeur'), /79,9\s*kg/);
-  // Version compacte : une ligne, le détail (composition, etc.) est dans la fenêtre.
-  const hauteurs = await page.evaluate(() => ['#carte-stats-poids', '#carte-stats-nutrition'].map(c => document.querySelector(c).getBoundingClientRect().height));
-  assert.ok(hauteurs.every(h => h <= 80), 'cartes trop hautes : ' + hauteurs);
+  // Deux tuiles côte à côte (icône, valeur, tendance, graphique) ; le détail est dans la fenêtre.
+  const tuiles = await page.evaluate(() => ['#carte-stats-poids', '#carte-stats-nutrition'].map(c => { const b = document.querySelector(c).getBoundingClientRect(); return [Math.round(b.top), Math.round(b.width), !!document.querySelector(c + ' .tuile-graph')]; }));
+  assert.equal(tuiles[0][0], tuiles[1][0], 'tuiles sur la même ligne');
+  assert.ok(tuiles.every(([, w, g]) => w < 200 && g), JSON.stringify(tuiles));
   assert.equal(await page.$('#cartes-stats-repas .carte-stats-cases'), null);
 
   // Poids : la carte ouvre le détail, 4 petits graphiques de composition, pas de bilan IA.
@@ -1007,11 +1016,11 @@ test("Repas du jour allégé : idées dans « Recette », pas dans Activité, bi
     vides: document.querySelectorAll('#meals-container .meal-card--vide').length,
     listesVides: document.querySelectorAll('#meals-container .meal-card--vide .food-list').length,
     macrosAliment: getComputedStyle(document.querySelector('#ecran-repas .food-macros')).display,
-    pct: getComputedStyle(document.getElementById('pct-p')).display
+    pct: !!document.getElementById('pct-p')
   }));
-  assert.deepEqual(r, { idees: false, ideesDansRecette: true, pasDansActivite: true, bilanDansNutrition: true, bilanDansRepas: false, vides: 3, listesVides: 0, macrosAliment: 'none', pct: 'none' });
-  // Eau sur une ligne : boutons à droite du titre.
-  const eau = await page.evaluate(() => { const t = document.querySelector('#bloc-eau h3').getBoundingClientRect(), b = document.querySelector('#bloc-eau .eau-boutons').getBoundingClientRect(); return b.left > t.right - 1 && Math.abs(b.top - t.top) < 30; });
+  assert.deepEqual(r, { idees: false, ideesDansRecette: true, pasDansActivite: true, bilanDansNutrition: true, bilanDansRepas: false, vides: 3, listesVides: 0, macrosAliment: 'none', pct: false });
+  // Eau : la gourde à gauche, quantité et boutons à droite.
+  const eau = await page.evaluate(() => { const g = document.querySelector('#bloc-eau .gourde').getBoundingClientRect(), b = document.querySelector('#bloc-eau .eau-boutons').getBoundingClientRect(); return b.left > g.right - 1 && b.top < g.bottom; });
   assert.ok(eau);
   // Toucher un aliment ouvre sa fenêtre (poids et macros).
   await page.click('#ecran-repas .food-info');
@@ -1135,6 +1144,37 @@ test("Administration : les doublons d'aliments sont fusionnés au lieu d'appara�
   assert.deepEqual(r.restants, ['A:123', 'C:555', 'F:777', 'H', 'I:42']);
   assert.deepEqual(r.majs, [['B,D,E,G,J', 'supprime,supprime_par,supprime_le'], ['I', 'code_barre']]);
   assert.match(r.parQui, /^fusion/);
+}));
+
+test('Repas du jour refait : anneaux, semaine, série de jours, coach', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const t = todayStr();
+    [-2, -1, 0].forEach(k => { const d = shiftDate(t, k); getDay(d).meals[MEALS[0]].push({ name: 'Skyr', grams: 150, kcal: 600, p: 20, c: 60, f: 10 }); saveData(d); });
+    allerA('repas'); renderApp();
+    const cible = computeTargets(getDay(t), t).target;
+    const a = document.getElementById('anneau-kcal'), tour = 2 * Math.PI * 72;
+    const part = 1 - parseFloat(a.style.strokeDashoffset) / tour;
+    const res = { part: Math.round(part * 100), attendu: Math.round(600 / cible * 100), trop: a.getAttribute('stroke'),
+      jours: document.querySelectorAll('#semaine-jours .semaine-jour').length, actif: document.querySelector('#semaine-jours .semaine-jour.actif b').textContent,
+      serie: document.getElementById('serie-jours').textContent.trim(), coach: document.getElementById('coach-jour').textContent };
+    // Dépassement : l'anneau passe à l'orange-rouge.
+    getDay(t).meals[MEALS[1]].push({ name: 'Pizza', grams: 600, kcal: cible, p: 60, c: 200, f: 80 }); saveData(t); renderApp();
+    res.tropApres = a.getAttribute('stroke'); res.libelle = document.getElementById('reste-libelle').textContent;
+    return res;
+  });
+  assert.equal(r.part, r.attendu);
+  assert.equal(r.trop, 'url(#grad-kcal)');
+  assert.equal(r.jours, 7);
+  assert.equal(r.actif, String(new Date().getDate()));
+  assert.equal(r.serie, '3');
+  assert.match(r.coach, /Coach du jour/);
+  assert.equal(r.tropApres, 'url(#grad-kcal-trop)');
+  assert.equal(r.libelle, 'Dépassement');
+  // Toucher hier dans la semaine affiche hier (sauf lundi : hier est dans la semaine d'avant).
+  if (new Date().getDay() !== 1) {
+    const hier = await page.evaluate(() => { const b = document.querySelector('#semaine-jours .semaine-jour.actif').previousElementSibling; b.click(); return [currentDate, shiftDate(todayStr(), -1)]; });
+    assert.equal(hier[0], hier[1]);
+  }
 }));
 
 test('styles visuels : choix dans Réglages, gardé au redémarrage, chaque style sur chaque écran', () => avecAppli({}, async ({ page }) => {

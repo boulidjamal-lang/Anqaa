@@ -57,6 +57,7 @@
 
   <!-- Importation d'une police haut de gamme (Outfit) -->
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet">
   <!-- Cinzel : réservée à la marque (nom "Anqā" dans la barre du haut et
        l'écran de démarrage) — gravée/impériale, très différente d'Outfit qui
        reste la police de tout le reste de l'appli. -->
@@ -2678,6 +2679,217 @@
     }
 
     /* =====================================================================
+       REFONTE 2026 — composants de Repas du jour et barre d'onglets.
+       Les composants s'appuient sur les jetons de couleur (--text, --primary,
+       --protein…) : ils suivent aussi les styles au choix. L'habillage
+       « verre, aurore, polices » est plus bas, réservé au style Anqā.
+       ===================================================================== */
+    :root[data-theme="light"] { --carte-plein: #ffffff; --piste: rgba(13,16,32,.07); --trait: rgba(13,16,32,.07); }
+    :root[data-theme="dark"]  { --carte-plein: #161924; --piste: rgba(255,255,255,.08); --trait: rgba(255,255,255,.07); }
+    .defs-degrades { position: absolute; width: 0; height: 0; overflow: hidden; }
+    .fab-zone, .scrim, #ajout-rapide, body.sur-repas .ajout-rapide, .date-nav { display: none !important; }
+    .titre-chiffre, .anneaux-centre h1, .reste-kcal, .heros-puces b, .carte-stats-valeur b, .eau-texte, .meal-kcals { font-variant-numeric: tabular-nums; }
+
+    /* En-tête : logo, salutation, série, photo */
+    .app-bar h2 { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .app-bar .marque-anqa { display: none; }
+    .salut { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+    .salut small { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); text-transform: capitalize; letter-spacing: .01em; }
+    .salut b { font-size: 1.32rem; font-weight: 800; letter-spacing: -0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .app-bar-inner { display: flex; align-items: center; gap: 8px; }
+    .app-bar-inner > h2 { flex: 1; }
+    .moi-entete-nom { display: none !important; }
+    /* Pas encore de photo (déconnecté, ou avant le chargement du profil) : une silhouette. */
+    .moi-halo:empty { width: 36px; height: 36px; background: var(--piste) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a90aa' stroke-width='2' stroke-linecap='round'><circle cx='12' cy='8' r='4.5'/><path d='M20 21a8 8 0 0 0-16 0'/></svg>") center / 20px no-repeat; }
+    html:root:not([data-style]) #ecran-repas > .titre-ecran { display: none; }
+    .serie-jours { display: inline-flex; align-items: center; gap: 3px; padding: 6px 10px; border-radius: 99px; font-weight: 800; font-size: 0.8rem;
+      color: #f97316; background: linear-gradient(135deg, rgba(251,146,60,.18), rgba(244,63,94,.14)); flex: none; }
+    .serie-jours .icone-ui { width: 14px; height: 14px; }
+
+    /* Semaine */
+    .semaine-nav { display: none; margin: 4px 0 14px; }
+    body.sur-repas .semaine-nav { display: block; }
+    .semaine-tete { display: flex; justify-content: space-between; align-items: center; padding: 0 4px 6px; font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: capitalize; }
+    .semaine-tete button { border: 0; background: var(--piste); color: var(--primary); font: inherit; font-weight: 800; padding: 4px 10px; border-radius: 99px; cursor: pointer; text-transform: none; }
+    .semaine-jours { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; touch-action: pan-y; }
+    .semaine-jour { display: grid; justify-items: center; gap: 4px; padding: 7px 0 9px; border: 0; border-radius: 18px; background: transparent; cursor: pointer;
+      font-family: inherit; font-size: 0.66rem; font-weight: 700; color: var(--text-muted); transition: background .2s, transform .15s; }
+    .semaine-jour:active { transform: scale(.94); }
+    .semaine-jour:disabled { opacity: .45; cursor: default; }
+    .semaine-num { position: relative; display: grid; place-items: center; width: 34px; height: 34px; }
+    .semaine-num svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+    .semaine-num b { position: relative; font-size: 0.82rem; font-weight: 800; color: var(--text); }
+    .semaine-jour.actif { background: var(--text); color: var(--bg); box-shadow: 0 10px 22px -10px rgba(0,0,0,.5); }
+    .semaine-jour.actif .semaine-num b { color: var(--bg); }
+    .semaine-jour.actif .anneau-piste { stroke: rgba(127,127,127,.35); }
+    .anneau-piste { fill: none; stroke: var(--piste); }
+    .anneau-val { fill: none; stroke-linecap: round; transition: stroke-dashoffset 1.1s cubic-bezier(.3,.9,.2,1); }
+
+    /* Résumé : anneaux */
+    #ecran-repas .summary-card { display: block !important; text-align: left; padding: 18px !important; }
+    .heros { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: center; }
+    .anneaux { position: relative; width: 150px; height: 150px; }
+    .anneaux svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+    .anneaux .anneau-val { filter: drop-shadow(0 0 5px rgba(34,211,238,.35)); }
+    .anneaux-centre { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; pointer-events: none; }
+    #ecran-repas .anneaux-centre h1 { margin: 0; font-size: 1.32rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1; color: var(--text); }
+    .anneaux-centre small { font-size: 0.56rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+    .heros-droite .libelle { display: block; font-size: 0.68rem !important; font-weight: 800; letter-spacing: .07em !important; text-transform: uppercase; color: var(--text-muted); }
+    #ecran-repas .reste-kcal { margin: 2px 0 0 !important; font-size: 1.75rem !important; font-weight: 800; letter-spacing: -0.04em; line-height: 1.05; color: var(--text); text-align: left !important; }
+    .reste-kcal em { font-style: normal; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-left: 4px; letter-spacing: 0; }
+    .reste-kcal.depasse { color: var(--danger) !important; }
+    #ecran-repas .heros-droite .macros-bar { display: grid !important; gap: 4px !important; margin-top: 10px; padding: 0 !important; background: none !important; box-shadow: none !important; }
+    #ecran-repas .heros-droite .macro-item { display: flex; flex-direction: row; align-items: center; gap: 8px; padding: 4px 6px !important; margin: 0 -6px; border: 0 !important; border-radius: 10px; text-align: left; }
+    .macro-point { width: 9px; height: 9px; border-radius: 3px; flex: none; box-shadow: 0 0 8px currentColor; }
+    #ecran-repas .heros-droite .macro-lbl { margin: 0; font-size: 0.78rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--text); }
+    #ecran-repas .heros-droite .macro-val { margin-left: auto; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
+    .macro-val b { color: var(--text); font-weight: 800; }
+    .heros-puces { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--trait); }
+    .heros-puces div { font-size: 0.64rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+    .heros-puces b { display: block; margin-top: 2px; font-size: 1.02rem; letter-spacing: -0.02em; text-transform: none; color: var(--text); }
+
+    /* Coach du jour */
+    .coach-carte { position: relative; display: flex; gap: 12px; align-items: flex-start; padding: 15px 16px; margin-bottom: 12px; border-radius: 24px; overflow: hidden; isolation: isolate;
+      background: var(--carte-plein); box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+    .coach-carte:empty { display: none; }
+    .coach-carte::before { content: ''; position: absolute; inset: -60%; z-index: -2; background: conic-gradient(from 0deg, transparent 0 68%, #34d399, #22d3ee, #a78bfa, transparent); animation: coach-tour 7s linear infinite; opacity: .55; }
+    .coach-carte::after { content: ''; position: absolute; inset: 1.5px; z-index: -1; border-radius: 22.5px; background: var(--carte-plein); }
+    @keyframes coach-tour { to { transform: rotate(360deg); } }
+    .coach-icone { width: 38px; height: 38px; flex: none; border-radius: 12px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #a78bfa, #22d3ee); box-shadow: 0 8px 18px -6px rgba(167,139,250,.7); }
+    .coach-icone .icone-ui { width: 20px; height: 20px; }
+    .coach-carte small { display: block; font-size: 0.64rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; background: linear-gradient(90deg, #8b5cf6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .coach-carte p { margin: 3px 0 0; font-size: 0.86rem; line-height: 1.42; }
+
+    /* Tuiles Poids / Nutrition */
+    #cartes-stats-repas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    #ecran-repas .carte-stats--tuile { margin: 0 !important; padding: 14px 15px 0 !important; overflow: hidden; display: flex; flex-direction: column; min-height: 156px; }
+    .tuile-tete { display: flex; align-items: center; gap: 8px; }
+    .tuile-icone { width: 30px; height: 30px; flex: none; border-radius: 10px; display: grid; place-items: center; color: #fff; }
+    .tuile-icone .icone-ui { width: 16px; height: 16px; }
+    .tuile-icone--poids { background: linear-gradient(135deg, #38bdf8, #6366f1); }
+    .tuile-icone--nutrition { background: linear-gradient(135deg, #34d399, #10b981); }
+    .carte-stats--tuile .carte-stats-titre { font-size: 0.72rem !important; font-weight: 700; letter-spacing: 0 !important; text-transform: none !important; color: var(--text-muted); }
+    .carte-stats--tuile .carte-stats-valeur { margin-top: 12px !important; }
+    .carte-stats--tuile .carte-stats-valeur b { font-size: 1.5rem !important; font-weight: 800; letter-spacing: -0.04em; }
+    .carte-stats--tuile .carte-stats-valeur span { font-size: 0.72rem !important; }
+    .carte-stats--tuile .carte-stats-ligne { align-self: flex-start; margin-top: 6px !important; padding: 3px 8px; border-radius: 99px; font-size: 0.64rem !important; font-weight: 800; background: color-mix(in srgb, var(--primary) 14%, transparent); }
+    #carte-stats-poids .carte-stats-ligne { color: #0ea5e9; background: rgba(56,189,248,.14); }
+    .tuile-graph { display: block; width: calc(100% + 30px) !important; height: 46px !important; margin: auto -15px 0; color: var(--text-muted); }
+
+    /* Eau : la gourde */
+    #ecran-repas #bloc-eau { display: flex !important; align-items: center; gap: 14px; }
+    .gourde { position: relative; width: 56px; height: 72px; flex: none; border-radius: 16px 16px 20px 20px; overflow: hidden; background: rgba(56,189,248,.10); box-shadow: inset 0 0 0 1.5px rgba(56,189,248,.35); }
+    .gourde svg { position: absolute; left: 0; width: 200%; height: 100%; top: 94%; transition: top 1s cubic-bezier(.3,.9,.2,1); animation: vague 3.4s linear infinite; }
+    @keyframes vague { to { transform: translateX(-50%); } }
+    .eau-corps { flex: 1; min-width: 0; }
+    #bloc-eau h3 { margin: 0 !important; font-size: 0.68rem !important; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--text-muted); }
+    .eau-texte { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.035em; margin-top: 2px; }
+    .eau-texte em { font-style: normal; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0; }
+    #bloc-eau.atteint .eau-texte { color: var(--primary); }
+    #ecran-repas .eau-boutons { display: flex; gap: 6px; margin-top: 8px !important; }
+    #ecran-repas .eau-boutons .btn-icone { height: 32px !important; min-width: 0 !important; padding: 0 10px !important; border-radius: 99px !important; font-size: 0.72rem !important; font-weight: 800;
+      color: #0284c7 !important; background: rgba(56,189,248,.14) !important; box-shadow: none !important; flex: none !important; width: auto !important; }
+    :root[data-theme="dark"] #ecran-repas .eau-boutons .btn-icone { color: #7dd3fc !important; }
+
+    /* Repas */
+    #ecran-repas .meal-card { padding: 16px !important; }
+    #ecran-repas .meal-header { display: flex; align-items: center; gap: 12px; border: 0 !important; padding: 0 !important; margin: 0 !important; }
+    .repas-icone { width: 42px; height: 42px; flex: none; border-radius: 14px; display: grid; place-items: center; color: #fff; box-shadow: 0 10px 18px -10px rgba(0,0,0,.5); }
+    .repas-icone .icone-ui { width: 21px; height: 21px; }
+    .repas-icone--breakfast { background: linear-gradient(135deg, #fbbf24, #fb923c); }
+    .repas-icone--lunch { background: linear-gradient(135deg, #34d399, #10b981); }
+    .repas-icone--snack { background: linear-gradient(135deg, #fb7185, #f43f5e); }
+    .repas-icone--dinner { background: linear-gradient(135deg, #a78bfa, #6366f1); }
+    #ecran-repas .meal-title { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 1rem !important; font-weight: 800; letter-spacing: -0.02em; }
+    #ecran-repas .meal-title small { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); letter-spacing: 0; }
+    #ecran-repas .meal-kcals { padding: 0 !important; background: none !important; color: var(--text) !important; font-size: 1rem !important; font-weight: 800; letter-spacing: -0.02em; }
+    .meal-kcals small { font-size: 0.66rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0; }
+    .repas-ajouter { width: 34px; height: 34px; flex: none; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+      background: var(--piste); color: var(--text); font: 600 1.2rem/1 inherit; }
+    .repas-equilibre { display: flex; gap: 2px; height: 5px; margin: 12px 0 2px; border-radius: 99px; overflow: hidden; }
+    .repas-equilibre i { display: block; border-radius: 99px; }
+    #ecran-repas .food-item { padding: 10px 0 0 !important; margin-top: 10px; border-top: 1px solid var(--trait) !important; border-bottom: 0 !important; }
+    .food-initiale { width: 30px; height: 30px; flex: none; border-radius: 10px; display: grid; place-items: center; font-weight: 800; font-size: 0.78rem; background: var(--piste); color: var(--text-muted); }
+    #ecran-repas .food-item-ligne { gap: 10px; }
+    #ecran-repas .food-info { flex: 1; min-width: 0; }
+    #ecran-repas .meal-card--vide { display: flex; align-items: center; gap: 12px; padding: 12px 16px !important; cursor: pointer; background: transparent !important; box-shadow: none !important;
+      border: 1.5px dashed var(--trait) !important; border-radius: 22px !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    #ecran-repas .meal-card--vide .repas-icone { width: 36px; height: 36px; border-radius: 12px; }
+    #ecran-repas .meal-card--vide .meal-title { font-size: 0.9rem !important; font-weight: 700; color: var(--text-muted); }
+    .repas-plus { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--piste); color: var(--text); font-size: 1.15rem; font-weight: 600; }
+
+    /* Barre d'onglets */
+    .onglets { position: fixed; left: max(14px, calc(50% - 266px)); right: max(14px, calc(50% - 266px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 80;
+      height: 68px; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; padding: 0 4px; border-radius: 26px;
+      background: color-mix(in srgb, var(--carte-plein) 74%, transparent); -webkit-backdrop-filter: blur(22px) saturate(1.8); backdrop-filter: blur(22px) saturate(1.8);
+      box-shadow: 0 18px 44px -12px rgba(0,0,0,.35), inset 0 0 0 1px var(--trait); transition: opacity .25s, transform .25s; }
+    body.couche-ouverte .onglets { opacity: 0; pointer-events: none; transform: translateY(16px); }
+    .onglet { position: relative; display: grid; justify-items: center; gap: 3px; margin: 0 3px; padding: 7px 0; border: 0; border-radius: 18px; background: none; cursor: pointer;
+      color: var(--text-muted); font-family: inherit; font-size: 0.6rem; font-weight: 700; -webkit-tap-highlight-color: transparent; transition: color .2s, background .2s; }
+    .onglet .icone-ui { width: 22px; height: 22px; }
+    .onglet.actif { color: var(--text); background: var(--piste); }
+    .onglet.actif .icone-ui { stroke: url(#grad-onglet); }
+    .onglet .pastille-gymbro { top: 2px; right: 18%; }
+    .onglet-plus { position: relative; width: 54px; height: 54px; margin: auto; border: 0; border-radius: 19px; display: grid; place-items: center; cursor: pointer; color: #fff; isolation: isolate;
+      background: linear-gradient(135deg, #34d399, #06b6d4); box-shadow: 0 12px 26px -8px rgba(6,182,212,.7), inset 0 1px 0 rgba(255,255,255,.4); transition: transform .15s; }
+    .onglet-plus:active { transform: scale(.92); }
+    .onglet-plus::before { content: ''; position: absolute; inset: -4px; z-index: -1; border-radius: 23px; background: conic-gradient(from 0deg, #34d399, #22d3ee, #a78bfa, #34d399); filter: blur(8px); opacity: .55; animation: coach-tour 6s linear infinite; }
+    .onglet-plus .icone-ui { width: 26px; height: 26px; stroke-width: 2.6; }
+    .profil-entete-boutons { display: flex; gap: 8px; align-items: center; }
+    #nav-admin { width: auto; padding: 0 12px; font-weight: 800; font-size: 0.74rem; }
+
+    /* =====================================================================
+       HABILLAGE ANQĀ (style par défaut) : polices, fond « aurore », cartes
+       en verre dépoli, boutons et champs modernes. Les styles au choix
+       (html[data-style]) gardent le leur.
+       ===================================================================== */
+    html:root:not([data-style])[data-theme="light"] { --bg: #f3f4f8; --verre: rgba(255,255,255,.72); --verre-fort: rgba(255,255,255,.9); --verre-creux: rgba(13,16,32,.045); --barre: rgba(243,244,248,.86);
+      --ombre: 0 1px 1px rgba(16,24,40,.03), 0 4px 10px rgba(16,24,40,.04), 0 18px 40px -14px rgba(16,24,40,.14); --ombre-haute: 0 24px 50px -16px rgba(16,24,40,.24); }
+    html:root:not([data-style])[data-theme="dark"] { --bg: #07080d; --verre: rgba(22,25,36,.66); --verre-fort: rgba(30,34,48,.8); --verre-creux: rgba(255,255,255,.055); --barre: rgba(7,8,13,.82);
+      --ombre: inset 0 1px 0 rgba(255,255,255,.05), 0 20px 50px -22px rgba(0,0,0,.85); --ombre-haute: 0 26px 60px -18px rgba(0,0,0,.9); }
+    html:root:not([data-style]) body { font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif; background: var(--bg); -webkit-font-smoothing: antialiased; }
+    html:root:not([data-style]) body::before { content: ''; display: block !important; position: fixed; inset: -20%; z-index: 0; pointer-events: none; filter: blur(60px); opacity: .5;
+      background: radial-gradient(28% 22% at 18% 10%, #34d399, transparent 70%), radial-gradient(26% 20% at 88% 16%, #22d3ee, transparent 70%), radial-gradient(30% 24% at 72% 72%, #a78bfa, transparent 70%);
+      animation: aurore 20s ease-in-out infinite alternate; }
+    html:root:not([data-style])[data-theme="dark"] body::before { opacity: .32; }
+    @keyframes aurore { 50% { transform: translate(4%, -3%) rotate(8deg) scale(1.05); } 100% { transform: translate(-3%, 4%) rotate(-6deg); } }
+    html:root:not([data-style]) .app-bar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+    html:root:not([data-style]) :is(.titre-ecran, .titre-section, .salut b, .anneaux-centre h1, .reste-kcal, .heros-puces b, .carte-stats-valeur b, .eau-texte, .meal-title, .meal-kcals, .cle-val, .feuille-titre, .modal-entete h3, .semaine-num b) {
+      font-family: 'Manrope', 'Inter', sans-serif; }
+    html:root:not([data-style]) .titre-ecran { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.03em; }
+    html:root:not([data-style]) .titre-section { font-size: 0.72rem; letter-spacing: .08em; }
+    html:root:not([data-style]) :is(.summary-card, .fitness-card, .analysis-card, .meal-card, .bloc-verre, .carte-stats, .cle) {
+      background: var(--verre) !important; -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
+      border: 0 !important; border-radius: 26px !important; box-shadow: var(--ombre), inset 0 0 0 1px var(--trait), inset 0 1px 0 rgba(255,255,255,.55) !important; }
+    html:root:not([data-style])[data-theme="dark"] :is(.summary-card, .fitness-card, .analysis-card, .meal-card, .bloc-verre, .carte-stats, .cle) {
+      box-shadow: var(--ombre), inset 0 0 0 1px var(--trait), inset 0 1px 0 rgba(255,255,255,.06) !important; }
+    html:root:not([data-style]) .cle { border-radius: 20px !important; }
+    html:root:not([data-style]) :is(.modal-content, .feuille-contenu) { border-radius: 28px 28px 0 0; background: var(--carte-plein); box-shadow: 0 -20px 60px -20px rgba(0,0,0,.4); }
+    html:root:not([data-style]) .modal-content { border-radius: 28px; }
+    html:root:not([data-style]) .btn { border-radius: 16px; font-weight: 800; letter-spacing: -0.01em; }
+    html:root:not([data-style]) .btn-primary { background: linear-gradient(135deg, #10b981, #06b6d4); color: #fff; box-shadow: 0 12px 26px -12px rgba(6,182,212,.75); border: 0; }
+    html:root:not([data-style]) .btn-secondaire { background: var(--piste); box-shadow: none; }
+    html:root:not([data-style]) .btn-icone { border-radius: 14px; background: var(--piste); }
+    html:root:not([data-style]) .segment { background: var(--piste); border-radius: 16px; box-shadow: none; }
+    html:root:not([data-style]) .segment button { border-radius: 12px; }
+    html:root:not([data-style]) .segment button[aria-pressed="true"] { background: var(--carte-plein); color: var(--text); box-shadow: 0 4px 12px -4px rgba(0,0,0,.25); }
+    html:root:not([data-style]) :is(.input-group input, .input-group select, .input-group textarea, #modal-cardio input) { background: var(--piste); border: 1px solid transparent; border-radius: 14px; box-shadow: none; }
+    html:root:not([data-style]) :is(.input-group input, .input-group select, .input-group textarea):focus { border-color: var(--primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent); }
+    html:root:not([data-style]) .feuille-action { border-radius: 18px; }
+    html:root:not([data-style]) .cle-val { font-family: 'Manrope', sans-serif; letter-spacing: -0.03em; }
+    /* Apparition douce des blocs de Repas du jour */
+    html:root:not([data-style]) body.sur-repas #ecran-repas > :is(.summary-card, .coach-carte, #cartes-stats-repas, #bloc-eau, #meals-container) { animation: monte .6s cubic-bezier(.2,.8,.2,1) both; }
+    html:root:not([data-style]) #ecran-repas > .coach-carte { animation-delay: .06s !important; }
+    html:root:not([data-style]) #ecran-repas > #cartes-stats-repas { animation-delay: .12s !important; }
+    html:root:not([data-style]) #ecran-repas > #bloc-eau { animation-delay: .18s !important; }
+    html:root:not([data-style]) #ecran-repas > #meals-container { animation-delay: .24s !important; }
+    @keyframes monte { from { opacity: 0; transform: translateY(14px) scale(.985); } }
+    @media (prefers-reduced-motion: reduce) {
+      html:root:not([data-style]) body::before, .coach-carte::before, .onglet-plus::before, .gourde svg { animation: none !important; }
+      html:root:not([data-style]) body.sur-repas #ecran-repas > * { animation: none !important; }
+    }
+
+    /* =====================================================================
        STYLES VISUELS (Réglages › Apparence › Style) : huit habillages complets
        de l'appli, choisis par l'utilisateur. Chacun ne s'applique que sous
        html:root[data-style="…"] (posé au démarrage, voir le script de thème) et
@@ -3243,6 +3455,17 @@
   </style>
 </head>
 <body>
+<svg class="defs-degrades" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="grad-kcal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+    <linearGradient id="grad-kcal-trop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#ef4444"/></linearGradient>
+    <linearGradient id="grad-p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fda4af"/><stop offset="1" stop-color="#f43f5e"/></linearGradient>
+    <linearGradient id="grad-c" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
+    <linearGradient id="grad-f" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset="1" stop-color="#7c3aed"/></linearGradient>
+    <linearGradient id="grad-eau" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#0284c7"/></linearGradient>
+    <linearGradient id="grad-onglet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+  </defs>
+</svg>
 
 <!-- Écran de démarrage : l'aigle, puis le nom « Anqā » en calligraphie. -->
 <div id="splash-screen">
@@ -3401,8 +3624,9 @@
 
 <header class="app-bar">
   <div class="app-bar-inner">
-    <h2 style="cursor: pointer; user-select: none;" onclick="allerA('repas')" title="Aller aux Repas du jour"><span class="logo-anqa" aria-hidden="true" style="--logo-anqa-img:url(data:image/png;base64,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)"></span><span class="marque-anqa">Anqā</span></h2>
+    <h2 style="cursor: pointer; user-select: none;" onclick="allerA('repas')" title="Aller aux Repas du jour"><span class="logo-anqa" aria-hidden="true" style="--logo-anqa-img:url(data:image/png;base64,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)"></span><span class="marque-anqa">Anqā</span><span class="salut"><small id="salut-date"></small><b id="salut-nom">Bonjour</b></span></h2>
     <!-- Ma photo et mon nom d'utilisateur, à droite : ouvrent le profil. -->
+    <span class="serie-jours hidden" id="serie-jours" title="Jours d'affilée avec au moins un repas noté"></span>
     <button type="button" class="moi-entete" id="moi-entete" onclick="allerA('reglages')" aria-label="Mon profil">
       <span class="moi-entete-nom" id="moi-entete-nom">Mon profil</span><span id="moi-entete-avatar" class="moi-halo"></span>
     </button>
@@ -3419,6 +3643,13 @@
 
 <main class="container">
 
+  <!-- La semaine du jour affiché : un mini-anneau par jour (calories du jour
+       face à l'objectif). Toucher un jour l'affiche ; glisser change de
+       semaine. Voir renderSemaine. -->
+  <div class="semaine-nav" id="semaine-nav">
+    <div class="semaine-tete"><span id="semaine-mois"></span><button type="button" class="hidden" id="semaine-aujourdhui" onclick="revenirAujourdhui()">Aujourd'hui</button></div>
+    <div class="semaine-jours" id="semaine-jours"></div>
+  </div>
   <div class="date-nav">
     <button onclick="changerDate(-1)" aria-label="Jour précédent"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></button>
     <div class="date-centre">
@@ -3432,49 +3663,63 @@
   <section id="ecran-repas" class="ecran actif" role="region" aria-label="Repas">
     <h2 class="titre-ecran"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg></span> Repas du jour</h2>
     <div id="premiers-pas"></div>
+    <!-- Résumé du jour : anneaux concentriques (calories dehors, puis
+         protéines, glucides, lipides), ce qu'il reste et les macros. Toucher
+         une macro ouvre sa courbe ; le reste de la carte, la dépense. -->
     <div class="summary-card" role="button" tabindex="0" onclick="ouvrirDepense()" onkeydown="if(event.key==='Enter')ouvrirDepense()" style="cursor:pointer;" aria-label="Calories du jour — toucher pour voir la dépense estimée et ta nutrition">
-      <span class="libelle">Calories consommées</span>
-      <h1 id="total-kcals">0</h1>
-      <div class="target-kcal" id="target-kcals-display">Objectif : 0 kcal</div>
-      <div class="reste-kcal" id="reste-kcals">—</div>
-      <div class="jauge"><i id="jauge-kcal"></i></div>
-      <div class="macros-bar">
-        <div class="macro-item" role="button" tabindex="0" aria-label="Protéines : voir la courbe et l'objectif" onclick="event.stopPropagation(); ouvrirMacro('p')" onkeydown="if(event.key==='Enter'){event.stopPropagation(); ouvrirMacro('p');}">
-          <div class="macro-val" id="total-p">0 / 0g</div>
-          <div class="macro-lbl">Protéines</div>
-          <div class="macro-jauge" id="piste-p"><i id="jauge-p" style="background:var(--protein)"></i></div>
-          <div class="macro-pct" id="pct-p">0 %</div>
+      <div class="heros">
+        <div class="anneaux" aria-hidden="true">
+          <svg viewBox="0 0 158 158">
+            <circle class="anneau-piste" cx="79" cy="79" r="72" stroke-width="12"/><circle class="anneau-val" id="anneau-kcal" cx="79" cy="79" r="72" stroke-width="12" stroke="url(#grad-kcal)"/>
+            <circle class="anneau-piste" cx="79" cy="79" r="58" stroke-width="8"/><circle class="anneau-val" id="anneau-p" cx="79" cy="79" r="58" stroke-width="8" stroke="url(#grad-p)"/>
+            <circle class="anneau-piste" cx="79" cy="79" r="47" stroke-width="8"/><circle class="anneau-val" id="anneau-c" cx="79" cy="79" r="47" stroke-width="8" stroke="url(#grad-c)"/>
+            <circle class="anneau-piste" cx="79" cy="79" r="36" stroke-width="8"/><circle class="anneau-val" id="anneau-f" cx="79" cy="79" r="36" stroke-width="8" stroke="url(#grad-f)"/>
+          </svg>
+          <div class="anneaux-centre"><div><h1 id="total-kcals">0</h1><small>kcal</small></div></div>
         </div>
-        <div class="macro-item" role="button" tabindex="0" aria-label="Glucides : voir la courbe et l'objectif" onclick="event.stopPropagation(); ouvrirMacro('c')" onkeydown="if(event.key==='Enter'){event.stopPropagation(); ouvrirMacro('c');}">
-          <div class="macro-val" id="total-c">0 / 0g</div>
-          <div class="macro-lbl">Glucides</div>
-          <div class="macro-jauge" id="piste-c"><i id="jauge-c" style="background:var(--carbs)"></i></div>
-          <div class="macro-pct" id="pct-c">0 %</div>
-        </div>
-        <div class="macro-item" role="button" tabindex="0" aria-label="Lipides : voir la courbe et l'objectif" onclick="event.stopPropagation(); ouvrirMacro('f')" onkeydown="if(event.key==='Enter'){event.stopPropagation(); ouvrirMacro('f');}">
-          <div class="macro-val" id="total-f">0 / 0g</div>
-          <div class="macro-lbl">Lipides</div>
-          <div class="macro-jauge" id="piste-f"><i id="jauge-f" style="background:var(--fat)"></i></div>
-          <div class="macro-pct" id="pct-f">0 %</div>
+        <div class="heros-droite">
+          <span class="libelle" id="reste-libelle">Il te reste</span>
+          <div class="reste-kcal" id="reste-kcals">—</div>
+          <div class="macros-bar">
+          <div class="macro-item" role="button" tabindex="0" aria-label="Protéines : voir la courbe et l'objectif" onclick="event.stopPropagation(); ouvrirMacro('p')" onkeydown="if(event.key==='Enter'){event.stopPropagation(); ouvrirMacro('p');}">
+            <i class="macro-point" style="background:var(--protein);color:var(--protein)"></i><span class="macro-lbl">Protéines</span><span class="macro-val" id="total-p">0 / 0 g</span>
+          </div>
+          <div class="macro-item" role="button" tabindex="0" aria-label="Glucides : voir la courbe et l'objectif" onclick="event.stopPropagation(); ouvrirMacro('c')" onkeydown="if(event.key==='Enter'){event.stopPropagation(); ouvrirMacro('c');}">
+            <i class="macro-point" style="background:var(--carbs);color:var(--carbs)"></i><span class="macro-lbl">Glucides</span><span class="macro-val" id="total-c">0 / 0 g</span>
+          </div>
+          <div class="macro-item" role="button" tabindex="0" aria-label="Lipides : voir la courbe et l'objectif" onclick="event.stopPropagation(); ouvrirMacro('f')" onkeydown="if(event.key==='Enter'){event.stopPropagation(); ouvrirMacro('f');}">
+            <i class="macro-point" style="background:var(--fat);color:var(--fat)"></i><span class="macro-lbl">Lipides</span><span class="macro-val" id="total-f">0 / 0 g</span>
+          </div>
+          </div>
         </div>
       </div>
+      <div class="heros-puces">
+        <div>Objectif<b id="target-kcals-display">0</b></div>
+        <div>Dépense<b id="heros-depense">0</b></div>
+        <div>Pas<b id="heros-pas">0</b></div>
+      </div>
     </div>
+
+    <!-- Coach du jour : un conseil calculé sur place (sans IA), voir majCoach. -->
+    <div class="coach-carte" id="coach-jour"></div>
 
     <!-- Statistiques, là où elles servent : poids et composition, nutrition.
          Chaque carte ouvre sa fenêtre de détail (ancien écran Statistiques). -->
     <div id="cartes-stats-repas"></div>
 
+    <!-- Hydratation : une gourde qui se remplit (vague animée), la quantité
+         et les boutons d'ajout. Voir majJaugeEau. -->
     <div class="bloc-verre" id="bloc-eau">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;">
-        <h3 style="margin:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg> Eau bue</h3>
-        <span class="note" id="eau-texte" style="margin:0;white-space:nowrap;">0 / 2000 ml</span>
-      </div>
-      <div class="jauge"><i id="jauge-eau"></i></div>
-      <div class="eau-boutons">
-        <button class="btn-icone" style="flex:1;" onclick="ajouterEau(250)">+250 ml</button>
-        <button class="btn-icone" style="flex:1;" onclick="ajouterEau(500)">+500 ml</button>
-        <button class="btn-icone" style="flex:1;" onclick="ajouterEau(1000)">+1 L</button>
-        <button class="btn-icone" style="flex:0 0 auto;width:42px;padding:0;" onclick="retirerEau()" aria-label="Retirer 250 ml" title="Retirer 250 ml">−</button>
+      <div class="gourde" aria-hidden="true"><svg id="eau-vague" viewBox="0 0 120 74" preserveAspectRatio="none"><path d="M0,6 C10,0 20,0 30,6 S50,12 60,6 S80,0 90,6 S110,12 120,6 V200 H0Z" fill="url(#grad-eau)"/></svg></div>
+      <div class="eau-corps">
+        <h3>Hydratation</h3>
+        <div class="eau-texte" id="eau-texte">0 / 2,0 L</div>
+        <div class="eau-boutons">
+          <button class="btn-icone" onclick="ajouterEau(250)">+250 ml</button>
+          <button class="btn-icone" onclick="ajouterEau(500)">+500 ml</button>
+          <button class="btn-icone" onclick="ajouterEau(1000)">+1 L</button>
+          <button class="btn-icone" onclick="retirerEau()" aria-label="Retirer 250 ml" title="Retirer 250 ml">−</button>
+        </div>
       </div>
     </div>
 
@@ -3927,7 +4172,8 @@
   <section id="ecran-reglages" class="ecran" role="region" aria-label="Profil">
     <div class="profil-entete">
       <h2 class="titre-ecran" style="margin:0;"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 0 0-16 0" /></svg></span> Profil</h2>
-      <button type="button" class="btn-icone btn-engrenage" onclick="ouvrirModal('reglages-modal')" aria-label="Réglages" title="Réglages"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></svg></button>
+      <span class="profil-entete-boutons"><button type="button" class="btn-icone hidden" id="nav-admin" onclick="allerA('admin')" aria-label="Administration" title="Administration"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" /><path d="M5 21h14" /></svg> Admin</button>
+      <button type="button" class="btn-icone btn-engrenage" onclick="ouvrirModal('reglages-modal')" aria-label="Réglages" title="Réglages"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></svg></button></span>
     </div>
 
     <div class="bloc-verre" style="padding:15px; margin-bottom:16px;">
@@ -4076,12 +4322,24 @@
     <button type="button" onclick="choisirModeAjout('barcode')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2" /><path d="M17 3h2a2 2 0 0 1 2 2v2" /><path d="M21 17v2a2 2 0 0 1-2 2h-2" /><path d="M7 21H5a2 2 0 0 1-2-2v-2" /><path d="M8 7v10" /><path d="M12 7v10" /><path d="M17 7v10" /></svg><span>Code-barres</span></button>
   </div>
 
+<!-- ============ NAVIGATION : barre d'onglets en bas ============
+     Repas, Activité, « + » (ajouter au repas du moment), Progrès
+     (statistiques détaillées) et Profil. Remplace le bouton flottant, gardé
+     dans la page mais masqué (voir .fab-zone). -->
+<nav class="onglets" id="onglets" aria-label="Navigation principale">
+  <button type="button" class="onglet" id="onglet-repas" data-ecran="repas" onclick="allerA('repas')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg><span>Repas</span></button>
+  <button type="button" class="onglet" id="onglet-seance" data-ecran="seance" onclick="allerA('seance')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.4 14.4 9.6 9.6" /><path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z" /><path d="m21.5 21.5-1.4-1.4" /><path d="M3.9 3.9 2.5 2.5" /><path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z" /></svg><span>Activité</span></button>
+  <button type="button" class="onglet-plus" id="onglet-plus" onclick="ouvrirFeuilleRepas(repasDuMoment())" aria-label="Ajouter à un repas"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg></button>
+  <button type="button" class="onglet" id="onglet-progres" data-ecran="stats" onclick="ouvrirProgres()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="m19 9-5 5-4-4-3 3" /></svg><span>Progrès</span></button>
+  <button type="button" class="onglet" id="onglet-profil" data-ecran="reglages" onclick="allerA('reglages')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 0 0-16 0" /></svg><span>Profil</span></button>
+</nav>
+
 <!-- ============ NAVIGATION : tout passe par le bouton flottant ============ -->
 <nav class="fab-zone" id="fab-zone" aria-label="Navigation principale">
   <div class="fab-actions">
     <!-- Tout en haut de la pile, le plus loin du bouton : c'est l'onglet le
          moins utilisé au quotidien. -->
-    <button class="fab-action hidden" id="nav-admin" onclick="allerA('admin')"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" /><path d="M5 21h14" /></svg></span> Administration</button>
+    <button class="fab-action hidden" id="nav-admin-fab" onclick="allerA('admin')"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" /><path d="M5 21h14" /></svg></span> Administration</button>
     <button class="fab-action" id="nav-seance" onclick="allerA('seance')"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg></span> Activité</button>
     <button class="fab-action" id="nav-repas" onclick="allerA('repas')"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg></span> Repas du jour</button>
   </div>
@@ -6194,10 +6452,49 @@ function barresMiniSVG(valeurs, couleur, cible) {
     return `<rect x="${(i * bw + 1.5).toFixed(1)}" y="${(H - h).toFixed(1)}" width="${Math.max(1, bw - 3).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${couleur}" opacity="${i === valeurs.length - 1 ? 1 : 0.55}"/>`;
   }).join('')}${yCible ? `<line x1="0" x2="${W}" y1="${yCible}" y2="${yCible}" stroke="var(--text-muted)" stroke-dasharray="3 3" stroke-width="1.2"/>` : ''}</svg>`;
 }
+/* Tuile de Repas du jour (Poids, Nutrition) : icône, valeur, tendance et
+   un graphique bord à bord. Ouvre le détail comme les autres cartes. */
+const ICONES_TUILE = {
+  poids: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /><path d="M7 21h10" /><path d="M12 3v18" /><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />',
+  nutrition: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />'
+};
+function tuileStatsHTML(o) {
+  const titre = { poids: 'Poids', nutrition: 'Nutrition · 14 j' }[o.onglet] || o.titre;
+  return `<div class="carte-stats carte-stats--compacte carte-stats--tuile fitness-card" id="${o.id}" role="button" tabindex="0" aria-label="${escapeHtml(o.titre)} : ouvrir le détail"
+      onclick="ouvrirStats('${o.onglet}')" onkeydown="if(event.key==='Enter')ouvrirStats('${o.onglet}')">
+    <div class="tuile-tete"><span class="tuile-icone tuile-icone--${o.onglet}" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONES_TUILE[o.onglet] || ''}</svg></span><span class="carte-stats-titre">${escapeHtml(titre)}</span></div>
+    <div class="carte-stats-valeur"><b>${escapeHtml(o.valeur)}</b><span>${escapeHtml(o.unite || '')}</span></div>
+    ${o.ligne ? `<div class="carte-stats-ligne">${escapeHtml(o.ligne)}</div>` : ''}
+    ${o.graphique || ''}
+  </div>`;
+}
+// Courbe lissée (Bézier) avec aire en dégradé et point final.
+function courbeTuileSVG(valeurs, couleur) {
+  const connues = valeurs.map((v, i) => [i, v]).filter(([, v]) => v != null);
+  if (connues.length < 2) return '';
+  let min = Math.min(...connues.map(x => x[1])), max = Math.max(...connues.map(x => x[1]));
+  if (max - min < 0.4) { const m = (max + min) / 2; min = m - 0.2; max = m + 0.2; }
+  const W = 160, H = 46, n = valeurs.length - 1;
+  const P = connues.map(([i, v]) => [i / n * W, 6 + (1 - (v - min) / (max - min)) * (H - 12)]);
+  let d = `M${P[0][0].toFixed(1)},${P[0][1].toFixed(1)}`;
+  for (let k = 1; k < P.length; k++) { const [x0, y0] = P[k - 1], [x1, y1] = P[k], cx = ((x0 + x1) / 2).toFixed(1); d += ` C${cx},${y0.toFixed(1)} ${cx},${y1.toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}`; }
+  const [lx, ly] = P[P.length - 1], id = 'gt' + Math.random().toString(36).slice(2, 7);
+  return `<svg class="carte-stats-graph tuile-graph" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${couleur}" stop-opacity=".35"/><stop offset="1" stop-color="${couleur}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${d} L${lx.toFixed(1)},${H} L${P[0][0].toFixed(1)},${H}Z" fill="url(#${id})"/><path d="${d}" fill="none" stroke="${couleur}" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    <circle cx="${Math.min(W - 3, lx).toFixed(1)}" cy="${ly.toFixed(1)}" r="3.4" fill="${couleur}" stroke="var(--carte-plein, #fff)" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>`;
+}
+// Barres arrondies en dégradé, objectif en pointillés.
+function barresTuileSVG(valeurs, cible) {
+  const W = 160, H = 46, max = Math.max(1, ...valeurs, cible || 0) * 1.08, bw = W / valeurs.length;
+  const y = v => H - v / max * (H - 4);
+  return `<svg class="carte-stats-graph tuile-graph" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+    ${cible ? `<line x1="0" x2="${W}" y1="${y(cible).toFixed(1)}" y2="${y(cible).toFixed(1)}" stroke="currentColor" stroke-opacity=".35" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>` : ''}
+    ${valeurs.map((v, i) => { const h = v > 0 ? Math.max(3, H - y(v)) : 0; return h ? `<rect x="${(i * bw + bw * 0.18).toFixed(1)}" y="${(H - h).toFixed(1)}" width="${(bw * 0.64).toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="url(#grad-kcal)" opacity="${i === valeurs.length - 1 ? 1 : .55}"/>` : ''; }).join('')}</svg>`;
+}
 function carteStatsHTML(o) {
   // Version compacte (Repas du jour) : une ligne, sans les cases ni le pied ;
   // le détail reste dans la fenêtre qui s'ouvre au toucher.
-  if (o.compacte) { o = Object.assign({}, o, { cases: null, pied: '' }); }
+  if (o.compacte) return tuileStatsHTML(o);
   return `<div class="carte-stats fitness-card${o.compacte ? ' carte-stats--compacte' : ''}" id="${o.id}" role="button" tabindex="0" aria-label="${escapeHtml(o.titre)} : ouvrir le détail"
       onclick="ouvrirStats('${o.onglet}')" onkeydown="if(event.key==='Enter')ouvrirStats('${o.onglet}')">
     <div class="carte-stats-haut"><div class="carte-stats-texte">
@@ -6227,7 +6524,7 @@ function carteStatsPoidsHTML() {
   const recentes = pesees.filter(([d]) => d > decalerJours(auj, -14)).length;
   const pente = t0 != null && t7 != null && recentes >= 2 ? t0 - t7 : null;
   const ligne = pente == null ? 'Pèse-toi au moins deux fois en deux semaines pour voir ta tendance.'
-    : (Math.abs(pente) < 0.05 ? '→ stable' : (pente < 0 ? '↘ ' : '↗ ') + fmtSigne(pente, ' kg') + ' / semaine');
+    : (Math.abs(pente) < 0.05 ? '→ stable' : (pente < 0 ? '↘ ' : '↗ ') + fmtSigne(pente, ' kg') + ' / sem.');
   // Dernière composition connue (Mesures corporelles ou balance Withings).
   const mesures = userProfile.mesures || {};
   const dm = Object.keys(mesures).filter(d => d <= auj && mesures[d] && (mesures[d].grassePct > 0 || mesures[d].muscleKg > 0 || mesures[d].eauPct > 0)).sort().pop();
@@ -6240,7 +6537,7 @@ function carteStatsPoidsHTML() {
     pied = 'Composition mesurée le ' + dateLocale(dm).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
   }
   return carteStatsHTML({ id: 'carte-stats-poids', onglet: 'poids', compacte: true, titre: 'Poids et composition', valeur: fmtUneDecimale(dernier), unite: 'kg',
-    ligne, graphique: courbeMiniSVG(serie, 'var(--primary)'), cases, pied });
+    ligne, graphique: courbeTuileSVG(serie, '#38bdf8'), cases, pied });
 }
 function carteStatsNutritionHTML() {
   const auj = todayStr();
@@ -6266,7 +6563,7 @@ function carteStatsNutritionHTML() {
   const cases = [['Objectif moyen', cibleMoy.toLocaleString('fr-FR') + ' kcal'], ['Protéines', fmtUneDecimale(moy(prot) / dernierPoidsConnu(auj)) + ' g/kg']];
   if (eau.length) cases.push(['Eau / jour', fmtUneDecimale(moy(eau) / 1000) + ' L']);
   return carteStatsHTML({ id: 'carte-stats-nutrition', onglet: 'nutrition', compacte: true, titre: 'Ma nutrition · 14 jours', valeur: Math.round(moy(remplis)).toLocaleString('fr-FR'), unite: 'kcal / jour',
-    ligne: dansCible + ' jour' + (dansCible > 1 ? 's' : '') + ' sur ' + remplis.length + ' dans la cible', graphique: barresMiniSVG(kcal, 'var(--primary)', cibleMoy), cases });
+    ligne: dansCible + ' j / ' + remplis.length + ' dans la cible', graphique: barresTuileSVG(kcal, cibleMoy), cases });
 }
 function renderCartesStatsRepas() {
   const c = document.getElementById('cartes-stats-repas');
@@ -6326,6 +6623,106 @@ function renderApp() {
   updateSummary(day);
   majBoutonAujourdhui();
   renderCartesStatsRepas();
+  renderSemaine();
+  majSalut();
+}
+
+/* ---------- En-tête : « Bonjour … », date et série de jours ---------- */
+function majSalut() {
+  const d = document.getElementById('salut-date');
+  if (d) d.textContent = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const n = document.getElementById('salut-nom');
+  if (n) {
+    const h = new Date().getHours();
+    const qui = sessionUtilisateur ? (monPseudo ? monPseudo.pseudo : (sessionUtilisateur.email || '').split('@')[0]) : '';
+    n.textContent = (h >= 18 || h < 4 ? 'Bonsoir' : 'Bonjour') + (qui ? ' ' + qui.charAt(0).toUpperCase() + qui.slice(1) : '');
+  }
+  const serie = joursDAffilee();
+  const el = document.getElementById('serie-jours');
+  if (el) {
+    el.classList.toggle('hidden', serie < 2);
+    el.innerHTML = `<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" /></svg>${serie}`;
+    el.setAttribute('aria-label', serie + ' jours d\'affilée avec un repas noté');
+  }
+}
+/* Jours d'affilée avec au moins un repas noté, jusqu'à aujourd'hui (ou hier,
+   si aujourd'hui n'est pas encore commencé). */
+function joursDAffilee() {
+  const aMange = d => { const j = appData[d]; return !!(j && j.meals && Object.values(j.meals).some(l => Array.isArray(l) && l.length)); };
+  let d = todayStr();
+  if (!aMange(d)) d = shiftDate(d, -1);
+  let n = 0;
+  while (aMange(d) && n < 3650) { n++; d = shiftDate(d, -1); }
+  return n;
+}
+
+/* ---------- Semaine : un mini-anneau par jour ---------- */
+function renderSemaine() {
+  const c = document.getElementById('semaine-jours');
+  if (!c) return;
+  const lundi = lundiDeLaSemaine(currentDate), auj = todayStr();
+  const lettres = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+  const tour = 2 * Math.PI * 13;
+  c.innerHTML = lettres.map((l, i) => {
+    const d = decalerJours(lundi, i);
+    const j = appData[d];
+    const kcal = j && j.meals ? sumMeals(j).kcal : 0;
+    const part = kcal > 0 ? Math.min(1, kcal / Math.max(1, computeTargets(j, d).target)) : 0;
+    const futur = d > auj;
+    return `<button type="button" class="semaine-jour${d === currentDate ? ' actif' : ''}${d === auj ? ' aujourdhui' : ''}" ${futur ? 'disabled' : `onclick="choisirJour('${d}')"`}
+      aria-label="${dateLocale(d).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${part ? ' : ' + Math.round(part * 100) + ' % de l\'objectif' : ''}"${d === currentDate ? ' aria-current="date"' : ''}>
+      <span class="semaine-lettre">${l}</span>
+      <span class="semaine-num"><svg viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="13" class="anneau-piste" stroke-width="3.5"/><circle cx="17" cy="17" r="13" class="anneau-val" stroke="url(#grad-kcal)" stroke-width="3.5" style="stroke-dasharray:${tour};stroke-dashoffset:${tour * (1 - part)}"/></svg><b>${dateLocale(d).getDate()}</b></span>
+    </button>`;
+  }).join('');
+  const mois = document.getElementById('semaine-mois');
+  if (mois) mois.textContent = dateLocale(currentDate).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  const btn = document.getElementById('semaine-aujourdhui');
+  if (btn) btn.classList.toggle('hidden', currentDate === auj);
+}
+function choisirJour(d) {
+  if (!d || d > todayStr()) return;
+  currentDate = d;
+  renderApp();
+}
+// Glisser sur la semaine : semaine précédente / suivante (jamais dans le futur).
+(function () {
+  let x0 = null;
+  document.addEventListener('touchstart', e => { x0 = e.target.closest && e.target.closest('#semaine-jours') ? e.touches[0].clientX : null; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (x0 == null) return;
+    const dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) < 50) return;
+    const cible = shiftDate(currentDate, dx > 0 ? -7 : 7);
+    currentDate = cible > todayStr() ? todayStr() : cible;
+    renderApp();
+  }, { passive: true });
+})();
+
+/* ---------- Coach du jour : un conseil calculé sur place, sans IA ----------
+   Ce qui compte le plus à cet instant : rien de noté, objectif dépassé,
+   protéines en retard (avec des aliments riches que tu manges déjà),
+   eau en retard le soir, ou bravo. */
+function majCoach(day, totals, t) {
+  const el = document.getElementById('coach-jour');
+  if (!el) return;
+  const h = new Date().getHours(), auj = currentDate === todayStr();
+  const reste = t.target - totals.kcal, manqueP = t.protein - totals.p;
+  const eau = Number(day.eauMl) || 0, quotaEau = quotaEauSuggere(currentDate);
+  const fr = n => Math.round(n).toLocaleString('fr-FR');
+  // Aliments riches en protéines déjà mangés (g de protéines pour 100 kcal).
+  const riches = historique().filter(e => e.kcal100 > 0 && e.p100 / e.kcal100 * 100 >= 8 && e.fois >= 2)
+    .sort((a, b) => b.p100 / b.kcal100 - a.p100 / a.kcal100).slice(0, 2).map(e => e.nom);
+  let msg;
+  if (totals.kcal === 0) msg = auj ? (h < 11 ? 'Commence ta journée : note ton <b>petit-déjeuner</b> avec le bouton +.' : 'Rien de noté pour l\'instant : ajoute ton premier repas avec le bouton +.') : 'Aucun repas noté ce jour-là.';
+  else if (reste < -t.target * 0.05) msg = `Tu as dépassé ton objectif de <b>${fr(-reste)} kcal</b>. Pas de panique : une journée ne fait pas une tendance, reprends demain.`;
+  else if (manqueP > 20 && reste > 150) msg = `Il te manque <b>${fr(manqueP)} g de protéines</b>${riches.length ? ` : pense à ${riches.map(n => '<b>' + escapeHtml(n) + '</b>').join(' ou ')}` : ''}. Il te reste ${fr(reste)} kcal pour ça.`;
+  else if (auj && h >= 16 && eau < quotaEau * 0.6) msg = `Pense à boire : <b>${(Math.round((quotaEau - eau) / 100) / 10).toLocaleString('fr-FR')} L</b> d'eau à rattraper d'ici ce soir.`;
+  else if (reste >= 0 && reste <= t.target * 0.1) msg = `Objectif presque atteint, <b>${fr(reste)} kcal</b> restantes et des protéines au rendez-vous. Belle journée !`;
+  else if (manqueP <= 0) msg = `Protéines atteintes (<b>${fr(totals.p)} g</b>). Il te reste ${fr(Math.max(0, reste))} kcal à répartir comme tu veux.`;
+  else msg = `Il te reste <b>${fr(reste)} kcal</b> et ${fr(Math.max(0, manqueP))} g de protéines pour finir la journée.`;
+  el.innerHTML = `<span class="coach-icone" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /></svg></span>
+    <div><small>Coach du jour</small><p>${msg}</p></div>`;
 }
 
 function majBoutonAujourdhui() {
@@ -6903,6 +7300,7 @@ function renderMeals(day) {
       return `
       <li class="food-item">
         <div class="food-item-ligne">
+          <span class="food-initiale" aria-hidden="true">${escapeHtml(String(it.name || '?').trim().charAt(0).toUpperCase())}</span>
           <div class="food-info${estRecette ? ' food-info--fixe' : ''}"${estRecette ? '' : ' onclick="ouvrirPoidsAliment(this)"'}
                ${estRecette ? 'title="Poids déterminé par les ingrédients ci-dessous — déplie-les pour ajuster"' : ''}
                data-meal="${mealId}" data-index="${i}" data-grams="${Number(it.grams) || 0}"
@@ -6926,15 +7324,27 @@ function renderMeals(day) {
       </li>`;
     }).join('') : '';
     const totalMeal = mealKcal(day, mealId);
-
-    // Repas vide : une seule ligne (titre et 0 kcal), sans liste.
+    const ajouter = `onclick="ouvrirFeuilleRepas(${argJs(mealId)})"`;
+    // Repas vide : une invitation à l'ajouter, sur une ligne.
+    if (!rows) return `
+      <div class="meal-card meal-card--vide" role="button" tabindex="0" ${ajouter} onkeydown="if(event.key==='Enter')this.click()" data-repas="${mealId}">
+        <span class="repas-icone repas-icone--${mealId}" aria-hidden="true">${MEAL_ICONS[mealId]}</span>
+        <span class="meal-title">Ajouter ${{ breakfast: 'ton petit-déjeuner', lunch: 'ton déjeuner', snack: 'une collation', dinner: 'ton dîner' }[mealId] || MEAL_LABELS[mealId]}</span>
+        <span class="repas-plus" aria-hidden="true">+</span>
+      </div>`;
+    // Équilibre du repas (part des calories venant de chaque macro).
+    const tot = items.reduce((a, it) => ({ p: a.p + (Number(it.p) || 0) * 4, c: a.c + (Number(it.c) || 0) * 4, f: a.f + (Number(it.f) || 0) * 9 }), { p: 0, c: 0, f: 0 });
+    const somme = tot.p + tot.c + tot.f || 1;
     return `
-      <div class="meal-card${rows ? '' : ' meal-card--vide'}">
+      <div class="meal-card" data-repas="${mealId}">
         <div class="meal-header">
-          <span class="meal-title">${MEAL_ICONS[mealId]} ${MEAL_LABELS[mealId]}</span>
-          <span class="meal-kcals">${totalMeal} kcal</span>
+          <span class="repas-icone repas-icone--${mealId}" aria-hidden="true">${MEAL_ICONS[mealId]}</span>
+          <span class="meal-title">${MEAL_LABELS[mealId]}<small>${items.length} aliment${items.length > 1 ? 's' : ''}</small></span>
+          <span class="meal-kcals">${totalMeal} <small>kcal</small></span>
+          <button type="button" class="repas-ajouter" ${ajouter} aria-label="Ajouter à ${escapeHtml(MEAL_LABELS[mealId])}">+</button>
         </div>
-        ${rows ? `<ul class="food-list">${rows}</ul>` : ''}
+        <div class="repas-equilibre" aria-hidden="true"><i style="flex:${tot.p / somme};background:var(--protein)"></i><i style="flex:${tot.c / somme};background:var(--carbs)"></i><i style="flex:${tot.f / somme};background:var(--fat)"></i></div>
+        <ul class="food-list">${rows}</ul>
       </div>`;
   }).join('');
 }
@@ -6947,39 +7357,46 @@ function pourcent(v, max) {
 function updateSummary(day) {
   const totals = sumMeals(day);
   const t = computeTargets(day, currentDate);
-  document.getElementById('total-kcals').textContent = totals.kcal;
-  document.getElementById('target-kcals-display').textContent = `Objectif : ${t.target} kcal`;
+  const fr = n => Math.round(n).toLocaleString('fr-FR');
+  document.getElementById('total-kcals').textContent = fr(totals.kcal);
+  document.getElementById('target-kcals-display').textContent = fr(t.target);
+  const dep = document.getElementById('heros-depense'); if (dep) dep.textContent = fr(t.tdee);
+  const pas = document.getElementById('heros-pas'); if (pas) pas.textContent = fr(Number(day.steps) || 0);
 
   /* « 1 840 » tout seul ne dit rien : ce qui interesse, c'est ce qu'il reste. */
   const reste = t.target - totals.kcal;
   const elReste = document.getElementById('reste-kcals');
+  const lib = document.getElementById('reste-libelle');
   if (elReste) {
-    if (reste >= 0) {
-      elReste.textContent = `Il reste ${reste} kcal`;
-      elReste.style.color = 'var(--text-muted)';
-    } else {
-      elReste.textContent = `Dépassement de ${Math.abs(reste)} kcal`;
-      elReste.style.color = 'var(--danger)';
-    }
+    elReste.innerHTML = `${fr(Math.abs(reste))}<em>kcal</em>`;
+    elReste.classList.toggle('depasse', reste < 0);
+    if (lib) lib.textContent = reste >= 0 ? 'Il te reste' : 'Dépassement';
   }
 
-  const ratio = t.target > 0 ? totals.kcal / t.target : 0;
-  const jk = document.getElementById('jauge-kcal');
-  if (jk) {
-    jk.style.width = pourcent(totals.kcal, t.target) + '%';
-    jk.style.background = ratio > 1.02 ? 'var(--danger)' : (ratio >= 0.85 ? 'var(--carbs)' : 'var(--primary)');
-  }
-
-  document.getElementById('total-p').textContent = `${totals.p} / ${t.protein}g`;
-  document.getElementById('total-c').textContent = `${totals.c} / ${t.carbs}g`;
-  document.getElementById('total-f').textContent = `${totals.f} / ${t.fat}g`;
-  majMacro('p', totals.p, t.protein);
-  majMacro('c', totals.c, t.carbs);
-  majMacro('f', totals.f, t.fat);
+  document.getElementById('total-p').innerHTML = `<b>${totals.p}</b>/${t.protein} g`;
+  document.getElementById('total-c').innerHTML = `<b>${totals.c}</b>/${t.carbs} g`;
+  document.getElementById('total-f').innerHTML = `<b>${totals.f}</b>/${t.fat} g`;
+  majAnneau('kcal', totals.kcal, t.target);
+  majAnneau('p', totals.p, t.protein);
+  majAnneau('c', totals.c, t.carbs);
+  majAnneau('f', totals.f, t.fat);
 
   majDetailDepense(day, t);
   updateLiquidFill(totals.kcal, t.target);
   majJaugeEau(day);
+  majCoach(day, totals, t);
+}
+
+/* Un anneau du résumé : la part de l'objectif atteinte (plein = 100 %).
+   Au-delà de l'objectif de calories, l'anneau passe à l'orange-rouge. */
+function majAnneau(cle, valeur, cible) {
+  const c = document.getElementById('anneau-' + cle);
+  if (!c) return;
+  const tour = 2 * Math.PI * Number(c.getAttribute('r'));
+  const part = cible > 0 ? Math.max(0, Math.min(1, valeur / cible)) : 0;
+  c.style.strokeDasharray = tour;
+  c.style.strokeDashoffset = tour * (1 - part);
+  if (cle === 'kcal') c.setAttribute('stroke', valeur > cible * 1.02 ? 'url(#grad-kcal-trop)' : 'url(#grad-kcal)');
 }
 
 /* Chaque macro a sa barre : la comparaison « 118 / 180 g » demandait un
@@ -7006,13 +7423,14 @@ function majJaugeEau(day) {
   day = day || getDay(currentDate);
   const bu = Math.max(0, Number(day.eauMl) || 0);
   const quota = quotaEauSuggere(currentDate);
+  const litres = v => (Math.round(v / 10) / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 });
   const texte = document.getElementById('eau-texte');
-  if (texte) texte.textContent = `${bu} / ${quota} ml`;
-  const jauge = document.getElementById('jauge-eau');
-  if (jauge) {
-    jauge.style.width = pourcent(bu, quota) + '%';
-    jauge.style.background = bu >= quota ? 'var(--primary)' : 'var(--accent)';
-  }
+  if (texte) texte.innerHTML = `${litres(bu)}<em> / ${litres(quota)} L</em>`;
+  // La vague monte avec ce qui a été bu (une pointe reste visible à vide).
+  const vague = document.getElementById('eau-vague');
+  if (vague) vague.style.top = (100 - Math.min(100, pourcent(bu, quota)) * 0.94 - 6) + '%';
+  const bloc = document.getElementById('bloc-eau');
+  if (bloc) bloc.classList.toggle('atteint', bu >= quota);
 }
 
 function ajouterEau(ml) {
@@ -9819,11 +10237,16 @@ function choisirOngletStats(nom) {
 /* Ouvre la fenêtre de statistiques d'une catégorie depuis sa carte, et y
    revient avec « Retour ». */
 let ecranAvantStats = 'repas';
-function ouvrirStats(onglet) {
+function ouvrirStats(onglet, avecCategories) {
   if (ecranActif !== 'stats') ecranAvantStats = ecranActif;
   allerA('stats');
   choisirOngletStats(onglet);
+  // Ouvert depuis une carte : une seule catégorie. Depuis l'onglet Progrès :
+  // les quatre catégories, au choix.
+  const nav = document.getElementById('stats-onglets-nav');
+  if (nav) nav.classList.toggle('hidden', !avecCategories);
 }
+function ouvrirProgres() { ouvrirStats('poids', true); }
 /* Repas du jour › une macro du résumé : ouvre le détail Nutrition sur le
    graphique de cette macro, mis en évidence un instant. */
 function ouvrirMacro(cle) {
@@ -10555,6 +10978,11 @@ function allerA(nom) {
   try { localStorage.setItem('elite_ecran', nom); } catch (err) {}
   if (fabOuvert) fermerFab();
   document.body.classList.toggle('sur-repas', nom === 'repas');
+  document.querySelectorAll('#onglets .onglet').forEach(b => {
+    const actif = b.dataset.ecran === nom;
+    b.classList.toggle('actif', actif);
+    if (actif) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
   document.body.classList.toggle('sur-stats', nom === 'stats');
   document.body.classList.toggle('sur-seance', nom === 'seance');
   document.body.classList.toggle('sur-reglages', nom === 'reglages');
@@ -11061,16 +11489,18 @@ function initFabDeplacable() {
    ===================================================================== */
 const TOUR_ETAPES = [
   { titre: 'Bienvenue sur Anqā', texte: "Un tour rapide de l'appli : la nutrition, l'activité, les statistiques et ton profil. Tu peux le quitter à tout moment et le revoir depuis Profil › Réglages (engrenage). Une visite dédiée à la musculation existe aussi." },
-  { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: "Calories consommées, ce qu'il te reste et la répartition protéines / glucides / lipides. Touche une macro pour voir sa courbe face à ton objectif, ou le reste de la carte pour ta dépense estimée du jour et ta nutrition." },
+  { ecran: 'repas', cible: '#semaine-nav', titre: 'Ta semaine', texte: "Un mini-anneau par jour : il se remplit avec les calories du jour face à ton objectif. Touche un jour pour l'afficher, glisse pour changer de semaine. La flamme en haut compte tes jours d'affilée." },
+  { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: "L'anneau extérieur, ce sont tes calories ; les trois intérieurs, protéines, glucides et lipides. Touche une macro pour sa courbe face à l'objectif, ou le reste de la carte pour ta dépense du jour et ta nutrition." },
+  { ecran: 'repas', cible: '#coach-jour', titre: 'Le coach du jour', texte: "Un conseil qui change avec ta journée : ce qui te manque, avec des aliments que tu manges déjà, ou un rappel pour boire. Calculé sur ton téléphone, sans IA." },
   { ecran: 'repas', cible: '#cartes-stats-repas', titre: 'Poids et nutrition', texte: "Ton poids et ta nutrition des 14 derniers jours, d'un coup d'œil. Touche une carte pour le détail : courbe de poids et composition corporelle, ou calories et macros." },
-  { ecran: 'repas', cible: '.ajout-rapide', titre: 'Ajouter à un repas', texte: "Toujours en bas de l'écran : quatre façons d'ajouter, une recette, un aliment, une photo ou un code-barres. Le repas visé est demandé juste après." },
+  { ecran: 'repas', cible: '#onglet-plus', titre: 'Ajouter à un repas', texte: "Le bouton + au centre : une recette, un aliment, une photo ou un code-barres, pour le repas du moment. Chaque repas a aussi son propre +." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-recette', titre: 'Recette', texte: "Tes recettes enregistrées, et celles partagées par l'équipe : une portion s'ajoute en un toucher, macros déjà calculées. Tu y trouves aussi des idées de l'IA qui complètent tes macros du jour." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-manuel', titre: 'Aliment', texte: "Recherche dans la base d'aliments, avec en premier ce que tu manges souvent. Un aliment introuvable ? Saisis-le : il reste à toi, et rejoint la base commune une fois validé." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-photo', titre: 'Photo ou description', texte: "Prends en photo ou décris ton assiette : l'IA estime les aliments, les quantités et les macros." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-barcode', titre: 'Code-barres', texte: "Scanne un produit emballé : ses valeurs nutritionnelles sont récupérées toutes seules." },
   { ecran: 'repas', cible: '#bloc-eau', titre: "L'eau", texte: 'Un toucher sur +250 ml, +500 ml ou +1 L à chaque fois que tu bois.' },
-  { ecran: 'repas', cible: '#fab', titre: 'Le bouton de navigation', texte: "Ce bouton flottant change d'écran. Garde le doigt appuyé dessus pour le déplacer où tu veux." },
-  { fab: true, cible: '#nav-seance', titre: 'Activité', texte: 'Ta musculation (programmes, séances, bibliothèque d’exercices) et ton cardio. La visite « Musculation » détaille la partie muscu.' },
+  { ecran: 'repas', cible: '#onglets', titre: 'La barre d’onglets', texte: "Repas, Activité, Progrès (tes statistiques détaillées) et Profil, toujours en bas de l'écran." },
+  { ecran: 'repas', cible: '#onglet-seance', titre: 'Activité', texte: 'Ta musculation (programmes, séances, bibliothèque d’exercices) et ton cardio. La visite « Musculation » détaille la partie muscu.' },
   { ecran: 'seance', cible: '#carte-pas-seances', titre: 'Tes pas', texte: "En haut de l'écran Activité : note tes pas du jour. La jauge montre où tu en es (7 500 pas, c'est le repère santé), et le surplus compte dans ta dépense." },
   { ecran: 'seance', cible: '#seance-mode-nav', titre: 'Musculation ou cardio', texte: "Bascule entre tes séances de musculation et ton cardio : course, vélo, natation, marche, rameur, HIIT, sport co." },
   { ecran: 'seance', modeCardio: true, cible: '#seance-cardio .cardio-carte', titre: 'Ta semaine de cardio', texte: "L'objectif conseillé : 150 à 300 min par semaine, une minute intense comptant double. La jauge montre où tu en es, la barre en dessous ta répartition facile / modérée / intense. Ajoute une séance avec le bouton juste en dessous : durée, distance, intensité." },
@@ -12950,6 +13380,7 @@ function majPastilleGymbro() {
   const parId = id => document.getElementById(id);
   const cibles = [...document.querySelectorAll('[onclick="ouvrirGymbro()"]').values()].map(b => [b, demandes])
     .concat([[parId('nav-seance'), activite], [parId('nav-admin'), admin], [parId('fab'), fabOuvert ? 0 : activite + admin],
+      [parId('onglet-seance'), activite], [parId('onglet-profil'), admin],
       [document.querySelector('[onclick="afficherFeuillAlimentsPersonalises()"]'), admin]].filter(([b]) => b));
   cibles.forEach(([b, n]) => {
     let pastille = b.querySelector(':scope > .pastille-gymbro');
