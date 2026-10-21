@@ -462,6 +462,9 @@ test('en-tête : ma photo et mon nom d\'utilisateur ouvrent le profil, plus de b
     res.compte = document.getElementById('reglages-puce-sync-txt').textContent;
     puce.classList.add('hidden'); majEtatSync('attente');
     res.sansSynchro = document.getElementById('moi-entete').dataset.sync || null;
+    // L'en-tête (salutation, photo) n'existe que sur Repas du jour.
+    res.enteteSurProfil = getComputedStyle(document.querySelector('.app-bar')).display;
+    allerA('repas');
     const barre = document.querySelector('.app-bar-inner').getBoundingClientRect();
     res.aDroite = Math.round(barre.right - document.getElementById('moi-entete').getBoundingClientRect().right) < 4;
     const logo = document.querySelector('.app-bar .logo-anqa').getBoundingClientRect();
@@ -485,6 +488,7 @@ test('en-tête : ma photo et mon nom d\'utilisateur ouvrent le profil, plus de b
   assert.equal(r.sansSynchro, null, 'pas de halo sans synchronisation configurée');
   assert.ok(r.aDroite, 'photo et nom calés à droite');
   assert.ok(r.logoAGauche, 'logo Anqā visible à gauche');
+  assert.equal(r.enteteSurProfil, 'none');
   assert.ok(r.margeHaut >= 11, 'place pour le halo au-dessus de la photo : ' + r.margeHaut + ' px');
 }));
 
@@ -555,7 +559,7 @@ test('Repas du jour : toucher une macro ouvre sa courbe face à son objectif', (
       ancien: !!document.getElementById('macrosChart') };
   });
   assert.deepEqual(r, { ecran: 'stats', titre: 'Ma nutrition', series: ['Protéines (g)', 'Objectif'], dernier: 120, objectif: true, visible: true, vise: true, ancien: false });
-  await page.click('#ecran-stats .stats-entete button');
+  await page.click('#onglet-repas');
   // Le reste du résumé : plus de fenêtre « dépense », c'est le détail
   // Nutrition qui s'ouvre, dépense estimée du jour en tête.
   await page.click('#ecran-repas .summary-card h1');
@@ -563,7 +567,7 @@ test('Repas du jour : toucher une macro ouvre sa courbe face à son objectif', (
     dansNutrition: !!document.querySelector('#ecran-stats .stats-tab[data-tab="nutrition"] #bloc-depense'),
     lignes: document.querySelectorAll('#detail-depense > div').length, visible: document.getElementById('bloc-depense').getBoundingClientRect().top < innerHeight }));
   assert.deepEqual(dep, { ecran: 'stats', modale: false, dansNutrition: true, lignes: 7, visible: true });
-  await page.click('#ecran-stats .stats-entete button');
+  await page.click('#onglet-repas');
   await page.click('#ecran-repas .macro-item:nth-child(3)');
   await page.waitForTimeout(700);
   assert.ok(await page.evaluate(() => document.getElementById('macro-stat-f').classList.contains('macro-stat--vise')));
@@ -612,7 +616,7 @@ test("« Déjà mangé » suit le nouveau nom d'un aliment renommé (même code-
   assert.equal(apres, 'Oeufs durs Kokou');
 }));
 
-test('cartes de stats : poids et nutrition sur Repas du jour, cardio et muscu dans Activité, chacune ouvre son détail', () => avecAppli({}, async ({ page }) => {
+test('cartes de stats : poids et nutrition sur Repas du jour, bandeaux cardio et muscu dans Activité, chacun ouvre son détail', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     const t = todayStr();
     userProfile.mesures = userProfile.mesures || {};
@@ -654,7 +658,7 @@ test('cartes de stats : poids et nutrition sur Repas du jour, cardio et muscu da
   assert.equal(r.ecran, 'stats');
   assert.match(r.titre, /Poids/);
   assert.deepEqual([r.cases, r.vides, r.graphiques, r.bilan, r.ongletsCaches], [4, 0, 4, false, true]);
-  await page.click('#ecran-stats .stats-entete button');
+  await page.click('#onglet-repas');
   assert.equal(await page.evaluate(() => ecranActif), 'repas');
 
   // Nutrition : le bilan IA de la période est là, et seulement là.
@@ -662,26 +666,26 @@ test('cartes de stats : poids et nutrition sur Repas du jour, cardio et muscu da
   r = await page.evaluate(() => ({ ecran: ecranActif, bilan: !document.querySelector('#ecran-stats .stats-bilan').classList.contains('hidden') }));
   assert.deepEqual(r, { ecran: 'stats', bilan: true });
   await page.evaluate(() => choisirPeriodeStats('perso'));
-  await page.click('#ecran-stats .stats-entete button');
+  await page.click('#onglet-repas');
 
-  // Cardio : sous la carte « Cette semaine », retour vers Activité.
+  // Cardio : plus de carte en doublon, le bandeau de la semaine ouvre Progrès.
   await page.evaluate(() => { allerA('seance'); choisirModeSeance('cardio'); });
-  assert.ok(await page.isVisible('#carte-stats-cardio'));
-  await page.click('#carte-stats-cardio');
+  assert.equal(await page.$('#carte-stats-cardio'), null);
+  await page.click('#seance-cardio .hx--cardio');
   assert.equal(await page.evaluate(() => ecranActif), 'stats');
-  await page.click('#ecran-stats .stats-entete button');
-  assert.equal(await page.evaluate(() => ecranActif), 'seance');
 
-  // Muscu : en haut de Activité › Musculation.
+  // Muscu : idem, depuis le bandeau « Ta semaine » d'Activité › Musculation.
+  await page.click('#onglet-seance');
   await page.evaluate(() => choisirModeSeance('muscu'));
-  assert.match(await page.textContent('#carte-stats-muscu-carte'), /1 séance cette semaine/);
-  await page.click('#carte-stats-muscu-carte');
+  assert.equal(await page.$('#carte-stats-muscu-carte'), null);
+  assert.match(await page.textContent('#vitrine-muscu .hx-unite'), /1 séance/);
+  await page.click('#vitrine-muscu .hx');
   r = await page.evaluate(() => ({ ecran: ecranActif, titre: document.getElementById('stats-titre').textContent, nav: !!document.getElementById('muscu-soustabs-nav').offsetHeight }));
   assert.equal(r.ecran, 'stats');
   assert.match(r.titre, /Muscu/i);
   assert.ok(r.nav);
-  await page.click('#ecran-stats .stats-entete button');
-  assert.equal(await page.evaluate(() => ecranActif), 'seance');
+  // Plus de bouton « Retour » : la barre d'onglets suffit.
+  assert.equal(await page.$('#ecran-stats .stats-entete button'), null);
 }));
 
 test('après le questionnaire : « Par où commencer ? » puis la carte « Premiers pas »', () => avecAppli({}, async ({ page }) => {
@@ -1305,4 +1309,27 @@ test('animations : les chiffres défilent jusqu\'à leur valeur exacte', () => a
   await page.waitForFunction(() => document.getElementById('total-kcals').textContent.replace(/\s/g, '') === '1234');
   await page.evaluate(() => { allerA('seance'); choisirModeSeance('cardio'); });
   await page.waitForFunction(() => /^0/.test(document.querySelector('#seance-cardio .cardio-gros').textContent));
+}));
+
+test('bouton + : l\'action utile de chaque écran', () => avecAppli({}, async ({ page }) => {
+  const ouvert = () => page.evaluate(() => [...document.querySelectorAll('.feuille.show, .modal.show')].map(m => m.id).join(','));
+  const fermer = () => page.evaluate(() => { fermerFeuilles(); document.querySelectorAll('.modal.show').forEach(m => fermerModal(m.id)); });
+  await page.evaluate(() => { musculationProgrammes.push({ id: 'pz', nom: 'Jambes', exercices: [], maj: Date.now() }); allerA('repas'); });
+  await page.click('#onglet-plus'); assert.equal(await ouvert(), 'feuille-repas'); await fermer();
+  await page.evaluate(() => { allerA('seance'); choisirModeSeance('muscu'); });
+  assert.equal(await page.getAttribute('#onglet-plus', 'aria-label'), 'Lancer une séance');
+  await page.click('#onglet-plus'); assert.equal(await ouvert(), 'feuille-activite');
+  assert.match(await page.textContent('#opt-seance-jour'), /Séance du jour : Jambes/);
+  await page.click('#opt-seance-jour'); assert.equal(await ouvert(), 'apercu-programme-modal'); await fermer();
+  await page.evaluate(() => choisirModeSeance('cardio'));
+  await page.click('#onglet-plus'); assert.equal(await ouvert(), 'modal-cardio'); await fermer();
+  await page.evaluate(() => ouvrirStats('poids'));
+  assert.equal(await page.getAttribute('#onglet-plus', 'aria-label'), 'Noter une pesée');
+  await page.click('#onglet-plus'); assert.equal(await ouvert(), 'mesures-modal'); await fermer();
+  await page.evaluate(() => allerA('reglages'));
+  await page.click('#onglet-plus'); assert.equal(await ouvert(), 'mesures-modal'); await fermer();
+  // Séance en cours : le + ajoute un exercice.
+  await page.evaluate(() => { allerA('seance'); choisirModeSeance('muscu'); demarrerSeanceLibre(); });
+  assert.equal(await page.getAttribute('#onglet-plus', 'aria-label'), 'Ajouter un exercice');
+  await page.click('#onglet-plus'); assert.equal(await ouvert(), 'picker-exercices-modal');
 }));

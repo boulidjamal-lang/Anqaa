@@ -227,55 +227,6 @@
       --ambiance: none;
     }
 
-    /* ---- DENSITE : jauge réglable à 5 crans (0 = confort, par défaut, pas
-       de sélecteur d'attribut nécessaire ; 4 = compact). Resserre
-       progressivement tout l'écran (cartes, titres de section, boutons,
-       coins) — les valeurs par défaut (confort) ci-dessus ne bougent pas,
-       c'est l'affichage déjà en place. À partir de "Dense" (3) et jusqu'à
-       "Compact" (4), cache en plus les textes explicatifs non essentiels
-       (.note-explicative) ; "Compact" seul va encore plus loin en cachant
-       aussi le détail des macros par aliment — le reste (erreurs,
-       avertissements, contenus dynamiques, mentions légales) reste
-       toujours visible, à tous les crans. */
-    :root[data-densite="1"] {
-      --densite-pad: 16px; --densite-gap: 13px; --densite-nom: 0.89rem; --rayon: 17px;
-      --densite-summary-pad: 21px 18px; --densite-titre-marge: 17px 0 7px;
-      --densite-h3-marge: 12px; --densite-btn-pad: 13px 19px; --densite-btn-h: 45px;
-      --densite-h1-taille: 2.5rem; --densite-macros-pad: 11px;
-      --densite-ecran-marge: 12px; --densite-jauge-marge: 14px;
-    }
-    :root[data-densite="2"] {
-      --densite-pad: 13px; --densite-gap: 10px; --densite-nom: 0.85rem; --rayon: 14px;
-      --densite-summary-pad: 17px 15px; --densite-titre-marge: 13px 0 6px;
-      --densite-h3-marge: 10px; --densite-btn-pad: 11px 17px; --densite-btn-h: 42px;
-      --densite-h1-taille: 2.25rem; --densite-macros-pad: 10px;
-      --densite-ecran-marge: 10px; --densite-jauge-marge: 12px;
-    }
-    :root[data-densite="3"] {
-      --densite-pad: 10px; --densite-gap: 8px; --densite-nom: 0.8rem; --rayon: 11px;
-      --densite-summary-pad: 12px 12px; --densite-titre-marge: 9px 0 5px;
-      --densite-h3-marge: 8px; --densite-btn-pad: 9px 15px; --densite-btn-h: 38px;
-      --densite-h1-taille: 2rem; --densite-macros-pad: 8px;
-      --densite-ecran-marge: 8px; --densite-jauge-marge: 9px;
-    }
-    /* Le cran le plus dense : volontairement très serré, pensé pour voir le
-       maximum de contenu à l'écran plutôt que pour rester confortable à
-       lire — c'est tout l'intérêt par rapport aux crans intermédiaires. */
-    :root[data-densite="4"] {
-      --densite-pad: 6px;
-      --densite-gap: 4px;
-      --densite-nom: 0.74rem;
-      --rayon: 8px;
-      --densite-summary-pad: 8px 8px;
-      --densite-titre-marge: 6px 0 3px;
-      --densite-h3-marge: 5px;
-      --densite-btn-pad: 6px 12px;
-      --densite-btn-h: 32px;
-      --densite-h1-taille: 1.6rem;
-      --densite-macros-pad: 6px;
-      --densite-ecran-marge: 5px;
-      --densite-jauge-marge: 6px;
-    }
     /* Phrases d'explication repliées : visibles seulement après un toucher
        sur le titre de leur bloc. */
     .note-repliee { display: none !important; }
@@ -283,8 +234,6 @@
     .note-repliee.ouverte:empty { display: none !important; }
     .note-repliee.toujours-visible { display: block !important; }
     .titre-depliant { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    :root[data-densite="3"] .note-explicative,
-    :root[data-densite="4"] .note-explicative { display: none; }
 
     /* Le flou est couteux et penible pour certains utilisateurs : on le coupe
        proprement plutot que de laisser le systeme le faire a moitie. */
@@ -764,8 +713,6 @@
     .chip-code:hover, .chip-code:focus-visible { color: var(--text); }
     .chip-code.copie { color: var(--primary); border-color: var(--primary); }
     .food-macros { font-size: 0.7rem; display: flex; gap: 8px; margin-top: 2px; }
-    :root[data-densite="4"] .food-macros { display: none; }
-    :root[data-densite="4"] .food-item { padding: 6px 0; }
     /* Le tap révèle les macros masquées : autant que ça se voie et se sente. */
     .food-info { cursor: pointer; border-radius: 8px; transition: background 0.15s; }
     .food-info:active { background: var(--verre-creux); }
@@ -1574,14 +1521,6 @@
     .fiche-exo-video--mini video.mini { filter: blur(1px); }
     .fiche-exo-video--mini video.hd { opacity: 0; transition: opacity 0.25s; }
     .fiche-exo-video--mini video.hd.prete { opacity: 1; }
-    .palettes-perso { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    .palette-perso {
-      display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 0; border-radius: 12px; cursor: pointer;
-      background: var(--verre-creux); color: var(--text); font-family: inherit; font-weight: 700; font-size: 0.74rem; text-align: left;
-    }
-    .palette-perso.choisi { box-shadow: 0 0 0 2px var(--primary) inset; color: var(--primary); }
-    .palette-perso-pastilles { display: inline-flex; flex: none; }
-    .palette-perso-pastilles i { width: 14px; height: 14px; border-radius: 50%; margin-right: -4px; box-shadow: 0 0 0 1.5px var(--bg); }
     .admin-lien-video { display: block; font-size: 0.66rem; color: var(--accent); word-break: break-all; margin-top: 2px; }
     .aide-routine-etapes { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
     .aide-routine-etapes li { font-size: 0.84rem; }
@@ -2652,8 +2591,8 @@
     /* =====================================================================
        REFONTE 2026 — composants de Repas du jour et barre d'onglets.
        Les composants s'appuient sur les jetons de couleur (--text, --primary,
-       --protein…) : ils suivent aussi les palettes de couleurs. L'habillage
-       « verre, aurore, polices » est plus bas.
+       --protein…) : ils suivent aussi les couleurs réglées par l'admin. L'habillage
+       « verre, fond studio, polices » est plus bas.
        ===================================================================== */
     :root[data-theme="light"] { --carte-plein: #ffffff; --piste: rgba(13,16,32,.07); --trait: rgba(13,16,32,.07); }
     :root[data-theme="dark"]  { --carte-plein: #161924; --piste: rgba(255,255,255,.08); --trait: rgba(255,255,255,.07); }
@@ -2934,7 +2873,7 @@
     .pf h3 { margin: 10px 0 0; font-weight: 800; font-size: 1.8rem; letter-spacing: -.045em; overflow-wrap: anywhere; }
     .pf p { margin: 4px auto 0; max-width: 290px; color: var(--text-muted); font-size: .86rem; font-weight: 500; overflow-wrap: anywhere; }
     .pf-modif { margin-top: 12px; border: 0; border-radius: 99px; padding: 9px 18px; background: var(--piste); color: var(--text); font: inherit; font-size: .8rem; font-weight: 800; cursor: pointer; }
-    .niveau, .cg, .carte-badges, .carte-corps, .carte-objectifs { background: var(--verre); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8); box-shadow: var(--ombre-v), inset 0 0 0 1px var(--trait); }
+    .niveau, .cg, .carte-badges, .carte-objectifs { background: var(--verre); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8); box-shadow: var(--ombre-v), inset 0 0 0 1px var(--trait); }
     .niveau { margin: 16px 0 4px; padding: 14px 16px; border-radius: 22px; text-align: left; }
     .niveau-t { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-weight: 800; }
     .niveau-t b { font-size: 1.05rem; letter-spacing: -.02em; }
@@ -2947,7 +2886,7 @@
     .cg b { display: block; font-weight: 800; font-size: 1.7rem; letter-spacing: -.05em; line-height: 1; font-variant-numeric: tabular-nums;
       background: linear-gradient(180deg, var(--text), color-mix(in srgb, var(--text) 55%, transparent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
     .cg small { font-size: .62rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--text-muted); }
-    .carte-badges, .carte-corps, .carte-objectifs { padding: 16px; border-radius: 26px; margin-bottom: 12px; }
+    .carte-badges, .carte-objectifs { padding: 16px; border-radius: 26px; margin-bottom: 12px; }
     .badges { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 8px; }
     .badge { display: grid; justify-items: center; align-content: start; gap: 6px; text-align: center; font-size: .6rem; font-weight: 700; line-height: 1.25; color: var(--text-muted); }
     .badge .med { position: relative; width: 58px; height: 58px; border-radius: 20px; display: grid; place-items: center; color: #fff; transform: rotate(-8deg);
@@ -2958,10 +2897,6 @@
     .badge.verrou .med .icone-ui { opacity: .55; filter: none; }
     .badge b { color: var(--text); font-size: .7rem; font-weight: 800; }
     .badge.verrou b { color: var(--text-muted); }
-    .corps-duo { display: grid; grid-template-columns: 1fr 1fr; align-items: end; gap: 6px; }
-    .corps-duo svg { width: 100%; height: 230px; filter: drop-shadow(0 0 14px rgba(52,211,153,.35)); }
-    .legende-zones { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 12px; margin-top: 8px; font-size: .68rem; font-weight: 700; color: var(--text-muted); }
-    .legende-zones i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; box-shadow: 0 0 8px currentColor; }
     .obj-tuiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
     .obj-tuile { padding: 12px 2px 10px; border: 0; border-radius: 18px; text-align: center; background: var(--piste); font: inherit; font-size: .7rem; font-weight: 800; color: var(--text-muted); cursor: pointer; transition: transform .15s; }
     .obj-tuile:active { transform: scale(.94); }
@@ -2975,6 +2910,8 @@
     #vitrine-profil:not(:empty) ~ #carte-objectif { display: none; }
     .profil-entete { position: relative; z-index: 2; }
     #vitrine-profil:not(:empty) { margin-top: -58px; }
+    /* Sans en-tête au-dessus, la couverture monte jusqu'en haut de l'écran. */
+    body.sur-reglages #vitrine-profil .couv { margin-top: calc(-18px - env(safe-area-inset-top, 0px)); height: calc(196px + env(safe-area-inset-top, 0px)); }
 
 
     /* Actions en tuiles (Activité, Mesures) et lignes de réglage (Profil) */
@@ -3104,6 +3041,20 @@
     /* Finitions */
     html:root .carte-stats-titre { font-size: .8rem; font-weight: 800; letter-spacing: -.01em; text-transform: none; color: var(--text); }
 
+
+    /* L'en-tête (salutation, série, photo) n'existe que sur Repas du jour ;
+       les autres écrans s'ouvrent sur leur grand titre. */
+    body:not(.sur-repas) .app-bar { display: none; }
+    body:not(.sur-repas) main.container { padding-top: calc(18px + env(safe-area-inset-top, 0px)); }
+    html:root body:not(.sur-repas) :is(#ecran-seance > .titre-ecran, .stats-entete .titre-ecran, .profil-entete .titre-ecran, #ecran-admin > .titre-ecran) {
+      font-size: 2rem; letter-spacing: -.045em; line-height: 1.05; }
+    html:root body:not(.sur-repas) :is(#ecran-seance > .titre-ecran, .profil-entete .titre-ecran) > .ic { display: none; }
+
+
+    html:root #opt-seance-jour .ic { background: linear-gradient(135deg, #f472b6, #7c3aed); }
+    html:root #opt-seance-vide .ic { background: linear-gradient(135deg, #fbbf24, #f97316); }
+    html:root #opt-cardio .ic { background: linear-gradient(135deg, #22d3ee, #6366f1); }
+
     /* Apparition */
     .vitrine > *, #seance-cardio > * { animation: monte .55s cubic-bezier(.2,.8,.2,1) both; }
     .vitrine > :nth-child(2), #seance-cardio > :nth-child(2) { animation-delay: .05s; }
@@ -3112,7 +3063,7 @@
     @media (prefers-reduced-motion: reduce) { .vitrine > *, #seance-cardio > * { animation: none !important; } .arc-val, .xp i { transition: none; } }
 
     /* =====================================================================
-       HABILLAGE ANQĀ : polices, fond « aurore », cartes en verre dépoli,
+       HABILLAGE ANQĀ : polices, fond « studio », cartes en verre dépoli,
        boutons et champs modernes.
        ===================================================================== */
     html:root[data-theme="light"] { --bg: #f3f4f8; --verre: rgba(255,255,255,.72); --verre-fort: rgba(255,255,255,.9); --verre-creux: rgba(13,16,32,.045); --barre: rgba(243,244,248,.86);
@@ -3120,11 +3071,13 @@
     html:root[data-theme="dark"] { --bg: #07080d; --verre: rgba(22,25,36,.66); --verre-fort: rgba(30,34,48,.8); --verre-creux: rgba(255,255,255,.055); --barre: rgba(7,8,13,.82);
       --ombre: inset 0 1px 0 rgba(255,255,255,.05), 0 20px 50px -22px rgba(0,0,0,.85); --ombre-haute: 0 26px 60px -18px rgba(0,0,0,.9); }
     html:root body { font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif; background: var(--bg); -webkit-font-smoothing: antialiased; }
-    html:root body::before { content: ''; display: block !important; position: fixed; inset: -20%; z-index: 0; pointer-events: none; filter: blur(60px); opacity: .5;
-      background: radial-gradient(28% 22% at 18% 10%, #34d399, transparent 70%), radial-gradient(26% 20% at 88% 16%, #22d3ee, transparent 70%), radial-gradient(30% 24% at 72% 72%, #a78bfa, transparent 70%);
-      animation: aurore 20s ease-in-out infinite alternate; }
-    html:root[data-theme="dark"] body::before { opacity: .32; }
-    @keyframes aurore { 50% { transform: translate(4%, -3%) rotate(8deg) scale(1.05); } 100% { transform: translate(-3%, 4%) rotate(-6deg); } }
+    /* Fond « studio » : uni, une lueur en haut, une grille fine qui s'efface
+       vers le bas et un léger grain (fixe : il ne défile pas). */
+    html:root { --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); --lueur-haut: rgba(34,211,238,.22); --grille: rgba(13,16,32,.05); }
+    html:root[data-theme="dark"] { --lueur-haut: rgba(34,211,238,.15); --grille: rgba(255,255,255,.038); }
+    html:root body::before { content: ''; display: block !important; position: fixed; inset: 0; z-index: 0; pointer-events: none; filter: none;
+      background: var(--grain), linear-gradient(180deg, transparent 0 22%, var(--bg) 78%), radial-gradient(90% 34% at 50% -6%, var(--lueur-haut), transparent 72%),
+        linear-gradient(var(--grille) 1px, transparent 1px) 0 0/100% 32px, linear-gradient(90deg, var(--grille) 1px, transparent 1px) 0 0/32px 100%, var(--bg); }
     html:root .app-bar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
     html:root :is(.titre-ecran, .titre-section, .salut b, .anneaux-centre h1, .reste-kcal, .heros-puces b, .carte-stats-valeur b, .eau-texte, .meal-title, .meal-kcals, .cle-val, .feuille-titre, .modal-entete h3, .semaine-num b) {
       font-family: 'Manrope', 'Inter', sans-serif; }
@@ -3242,16 +3195,10 @@
   (function () {
     try {
       var t = localStorage.getItem('elite_theme') === 'dark' ? 'dark' : 'light';
-      var d = localStorage.getItem('elite_densite');
-      // Rétrocompatible avec les anciennes valeurs 'confort'/'compact' (avant
-      // la jauge réglable à 5 crans) — voir choisirDensite, même logique.
-      var niveau = d === 'confort' ? 0 : d === 'compact' ? 4 : parseInt(d, 10);
-      if (isNaN(niveau)) niveau = 0;
-      niveau = Math.max(0, Math.min(4, niveau));
       document.documentElement.setAttribute('data-theme', t);
-      document.documentElement.setAttribute('data-densite', String(niveau));
-      // Les anciens styles visuels au choix ont été retirés : on oublie le choix enregistré.
-      try { localStorage.removeItem('anqaa_style'); } catch (e) {}
+      // Réglages retirés (styles visuels, densité, palette personnelle) : on
+      // oublie les choix enregistrés.
+      ['anqaa_style', 'elite_densite', 'elite_couleurs_perso_v1'].forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
       var mtc = document.getElementById('meta-theme-color');
       if (mtc) mtc.setAttribute('content', t === 'dark' ? '#06070a' : '#eaeef5');
       // Pareil pour le manifest (ses propres background_color/theme_color,
@@ -3276,9 +3223,7 @@
     // cache local, pour éviter un flash des couleurs par défaut avant que
     // ce script-ci n'ait eu le temps de les recharger depuis Supabase.
     try {
-      // Palette choisie par l'utilisateur dans Réglages d'abord, sinon celle
-      // de l'appli (réglée par l'admin).
-      var cc = JSON.parse(localStorage.getItem('elite_couleurs_perso_v1')) || JSON.parse(localStorage.getItem('elite_couleurs_app_v1'));
+      var cc = JSON.parse(localStorage.getItem('elite_couleurs_app_v1'));
       if (cc && (cc.clair || cc.sombre)) {
         var style = document.createElement('style');
         style.id = 'couleurs-perso';
@@ -3485,7 +3430,6 @@
       <div id="seance-lancer">
       <div class="vitrine-sec"><h3>Mes programmes</h3></div>
       <div id="programmes-liste-container"></div>
-      <div id="carte-stats-muscu"></div>
       <div class="vitrine-sec"><h3>Créer et explorer</h3></div>
       <div class="actions-grille">
         <button type="button" class="action-tuile" onclick="ouvrirCreationProgramme()"><span class="action-ic" style="background:linear-gradient(135deg,#34d399,#06b6d4)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg></span><b>Créer un programme</b><small>Tes exercices, séries et charges</small></button>
@@ -3496,7 +3440,6 @@
       </div>
       <div class="actions-liens">
         <button type="button" onclick="ouvrirModal('aide-routine-modal')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg> Comment créer une routine ?</button>
-        <button type="button" onclick="ouvrirGymbro()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> Gymbro : comparer mes séances</button>
       </div>
       </div>
       <div id="seance-mode-cardio" class="hidden"><div id="seance-cardio"></div></div>
@@ -3564,7 +3507,6 @@
          de détail ouverte depuis les cartes (Repas du jour, Activité), une
          catégorie à la fois. « Retour » ramène là d'où on vient. -->
     <div class="stats-entete">
-      <button type="button" class="btn-icone" onclick="fermerStats()" aria-label="Retour">‹ Retour</button>
       <h2 class="titre-ecran" id="stats-titre">Statistiques</h2>
     </div>
 
@@ -4078,7 +4020,7 @@
 <nav class="onglets" id="onglets" aria-label="Navigation principale">
   <button type="button" class="onglet" id="onglet-repas" data-ecran="repas" onclick="allerA('repas')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg><span>Repas</span></button>
   <button type="button" class="onglet" id="onglet-seance" data-ecran="seance" onclick="allerA('seance')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.4 14.4 9.6 9.6" /><path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z" /><path d="m21.5 21.5-1.4-1.4" /><path d="M3.9 3.9 2.5 2.5" /><path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z" /></svg><span>Activité</span></button>
-  <button type="button" class="onglet-plus" id="onglet-plus" onclick="ouvrirFeuilleRepas(repasDuMoment())" aria-label="Ajouter à un repas"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg></button>
+  <button type="button" class="onglet-plus" id="onglet-plus" onclick="actionPlus()" aria-label="Ajouter à un repas"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg></button>
   <button type="button" class="onglet" id="onglet-progres" data-ecran="stats" onclick="ouvrirProgres()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="m19 9-5 5-4-4-3 3" /></svg><span>Progrès</span></button>
   <button type="button" class="onglet" id="onglet-profil" data-ecran="reglages" onclick="allerA('reglages')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 0 0-16 0" /></svg><span>Profil</span></button>
 </nav>
@@ -4138,6 +4080,27 @@
       <span>Code-barres<span class="sous">Scanner ou saisir un code produit</span></span>
     </button>
     <button class="btn btn-secondaire" style="margin-top:6px;" onclick="fermerFeuilleRepas()">Annuler</button>
+  </div>
+</div>
+
+<!-- ============ FEUILLE : le bouton + sur l'écran Activité ============ -->
+<div class="feuille" id="feuille-activite" role="dialog" aria-modal="true" aria-labelledby="feuille-activite-titre">
+  <div class="feuille-contenu">
+    <div class="feuille-poignee"></div>
+    <div class="feuille-titre" id="feuille-activite-titre">Lancer une activité</div>
+    <button class="feuille-action" id="opt-seance-jour" onclick="depuisFeuilleActivite('jour')">
+      <span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l14 9-14 9V3z" /></svg></span>
+      <span><span id="opt-seance-jour-nom">Séance du jour</span><span class="sous" id="opt-seance-jour-sous">Le programme que tu n'as pas fait depuis le plus longtemps</span></span>
+    </button>
+    <button class="feuille-action" id="opt-seance-vide" onclick="depuisFeuilleActivite('vide')">
+      <span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" /></svg></span>
+      <span>Séance vide<span class="sous">Tu ajoutes les exercices au fil de l'eau</span></span>
+    </button>
+    <button class="feuille-action" id="opt-cardio" onclick="depuisFeuilleActivite('cardio')">
+      <span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.2 12h3.3l1.5-3 3 6 1.5-3h8.3" /></svg></span>
+      <span>Séance cardio<span class="sous">Course, vélo, natation, marche, rameur…</span></span>
+    </button>
+    <button class="btn btn-secondaire" style="margin-top:6px;" onclick="fermerFeuilles()">Annuler</button>
   </div>
 </div>
 
@@ -5013,20 +4976,7 @@
       </div>
     </div>
 
-    <div class="input-group">
-      <label>Couleurs</label>
-      <div class="palettes-perso" id="palettes-perso"></div>
-      <small class="note" style="display:block; margin-top:6px;">Ton choix ne change que ton appli, sur tous tes appareils.</small>
-    </div>
 
-    <div class="slider-control">
-      <label><span><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1" /><rect width="7" height="7" x="14" y="3" rx="1" /><rect width="7" height="7" x="14" y="14" rx="1" /><rect width="7" height="7" x="3" y="14" rx="1" /></svg> Densité d'affichage</span><span id="densite-niveau-nom">Confort</span></label>
-      <input type="range" id="slider-densite" min="0" max="4" step="1" value="0" aria-label="Densité d'affichage" oninput="choisirDensite(this.value)">
-      <div style="display:flex; justify-content:space-between; margin-top:2px;">
-        <small class="note" style="margin:0;">Confort</small>
-        <small class="note" style="margin:0;">Compact</small>
-      </div>
-    </div>
 
   </div>
 </div>
@@ -6183,15 +6133,6 @@ function courbeMiniSVG(valeurs, couleur) {
   const pts = valeurs.map((v, i) => v == null ? null : `${(i / (valeurs.length - 1) * W).toFixed(1)},${y(v)}`).filter(Boolean).join(' ');
   return `<svg class="carte-stats-graph" width="${W}" height="${H}" viewBox="-2 -2 ${W + 4} ${H + 4}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${couleur}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
-function barresMiniSVG(valeurs, couleur, cible) {
-  const W = 110, H = 40;
-  const max = Math.max(1, ...valeurs, cible || 0) * 1.1, bw = W / valeurs.length;
-  const yCible = cible ? (H - cible / max * H).toFixed(1) : null;
-  return `<svg class="carte-stats-graph" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">${valeurs.map((v, i) => {
-    const h = Math.max(v > 0 ? 2 : 0, v / max * H);
-    return `<rect x="${(i * bw + 1.5).toFixed(1)}" y="${(H - h).toFixed(1)}" width="${Math.max(1, bw - 3).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${couleur}" opacity="${i === valeurs.length - 1 ? 1 : 0.55}"/>`;
-  }).join('')}${yCible ? `<line x1="0" x2="${W}" y1="${yCible}" y2="${yCible}" stroke="var(--text-muted)" stroke-dasharray="3 3" stroke-width="1.2"/>` : ''}</svg>`;
-}
 /* Tuile de Repas du jour (Poids, Nutrition) : icône, valeur, tendance et
    un graphique bord à bord. Ouvre le détail comme les autres cartes. */
 const ICONES_TUILE = {
@@ -6308,44 +6249,6 @@ function carteStatsNutritionHTML() {
 function renderCartesStatsRepas() {
   const c = document.getElementById('cartes-stats-repas');
   if (c) c.innerHTML = carteStatsPoidsHTML() + carteStatsNutritionHTML();
-}
-function carteStatsCardioHTML() {
-  const auj = todayStr();
-  const semaines = []; for (let w = 7; w >= 0; w--) semaines.push(bilanSemaineCardio(lundiDe(shiftDate(auj, -7 * w))).equiv);
-  // Les 4 dernières semaines complètes (la semaine en cours n'est pas finie).
-  const completes = semaines.slice(3, 7);
-  const moy = Math.round(completes.reduce((a, b) => a + b, 0) / Math.max(1, completes.length));
-  const atteint = completes.filter(v => v >= OBJECTIF_CARDIO.cible).length;
-  const depuis30 = shiftDate(auj, -29);
-  const recentes = seancesCardio().filter(({ date }) => date >= depuis30);
-  const km = recentes.reduce((t, { w }) => t + (Number(w.distance) || 0), 0);
-  const pas = []; for (let i = 14; i >= 1; i--) { const j = appData[shiftDate(auj, -i)]; if (j && Number(j.steps) > 0) pas.push(Number(j.steps)); }
-  const cases = [['Séances · 30 j', String(recentes.length)]];
-  if (km > 0) cases.push(['Distance · 30 j', fmtUneDecimale(km) + ' km']);
-  if (pas.length) cases.push(['Pas / jour', Math.round(pas.reduce((a, b) => a + b, 0) / pas.length).toLocaleString('fr-FR')]);
-  return carteStatsHTML({ id: 'carte-stats-cardio', onglet: 'activite', titre: 'Mes stats cardio · 8 semaines', valeur: String(moy), unite: 'min / semaine',
-    ligne: 'Objectif de ' + OBJECTIF_CARDIO.cible + ' min atteint ' + atteint + ' semaine' + (atteint > 1 ? 's' : '') + ' sur 4',
-    graphique: barresMiniSVG(semaines, 'var(--fx-1)', OBJECTIF_CARDIO.cible), cases });
-}
-function carteStatsMuscuHTML() {
-  const auj = todayStr();
-  const lundiActuel = lundiDeLaSemaine(auj);
-  const semaines = []; for (let w = 7; w >= 0; w--) { const l = decalerJours(lundiActuel, -7 * w); semaines.push(musculationHistorique.filter(h => h.date >= l && h.date <= decalerJours(l, 6)).length); }
-  const quatre = semaines.slice(3, 7);
-  const moy = quatre.reduce((a, b) => a + b, 0) / 4;
-  const cetteSemaine = musculationHistorique.filter(h => h.date >= lundiActuel && h.date <= auj);
-  const series = cetteSemaine.reduce((t, h) => t + h.exercices.reduce((n, e) => n + (e.series || []).filter(x => x && x.fait).length, 0), 0);
-  const groupes = seriesSemaine(lundiActuel, false);
-  const travailles = Object.keys(groupes).filter(g => groupes[g] > 0).length;
-  const depuis30 = decalerJours(auj, -29);
-  return carteStatsHTML({ id: 'carte-stats-muscu-carte', onglet: 'muscu', titre: 'Mes stats muscu · 8 semaines', valeur: fmtUneDecimale(moy), unite: 'séances / semaine',
-    ligne: cetteSemaine.length + ' séance' + (cetteSemaine.length > 1 ? 's' : '') + ' cette semaine',
-    graphique: barresMiniSVG(semaines, 'var(--fx-1)'),
-    cases: [['Séances · 30 j', String(musculationHistorique.filter(h => h.date >= depuis30 && h.date <= auj).length)], ['Séries cette sem.', String(series)], ['Muscles travaillés', String(travailles)]] });
-}
-function renderCarteStatsMuscu() {
-  const c = document.getElementById('carte-stats-muscu');
-  if (c) c.innerHTML = musculationHistorique.length ? carteStatsMuscuHTML() : '';
 }
 
 function renderApp() {
@@ -6633,6 +6536,7 @@ function choisirModeSeance(mode, silencieux) {
   if (c) c.classList.toggle('hidden', modeSeance !== 'cardio');
   majSegment('seance-mode-nav', ['muscu', 'cardio'], modeSeance);
   if (modeSeance === 'cardio') renderCardio();
+  majBoutonPlus();
 }
 
 function renderCardio() {
@@ -6665,7 +6569,6 @@ function renderCardio() {
     ${heroCardioHTML(b, phrase + ` Recommandé : ${OBJECTIF_CARDIO.cible} à ${OBJECTIF_CARDIO.haut} min par semaine, 1 min intense compte double.`)}
     <button type="button" class="btn btn-primary cardio-ajouter" onclick="ouvrirCardio()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Ajouter une séance cardio</button>
     ${seances.length ? bentoCardioHTML() : ''}
-    ${seances.length ? carteStatsCardioHTML() : ''}
     <div class="vitrine-sec"><h3>Dernières séances</h3></div>
     <div class="cardio-liste">${liste}</div>`;
   animerComptes(zone);
@@ -9959,6 +9862,7 @@ function choisirOngletStats(nom) {
     t.classList.toggle('stats-tab-actif', t.dataset.tab === nom);
   });
   majSegment('stats-onglets-nav', ['poids', 'nutrition', 'activite', 'muscu'], nom);
+  majBoutonPlus();
   const titre = document.getElementById('stats-titre');
   if (titre) titre.textContent = TITRES_STATS[nom] || 'Statistiques';
   // Le bilan IA couvre toute la période (nutrition, poids, activité,
@@ -9966,11 +9870,8 @@ function choisirOngletStats(nom) {
   const bilan = document.querySelector('#ecran-stats .stats-bilan');
   if (bilan) bilan.classList.toggle('hidden', nom !== 'nutrition');
 }
-/* Ouvre la fenêtre de statistiques d'une catégorie depuis sa carte, et y
-   revient avec « Retour ». */
-let ecranAvantStats = 'repas';
+/* Ouvre Progrès sur une catégorie (depuis sa carte ou l'onglet). */
 function ouvrirStats(onglet, avecCategories) {
-  if (ecranActif !== 'stats') ecranAvantStats = ecranActif;
   allerA('stats');
   choisirOngletStats(onglet);
   // Ouvert depuis une carte : une seule catégorie. Depuis l'onglet Progrès :
@@ -9997,9 +9898,6 @@ function ouvrirDepense() {
   window.scrollTo(0, 0);
   const b = document.getElementById('bloc-depense');
   if (b) { b.classList.remove('macro-stat--vise'); void b.offsetWidth; b.classList.add('macro-stat--vise'); }
-}
-function fermerStats() {
-  allerA(ecranAvantStats && ecranAvantStats !== 'stats' ? ecranAvantStats : 'repas');
 }
 // Deuxième niveau d'onglets, à l'intérieur de l'onglet Musculation (voir
 // commentaire sur .stats-soustab dans le CSS) : classe différente de
@@ -10745,6 +10643,7 @@ function allerA(nom) {
   if (nom === 'seance') { renderSeance(); choisirModeSeance(modeSeance, true); chargerFilGymbros(); }
   if (nom === 'repas') { majNoteCleIA(); renderPremiersPas(); }
   if (nom === 'reglages') renderVitrineProfil();
+  majBoutonPlus();
   // Les aliments ne sont chargés qu'à l'ouverture de leur feuille :
   // inutile d'interroger Supabase tant que personne ne les regarde.
   if (nom === 'admin') chargerAdmin();
@@ -10873,7 +10772,7 @@ function appliquerTheme(t) {
 // Plus de bouton dans l'en-tete (retiré) : seul le choix explicite dans les
 // réglages (choisirTheme, via le segment Clair/Sombre) appelle encore
 // appliquerTheme().
-function choisirTheme(t) { appliquerTheme(t); renderChoixPalettePerso(); majCouleurBarreStyle(); renderVitrineProfil(); renderVitrineMuscu(); }
+function choisirTheme(t) { appliquerTheme(t); majCouleurBarreStyle(); renderVitrineProfil(); renderVitrineMuscu(); }
 
 // Barre d'état du téléphone à la couleur de fond.
 function majCouleurBarreStyle() {
@@ -10921,48 +10820,13 @@ function construireCssCouleurs(donnees) {
   };
   return regle('light', donnees && donnees.clair) + regle('dark', donnees && donnees.sombre);
 }
-/* Palette PERSONNELLE (Réglages) : chaque utilisateur peut remplacer les
-   couleurs de l'appli par une des palettes prêtes. Le choix vit dans son
-   profil (synchronisé : il le retrouve sur tous ses appareils) et passe
-   avant les couleurs réglées par l'admin ; « Couleurs de l'appli » (id
-   vide) revient à celles-ci. */
-const COULEURS_PERSO_KEY = 'elite_couleurs_perso_v1';
-function palettePersoActive() {
-  const id = userProfile && userProfile.palette;
-  return id ? (PALETTES_PREDEFINIES.find(p => p.id === id) || null) : null;
-}
+/* Couleurs de l'appli (réglées par l'admin) : appliquées à tous les comptes. */
 function couleursEffectives() {
-  const p = palettePersoActive();
-  return p ? p.donnees : couleursAppActuelles;
+  return couleursAppActuelles;
 }
 function appliquerCouleursUtilisateur() {
   majCouleurBarreStyle();
-  const p = palettePersoActive();
-  try {
-    if (p) localStorage.setItem(COULEURS_PERSO_KEY, JSON.stringify(p.donnees));
-    else localStorage.removeItem(COULEURS_PERSO_KEY);
-  } catch (e) {}
   appliquerCouleursApp(couleursEffectives());
-  renderChoixPalettePerso();
-}
-function choisirPalettePerso(id) {
-  userProfile.palette = id || '';
-  saveData();
-  appliquerCouleursUtilisateur();
-}
-function renderChoixPalettePerso() {
-  const c = document.getElementById('palettes-perso');
-  if (!c) return;
-  const sombre = document.documentElement.getAttribute('data-theme') === 'dark';
-  const actif = (userProfile && userProfile.palette) || '';
-  const options = [{ id: '', nom: "Couleurs de l'appli", donnees: couleursAppActuelles || COULEURS_APP_DEFAUT }]
-    .concat(PALETTES_PREDEFINIES.filter(p => p.id !== 'anqa' || couleursAppActuelles));
-  c.innerHTML = options.map(p => {
-    const v = (p.donnees && (sombre ? p.donnees.sombre : p.donnees.clair)) || {};
-    const pastilles = [v.bg, v.primary, v.accent].map(col => `<i style="background:${escapeHtml(col || '#888')};"></i>`).join('');
-    return `<button type="button" class="palette-perso${p.id === actif ? ' choisi' : ''}" onclick="choisirPalettePerso(${argJs(p.id)})" aria-pressed="${p.id === actif}">
-      <span class="palette-perso-pastilles">${pastilles}</span><span>${escapeHtml(p.nom)}</span></button>`;
-  }).join('');
 }
 // donnees = null remet les couleurs par défaut du code (le tag reste vide).
 function appliquerCouleursApp(donnees) {
@@ -10985,25 +10849,10 @@ async function chargerCouleursApp() {
     if (error) throw error;
     couleursAppActuelles = data ? data.donnees : null;
     appliquerCouleursApp(couleursEffectives());
-    renderChoixPalettePerso();
     try { localStorage.setItem(COULEURS_APP_KEY, JSON.stringify(couleursAppActuelles || {})); } catch (e) {}
   } catch (e) {
     console.warn('[Couleurs] chargement indisponible :', e.message);
   }
-}
-const NOMS_DENSITE = ['Confort', 'Équilibré', 'Resserré', 'Dense', 'Compact'];
-function choisirDensite(d) {
-  // Rétrocompatible avec les anciennes valeurs 'confort'/'compact' (segment
-  // à deux boutons d'avant la jauge) déjà enregistrées dans localStorage.
-  let niveau = d === 'confort' ? 0 : d === 'compact' ? 4 : parseInt(d, 10);
-  if (isNaN(niveau)) niveau = 0;
-  niveau = Math.max(0, Math.min(4, niveau));
-  document.documentElement.setAttribute('data-densite', String(niveau));
-  try { localStorage.setItem('elite_densite', String(niveau)); } catch (e) {}
-  const slider = document.getElementById('slider-densite');
-  if (slider) slider.value = niveau;
-  const nomEl = document.getElementById('densite-niveau-nom');
-  if (nomEl) nomEl.textContent = NOMS_DENSITE[niveau];
 }
 function basculerNotesRepliees(titre, ids) {
   const notes = ids.split(' ').map(id => document.getElementById(id)).filter(Boolean);
@@ -11181,7 +11030,7 @@ const TOUR_ETAPES = [
   { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: "L'anneau extérieur, ce sont tes calories ; les trois intérieurs, protéines, glucides et lipides. Touche une macro pour sa courbe face à l'objectif, ou le reste de la carte pour ta dépense du jour et ta nutrition." },
   { ecran: 'repas', cible: '#coach-jour', titre: 'Le coach du jour', texte: "Un conseil qui change avec ta journée : ce qui te manque, avec des aliments que tu manges déjà, ou un rappel pour boire. Calculé sur ton téléphone, sans IA." },
   { ecran: 'repas', cible: '#cartes-stats-repas', titre: 'Poids et nutrition', texte: "Ton poids et ta nutrition des 14 derniers jours, d'un coup d'œil. Touche une carte pour le détail : courbe de poids et composition corporelle, ou calories et macros." },
-  { ecran: 'repas', cible: '#onglet-plus', titre: 'Ajouter à un repas', texte: "Le bouton + au centre : une recette, un aliment, une photo ou un code-barres, pour le repas du moment. Chaque repas a aussi son propre +." },
+  { ecran: 'repas', cible: '#onglet-plus', titre: 'Le bouton +', texte: "Il fait l'action utile de l'écran : ici, une recette, un aliment, une photo ou un code-barres pour le repas du moment. Sur Activité, il lance une séance ; sur Progrès, il note une pesée, un repas ou du cardio ; sur Profil, une mesure." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-recette', titre: 'Recette', texte: "Tes recettes enregistrées, et celles partagées par l'équipe : une portion s'ajoute en un toucher, macros déjà calculées. Tu y trouves aussi des idées de l'IA qui complètent tes macros du jour." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-manuel', titre: 'Aliment', texte: "Recherche dans la base d'aliments, avec en premier ce que tu manges souvent. Un aliment introuvable ? Saisis-le : il reste à toi, et rejoint la base commune une fois validé." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-photo', titre: 'Photo ou description', texte: "Prends en photo ou décris ton assiette : l'IA estime les aliments, les quantités et les macros." },
@@ -11193,13 +11042,12 @@ const TOUR_ETAPES = [
   { ecran: 'seance', cible: '#carte-pas-seances', titre: 'Tes pas', texte: "En bas de l'écran Activité : note tes pas du jour. La jauge montre où tu en es (7 500 pas, c'est le repère santé), et le surplus compte dans ta dépense." },
   { ecran: 'seance', cible: '#seance-mode-nav', titre: 'Musculation ou cardio', texte: "Bascule entre tes séances de musculation et ton cardio : course, vélo, natation, marche, rameur, HIIT, sport co." },
   { ecran: 'seance', modeCardio: true, cible: '#seance-cardio .hx--cardio', titre: 'Ta semaine de cardio', texte: "L'objectif conseillé : 150 à 300 min par semaine, une minute intense comptant double. La jauge montre où tu en es, la barre en dessous ta répartition facile / modérée / intense. Ajoute une séance avec le bouton juste en dessous : durée, distance, intensité." },
-  { ecran: 'seance', modeCardio: true, cible: '#carte-stats-cardio', titre: 'Tes stats cardio', texte: "Tes minutes des 8 dernières semaines, tes séances, ta distance et tes pas. Touche la carte pour le détail : allure, records et pas jour par jour." },
   { ecran: 'stats', avant: () => { ouvrirStats('nutrition'); }, cible: '#stats-periode', titre: 'Le détail d’une carte', texte: "Chaque carte de stats ouvre son détail. Choisis la période : 7 jours, 30 jours, 3 mois… ou « Perso » pour la régler aux curseurs. En Nutrition, le bilan IA l'analyse en entier. « ‹ Retour » te ramène où tu étais." },
   { ecran: 'stats', avant: () => { ouvrirStats('nutrition'); }, cible: '#carte-bilan-jour', titre: 'Bilan de la journée', texte: "Dans Ma nutrition, sous ta dépense du jour : une analyse de ta journée par l'IA (nutrition, activité et séance du jour)." },
-  { cible: '#moi-entete', titre: 'Ton profil', texte: 'Touche ta photo ou ton nom d’utilisateur, en haut : ton compte, ton objectif, tes informations et tes mesures corporelles.' },
+  { ecran: 'repas', cible: '#moi-entete', titre: 'Ton profil', texte: 'Touche ta photo ou ton nom d’utilisateur, en haut : ton compte, ton objectif, tes informations et tes mesures corporelles.' },
   { ecran: 'reglages', cible: '#vitrine-profil .niveau', titre: 'Ton niveau', texte: "Chaque séance de muscu (+40 XP), de cardio (+25) et chaque journée notée (+10) te fait monter de niveau. Les badges se débloquent avec ta régularité." },
   { ecran: 'reglages', cible: '#vitrine-profil .carte-objectifs', titre: 'Ton objectif', texte: "Maintien, sèche, prise de masse ou recomposition : il règle tes calories et tes macros. En changer ne réécrit jamais ton historique." },
-  { ecran: 'reglages', cible: '.btn-engrenage', titre: 'Réglages', texte: "Thème clair ou sombre, palette de couleurs, densité d'affichage, installation sur l'écran d'accueil, et les deux visites guidées." },
+  { ecran: 'reglages', cible: '.btn-engrenage', titre: 'Réglages', texte: "Thème clair ou sombre, réglages de musculation, installation sur l'écran d'accueil, et les deux visites guidées." },
   { titre: "C'est parti !", texte: "Tu connais l'essentiel. Pour tout savoir sur les programmes, les séances et les jauges de volume, lance la visite « Musculation » depuis les Réglages." }
 ];
 /* Visite dédiée à la musculation. Les étapes « siSession » montrent un
@@ -11245,7 +11093,6 @@ const TOUR_MUSCU = [
     texte: () => "Ta dernière série faite, touche « Terminer la séance » : elle rejoint ton historique avec tes records (1RM, charge, volume, répétitions) et compte dans la dépense de ta journée."
       + (musculationSessionActive && musculationSessionActive.demo ? " Ici, rien n'est enregistré : la démonstration se ferme à l'étape suivante." : '') },
   // C. Après la séance
-  { ecran: 'seance', cible: '#carte-stats-muscu-carte', titre: 'Tes stats muscu', texte: "En haut de l'écran Activité › Musculation : tes séances par semaine sur 8 semaines, tes séries et les muscles travaillés cette semaine. Touche la carte pour le détail." },
   { ecran: 'stats', avant: () => { ouvrirStats('muscu'); }, cible: '#muscu-soustabs-nav', titre: 'Le détail muscu', texte: "Semaine (jauges et corps de la semaine, 8 dernières semaines), Progression (courbe, records et niveau de force par exercice), Séances (historique) et Programmes." },
   { titre: 'Bon entraînement !', texte: "Tu peux revoir cette visite à tout moment depuis Profil › Réglages." }
 ];
@@ -17698,8 +17545,8 @@ function renderSeance() {
   afficherVueSeance();
   renderListeProgrammes();
   majBandeauSeanceFlottant();
-  renderCarteStatsMuscu();
   renderVitrineMuscu();
+  majBoutonPlus();
 }
 
 function afficherVueSeance() {
@@ -21074,7 +20921,6 @@ function renderVitrineProfil() {
   const av = avatarHTML(pseudo || nom, sessionUtilisateur && typeof monProfil !== 'undefined' && monProfil ? monProfil.avatar : null);
   const niv = niveauUtilisateur();
   const pct = Math.max(2, Math.min(100, (niv.xp - niv.bas) / (niv.haut - niv.bas) * 100));
-  const { couleurs } = couleursSemaine();
   const obj = dernierObjectifConnu(todayStr());
   const t = computeTargets(getDay(todayStr()), todayStr());
   const tuile = (cle, nomO, ic, g) => `<button type="button" class="obj-tuile${obj === cle ? ' on' : ''}" onclick="choisirObjectifVitrine('${cle}')" aria-pressed="${obj === cle}"><span class="obj-ic" style="background:${g}">${svgV(ic)}</span>${nomO}</button>`;
@@ -21088,9 +20934,6 @@ function renderVitrineProfil() {
     <div class="chiffres-geants"><div class="cg"><b data-compte="${musculationHistorique.length}">${musculationHistorique.length}</b><small>séances</small></div><div class="cg"><b data-compte="${niv.joursNotes}">${niv.joursNotes}</b><small>jours suivis</small></div><div class="cg"><b data-compte="${joursDAffilee()}">${joursDAffilee()}</b><small>d'affilée</small></div></div>
     <div class="vitrine-sec"><h3>Badges</h3><span>${badges.filter(b => b.ok).length} / ${badges.length}</span></div>
     <div class="carte-badges"><div class="badges">${badges.map(b => `<div class="badge${b.ok ? '' : ' verrou'}" title="${escapeHtml(b.detail)}"><span class="med" style="${b.ok ? `background:${b.g};--l:${b.l}` : ''}">${svgV(b.ic)}${b.ok && b.valeur ? `<em>${b.valeur}</em>` : ''}</span><b>${escapeHtml(b.nom)}</b>${escapeHtml(b.detail)}</div>`).join('')}</div></div>
-    <div class="vitrine-sec"><h3>Ton corps cette semaine</h3><button type="button" onclick="ouvrirStats('muscu')">Détail</button></div>
-    <div class="carte-corps" role="button" tabindex="0" onclick="ouvrirStats('muscu')"><div class="corps-duo">${silhouetteSVG('face', couleurs)}${silhouetteSVG('dos', couleurs)}</div>
-      <div class="legende-zones">${['mav', 'mev', 'mv', 'mrv'].map(z => `<span><i style="background:${ZONES_INFO[z].couleur};color:${ZONES_INFO[z].couleur}"></i>${ZONES_INFO[z].court}</span>`).join('')}</div></div>
     <div class="vitrine-sec"><h3>Mon objectif</h3></div>
     <div class="carte-objectifs"><div class="obj-tuiles">${tuile('seche', 'Sèche', 'bas', 'linear-gradient(135deg,#22d3ee,#0ea5e9)')}${tuile('maintien', 'Maintien', 'cible', 'linear-gradient(135deg,#34d399,#10b981)')}${tuile('masse', 'Masse', 'haut', 'linear-gradient(135deg,#fbbf24,#f97316)')}${tuile('recomposition', 'Recompo', 'recomp', 'linear-gradient(135deg,#a78bfa,#6366f1)')}</div>
       <div class="obj-cibles"><span><b>${nombreFr(t.target)}</b> kcal</span><span><b>${t.protein}</b> g prot.</span><span><b>${t.carbs}</b> g gluc.</span><span><b>${t.fat}</b> g lip.</span></div></div>`;
@@ -21163,6 +21006,63 @@ function verifierTrophees() {
   if (niv.n - (avant.niveau || 1) > 1 || nouveaux.length > 1) return;
   if (niv.n > (avant.niveau || 1)) celebrer('Niveau ' + niv.n + ' atteint !', niv.titre + ' · ' + nombreFr(niv.xp) + ' XP', 'eclair');
   else if (nouveau) celebrer('Badge débloqué : ' + nouveau.nom, nouveau.detail, nouveau.ic);
+}
+/* Le bouton + de la barre d'onglets fait l'action utile de l'écran affiché :
+   Repas → ajouter au repas du moment ; Activité → ajouter un exercice à la
+   séance en cours, sinon lancer une séance (feuille) ou, en mode cardio,
+   noter une séance cardio ; Progrès → selon la catégorie (pesée, repas,
+   cardio, séance) ; Profil → une mesure. */
+function categorieStatsActive() {
+  const t = document.querySelector('#ecran-stats .stats-tab.stats-tab-actif');
+  return t ? t.dataset.tab : 'poids';
+}
+function actionPlus() {
+  const e = ecranActif;
+  if (e === 'seance') {
+    if (musculationSessionActive) return ouvrirPickerExercices('session');
+    if (modeSeance === 'cardio') return ouvrirCardio();
+    return ouvrirFeuilleActivite();
+  }
+  if (e === 'stats') {
+    const c = categorieStatsActive();
+    if (c === 'poids') return ouvrirMesuresModal();
+    if (c === 'activite') return ouvrirCardio();
+    if (c === 'muscu') return ouvrirFeuilleActivite();
+    return ouvrirFeuilleRepas(repasDuMoment());
+  }
+  if (e === 'reglages') return ouvrirMesuresModal();
+  ouvrirFeuilleRepas(repasDuMoment());
+}
+const LIBELLES_PLUS = { repas: 'Ajouter à un repas', seance: 'Lancer une activité', stats: 'Ajouter', reglages: 'Ajouter une mesure', admin: 'Ajouter à un repas' };
+function majBoutonPlus() {
+  const b = document.getElementById('onglet-plus');
+  if (!b) return;
+  let l = LIBELLES_PLUS[ecranActif] || LIBELLES_PLUS.repas;
+  if (ecranActif === 'seance') l = musculationSessionActive ? 'Ajouter un exercice' : modeSeance === 'cardio' ? 'Noter une séance cardio' : 'Lancer une séance';
+  if (ecranActif === 'stats') l = { poids: 'Noter une pesée', nutrition: 'Ajouter à un repas', activite: 'Noter une séance cardio', muscu: 'Lancer une séance' }[categorieStatsActive()] || 'Ajouter';
+  b.setAttribute('aria-label', l);
+  b.title = l;
+}
+function ouvrirFeuilleActivite() {
+  const sug = programmeSuggere();
+  const btn = document.getElementById('opt-seance-jour');
+  if (btn) {
+    btn.classList.toggle('hidden', !sug);
+    if (sug) {
+      document.getElementById('opt-seance-jour-nom').textContent = 'Séance du jour : ' + sug.p.nom;
+      document.getElementById('opt-seance-jour-sous').textContent = sug.d ? 'Dernière fois ' + formatDateDisplay(sug.d).toLowerCase() : 'Jamais faite';
+    }
+  }
+  if (ouvrirFeuille('feuille-activite')) {
+    const b = document.querySelector('#feuille-activite .feuille-action:not(.hidden)');
+    if (b) setTimeout(() => b.focus(), 60);
+  }
+}
+function depuisFeuilleActivite(choix) {
+  fermerFeuilles();
+  if (choix === 'jour') { const sug = programmeSuggere(); if (sug) apercuProgramme(sug.p.id); }
+  else if (choix === 'vide') { if (ecranActif !== 'seance') allerA('seance'); choisirModeSeance('muscu'); demarrerSeanceLibre(); }
+  else if (choix === 'cardio') ouvrirCardio();
 }
 // Les tuiles d'objectif passent par le sélecteur existant (même règles : pas de réécriture du passé).
 function choisirObjectifVitrine(cle) {
@@ -22442,9 +22342,6 @@ window.addEventListener('load', () => {
   prechargerImagesProgrammes();
   verifierSupportVerre();
   appliquerTheme(themeActuel());
-  let densite = 'confort';
-  try { densite = localStorage.getItem('elite_densite') || 'confort'; } catch (e) {}
-  choisirDensite(densite);
   initFabDeplacable();
 
   // Champs volontairement vides quand aucune valeur n'a été enregistrée sur
