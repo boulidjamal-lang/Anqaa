@@ -2715,7 +2715,7 @@
     #ecran-repas .meal-kcals { padding: 0 !important; background: none !important; color: var(--text) !important; font-size: 1rem !important; font-weight: 800; letter-spacing: -0.02em; }
     .meal-kcals small { font-size: 0.66rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0; }
     .repas-ajouter { width: 34px; height: 34px; flex: none; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
-      background: var(--piste); color: var(--text); font: 600 1.2rem/1 inherit; }
+      background: var(--piste); color: var(--text); font-family: inherit; font-weight: 600; font-size: 1.2rem; line-height: 1; }
     .repas-equilibre { display: flex; gap: 2px; height: 5px; margin: 12px 0 2px; border-radius: 99px; overflow: hidden; }
     .repas-equilibre i { display: block; border-radius: 99px; }
     #ecran-repas .food-item { padding: 10px 0 0 !important; margin-top: 10px; border-top: 1px solid var(--trait) !important; border-bottom: 0 !important; }
@@ -2837,7 +2837,7 @@
     .pc .pc-corps svg { width: 100%; height: 100%; }
     .pc .tag { position: relative; display: inline-block; font-size: .62rem; font-weight: 800; padding: 4px 8px; border-radius: 99px; background: rgba(255,255,255,.2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
     .pc-options { position: absolute; top: 8px; right: 8px; z-index: 1; width: 30px; height: 30px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
-      background: rgba(0,0,0,.22); color: #fff; font: 800 1rem/1 inherit; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+      background: rgba(0,0,0,.22); color: #fff; font-family: inherit; font-weight: 800; font-size: 1rem; line-height: 1; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
 
     /* Cardio : arc et séances */
     .hx--cardio { min-height: 0; }
@@ -3054,6 +3054,126 @@
     html:root #opt-seance-jour .ic { background: linear-gradient(135deg, #f472b6, #7c3aed); }
     html:root #opt-seance-vide .ic { background: linear-gradient(135deg, #fbbf24, #f97316); }
     html:root #opt-cardio .ic { background: linear-gradient(135deg, #22d3ee, #6366f1); }
+
+
+    /* Pavé de saisie à la salle */
+    .serie-pave { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 6px 0 8px; padding: 12px; border-radius: 20px;
+      background: linear-gradient(135deg, color-mix(in srgb, #22d3ee 12%, transparent), color-mix(in srgb, #a78bfa 12%, transparent)); box-shadow: inset 0 0 0 1px var(--trait); }
+    .pave-champ { display: grid; justify-items: center; gap: 6px; }
+    .pave-champ > small { font-size: .62rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+    .pave-ctrl { position: relative; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; width: 100%; gap: 4px; }
+    .pave-ctrl b { font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.75rem; font-weight: 800; letter-spacing: -.04em; text-align: center; font-variant-numeric: tabular-nums; line-height: 1; }
+    .pave-unite { position: absolute; left: 0; right: 0; bottom: -14px; text-align: center; font-size: .62rem; font-weight: 700; color: var(--text-muted); pointer-events: none; }
+    .pave-btn { width: 44px; height: 44px; border: 0; border-radius: 15px; display: grid; place-items: center; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none;
+      font-family: inherit; font-weight: 600; font-size: 1.5rem; line-height: 1; color: var(--text); background: var(--carte-plein); box-shadow: 0 6px 14px -8px rgba(0,0,0,.4), inset 0 0 0 1px var(--trait); transition: transform .08s; }
+    .pave-btn:active { transform: scale(.88); background: var(--piste); }
+    .pave-valider { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 8px; height: 52px; margin-top: 12px; border: 0; border-radius: 16px; cursor: pointer;
+      font: inherit; font-family: 'Manrope', 'Inter', sans-serif; font-size: 1rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, #10b981, #06b6d4);
+      box-shadow: 0 14px 26px -12px rgba(6,182,212,.8); transition: transform .12s; }
+    .pave-valider:active { transform: scale(.97); }
+    .pave-valider .icone-ui { width: 20px; height: 20px; color: #fff; }
+
+
+    /* Bibliothèque d'exercices */
+    .puces-groupes { display: flex; gap: 6px; overflow-x: auto; margin: 0 -18px 10px; padding: 2px 18px 4px; scrollbar-width: none; }
+    .puces-groupes::-webkit-scrollbar { display: none; }
+    .puce-groupe { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border: 0; border-radius: 99px; cursor: pointer; font: inherit; font-size: .78rem; font-weight: 800;
+      color: var(--text); background: var(--piste); white-space: nowrap; transition: transform .12s; }
+    .puce-groupe:active { transform: scale(.95); }
+    .puce-groupe i { width: 8px; height: 8px; border-radius: 50%; background: var(--g); box-shadow: 0 0 8px var(--g); }
+    .puce-groupe.on { color: #fff; background: var(--g); box-shadow: 0 8px 18px -10px var(--g); }
+    .puce-groupe.on i { background: #fff; box-shadow: none; }
+    :root[data-theme="dark"] .puce-groupe.on[style*="var(--text)"] { color: var(--bg); }
+    html:root #picker-liste-exercices .exo-ligne { gap: 12px; padding: 10px; margin-bottom: 8px; border-radius: 20px; background: var(--verre);
+      box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); transition: transform .12s; }
+    html:root #picker-liste-exercices .exo-ligne:active { transform: scale(.98); }
+    html:root #picker-liste-exercices .exo-ligne-vignette { width: 58px; height: 58px; border-radius: 16px; }
+    html:root #picker-liste-exercices .exo-ligne-nom { font-family: 'Manrope', 'Inter', sans-serif; font-size: .95rem; font-weight: 800; letter-spacing: -.01em; }
+    .exo-groupe { display: inline-block; margin-right: 4px; padding: 2px 8px; border-radius: 99px; font-size: .66rem; font-weight: 800; color: var(--g);
+      background: color-mix(in srgb, var(--g) 14%, transparent); }
+    .exo-ligne-action { flex: none; width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; color: var(--text-muted); }
+    .exo-ligne-action .icone-ui { width: 18px; height: 18px; color: inherit; }
+    .exo-ligne-action--ajout { color: #fff; background: linear-gradient(135deg, #34d399, #06b6d4); box-shadow: 0 8px 16px -8px rgba(6,182,212,.8); }
+    #picker-resultats-compte { font-weight: 700; }
+
+
+    /* Éditeur de programme */
+    .prog-heros { position: relative; overflow: hidden; isolation: isolate; margin-top: 14px; padding: 18px; min-height: 170px; border-radius: 28px; color: #fff;
+      box-shadow: 0 22px 40px -22px rgba(0,0,0,.7); }
+    .prog-heros-corps { position: absolute; right: -14px; top: -6px; width: 160px; height: 210px; z-index: -1; }
+    .prog-heros-corps svg { width: 100%; height: 100%; }
+    .prog-heros small { font-size: .64rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
+    .prog-heros b { display: block; margin: 6px 0 4px; max-width: 64%; font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.9rem; font-weight: 800; letter-spacing: -.045em; line-height: 1; overflow-wrap: anywhere; }
+    .prog-heros p { margin: 0; max-width: 60%; font-size: .78rem; font-weight: 600; opacity: .85; }
+    .prog-heros-puces { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
+    .prog-heros-puces span { padding: 5px 10px; border-radius: 99px; background: rgba(255,255,255,.2); font-size: .7rem; font-weight: 800; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+    html:root #programme-nom-input { height: 52px; font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.1rem; font-weight: 800; }
+    html:root .exo-en-programme { background: var(--verre); border-radius: 24px; padding: 14px; -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
+      box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); }
+    html:root .exo-en-programme-entete { align-items: center; gap: 12px; }
+    .exo-prog-vignette { position: relative; flex: none; width: 52px; height: 52px; border-radius: 15px; overflow: hidden; background: var(--piste); display: grid; place-items: center; }
+    .exo-prog-vignette img, .exo-prog-vignette video { width: 100%; height: 100%; object-fit: cover; }
+    .exo-prog-vignette em { position: absolute; left: 3px; top: 3px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 7px; display: grid; place-items: center;
+      font-style: normal; font-size: .62rem; font-weight: 800; color: #fff; background: rgba(0,0,0,.55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+    .exo-prog-txt { flex: 1; min-width: 0; }
+    html:root .exo-en-programme-nom { font-family: 'Manrope', 'Inter', sans-serif !important; font-size: .98rem !important; font-weight: 800 !important; letter-spacing: -.01em; text-decoration: none !important; }
+    html:root .exo-en-programme-meta { margin-top: 4px; }
+    html:root .btn-ajout-exo { height: 56px; border: 1.5px dashed var(--trait) !important; background: transparent !important; color: var(--text); }
+
+
+    /* Premier lancement : questionnaire et choix des intérêts */
+    html:root #modal-bienvenue .modal-content { background-image: radial-gradient(90% 160px at 50% 0, color-mix(in srgb, #34d399 20%, transparent), transparent), radial-gradient(70% 140px at 100% 0, color-mix(in srgb, #a78bfa 18%, transparent), transparent); }
+    html:root .onb-progres { height: 6px; background: var(--piste); margin-bottom: 8px; }
+    html:root .onb-barre { background: linear-gradient(90deg, #34d399, #22d3ee, #a78bfa); box-shadow: 0 0 12px rgba(34,211,238,.6); }
+    .onb-etapes-n { margin-bottom: 16px; font-size: .66rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
+    html:root .onb-etape h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.6rem; letter-spacing: -.04em; line-height: 1.1; }
+    html:root .onb-etape h3 > .icone-ui { width: 40px; height: 40px; padding: 9px; flex: none; border-radius: 14px; color: #fff; background: linear-gradient(135deg, #34d399, #06b6d4); box-shadow: 0 10px 20px -10px rgba(6,182,212,.8); }
+    html:root .onb-option { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: var(--piste); transition: transform .12s, box-shadow .2s; }
+    html:root .onb-choix:not(.onb-vertical) .onb-option { flex-direction: column; justify-content: center; gap: 8px; padding: 16px 10px; font-family: 'Manrope', 'Inter', sans-serif; font-size: .95rem; font-weight: 800; }
+    html:root .onb-option:active { transform: scale(.97); }
+    html:root .onb-vertical .onb-option { display: grid; grid-template-columns: 40px 1fr; column-gap: 12px; row-gap: 1px; align-items: center; padding-right: 40px; }
+    html:root .onb-vertical .onb-option .onb-ic { grid-row: span 2; }
+    html:root .onb-vertical .onb-option small { margin-top: 0; }
+    .onb-ic { width: 40px; height: 40px; flex: none; border-radius: 13px; display: grid; place-items: center; color: #fff; box-shadow: 0 8px 16px -8px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.35); }
+    .onb-ic .icone-ui { width: 20px; height: 20px; color: #fff; }
+    html:root .onb-option strong { font-family: 'Manrope', 'Inter', sans-serif; font-size: .95rem; font-weight: 800; }
+    html:root .onb-option.choisi { color: var(--text); background: var(--carte-plein); box-shadow: 0 0 0 2px #10b981, 0 12px 24px -12px rgba(16,185,129,.7); }
+    html:root .onb-option.choisi small { color: var(--text-muted); }
+    html:root .onb-option.choisi::after { content: ''; position: absolute; right: 10px; top: 10px; width: 20px; height: 20px; border-radius: 50%;
+      background: #10b981 url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6 9 17l-5-5'/></svg>") center / 12px no-repeat; }
+    html:root .onb-vertical .onb-option.choisi::after { top: 50%; margin-top: -10px; }
+    html:root #onb-cible { font-family: 'Manrope', 'Inter', sans-serif; font-size: 4.2rem; font-weight: 800; letter-spacing: -.07em; line-height: 1;
+      background: linear-gradient(135deg, #10b981, #06b6d4 55%, #8b5cf6); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    html:root .onb-resultat { border-radius: 24px; background: var(--piste); }
+    html:root .interet { border: 0; border-radius: 20px; background: var(--piste); transition: transform .12s, box-shadow .2s; }
+    html:root .interet:active { transform: scale(.98); }
+    html:root .interet[aria-pressed="true"] { background: var(--carte-plein); box-shadow: 0 0 0 2px #10b981, 0 12px 24px -14px rgba(16,185,129,.7); }
+    html:root .interet-ico { color: #fff; box-shadow: 0 8px 16px -8px rgba(0,0,0,.5); }
+    html:root .interet-ico .icone-ui, html:root .interet-ico svg { color: #fff; }
+    html:root .interet[data-interet="nutrition"] .interet-ico { background: linear-gradient(135deg, #34d399, #10b981); }
+    html:root .interet[data-interet="muscu"] .interet-ico { background: linear-gradient(135deg, #f472b6, #7c3aed); }
+    html:root .interet[data-interet="cardio"] .interet-ico { background: linear-gradient(135deg, #22d3ee, #6366f1); }
+    html:root .interet-txt b { font-family: 'Manrope', 'Inter', sans-serif; font-weight: 800; }
+    html:root .interet[aria-pressed="true"] .interet-case { background: #10b981; border-color: #10b981; color: #fff; }
+
+
+    /* Graphique sans données : un emplacement plutôt que des axes vides */
+    .chart-container.graph-vide canvas { display: none !important; }
+    .chart-container.graph-vide { display: grid; place-items: center; min-height: 150px; border-radius: 20px; border: 1.5px dashed var(--trait); }
+    .chart-container.graph-vide::after { content: 'Ta courbe de poids apparaîtra ici dès ta première pesée.'; max-width: 220px; text-align: center; font-size: .8rem; font-weight: 700; color: var(--text-muted); }
+    .hx-puce:only-child:not(:has(b)) { font-weight: 600; line-height: 1.35; max-width: 64%; }
+
+
+    /* Administration */
+    html:root .admin-apercu { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+    html:root .apercu-case { min-height: 74px; padding: 12px 2px; border-radius: 18px; background: var(--verre); box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); }
+    html:root .apercu-case.actif { box-shadow: 0 0 0 2px var(--c, #10b981), 0 10px 20px -12px var(--c, #10b981); }
+    html:root .apercu-nb { font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.35rem; letter-spacing: -.04em; color: var(--c, var(--text)); }
+    html:root .apercu-lbl { font-size: .54rem; letter-spacing: .05em; }
+    .apercu-case[data-filtre="actif"] { --c: #10b981; } .apercu-case[data-filtre="suspendu"] { --c: #f59e0b; }
+    .apercu-case[data-filtre="inactif"] { --c: #64748b; } .apercu-case[data-filtre="supprime"] { --c: #ef4444; }
+    #ecran-admin .ligne-txt small { font-weight: 600; }
+    @media (max-width: 360px) { html:root .admin-apercu { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
     /* Apparition */
     .vitrine > *, #seance-cardio > * { animation: monte .55s cubic-bezier(.2,.8,.2,1) both; }
@@ -3488,6 +3608,7 @@
         <h3 id="titre-programme-modal" style="margin:0; font-size:1.05rem; font-weight:800;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg> Nouveau programme</h3>
         <button class="btn-icone" onclick="fermerEditionProgramme()">Annuler</button>
       </div>
+      <div id="programme-heros"></div>
       <div class="input-group" style="margin-top:14px;">
         <label for="programme-nom-input">Nom du programme</label>
         <input type="text" id="programme-nom-input" placeholder="ex : Push, Pull, Legs, Full body…" autocomplete="off" oninput="onSaisieNomProgramme(this.value)">
@@ -3495,7 +3616,7 @@
       <div class="titre-depliant" role="button" tabindex="0" onclick="ouvrirModal('aide-routine-modal')" onkeydown="if(event.key==='Enter')ouvrirModal('aide-routine-modal')" title="Comment construire une bonne routine ?" style="display:block; font-weight:700; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; margin:0; margin-bottom:12px;">Exercices</div>
       <div id="programme-exercices-container"></div>
       <p class="note" id="programme-exercices-vide" style="margin:0 0 12px;">Aucun exercice ajouté pour l'instant.</p>
-      <button class="btn btn-secondaire" style="width:100%; margin-bottom:14px;" onclick="ouvrirPickerExercices('programme')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Ajouter un exercice</button>
+      <button class="btn btn-secondaire btn-ajout-exo" style="width:100%; margin-bottom:14px;" onclick="ouvrirPickerExercices('programme')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Ajouter un exercice</button>
       <button class="btn btn-primary" onclick="validerProgramme()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /><path d="M7 3v4a1 1 0 0 0 1 1h7" /></svg> Enregistrer le programme</button>
       <button class="btn btn-secondaire" id="btn-suppr-programme" style="margin-top:10px; display:none;" onclick="supprimerProgrammeDepuisModal()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg> Supprimer ce programme</button>
     </div>
@@ -3503,9 +3624,9 @@
 
   <!-- ================= ÉCRAN 3 : STATISTIQUES ================= -->
   <section id="ecran-stats" class="ecran" role="region" aria-label="Statistiques">
-    <!-- Plus d'écran Statistiques dans le menu : cette section est la fenêtre
-         de détail ouverte depuis les cartes (Repas du jour, Activité), une
-         catégorie à la fois. « Retour » ramène là d'où on vient. -->
+    <!-- Onglet Progrès : ouvert depuis la barre d'onglets (toutes les
+         catégories) ou depuis une carte (Repas du jour, Activité), une
+         catégorie à la fois. -->
     <div class="stats-entete">
       <h2 class="titre-ecran" id="stats-titre">Statistiques</h2>
     </div>
@@ -3708,29 +3829,19 @@
   <section id="ecran-admin" class="ecran" role="region" aria-label="Administration">
     <h2 class="titre-ecran"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" /><path d="M5 21h14" /></svg></span> Administration</h2>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
-      <button class="btn btn-primary" type="button" onclick="ouvrirFeuilleReglagesTechniques()">
-        <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></svg> Réglages techniques
-      </button>
-      <button class="btn btn-primary" type="button" onclick="afficherFeuillAlimentsPersonalises()">
-        <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg> Aliments partagés
-      </button>
-      <button class="btn btn-primary" type="button" onclick="afficherFeuillExercicesAdmin()">
-        <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Bibliothèque d'exercices
-      </button>
-      <button class="btn btn-primary" type="button" onclick="afficherFeuillRecettesAdmin()">
-        <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11h18" /><path d="M12 3c-1.5 2-2 4-2 5.5A2 2 0 0 0 12 11a2 2 0 0 0 2-2.5c0-1.5-.5-3.5-2-5.5Z" /><path d="M3 11c0 6 3.5 10 9 10s9-4 9-10" /></svg> Recettes
-      </button>
-      <button class="btn btn-primary" type="button" onclick="afficherFeuilleBaseAliments()">
-        <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5V19A9 3 0 0 0 21 19V5" /><path d="M3 12A9 3 0 0 0 21 12" /></svg> Base d'aliments
-      </button>
-      <button class="btn btn-primary" type="button" onclick="afficherFeuilleCouleursAdmin()">
-        <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /></svg> Couleurs de l'application
-      </button>
+    <div class="vitrine-sec"><h3>Gérer l'appli</h3></div>
+    <div class="actions-grille">
+      <button type="button" class="action-tuile" onclick="ouvrirFeuilleReglagesTechniques()"><span class="action-ic" style="background:linear-gradient(135deg,#94a3b8,#475569)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></svg></span><b>Réglages techniques</b><small>Clés, sources, maintenance</small></button>
+      <button type="button" class="action-tuile" onclick="afficherFeuillAlimentsPersonalises()"><span class="action-ic" style="background:linear-gradient(135deg,#34d399,#10b981)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg></span><b>Aliments partagés</b><small>À valider, renommer, fusionner</small></button>
+      <button type="button" class="action-tuile" onclick="afficherFeuillExercicesAdmin()"><span class="action-ic" style="background:linear-gradient(135deg,#f472b6,#7c3aed)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg></span><b>Bibliothèque d'exercices</b><small>Vidéos, muscles, faisceaux</small></button>
+      <button type="button" class="action-tuile" onclick="afficherFeuillRecettesAdmin()"><span class="action-ic" style="background:linear-gradient(135deg,#fbbf24,#f97316)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11h18" /><path d="M12 3c-1.5 2-2 4-2 5.5A2 2 0 0 0 12 11a2 2 0 0 0 2-2.5c0-1.5-.5-3.5-2-5.5Z" /><path d="M3 11c0 6 3.5 10 9 10s9-4 9-10" /></svg></span><b>Recettes</b><small>Recettes partagées</small></button>
+      <button type="button" class="action-tuile" onclick="afficherFeuilleBaseAliments()"><span class="action-ic" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5V19A9 3 0 0 0 21 19V5" /><path d="M3 12A9 3 0 0 0 21 12" /></svg></span><b>Base d'aliments</b><small>Tout le catalogue</small></button>
+      <button type="button" class="action-tuile" onclick="afficherFeuilleCouleursAdmin()"><span class="action-ic" style="background:linear-gradient(135deg,#a78bfa,#6366f1)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /></svg></span><b>Couleurs de l'application</b><small>Pour tous les comptes</small></button>
     </div>
 
     <!-- Vue d'ensemble : repondre aux questions courantes sans avoir a
          ouvrir les comptes un par un. Les chiffres sont calcules en base. -->
+    <div class="vitrine-sec"><h3>Comptes</h3></div>
     <div class="admin-apercu" id="admin-apercu">
       <button class="apercu-case" type="button" data-filtre="tous" onclick="filtrerParStatut('tous')">
         <span class="apercu-nb" id="apercu-total">&mdash;</span>
@@ -3771,20 +3882,16 @@
     </div>
     <p class="note" id="admin-etat">Chargement des comptes&hellip;</p>
 
-    <hr class="sep">
-
-    <div class="admin-separateur">
-      <button class="btn btn-secondaire" type="button" onclick="ouvrirJournalAdmin()">
-        <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg> Journal des actions
+    <div class="vitrine-sec"><h3>Outils</h3></div>
+    <div class="carte-liste">
+      <button type="button" class="ligne-reglage ligne-reglage--bouton" onclick="ouvrirJournalAdmin()">
+        <span class="action-ic" style="background:linear-gradient(135deg,#94a3b8,#475569)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg></span>
+        <span class="ligne-txt"><b>Journal des actions</b><small>Suspensions, suppressions et rattachements</small></span><span class="ligne-chevron"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></span>
       </button>
-      <p class="note note-explicative">Historique des suspensions, suppressions et rattachements.</p>
-    </div>
-
-    <div class="admin-separateur">
-      <button class="btn btn-primary" type="button" id="btn-corriger-unites-admin" onclick="corrigerUnitesTousComptes()">
-        <span id="btn-corriger-unites-admin-texte"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></svg> Corriger les unités g/ml</span>
+      <button type="button" class="ligne-reglage ligne-reglage--bouton" id="btn-corriger-unites-admin" onclick="corrigerUnitesTousComptes()">
+        <span class="action-ic" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></svg></span>
+        <span class="ligne-txt"><b id="btn-corriger-unites-admin-texte">Corriger les unités g/ml</b><small>Boissons encore en grammes, sur les journées de <strong>tous les comptes</strong></small></span><span class="ligne-chevron"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></span>
       </button>
-      <p class="note note-explicative">Repère les boissons encore marquées en grammes et les convertit en ml, sur les journées de <strong>tous les comptes</strong>.</p>
     </div>
 
     <div id="admin-stats-zone" class="hidden">
@@ -4605,6 +4712,7 @@
 <div class="modal" id="modal-bienvenue" role="dialog" aria-modal="true" aria-labelledby="titre-bienvenue">
   <div class="modal-content">
     <div class="onb-progres"><div class="onb-barre" id="onb-barre"></div></div>
+    <div class="onb-etapes-n" id="onb-etapes-n">Étape 1 sur 3</div>
 
     <!-- Etape 1 : identite -->
     <div class="onb-etape" data-etape="1">
@@ -4614,8 +4722,8 @@
       <div class="input-group">
         <label>Sexe</label>
         <div class="onb-choix" id="onb-genre">
-          <button type="button" class="onb-option" data-valeur="m">Homme</button>
-          <button type="button" class="onb-option" data-valeur="f">Femme</button>
+          <button type="button" class="onb-option" data-valeur="m"><span class="onb-ic" style="background:linear-gradient(135deg,#38bdf8,#6366f1)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5" /><path d="m21 3-6.75 6.75" /><circle cx="10" cy="14" r="6" /></svg></span>Homme</button>
+          <button type="button" class="onb-option" data-valeur="f"><span class="onb-ic" style="background:linear-gradient(135deg,#f472b6,#a855f7)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15v7" /><path d="M9 19h6" /><circle cx="12" cy="9" r="6" /></svg></span>Femme</button>
         </div>
         <small class="onb-aide">Le métabolisme de base se calcule différemment.</small>
       </div>
@@ -4646,16 +4754,16 @@
       <p class="note note-explicative">Une estimation de départ, utilisée seulement les jours où tu ne saisis pas tes pas. Dès que tu les renseignes, ce sont eux qui comptent.</p>
 
       <div class="onb-choix onb-vertical" id="onb-activite">
-        <button type="button" class="onb-option" data-valeur="3000">
+        <button type="button" class="onb-option" data-valeur="3000"><span class="onb-ic" style="background:linear-gradient(135deg,#94a3b8,#64748b)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3" /><path d="M3 16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0z" /><path d="M5 18v2" /><path d="M19 18v2" /></svg></span>
           <strong>Sédentaire</strong><small>Bureau, peu de déplacements</small>
         </button>
-        <button type="button" class="onb-option" data-valeur="6000">
+        <button type="button" class="onb-option" data-valeur="6000"><span class="onb-ic" style="background:linear-gradient(135deg,#34d399,#10b981)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" /></svg></span>
           <strong>Légèrement actif</strong><small>Quelques marches dans la journée</small>
         </button>
-        <button type="button" class="onb-option" data-valeur="10000">
+        <button type="button" class="onb-option" data-valeur="10000"><span class="onb-ic" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13" cy="4" r="2" /><path d="m4 22 4-7 3 2 1 5" /><path d="m8 15 3-6 4 3 3-1" /><path d="m16 22-2-6" /></svg></span>
           <strong>Actif</strong><small>Beaucoup debout ou en déplacement</small>
         </button>
-        <button type="button" class="onb-option" data-valeur="14000">
+        <button type="button" class="onb-option" data-valeur="14000"><span class="onb-ic" style="background:linear-gradient(135deg,#fbbf24,#f97316)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 12-8.373 8.373a1 1 0 1 1-3-3L12 9" /><path d="m18 15 4-4" /><path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8.4V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5" /></svg></span>
           <strong>Très actif</strong><small>Métier physique</small>
         </button>
       </div>
@@ -4673,13 +4781,13 @@
       <p class="note note-explicative">Modifiable à tout moment depuis ton Profil. Le changer ne réécrit jamais tes journées passées.</p>
 
       <div class="onb-choix onb-vertical" id="onb-objectif">
-        <button type="button" class="onb-option" data-valeur="seche">
+        <button type="button" class="onb-option" data-valeur="seche"><span class="onb-ic" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m19 12-7 7-7-7" /><path d="M12 5v14" /></svg></span>
           <strong>Perdre du poids</strong><small>Environ 20 % sous tes besoins</small>
         </button>
-        <button type="button" class="onb-option" data-valeur="maintien">
+        <button type="button" class="onb-option" data-valeur="maintien"><span class="onb-ic" style="background:linear-gradient(135deg,#34d399,#10b981)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg></span>
           <strong>Maintenir</strong><small>À l'équilibre</small>
         </button>
-        <button type="button" class="onb-option" data-valeur="masse">
+        <button type="button" class="onb-option" data-valeur="masse"><span class="onb-ic" style="background:linear-gradient(135deg,#fbbf24,#f97316)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 7-7 7 7" /><path d="M12 19V5" /></svg></span>
           <strong>Prendre du muscle</strong><small>Environ 15 % au-dessus</small>
         </button>
       </div>
@@ -5315,16 +5423,12 @@
       <label for="picker-recherche" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Rechercher un exercice</label>
       <input type="text" id="picker-recherche" placeholder="Rechercher un exercice…" autocomplete="off" oninput="rechercherPickerExercices()">
     </div>
-    <!-- Deux menus déroulants plutôt qu'un mur de puces (15 groupes + 8
-         matériels, jusqu'à 25 boutons à la fois) : même filtrage, beaucoup
-         moins de boutons à l'écran. -->
-    <div style="display:flex; gap:8px; margin-bottom:12px;">
-      <div class="input-group" style="margin-bottom:0; flex:1; min-width:0;">
-        <select id="picker-filtre-groupe" onchange="rendrePickerExercices()"></select>
-      </div>
-      <div class="input-group" style="margin-bottom:0; flex:1; min-width:0;">
-        <select id="picker-filtre-materiel" onchange="rendrePickerExercices()"></select>
-      </div>
+    <!-- Groupes en pastilles qui défilent (une ligne), matériel en menu.
+         Le menu des groupes reste la source du filtre (caché). -->
+    <div class="puces-groupes" id="picker-puces-groupes" role="group" aria-label="Groupe musculaire"></div>
+    <select id="picker-filtre-groupe" class="hidden" onchange="rendrePickerExercices()" aria-hidden="true" tabindex="-1"></select>
+    <div class="input-group" style="margin-bottom:12px;">
+      <select id="picker-filtre-materiel" onchange="rendrePickerExercices()" aria-label="Matériel"></select>
     </div>
     <p class="note" id="picker-resultats-compte" style="margin:0 0 10px;"></p>
     <div id="picker-liste-exercices"></div>
@@ -9777,6 +9881,9 @@ function majNoteTendance(b) {
   // Le message « pas assez de pesées » reste affiché ; l'explication de la
   // courbe, elle, ne s'ouvre qu'au toucher du titre.
   n.classList.toggle('toujours-visible', !b || b.pesees < 2);
+  // Aucune pesée : pas de graphique vide (axes de 0 à 1), un emplacement à la place.
+  const zone = document.getElementById('poidsChart') && document.getElementById('poidsChart').parentElement;
+  if (zone) zone.classList.toggle('graph-vide', !b || !b.pesees);
   if (!b || b.pesees < 2) {
     n.textContent = 'Pèse-toi au moins deux fois sur la période pour voir une tendance. Idéalement le matin, à jeun, toujours dans les mêmes conditions.';
     return;
@@ -13636,6 +13743,8 @@ function onbAller(n) {
   });
   const barre = document.getElementById('onb-barre');
   if (barre) barre.style.width = (n * 25) + '%';
+  const num = document.getElementById('onb-etapes-n');
+  if (num) num.textContent = n < 4 ? 'Étape ' + n + ' sur 3' : 'Ton objectif est prêt';
   const modale = document.querySelector('#modal-bienvenue .modal-content');
   if (modale) modale.scrollTop = 0;
 }
@@ -18396,6 +18505,29 @@ function onSaisieNomProgramme(v) {
   if (!programmeEnEdition) return;
   programmeEnEdition.nom = v;
   sauvegarderProgrammeEnEdition();
+  const n = document.getElementById('programme-heros-nom');
+  if (n) n.textContent = v.trim() || 'Sans nom';
+}
+/* En-tête de l'éditeur : le programme tel qu'il apparaîtra dans le carrousel
+   (couleur, muscles travaillés), avec ses chiffres : exercices, séries,
+   durée estimée (environ 2 min 30 par série, repos compris). */
+function renderHerosProgramme() {
+  const c = document.getElementById('programme-heros');
+  if (!c || !programmeEnEdition) return;
+  const p = programmeEnEdition;
+  const idx = p.id ? Math.max(0, musculationProgrammes.findIndex(x => x.id === p.id)) : musculationProgrammes.length;
+  const g = groupesProgramme(p), cles = Object.keys(g);
+  const blanc = {}; cles.forEach(k => { blanc[k] = 'rgba(255,255,255,.95)'; });
+  const series = p.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
+  const minutes = Math.round(series * 2.5);
+  const noms = cles.sort((a, b) => g[b] - g[a]).slice(0, 4).map(k => GROUPES_MUSCULAIRES[k] || k).join(', ');
+  c.innerHTML = `<div class="prog-heros" style="background:${TEINTES_PROGRAMMES[idx % TEINTES_PROGRAMMES.length]}">
+    <span class="prog-heros-corps">${silhouetteSVG('face', blanc, { vb: CADRES_SILHOUETTE.buste, neutre: 'rgba(255,255,255,.13)', contour: 'rgba(255,255,255,.06)' })}</span>
+    <small>${p.id ? 'Programme' : 'Nouveau programme'}</small>
+    <b id="programme-heros-nom">${escapeHtml((p.nom || '').trim() || 'Sans nom')}</b>
+    <p>${noms ? escapeHtml(noms) : 'Ajoute des exercices : les muscles travaillés s’allument.'}</p>
+    <div class="prog-heros-puces"><span>${p.exercices.length} exercice${p.exercices.length > 1 ? 's' : ''}</span><span>${series} série${series > 1 ? 's' : ''}</span>${series ? `<span>≈ ${minutes} min</span>` : ''}</div>
+  </div>`;
 }
 function ouvrirCreationProgramme() {
   programmeEnEdition = { id: null, nom: '', exercices: [] };
@@ -18417,6 +18549,7 @@ function ouvrirEditionProgramme(id) {
 }
 function renderProgrammeExercicesEnEdition() {
   sauvegarderProgrammeEnEdition();
+  renderHerosProgramme();
   const c = document.getElementById('programme-exercices-container');
   initSwipeSeries('programme-exercices-container');
   const vide = document.getElementById('programme-exercices-vide');
@@ -18443,11 +18576,12 @@ function renderProgrammeExercicesEnEdition() {
       <div class="exo-swipe-fond exo-swipe-fond--suppr" aria-hidden="true">Retirer <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></div>
       <div class="exo-en-programme">
       <div class="exo-en-programme-entete">
-        <div>
+        <span class="exo-prog-vignette" aria-hidden="true">${exo ? medaillonExercice(exo, true) : ''}<em>${i + 1}</em></span>
+        <div class="exo-prog-txt">
           ${exo
             ? `<button type="button" class="exo-en-programme-nom" style="background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-align:left;" onclick="afficherFicheExerciceBiblio(${argJs(pe.exerciceId)}, { historique: musculationHistorique, onglet: 'resume' })">${escapeHtml(libelleExercice(exo))}</button>`
             : `<div class="exo-en-programme-nom">Exercice supprimé</div>`}
-          <div class="exo-en-programme-meta">${escapeHtml(meta)}</div>
+          <div class="exo-en-programme-meta">${exo ? `<span class="exo-groupe" style="--g:${couleurGroupe(exo.groupe)}">${escapeHtml(GROUPES_MUSCULAIRES[exo.groupe] || '')}</span>${escapeHtml(MATERIELS[exo.materiel].label)}` : escapeHtml(meta)}</div>
         </div>
         <span class="exo-poignee" aria-hidden="true" title="Appui long pour déplacer"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6" /><circle cx="15" cy="6" r="1.6" /><circle cx="9" cy="12" r="1.6" /><circle cx="15" cy="12" r="1.6" /><circle cx="9" cy="18" r="1.6" /><circle cx="15" cy="18" r="1.6" /></svg></span>
       </div>
@@ -19302,12 +19436,31 @@ function initFiltresGroupeMateriel(idGroupe, idMateriel) {
 function initFiltresPickerSiBesoin() {
   initFiltresGroupeMateriel('picker-filtre-groupe', 'picker-filtre-materiel');
 }
+// Une teinte par groupe musculaire (pastilles de filtre, étiquette des lignes).
+const COULEURS_GROUPES = { pectoraux: '#ec4899', dos: '#6366f1', epaules: '#f59e0b', biceps: '#8b5cf6', triceps: '#a855f7', quadriceps: '#10b981', ischios: '#14b8a6',
+  fessiers: '#f97316', adducteurs: '#84cc16', mollets: '#22c55e', abdos: '#06b6d4', lombaires: '#0ea5e9', avant_bras: '#d946ef', trapezes: '#3b82f6', cardio: '#ef4444', autres: '#64748b' };
+function couleurGroupe(g) { return COULEURS_GROUPES[g] || '#64748b'; }
+function renderPucesGroupes() {
+  const c = document.getElementById('picker-puces-groupes'), sel = document.getElementById('picker-filtre-groupe');
+  if (!c || !sel) return;
+  const actif = sel.value;
+  c.innerHTML = [['', 'Tous']].concat(ORDRE_GROUPES.filter(g => GROUPES_MUSCULAIRES[g]).map(g => [g, GROUPES_MUSCULAIRES[g]])).map(([g, nom]) =>
+    `<button type="button" class="puce-groupe${g === actif ? ' on' : ''}" style="--g:${g ? couleurGroupe(g) : 'var(--text)'}" aria-pressed="${g === actif}" onclick="choisirGroupePicker(${argJs(g)})">${g ? '<i></i>' : ''}${escapeHtml(nom)}</button>`).join('');
+}
+function choisirGroupePicker(g) {
+  const sel = document.getElementById('picker-filtre-groupe');
+  sel.value = g;
+  renderPucesGroupes();
+  rendrePickerExercices();
+}
 function ouvrirPickerExercices(mode) {
   pickerMode = mode;
   pickerOnglet = 'tous';
   majSegment('picker-onglets', ['tous', 'pratiques', 'niveau'], 'tous');
   initFiltresPickerSiBesoin();
   document.getElementById('picker-recherche').value = '';
+  document.getElementById('picker-filtre-groupe').value = '';
+  renderPucesGroupes();
   document.getElementById('titre-picker-exercices').innerHTML =
     mode === 'programme' ? '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Ajouter un exercice au programme' :
     mode === 'session' ? '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Ajouter un exercice à la séance' :
@@ -19367,10 +19520,11 @@ function rendrePickerExercices() {
       <span class="exo-ligne-vignette" aria-hidden="true">${medaillonExercice(e)}</span>
       <span style="flex:1; min-width:0;">
         <span class="exo-ligne-nom">${escapeHtml(libelleExercice(e))}${pickerOnglet !== 'niveau' ? badgeNiveauHTML(e.id) : ''}</span>
-        <span class="exo-ligne-meta"><b style="color:var(--primary);">${escapeHtml(m.principal)}</b>${m.secondaires.length ? ' · ' + escapeHtml(m.secondaires.join(', ')) : ''}</span>
+        <span class="exo-ligne-meta"><span class="exo-groupe" style="--g:${couleurGroupe(e.groupe)}">${escapeHtml(m.principal)}</span>${m.secondaires.length ? ' ' + escapeHtml(m.secondaires.join(', ')) : ''}</span>
         <span class="exo-ligne-meta">${MATERIELS[e.materiel].ic} ${escapeHtml(sousTitre)}</span>
         ${jauge}
       </span>
+      <span class="exo-ligne-action${pickerMode === 'bibliotheque' ? '' : ' exo-ligne-action--ajout'}" aria-hidden="true">${pickerMode === 'bibliotheque' ? '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>' : '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>'}</span>
     </button>`;
   };
   // Rendu par paquets : les premières lignes tout de suite, la suite quand
@@ -20820,7 +20974,7 @@ function renderVitrineMuscu() {
       <div class="hx-corps">${silhouetteSVG('face', couleurs)}</div>
       <div class="hx-k">Semaine ${numeroSemaine(auj)} · Musculation</div><div class="hx-titre">Ta semaine</div>
       <div class="hx-geant" data-compte="${total}">${total}</div><div class="hx-unite">série${total > 1 ? 's' : ''} · ${seancesSem.length} séance${seancesSem.length > 1 ? 's' : ''}</div>
-      <div class="hx-puces"><span class="hx-puce"><i style="background:${ZONES_INFO.mav.couleur};color:${ZONES_INFO.mav.couleur}"></i><b>${ideal}</b> en zone idéale</span><span class="hx-puce"><i style="background:${ZONES_INFO.sous.couleur};color:${ZONES_INFO.sous.couleur}"></i><b>${aTravailler}</b> à travailler</span></div>
+      <div class="hx-puces">${total ? `<span class="hx-puce"><i style="background:${ZONES_INFO.mav.couleur};color:${ZONES_INFO.mav.couleur}"></i><b>${ideal}</b> en zone idéale</span><span class="hx-puce"><i style="background:${ZONES_INFO.sous.couleur};color:${ZONES_INFO.sous.couleur}"></i><b>${aTravailler}</b> à travailler</span>` : `<span class="hx-puce">Ta semaine démarre à ta première série : le corps s'allume au fil des séances.</span>`}</div>
     </div>
     ${sdj}
     <div class="bento">
@@ -21505,6 +21659,8 @@ function blocProgressionHTML(exo, ei) {
 function renderSessionExerciceBlocHTML(exo, ei) {
   const exerciceComplet = trouverExercice(exo.exerciceId);
   const precedente = dernierePerfExercice(exo.exerciceId);
+  // La série à faire (la première non cochée) s'ouvre en grand pavé de saisie.
+  const siCourant = exo.series.findIndex(s => !s.fait);
   const lignesSeries = exo.series.map((set, si) => {
     const ref = precedente && precedente.series[si];
     const celluleFrec = ref && (ref.poids != null || ref.reps != null)
@@ -21529,11 +21685,11 @@ function renderSessionExerciceBlocHTML(exo, ei) {
       <div class="serie-ligne serie-ligne--5col">
         ${boutonNumeroSerie(si, set.technique, `ouvrirMenuTechniqueSession(this,${ei},${si})`, set.rir, `ouvrirRirSerie(${ei},${si})`)}
         ${celluleFrec}
-        <input type="number" inputmode="decimal" step="0.5" value="${escapeHtml(set.poids ?? '')}" placeholder="—" onchange="modifierSerieSession(${ei},${si},'poids',this.value)">
-        <input type="number" inputmode="numeric" step="1" value="${escapeHtml(set.reps ?? '')}" placeholder="${exo.plage && set.technique !== 'echauffement' ? escapeHtml(textePlage(exo.plage)) : '—'}" onchange="modifierSerieSession(${ei},${si},'reps',this.value)">
+        <input type="number" inputmode="decimal" step="0.5" id="serie-poids-${ei}_${si}" value="${escapeHtml(set.poids ?? '')}" placeholder="—" onchange="modifierSerieSession(${ei},${si},'poids',this.value)">
+        <input type="number" inputmode="numeric" step="1" id="serie-reps-${ei}_${si}" value="${escapeHtml(set.reps ?? '')}" placeholder="${exo.plage && set.technique !== 'echauffement' ? escapeHtml(textePlage(exo.plage)) : '—'}" onchange="modifierSerieSession(${ei},${si},'reps',this.value)">
         <button type="button" class="serie-check ${set.fait ? 'faite' : ''}" data-serie="${ei}_${si}" onclick="basculerSerieSession(${ei},${si})" aria-label="Marquer la série comme faite"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></button>
       </div>
-    </div>${set.fait && set.record ? `<div class="serie-record">${svgV('trophee', 2)} Nouveau record · ${nombreFr(Math.round(unRmEstime(Number(set.poids), Number(set.reps))))} kg estimés sur 1 répétition</div>` : ''}${bandeRirHTML(ei, si, set)}${barreRepos}${blocPaliersHTML(ei, si, set)}`;
+    </div>${si === siCourant && !exo.replie ? paveSerieHTML(exo, ei, si, set, ref, exerciceComplet) : ''}${set.fait && set.record ? `<div class="serie-record">${svgV('trophee', 2)} Nouveau record · ${nombreFr(Math.round(unRmEstime(Number(set.poids), Number(set.reps))))} kg estimés sur 1 répétition</div>` : ''}${bandeRirHTML(ei, si, set)}${barreRepos}${blocPaliersHTML(ei, si, set)}`;
   }).join('');
   const nomExo = escapeHtml(exerciceComplet ? libelleExercice(exerciceComplet) : exo.nom);
   if (exo.replie) {
@@ -21935,6 +22091,78 @@ function modifierSerieSession(ei, si, champ, valeur) {
   if (!set) return;
   set[champ] = valeur === '' ? null : Number(valeur);
   sauvegarderSessionActive();
+  majPaveSerie(ei, si);
+}
+/* Pavé de saisie à la salle : la série à faire en grand, charge et
+   répétitions au pouce (− / +, appui long pour défiler), sans clavier.
+   Le pas de charge suit le matériel (Réglages › Incréments de charge). */
+function pasChargeSession(ei) {
+  const exo = musculationSessionActive && musculationSessionActive.exercices[ei];
+  const complet = exo && trouverExercice(exo.exerciceId);
+  return incrementCharge(complet ? complet.materiel : 'autre') || 1;
+}
+function valeurDepartSerie(ei, si, champ) {
+  const exo = musculationSessionActive.exercices[ei], set = exo.series[si];
+  if (set[champ] != null && set[champ] !== '') return Number(set[champ]);
+  const avant = exo.series.slice(0, si).reverse().find(s => s[champ] != null && s[champ] !== '');
+  if (avant) return Number(avant[champ]);
+  const prec = dernierePerfExercice(exo.exerciceId), ref = prec && (prec.series[si] || prec.series[prec.series.length - 1]);
+  if (ref && ref[champ] != null) return Number(ref[champ]);
+  if (champ === 'reps') { const plage = lirePlageReps(exo.plage); if (plage) return plage.min; }
+  return 0;
+}
+function textePave(champ, v) { return champ === 'poids' ? nombreFr(v, 2) : String(v); }
+function paveSerieHTML(exo, ei, si, set, ref, complet) {
+  const pas = incrementCharge(complet ? complet.materiel : 'autre') || 1;
+  const poids = valeurDepartSerie(ei, si, 'poids'), reps = valeurDepartSerie(ei, si, 'reps');
+  const ctrl = (champ, libelle, valeur, unite, delta) => `<div class="pave-champ">
+      <small>${libelle}</small>
+      <div class="pave-ctrl">
+        <button type="button" class="pave-btn" aria-label="${libelle} moins ${textePave(champ, delta)}" onpointerdown="appuiPave(event,${ei},${si},'${champ}',-${delta})" onclick="if(!event.detail)ajusterSerieSession(${ei},${si},'${champ}',-${delta})">−</button>
+        <b id="pave-${champ}-${ei}_${si}">${textePave(champ, valeur)}</b><span class="pave-unite">${unite}</span>
+        <button type="button" class="pave-btn" aria-label="${libelle} plus ${textePave(champ, delta)}" onpointerdown="appuiPave(event,${ei},${si},'${champ}',${delta})" onclick="if(!event.detail)ajusterSerieSession(${ei},${si},'${champ}',${delta})">+</button>
+      </div></div>`;
+  return `<div class="serie-pave" id="pave-${ei}_${si}">
+    ${ctrl('poids', 'Charge', poids, 'kg', pas)}
+    ${ctrl('reps', 'Répétitions', reps, set.technique !== 'echauffement' && exo.plage ? escapeHtml(textePlage(exo.plage)) : 'reps', 1)}
+    <button type="button" class="pave-valider" onclick="validerPaveSerie(${ei},${si})"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg> Valider la série ${si + 1}</button>
+  </div>`;
+}
+function ajusterSerieSession(ei, si, champ, delta) {
+  const set = musculationSessionActive && musculationSessionActive.exercices[ei] && musculationSessionActive.exercices[ei].series[si];
+  if (!set) return;
+  const v = Math.max(0, Math.round((valeurDepartSerie(ei, si, champ) + delta) * 100) / 100);
+  set[champ] = v;
+  sauvegarderSessionActive();
+  const champSaisie = document.getElementById(`serie-${champ}-${ei}_${si}`);
+  if (champSaisie) champSaisie.value = v;
+  majPaveSerie(ei, si);
+  try { if (navigator.vibrate) navigator.vibrate(4); } catch (e) {}
+}
+function majPaveSerie(ei, si) {
+  ['poids', 'reps'].forEach(champ => {
+    const el = document.getElementById(`pave-${champ}-${ei}_${si}`);
+    if (el) el.textContent = textePave(champ, valeurDepartSerie(ei, si, champ));
+  });
+}
+// Appui long : un pas tout de suite, puis en rafale tant que le doigt reste.
+let appuiPaveMinuteur = null;
+function appuiPave(ev, ei, si, champ, delta) {
+  if (ev.button > 0) return;
+  ev.preventDefault();
+  const bouton = ev.currentTarget;
+  ajusterSerieSession(ei, si, champ, delta);
+  clearTimeout(appuiPaveMinuteur);
+  let rafale = null;
+  appuiPaveMinuteur = setTimeout(() => { rafale = setInterval(() => ajusterSerieSession(ei, si, champ, delta), 85); }, 380);
+  const fin = () => { clearTimeout(appuiPaveMinuteur); clearInterval(rafale); ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => bouton.removeEventListener(t, fin)); };
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => bouton.addEventListener(t, fin));
+}
+// Valider : les valeurs affichées deviennent celles de la série, puis on la coche.
+function validerPaveSerie(ei, si) {
+  const set = musculationSessionActive.exercices[ei].series[si];
+  ['poids', 'reps'].forEach(champ => { if (set[champ] == null || set[champ] === '') set[champ] = valeurDepartSerie(ei, si, champ); });
+  basculerSerieSession(ei, si);
 }
 function basculerSerieSession(ei, si) {
   const set = musculationSessionActive.exercices[ei] && musculationSessionActive.exercices[ei].series[si];

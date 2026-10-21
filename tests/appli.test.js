@@ -101,6 +101,8 @@ test('une séance de musculation se fait et se termine', () => avecAppli({}, asy
 }));
 
 async function glisser(page, selecteur, dx) {
+  // Au milieu de l'écran, comme un utilisateur qui fait défiler : pas sous la barre d'onglets.
+  await page.locator(selecteur).first().evaluate(el => el.scrollIntoView({ block: 'center' }));
   const b = await page.locator(selecteur).first().boundingBox();
   const x = b.x + b.width / 2, y = b.y + Math.min(20, b.height / 2);
   await page.mouse.move(x, y); await page.mouse.down();
@@ -142,12 +144,16 @@ test('éditeur de programme : appui long pour déplacer un exercice', () => avec
     renderProgrammeExercicesEnEdition();
   });
   const avant = await page.evaluate(() => programmeEnEdition.exercices.map(e => e.exerciceId));
+  await page.locator('#programme-exercices-container .exo-en-programme-entete').first().evaluate(el => el.scrollIntoView({ block: 'start' }));
+  await page.evaluate(() => window.scrollBy(0, -120));
   const b = await page.locator('#programme-exercices-container .exo-en-programme-entete').first().boundingBox();
   const x = b.x + 60, y = b.y + 15;
   await page.mouse.move(x, y); await page.mouse.down();
   await page.waitForTimeout(600);
   assert.ok(await page.evaluate(() => document.getElementById('programme-exercices-container').classList.contains('reordre')), 'les exercices se replient');
-  for (let k = 1; k <= 10; k++) await page.mouse.move(x, y + k * 14);
+  // Deux cartes repliées plus bas : la hauteur d'une carte repliée, mesurée.
+  const pas = await page.evaluate(() => { const z = document.querySelectorAll('#programme-exercices-container .exo-swipe'); return z[1].getBoundingClientRect().top - z[0].getBoundingClientRect().top; });
+  for (let k = 1; k <= 10; k++) await page.mouse.move(x, y + k * pas * 0.25);
   await page.mouse.up(); await page.waitForTimeout(300);
   const apres = await page.evaluate(() => programmeEnEdition.exercices.map(e => e.exerciceId));
   assert.deepEqual(apres, [avant[1], avant[2], avant[0], avant[3]]);
@@ -1332,4 +1338,25 @@ test('bouton + : l\'action utile de chaque écran', () => avecAppli({}, async ({
   await page.evaluate(() => { allerA('seance'); choisirModeSeance('muscu'); demarrerSeanceLibre(); });
   assert.equal(await page.getAttribute('#onglet-plus', 'aria-label'), 'Ajouter un exercice');
   await page.click('#onglet-plus'); assert.equal(await ouvert(), 'picker-exercices-modal');
+}));
+
+test('séance : pavé de saisie à la salle (− / +, pas selon le matériel, valider)', () => avecAppli({}, async ({ page }) => {
+  const r0 = await page.evaluate(() => {
+    const exo = toutesLesExercices().find(e => e.materiel === 'barre');
+    musculationHistorique.push({ id: 'h1', date: shiftDate(todayStr(), -2), exercices: [{ exerciceId: exo.id, nom: exo.nom, series: [{ poids: 60, reps: 8, fait: true }, { poids: 60, reps: 8, fait: true }] }] });
+    allerA('seance'); demarrerSeanceLibre(); ajouterExerciceASession(exo.id);
+    const s = musculationSessionActive.exercices[0].series; s.forEach(x => { x.poids = null; x.reps = null; }); renderSessionModal();
+    return { paves: document.querySelectorAll('.serie-pave').length, poids: document.getElementById('pave-poids-0_0').textContent, reps: document.getElementById('pave-reps-0_0').textContent };
+  });
+  // Pré-rempli avec la dernière perf, un seul pavé (la série à faire).
+  assert.deepEqual(r0, { paves: 1, poids: '60', reps: '8' });
+  const plus = '#pave-0_0 .pave-champ:nth-child(1) .pave-btn:last-of-type';
+  await page.click(plus); await page.click(plus);
+  await page.click('#pave-0_0 .pave-champ:nth-child(2) .pave-btn:first-of-type');
+  let r = await page.evaluate(() => ({ poids: document.getElementById('pave-poids-0_0').textContent, champ: document.getElementById('serie-poids-0_0').value, reps: document.getElementById('pave-reps-0_0').textContent }));
+  assert.deepEqual(r, { poids: '65', champ: '65', reps: '7' }); // barre : 2,5 kg par pas
+  await page.click('#pave-0_0 .pave-valider');
+  r = await page.evaluate(() => ({ fait: musculationSessionActive.exercices[0].series[0].fait, valeurs: [musculationSessionActive.exercices[0].series[0].poids, musculationSessionActive.exercices[0].series[0].reps], pave: !!document.getElementById('pave-0_1'), suivant: document.getElementById('pave-poids-0_1').textContent }));
+  // Validée ; le pavé passe à la série suivante, qui reprend la charge.
+  assert.deepEqual(r, { fait: true, valeurs: [65, 7], pave: true, suivant: '65' });
 }));
