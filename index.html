@@ -3227,8 +3227,6 @@
     .bilan-trophee .icone-ui { width: 16px; height: 16px; color: #fff; }
     .bilan-records b { flex: 1; min-width: 0; font-size: .84rem; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .bilan-records em { font-style: normal; font-size: .78rem; font-weight: 800; white-space: nowrap; }
-    .bilan-ia-titre { margin-top: 16px !important; }
-    .bilan-sans-ia { margin: 0; padding: 12px 14px; border-radius: 16px; background: var(--piste); }
 
 
     /* Fenêtres muscu : détail d'une séance, d'un programme, réglages */
@@ -5499,8 +5497,6 @@
       <button class="close-modal" onclick="fermerBilanSeance()" aria-label="Fermer">&times;</button>
     </div>
     <div id="bilan-seance-recap"></div>
-    <div class="titre-section bilan-ia-titre">Le mot du coach</div>
-    <div id="bilan-seance-container"></div>
     <button class="btn btn-primary" style="margin-top:12px;" onclick="fermerBilanSeance()">Fermer</button>
   </div>
 </div>
@@ -22422,7 +22418,6 @@ function terminerSeance() {
   // Construit AVANT d'ajouter cette séance à l'historique : dernierePerfExercice,
   // dernierePerfProgramme et musculationHistorique lus ici le seraient tels
   // quels après l'unshift, comparant alors la séance à elle-même.
-  const contexteBilan = construireContexteBilanSeance(entree, dureeMin);
   const recapBilan = recapSeanceHTML(entree, dureeMin);
 
   musculationHistorique.unshift(entree);
@@ -22449,14 +22444,11 @@ function terminerSeance() {
   // posée ici tout de suite par-dessus : pas deux fenêtres empilées d'un
   // coup, on regarde d'abord comment ça s'est passé.
   seanceLibreAProposer = etaitLibre ? entree : null;
-  document.getElementById('bilan-seance-container').innerHTML =
-    '<div class="loader"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 18V5" /><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4" /><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5" /><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77" /><path d="M18 18a4 4 0 0 0 2-7.464" /><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517" /><path d="M6 18a4 4 0 0 1-2-7.464" /><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77" /></svg> L\'IA analyse ta séance…</div>';
   document.getElementById('bilan-seance-recap').innerHTML = recapBilan;
   ouvrirModal('bilan-seance-modal');
   animerComptes(document.getElementById('bilan-seance-recap'));
-  afficherBilanSeanceIA(contexteBilan);
 }
-/* Récapitulatif de la séance qui vient de finir, sans IA : tonnage, durée,
+/* Récapitulatif de la séance qui vient de finir : tonnage, durée,
    séries, records battus (charge estimée sur 1 répétition, face à tout
    l'historique), muscles travaillés, et l'écart de tonnage avec la dernière
    séance du même programme. Construit AVANT l'ajout à l'historique. */
@@ -22487,86 +22479,6 @@ function recapSeanceHTML(entree, dureeMin) {
     </div>
     <div class="bilan-tuiles">${tuile('Durée', dureeMin, 'min')}${tuile('Séries', nbSeries, 'faites')}${tuile('Records', records.length, records.length > 1 ? 'battus' : 'battu')}</div>
     ${records.length ? `<div class="bilan-records">${records.map(x => `<div><span class="bilan-trophee">${svgV('trophee', 2)}</span><b>${escapeHtml(x.nom)}</b><em>${nombreFr(Number(x.s.poids))} kg × ${x.s.reps}</em></div>`).join('')}</div>` : ''}`;
-}
-const LABELS_OBJECTIF_JOUR = { seche: 'perdre du poids', maintien: 'maintenir son poids', masse: 'prendre du muscle' };
-
-/* Rassemble tout ce qui peut aider à juger la séance qui vient de se
-   terminer : détail exercice par exercice face à la dernière fois sur ce
-   même exercice, tendance de volume sur les dernières séances de ce
-   programme (pas seulement la précédente, pour distinguer une vraie
-   progression d'un simple aller-retour), régularité, séries manquées,
-   exercices du programme zappés, durée vs moyenne habituelle, objectif
-   du moment. Construit AVANT l'ajout à l'historique (voir terminerSeance) :
-   musculationHistorique ne doit pas encore contenir la séance du jour,
-   sans quoi elle se comparerait à elle-même. Le texte résultant sert de
-   contexte au prompt envoyé à l'IA dans afficherBilanSeanceIA. */
-function construireContexteBilanSeance(entree, dureeMin) {
-  const lignesExercices = entree.exercices.map(e => {
-    const exo = trouverExercice(e.exerciceId);
-    const nom = exo ? libelleExercice(exo) : e.nom;
-    const faites = e.series.filter(s => s.fait);
-    const detailAuj = faites.map(s => `${s.poids ?? '?'}kg×${s.reps ?? '?'}`).join(', ') || 'aucune série cochée faite';
-    const derniere = dernierePerfExercice(e.exerciceId);
-    const avant = derniere ? derniere.series.filter(s => s.fait && s.poids != null).map(s => `${s.poids}kg×${s.reps}`).join(', ') : '';
-    const comparaison = avant ? `dernière fois (${derniere.date}) : ${avant}` : "première fois sur cet exercice, ou pas d'historique chiffré";
-    return `- ${nom} : aujourd'hui ${detailAuj} | ${comparaison}${e.notes ? ` | note de la personne sur cet exercice : "${e.notes}"` : ''}`;
-  }).join('\n');
-
-  const volume = h => h.exercices.reduce((n, e) => n + e.series
-    .filter(s => s.fait && s.poids != null && s.reps != null)
-    .reduce((m, s) => m + s.poids * s.reps, 0), 0);
-
-  let contexteProgramme;
-  if (entree.programmeId) {
-    const prog = musculationProgrammes.find(p => p.id === entree.programmeId);
-    const seancesProg = musculationHistorique.filter(h => h.programmeId === entree.programmeId);
-    const tendance = seancesProg.slice(0, 5).map(h => Math.round(volume(h))).reverse().concat(Math.round(volume(entree))).join(' -> ');
-    const joursDepuis = seancesProg[0] ? Math.round((new Date(entree.date) - new Date(seancesProg[0].date)) / 86400000) : null;
-    const idsFaits = new Set(entree.exercices.filter(e => e.series.some(s => s.fait)).map(e => e.exerciceId));
-    const zappes = prog ? prog.exercices.filter(pe => !idsFaits.has(pe.exerciceId)).map(pe => { const exo = trouverExercice(pe.exerciceId); return exo ? libelleExercice(exo) : 'un exercice'; }) : [];
-    contexteProgramme = `Programme : ${entree.programmeNom}
-Nombre de séances déjà faites sur ce programme avant celle-ci : ${seancesProg.length}
-${joursDepuis != null ? `Jours depuis la séance précédente de ce programme : ${joursDepuis}` : "Première séance de ce programme."}
-Tendance du volume total soulevé (poids × répétitions des séries faites, en kg cumulés) sur les dernières séances de ce programme jusqu'à aujourd'hui inclus : ${tendance}
-${zappes.length ? `Exercices prévus au programme mais pas faits du tout aujourd'hui : ${zappes.join(', ')}` : "Tous les exercices prévus au programme ont été au moins commencés."}`;
-  } else {
-    contexteProgramme = 'Séance libre, non rattachée à un programme.';
-  }
-
-  const totalSeries = entree.exercices.reduce((n, e) => n + e.series.length, 0);
-  const totalFaites = entree.exercices.reduce((n, e) => n + e.series.filter(s => s.fait).length, 0);
-  const comparables = entree.programmeId
-    ? musculationHistorique.filter(h => h.programmeId === entree.programmeId)
-    : musculationHistorique.filter(h => !h.programmeId);
-  const dureeMoyenne = comparables.length >= 2 ? Math.round(comparables.reduce((n, h) => n + h.dureeMin, 0) / comparables.length) : null;
-  const objectifJour = getDay(entree.date).goal;
-
-  return `Séance du ${entree.date}, durée ${dureeMin} minutes${dureeMoyenne ? ` (moyenne habituelle sur des séances comparables : ~${dureeMoyenne} min)` : ''}.
-${contexteProgramme}
-
-Séries cochées comme faites : ${totalFaites} / ${totalSeries}.
-${entree.notes ? `Notes laissées par la personne pendant la séance : "${entree.notes}"` : ''}
-${objectifJour && LABELS_OBJECTIF_JOUR[objectifJour] ? `Objectif actuel de la personne : ${LABELS_OBJECTIF_JOUR[objectifJour]}.` : ''}
-
-Détail exercice par exercice (aujourd'hui vs dernière fois sur ce même exercice) :
-${lignesExercices}`;
-}
-
-async function afficherBilanSeanceIA(contexte) {
-  const c = document.getElementById('bilan-seance-container');
-  if (!geminiKey) {
-    c.innerHTML = '<p class="note bilan-sans-ia">Ajoute ta clé API Gemini dans Réglages pour recevoir ici l\'avis détaillé du coach IA sur ta séance.</p>';
-    return;
-  }
-  const prompt = `Tu es un coach de musculation expert, exigeant mais bienveillant. Voici le détail complet de la séance qui vient de se terminer, comparée à l'historique de la personne. Donne un avis précis et honnête : était-ce une bonne séance, qu'est-ce qui a été bien, qu'est-ce qui doit progresser, et surtout comment s'améliorer concrètement la prochaine fois (charge, volume, régularité, exercices zappés, repos...). Appuie-toi sur les chiffres donnés plutôt que des généralités. Réponds en français, tutoiement, sans markdown, entre 150 et 220 mots.
-
-${contexte}`;
-  try {
-    const res = await geminiGenerate([{ text: prompt }]);
-    c.innerHTML = `<div class="analysis-output">${escapeHtml(res.trim())}</div>`;
-  } catch (e) {
-    c.innerHTML = `<div class="error-box">${escapeHtml(messageIA(e))}</div>`;
-  }
 }
 // Referme le bilan puis, pour une séance libre, enchaîne sur la proposition
 // « en faire un programme » — reportée ici plutôt que posée en même temps
