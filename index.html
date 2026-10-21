@@ -628,7 +628,7 @@
     /* --- ECRANS --- */
     .ecran { display: none; animation: ecranIn 0.32s cubic-bezier(0.16, 1, 0.3, 1); }
     .ecran.actif { display: block; }
-    @keyframes ecranIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes ecranIn { from { opacity: 0; transform: translate(var(--ecran-tx, 0), var(--ecran-ty, 8px)); } to { opacity: 1; transform: none; } }
 
     .titre-ecran {
       display: flex; align-items: center; gap: 9px;
@@ -1575,18 +1575,6 @@
     .fiche-exo-video--mini video.hd { opacity: 0; transition: opacity 0.25s; }
     .fiche-exo-video--mini video.hd.prete { opacity: 1; }
     .palettes-perso { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    .palettes-perso.palettes-inactives { opacity: .45; pointer-events: none; }
-    .styles-visuels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .style-visuel {
-      display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 6px; border: 0; border-radius: 12px; cursor: pointer;
-      background: var(--verre-creux); color: var(--text); font-family: inherit; text-align: left; min-width: 0;
-    }
-    .style-visuel.choisi { box-shadow: 0 0 0 2px var(--primary) inset; }
-    .style-visuel-apercu { position: relative; display: flex; align-items: center; height: 44px; padding: 0 9px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(128,128,128,.25); }
-    .style-visuel-apercu b { font-size: 1.15rem; font-weight: 700; }
-    .style-visuel-apercu i { position: absolute; left: 9px; right: 9px; bottom: 7px; height: 4px; border-radius: 2px; }
-    .style-visuel-nom { font-weight: 800; font-size: 0.74rem; padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .style-visuel small { font-size: 0.6rem; color: var(--text-muted); padding: 0 2px; line-height: 1.25; }
     .palette-perso {
       display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 0; border-radius: 12px; cursor: pointer;
       background: var(--verre-creux); color: var(--text); font-family: inherit; font-weight: 700; font-size: 0.74rem; text-align: left;
@@ -1806,21 +1794,6 @@
 
     /* Programmes : un carrousel de cartes illustrées (voir vignetteProgramme). */
     #programmes-liste-container { display: block; }
-    .programme-carte {
-      background: var(--verre);
-      -webkit-backdrop-filter: blur(var(--verre-flou)) saturate(var(--verre-sat));
-      backdrop-filter: blur(var(--verre-flou)) saturate(var(--verre-sat));
-      border: 0; border-radius: var(--rayon);
-      padding: 14px; margin-bottom: 0;
-      display: flex; flex-direction: column; justify-content: space-between; gap: 10px;
-      box-shadow: var(--ombre);
-    }
-    .programme-entete { margin-bottom: 0; }
-    .programme-nom { font-weight: 800; font-size: 0.88rem; line-height: 1.25; }
-    .programme-meta { font-size: 0.68rem; color: var(--text-muted); margin-top: 3px; }
-    .programme-actions { display: flex; align-items: center; gap: 5px; }
-    .programme-actions .btn { min-height: 32px; padding: 5px 6px; font-size: 0.7rem; white-space: nowrap; }
-    .programme-actions .btn-icone { min-width: 28px; width: 28px; height: 32px; padding: 0; font-size: 0.85rem; }
 
     /* --- Puces de filtre (groupe musculaire / matériel) --- */
     .filtre-chip {
@@ -2679,8 +2652,8 @@
     /* =====================================================================
        REFONTE 2026 — composants de Repas du jour et barre d'onglets.
        Les composants s'appuient sur les jetons de couleur (--text, --primary,
-       --protein…) : ils suivent aussi les styles au choix. L'habillage
-       « verre, aurore, polices » est plus bas, réservé au style Anqā.
+       --protein…) : ils suivent aussi les palettes de couleurs. L'habillage
+       « verre, aurore, polices » est plus bas.
        ===================================================================== */
     :root[data-theme="light"] { --carte-plein: #ffffff; --piste: rgba(13,16,32,.07); --trait: rgba(13,16,32,.07); }
     :root[data-theme="dark"]  { --carte-plein: #161924; --piste: rgba(255,255,255,.08); --trait: rgba(255,255,255,.07); }
@@ -2699,7 +2672,7 @@
     .moi-entete-nom { display: none !important; }
     /* Pas encore de photo (déconnecté, ou avant le chargement du profil) : une silhouette. */
     .moi-halo:empty { width: 36px; height: 36px; background: var(--piste) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a90aa' stroke-width='2' stroke-linecap='round'><circle cx='12' cy='8' r='4.5'/><path d='M20 21a8 8 0 0 0-16 0'/></svg>") center / 20px no-repeat; }
-    html:root:not([data-style]) #ecran-repas > .titre-ecran { display: none; }
+    html:root #ecran-repas > .titre-ecran { display: none; }
     .serie-jours { display: inline-flex; align-items: center; gap: 3px; padding: 6px 10px; border-radius: 99px; font-weight: 800; font-size: 0.8rem;
       color: #f97316; background: linear-gradient(135deg, rgba(251,146,60,.18), rgba(244,63,94,.14)); flex: none; }
     .serie-jours .icone-ui { width: 14px; height: 14px; }
@@ -2921,12 +2894,11 @@
     .pc:active { transform: scale(.96); }
     .pc b { position: absolute; left: 14px; right: 14px; bottom: 36px; font-weight: 800; font-size: 1.4rem; letter-spacing: -.04em; line-height: 1.05; overflow-wrap: anywhere; }
     .pc small { position: absolute; left: 14px; bottom: 16px; font-size: .7rem; font-weight: 700; opacity: .85; }
-    .pc .pc-corps { position: absolute; right: -24px; top: -6px; width: 130px; height: 175px; z-index: -1; opacity: .95; }
+    .pc .pc-corps { position: absolute; right: -10px; top: 26px; width: 120px; height: 160px; z-index: -1; opacity: .95; }
     .pc .pc-corps svg { width: 100%; height: 100%; }
     .pc .tag { position: relative; display: inline-block; font-size: .62rem; font-weight: 800; padding: 4px 8px; border-radius: 99px; background: rgba(255,255,255,.2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-    .pc-options { position: absolute; top: 10px; right: 10px; z-index: 1; width: 32px; height: 32px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
-      background: rgba(255,255,255,.22); color: #fff; font: 800 1.1rem/1 inherit; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-    .titre-gestion { margin: 18px 4px 10px; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+    .pc-options { position: absolute; top: 8px; right: 8px; z-index: 1; width: 30px; height: 30px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+      background: rgba(0,0,0,.22); color: #fff; font: 800 1rem/1 inherit; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
 
     /* Cardio : arc et séances */
     .hx--cardio { min-height: 0; }
@@ -3004,6 +2976,134 @@
     .profil-entete { position: relative; z-index: 2; }
     #vitrine-profil:not(:empty) { margin-top: -58px; }
 
+
+    /* Actions en tuiles (Activité, Mesures) et lignes de réglage (Profil) */
+    .actions-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .action-tuile { position: relative; display: grid; align-content: start; gap: 3px; min-height: 118px; padding: 14px; border: 0; border-radius: 22px; text-align: left; cursor: pointer;
+      font: inherit; color: var(--text); background: var(--verre); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
+      box-shadow: var(--ombre, 0 14px 30px -16px rgba(0,0,0,.35)), inset 0 0 0 1px var(--trait); transition: transform .15s; }
+    .action-tuile:active { transform: scale(.96); }
+    .action-tuile b { margin-top: 10px; font-family: 'Manrope', 'Inter', sans-serif; font-size: .95rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+    .action-tuile small { font-size: .7rem; font-weight: 600; color: var(--text-muted); line-height: 1.3; }
+    .action-ic { width: 38px; height: 38px; flex: none; border-radius: 13px; display: grid; place-items: center; color: #fff; box-shadow: 0 10px 20px -10px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.35); }
+    .action-ic .icone-ui { width: 19px; height: 19px; color: #fff; }
+    .actions-liens { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: 0 0 14px; }
+    .actions-liens button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 4px; border: 0; background: none; cursor: pointer; font: inherit; font-size: .78rem; font-weight: 700; color: var(--text-muted); }
+    .actions-liens .icone-ui { width: 15px; height: 15px; color: inherit; }
+    .carte-liste { padding: 6px 16px; margin-bottom: 12px; border-radius: 26px; background: var(--verre); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
+      box-shadow: var(--ombre, 0 14px 30px -16px rgba(0,0,0,.35)), inset 0 0 0 1px var(--trait); }
+    .ligne-reglage { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 0; border: 0; background: none; font: inherit; color: var(--text); text-align: left; }
+    .ligne-reglage + .ligne-reglage, .carte-liste > * + .ligne-reglage { border-top: 1px solid var(--trait); }
+    .ligne-reglage--bouton { cursor: pointer; }
+    .ligne-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+    .ligne-txt small { font-size: .68rem; font-weight: 700; color: var(--text-muted); }
+    .ligne-txt b { font-size: .92rem; font-weight: 800; letter-spacing: -.01em; overflow-wrap: anywhere; }
+    .ligne-txt .puce-sync { min-height: 0; padding: 4px 0 0; }
+    .ligne-chevron .icone-ui { width: 18px; height: 18px; color: var(--text-muted); }
+    .pilule { flex: none; border: 0; border-radius: 99px; padding: 8px 14px; background: var(--piste); color: var(--text); font: inherit; font-size: .78rem; font-weight: 800; cursor: pointer; white-space: nowrap; }
+    .ligne-note { margin: -4px 0 8px 50px !important; }
+    .ligne-note:empty { display: none; }
+    .carte-liste .profil-perso { padding: 12px 0; border-top: 1px solid var(--trait); }
+    .carte-liste #profil-perso-note { margin: 0 0 10px; }
+    .carte-liste > label { padding: 0 0 10px; }
+    .infos-grille { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 8px; padding: 14px; }
+    .infos-grille .input-group { margin: 0; }
+    .infos-grille label { font-size: .66rem; }
+    #carte-mesures { padding: 14px; }
+    #carte-mesures #resume-mesures { margin: 0 2px 12px; }
+    #carte-mesures .actions-grille { margin: 0; }
+    #carte-mesures .action-tuile { min-height: 104px; background: var(--piste); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+
+    /* Célébration (record, badge, niveau) */
+    .celebration { position: fixed; left: 50%; top: calc(12px + env(safe-area-inset-top, 0px)); z-index: 3000; width: min(92vw, 380px); pointer-events: none;
+      transform: translate(-50%, -160%); transition: transform .55s cubic-bezier(.2,1.35,.3,1); }
+    .celebration.visible { transform: translate(-50%, 0); }
+    .celebration-carte { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 16px 12px 12px; border-radius: 22px; background: var(--carte-plein);
+      box-shadow: 0 22px 50px -14px rgba(0,0,0,.5), inset 0 0 0 1px var(--trait); }
+    .celebration-ic { width: 46px; height: 46px; flex: none; border-radius: 15px; display: grid; place-items: center; color: #fff; transform: rotate(-8deg);
+      background: linear-gradient(135deg, #fde68a, #f59e0b); box-shadow: 0 12px 24px -10px rgba(245,158,11,.8), inset 0 2px 0 rgba(255,255,255,.4); }
+    .celebration-ic .icone-ui { width: 24px; height: 24px; color: #fff; transform: rotate(8deg); }
+    .celebration-txt { display: flex; flex-direction: column; min-width: 0; }
+    .celebration-txt b { font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.05rem; font-weight: 800; letter-spacing: -.02em; }
+    .celebration-txt small { font-size: .76rem; font-weight: 600; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .confettis { position: absolute; left: 35px; top: 50%; }
+    .confettis i { position: absolute; width: 7px; height: 10px; border-radius: 2px; opacity: 0; }
+    .celebration.visible .confettis i { animation: confetti .95s cubic-bezier(.2,.7,.3,1) both; }
+    @keyframes confetti { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 100% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--r)); } }
+
+    /* Séance en cours : cartes d'exercice, séries, repos, record */
+    html:root .session-exo-bloc { background: var(--verre); border-radius: 24px; padding: 14px 14px 14px; -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
+      box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); }
+    html:root .session-superset-bloc .session-exo-bloc { box-shadow: none; background: transparent; }
+    html:root .session-exo-nom { font-family: 'Manrope', 'Inter', sans-serif; font-size: 1rem; letter-spacing: -.02em; }
+    html:root .serie-ligne input { height: 40px; border: 0; border-radius: 13px; background: var(--piste); font-family: 'Manrope', 'Inter', sans-serif; font-size: 1rem; font-weight: 800; text-align: center; color: var(--text); }
+    html:root .serie-ligne input:focus { outline: 0; box-shadow: 0 0 0 2px var(--primary); }
+    html:root .serie-ligne:has(.serie-check.faite) { background: color-mix(in srgb, #10b981 9%, transparent); }
+    html:root .serie-ligne:has(.serie-check.faite) input { background: transparent; }
+    html:root .serie-check { width: 38px; height: 38px; border-radius: 13px; border: 0; background: var(--piste); color: color-mix(in srgb, var(--text-muted) 55%, transparent); }
+    html:root .serie-check .icone-ui { width: 19px; height: 19px; color: inherit; stroke-width: 3; }
+    html:root .serie-check.faite { color: #fff; background: linear-gradient(135deg, #34d399, #06b6d4); box-shadow: 0 8px 18px -8px rgba(6,182,212,.8); }
+    .serie-check.pop { animation: serie-pop .5s cubic-bezier(.2,1.6,.4,1); position: relative; }
+    .serie-check.pop::after { content: ''; position: absolute; inset: -2px; border-radius: 15px; border: 2px solid #34d399; animation: serie-onde .6s ease-out forwards; }
+    @keyframes serie-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+    @keyframes serie-onde { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.7); } }
+    html:root .repos-barre { height: 40px; margin: 4px 3px 2px; gap: 8px; border-radius: 14px; font-size: .78rem; font-weight: 800; color: var(--text);
+      background: linear-gradient(90deg, color-mix(in srgb, #22d3ee 16%, transparent), color-mix(in srgb, #a78bfa 16%, transparent)); }
+    .repos-anneau { width: 26px; height: 26px; transform: rotate(-90deg); flex: none; }
+    .repos-anneau circle { fill: none; stroke-width: 4; }
+    .repos-piste { stroke: var(--piste); }
+    .repos-val { stroke: #22d3ee; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+    .repos-chrono { font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.05rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+    html:root .repos-barre button { color: var(--text-muted); }
+    .serie-record { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 3px 2px; padding: 7px 10px; border-radius: 12px; font-size: .74rem; font-weight: 800;
+      color: #92400e; background: linear-gradient(90deg, #fde68a, #fbbf24); box-shadow: 0 8px 18px -10px rgba(245,158,11,.8); }
+    .serie-record .icone-ui { width: 15px; height: 15px; color: inherit; }
+    @media (prefers-reduced-motion: reduce) { .celebration { transition: none; } .confettis, .serie-check.pop::after { display: none; } .serie-check.pop { animation: none; } }
+
+
+    /* Fenêtres et feuilles */
+    html:root .feuille-titre { font-size: 1.15rem; font-weight: 800; letter-spacing: -.03em; text-transform: none; color: var(--text); margin-bottom: 14px; }
+    html:root .feuille-action { min-height: 64px; padding: 12px 14px; background: var(--piste); }
+    html:root .feuille-action b, html:root .feuille-action > span:not(.ic) { font-family: 'Manrope', 'Inter', sans-serif; font-weight: 800; font-size: .95rem; letter-spacing: -.01em; }
+    html:root .feuille-action .sous { font-family: 'Inter', sans-serif; letter-spacing: 0; }
+    html:root .feuille-action .ic { width: 42px; height: 42px; flex: none; border-radius: 14px; display: grid; place-items: center; color: #fff;
+      background: linear-gradient(135deg, #94a3b8, #64748b); box-shadow: 0 10px 20px -10px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.35); }
+    html:root .feuille-action .ic .icone-ui { width: 21px; height: 21px; color: #fff; }
+    html:root #opt-recette .ic { background: linear-gradient(135deg, #fbbf24, #f97316); }
+    html:root #opt-manuel .ic { background: linear-gradient(135deg, #34d399, #10b981); }
+    html:root #opt-photo .ic { background: linear-gradient(135deg, #a78bfa, #6366f1); }
+    html:root #opt-barcode .ic { background: linear-gradient(135deg, #22d3ee, #0ea5e9); }
+    html:root .modal-entete h3 { font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.25rem; }
+    .apercu-macros { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 10px; padding: 14px; margin-bottom: 16px; border-radius: 18px; background: var(--piste); }
+    .apercu-macros:empty { display: none; }
+    .apercu-macros b { font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.5rem; font-weight: 800; letter-spacing: -.04em; margin-right: 4px; }
+    .apercu-macros b small { font-size: .78rem; color: var(--text-muted); letter-spacing: 0; }
+    .apercu-macros span { letter-spacing: 0; font-family: 'Inter', sans-serif; text-transform: none; display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 99px; background: var(--carte-plein); font-size: .76rem; font-weight: 800; }
+    .apercu-macros i { width: 8px; height: 8px; border-radius: 3px; }
+    /* Pas de flèches dans les champs numériques : elles chevauchaient l'unité (« min », « kg ») */
+    input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+    input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+
+    /* Mouvement : jauges qui se remplissent à l'ouverture */
+    .arc-val { animation: arc-trace 1.2s cubic-bezier(.3,.9,.2,1) both; }
+    @keyframes arc-trace { from { stroke-dashoffset: var(--plein); } }
+    .xp i { animation: xp-remplit 1.1s .15s cubic-bezier(.3,.9,.2,1) both; }
+    @keyframes xp-remplit { from { width: 0; } }
+    .semaine-barres i { transform-origin: bottom; animation: barre-monte .7s cubic-bezier(.3,1.3,.4,1) both; }
+    .semaine-barres div:nth-child(2) i { animation-delay: .04s; } .semaine-barres div:nth-child(3) i { animation-delay: .08s; }
+    .semaine-barres div:nth-child(4) i { animation-delay: .12s; } .semaine-barres div:nth-child(5) i { animation-delay: .16s; }
+    .semaine-barres div:nth-child(6) i { animation-delay: .2s; } .semaine-barres div:nth-child(7) i { animation-delay: .24s; }
+    @keyframes barre-monte { from { transform: scaleY(0); } }
+    .badge:not(.verrou) .med { animation: med-arrive .6s cubic-bezier(.2,1.5,.4,1) both; }
+    @keyframes med-arrive { from { transform: rotate(-30deg) scale(.4); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .arc-val, .xp i, .semaine-barres i, .badge .med { animation: none !important; } }
+
+
+    /* Finitions */
+    html:root .carte-stats-titre { font-size: .8rem; font-weight: 800; letter-spacing: -.01em; text-transform: none; color: var(--text); }
+
     /* Apparition */
     .vitrine > *, #seance-cardio > * { animation: monte .55s cubic-bezier(.2,.8,.2,1) both; }
     .vitrine > :nth-child(2), #seance-cardio > :nth-child(2) { animation-delay: .05s; }
@@ -3012,660 +3112,99 @@
     @media (prefers-reduced-motion: reduce) { .vitrine > *, #seance-cardio > * { animation: none !important; } .arc-val, .xp i { transition: none; } }
 
     /* =====================================================================
-       HABILLAGE ANQĀ (style par défaut) : polices, fond « aurore », cartes
-       en verre dépoli, boutons et champs modernes. Les styles au choix
-       (html[data-style]) gardent le leur.
+       HABILLAGE ANQĀ : polices, fond « aurore », cartes en verre dépoli,
+       boutons et champs modernes.
        ===================================================================== */
-    html:root:not([data-style])[data-theme="light"] { --bg: #f3f4f8; --verre: rgba(255,255,255,.72); --verre-fort: rgba(255,255,255,.9); --verre-creux: rgba(13,16,32,.045); --barre: rgba(243,244,248,.86);
+    html:root[data-theme="light"] { --bg: #f3f4f8; --verre: rgba(255,255,255,.72); --verre-fort: rgba(255,255,255,.9); --verre-creux: rgba(13,16,32,.045); --barre: rgba(243,244,248,.86);
       --ombre: 0 1px 1px rgba(16,24,40,.03), 0 4px 10px rgba(16,24,40,.04), 0 18px 40px -14px rgba(16,24,40,.14); --ombre-haute: 0 24px 50px -16px rgba(16,24,40,.24); }
-    html:root:not([data-style])[data-theme="dark"] { --bg: #07080d; --verre: rgba(22,25,36,.66); --verre-fort: rgba(30,34,48,.8); --verre-creux: rgba(255,255,255,.055); --barre: rgba(7,8,13,.82);
+    html:root[data-theme="dark"] { --bg: #07080d; --verre: rgba(22,25,36,.66); --verre-fort: rgba(30,34,48,.8); --verre-creux: rgba(255,255,255,.055); --barre: rgba(7,8,13,.82);
       --ombre: inset 0 1px 0 rgba(255,255,255,.05), 0 20px 50px -22px rgba(0,0,0,.85); --ombre-haute: 0 26px 60px -18px rgba(0,0,0,.9); }
-    html:root:not([data-style]) body { font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif; background: var(--bg); -webkit-font-smoothing: antialiased; }
-    html:root:not([data-style]) body::before { content: ''; display: block !important; position: fixed; inset: -20%; z-index: 0; pointer-events: none; filter: blur(60px); opacity: .5;
+    html:root body { font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif; background: var(--bg); -webkit-font-smoothing: antialiased; }
+    html:root body::before { content: ''; display: block !important; position: fixed; inset: -20%; z-index: 0; pointer-events: none; filter: blur(60px); opacity: .5;
       background: radial-gradient(28% 22% at 18% 10%, #34d399, transparent 70%), radial-gradient(26% 20% at 88% 16%, #22d3ee, transparent 70%), radial-gradient(30% 24% at 72% 72%, #a78bfa, transparent 70%);
       animation: aurore 20s ease-in-out infinite alternate; }
-    html:root:not([data-style])[data-theme="dark"] body::before { opacity: .32; }
+    html:root[data-theme="dark"] body::before { opacity: .32; }
     @keyframes aurore { 50% { transform: translate(4%, -3%) rotate(8deg) scale(1.05); } 100% { transform: translate(-3%, 4%) rotate(-6deg); } }
-    html:root:not([data-style]) .app-bar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
-    html:root:not([data-style]) :is(.titre-ecran, .titre-section, .salut b, .anneaux-centre h1, .reste-kcal, .heros-puces b, .carte-stats-valeur b, .eau-texte, .meal-title, .meal-kcals, .cle-val, .feuille-titre, .modal-entete h3, .semaine-num b) {
+    html:root .app-bar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+    html:root :is(.titre-ecran, .titre-section, .salut b, .anneaux-centre h1, .reste-kcal, .heros-puces b, .carte-stats-valeur b, .eau-texte, .meal-title, .meal-kcals, .cle-val, .feuille-titre, .modal-entete h3, .semaine-num b) {
       font-family: 'Manrope', 'Inter', sans-serif; }
-    html:root:not([data-style]) .titre-ecran { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.03em; }
-    html:root:not([data-style]) .titre-section { font-size: 0.72rem; letter-spacing: .08em; }
-    html:root:not([data-style]) :is(.summary-card, .fitness-card, .analysis-card, .meal-card, .bloc-verre, .carte-stats, .cle) {
+    html:root .titre-ecran { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.03em; }
+    html:root .titre-section { display: flex; align-items: center; gap: 8px; font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.08rem; font-weight: 800;
+      letter-spacing: -.03em; text-transform: none; color: var(--text); margin-top: 22px; }
+    html:root .titre-section > .icone-ui { width: 26px; height: 26px; padding: 5px; border-radius: 9px; color: #fff; background: linear-gradient(135deg, #22d3ee, #6366f1); box-shadow: 0 8px 16px -8px rgba(99,102,241,.7); }
+    html:root :is(.summary-card, .fitness-card, .analysis-card, .meal-card, .bloc-verre, .carte-stats, .cle) {
       background: var(--verre) !important; -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
       border: 0 !important; border-radius: 26px !important; box-shadow: var(--ombre), inset 0 0 0 1px var(--trait), inset 0 1px 0 rgba(255,255,255,.55) !important; }
-    html:root:not([data-style])[data-theme="dark"] :is(.summary-card, .fitness-card, .analysis-card, .meal-card, .bloc-verre, .carte-stats, .cle) {
+    html:root[data-theme="dark"] :is(.summary-card, .fitness-card, .analysis-card, .meal-card, .bloc-verre, .carte-stats, .cle) {
       box-shadow: var(--ombre), inset 0 0 0 1px var(--trait), inset 0 1px 0 rgba(255,255,255,.06) !important; }
-    html:root:not([data-style]) .cle { border-radius: 20px !important; }
-    html:root:not([data-style]) :is(.modal-content, .feuille-contenu) { border-radius: 28px 28px 0 0; background: var(--carte-plein); box-shadow: 0 -20px 60px -20px rgba(0,0,0,.4); }
-    html:root:not([data-style]) .modal-content { border-radius: 28px; }
-    html:root:not([data-style]) .btn { border-radius: 16px; font-weight: 800; letter-spacing: -0.01em; }
-    html:root:not([data-style]) .btn-primary { background: linear-gradient(135deg, #10b981, #06b6d4); color: #fff; box-shadow: 0 12px 26px -12px rgba(6,182,212,.75); border: 0; }
-    html:root:not([data-style]) .btn-secondaire { background: var(--piste); box-shadow: none; }
-    html:root:not([data-style]) .btn-icone { border-radius: 14px; background: var(--piste); }
-    html:root:not([data-style]) .segment { background: var(--piste); border-radius: 16px; box-shadow: none; }
-    html:root:not([data-style]) .segment button { border-radius: 12px; }
-    html:root:not([data-style]) .segment button[aria-pressed="true"] { background: var(--carte-plein); color: var(--text); box-shadow: 0 4px 12px -4px rgba(0,0,0,.25); }
-    html:root:not([data-style]) :is(.input-group input, .input-group select, .input-group textarea, #modal-cardio input) { background: var(--piste); border: 1px solid transparent; border-radius: 14px; box-shadow: none; }
-    html:root:not([data-style]) :is(.input-group input, .input-group select, .input-group textarea):focus { border-color: var(--primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent); }
-    html:root:not([data-style]) .feuille-action { border-radius: 18px; }
-    html:root:not([data-style]) .cle-val { font-family: 'Manrope', sans-serif; letter-spacing: -0.03em; }
+    html:root .cle { border-radius: 20px !important; }
+    html:root :is(.modal-content, .feuille-contenu) { border-radius: 28px 28px 0 0; background: var(--carte-plein); box-shadow: 0 -20px 60px -20px rgba(0,0,0,.4); }
+    html:root .modal-content { border-radius: 28px; }
+    html:root .btn { border-radius: 16px; font-weight: 800; letter-spacing: -0.01em; }
+    html:root .btn-primary { background: linear-gradient(135deg, #10b981, #06b6d4); color: #fff; box-shadow: 0 12px 26px -12px rgba(6,182,212,.75); border: 0; }
+    html:root .btn-secondaire { background: var(--piste); box-shadow: none; }
+    html:root .btn-icone { border-radius: 14px; background: var(--piste); }
+    html:root .segment { background: var(--piste); border-radius: 16px; box-shadow: none; }
+    html:root .segment button { border-radius: 12px; }
+    html:root .segment button[aria-pressed="true"] { background: var(--carte-plein); color: var(--text); box-shadow: 0 4px 12px -4px rgba(0,0,0,.25); }
+    html:root :is(.input-group input, .input-group select, .input-group textarea, #modal-cardio input) { background: var(--piste); border: 1px solid transparent; border-radius: 14px; box-shadow: none; }
+    html:root :is(.input-group input, .input-group select, .input-group textarea):focus { border-color: var(--primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent); }
+    html:root .feuille-action { border-radius: 18px; }
+    html:root .cle-val { font-family: 'Manrope', sans-serif; letter-spacing: -0.03em; }
     /* Repas du jour : le résumé devient un héros immersif bord à bord,
        comme les vitrines d'Activité et de Profil. */
-    html:root:not([data-style]) #ecran-repas .summary-card { margin: 0 -16px 14px !important; padding: 22px 16px 18px !important; border-radius: 0 0 32px 32px !important;
+    html:root #ecran-repas .summary-card { margin: 0 -16px 14px !important; padding: 22px 16px 18px !important; border-radius: 0 0 32px 32px !important;
       -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: 0 30px 50px -34px rgba(34,211,238,.55) !important;
       background: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px) 0 0/100% 28px, linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px) 0 0/28px 100%,
         radial-gradient(60% 70% at 18% 40%, rgba(34,211,238,.30), transparent 70%), radial-gradient(60% 60% at 95% 100%, rgba(167,139,250,.30), transparent 70%), linear-gradient(180deg, #0b1020, #070a14) !important; }
-    html:root:not([data-style])[data-theme="light"] #ecran-repas .summary-card { box-shadow: 0 30px 50px -34px rgba(34,211,238,.6) !important;
+    html:root[data-theme="light"] #ecran-repas .summary-card { box-shadow: 0 30px 50px -34px rgba(34,211,238,.6) !important;
       background: linear-gradient(rgba(13,16,32,.04) 1px, transparent 1px) 0 0/100% 28px, linear-gradient(90deg, rgba(13,16,32,.04) 1px, transparent 1px) 0 0/28px 100%,
         radial-gradient(60% 70% at 18% 40%, rgba(34,211,238,.26), transparent 70%), radial-gradient(60% 60% at 95% 100%, rgba(167,139,250,.26), transparent 70%), linear-gradient(180deg, #e9f6ff, #f4f1ff) !important; }
-    html:root:not([data-style]) #ecran-repas .heros { grid-template-columns: 164px 1fr; }
-    html:root:not([data-style]) #ecran-repas .anneaux { width: 164px; height: 164px; }
-    html:root:not([data-style]) #ecran-repas .anneaux-centre h1 { font-size: 1.6rem; }
-    html:root:not([data-style]) #ecran-repas .reste-kcal { font-size: 2.3rem !important; letter-spacing: -.06em;
+    html:root #ecran-repas .heros { grid-template-columns: 164px 1fr; }
+    html:root #ecran-repas .anneaux { width: 164px; height: 164px; }
+    html:root #ecran-repas .anneaux-centre h1 { font-size: 1.6rem; }
+    html:root #ecran-repas .reste-kcal { font-size: 2.3rem !important; letter-spacing: -.06em;
       background: linear-gradient(180deg, var(--text) 40%, color-mix(in srgb, var(--text) 45%, transparent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-    html:root:not([data-style]) #ecran-repas .reste-kcal em { -webkit-text-fill-color: var(--text-muted); }
-    html:root:not([data-style]) #ecran-repas .reste-kcal.depasse { -webkit-text-fill-color: var(--danger); }
-    html:root:not([data-style]) #ecran-repas .heros-puces div { padding: 8px 10px; border-radius: 14px; background: color-mix(in srgb, var(--carte-plein) 45%, transparent); box-shadow: inset 0 0 0 1px var(--trait); }
-    html:root:not([data-style]) #ecran-repas .heros-puces { border-top: 0; padding-top: 4px; }
+    html:root #ecran-repas .reste-kcal em { -webkit-text-fill-color: var(--text-muted); }
+    html:root #ecran-repas .reste-kcal.depasse { -webkit-text-fill-color: var(--danger); }
+    html:root #ecran-repas .heros-puces div { padding: 8px 10px; border-radius: 14px; background: color-mix(in srgb, var(--carte-plein) 45%, transparent); box-shadow: inset 0 0 0 1px var(--trait); }
+    html:root #ecran-repas .heros-puces { border-top: 0; padding-top: 4px; }
 
     /* Progrès : chiffres clés façon mosaïque, avec une lueur colorée */
-    html:root:not([data-style]) .cle { position: relative; overflow: hidden; isolation: isolate; }
-    html:root:not([data-style]) .cle::after { content: ''; position: absolute; right: -40px; bottom: -60px; width: 130px; height: 130px; border-radius: 50%; z-index: -1; filter: blur(28px); opacity: .35; background: #22d3ee; }
-    html:root:not([data-style]) .cle:nth-child(4n+2)::after { background: #a78bfa; }
-    html:root:not([data-style]) .cle:nth-child(4n+3)::after { background: #34d399; }
-    html:root:not([data-style]) .cle:nth-child(4n)::after { background: #f59e0b; }
-    html:root:not([data-style]) .cle-val { font-size: 1.55rem; letter-spacing: -.05em; }
+    html:root .cle { position: relative; overflow: hidden; isolation: isolate; }
+    html:root .cle::after { content: ''; position: absolute; right: -40px; bottom: -60px; width: 130px; height: 130px; border-radius: 50%; z-index: -1; filter: blur(28px); opacity: .35; background: #22d3ee; }
+    html:root .cle:nth-child(4n+2)::after { background: #a78bfa; }
+    html:root .cle:nth-child(4n+3)::after { background: #34d399; }
+    html:root .cle:nth-child(4n)::after { background: #f59e0b; }
+    html:root .cle-val { font-size: 1.32rem; letter-spacing: -.04em; line-height: 1.1; }
+    html:root .cle-lbl { font-size: .62rem; letter-spacing: .08em; }
 
     /* Fenêtres et feuilles : un liseré d'aurore en tête */
-    html:root:not([data-style]) :is(.modal-content, .feuille-contenu) { background-image: radial-gradient(80% 120px at 50% 0, color-mix(in srgb, #22d3ee 16%, transparent), transparent); }
-    html:root:not([data-style]) .modal-entete h3 { font-weight: 800; letter-spacing: -.035em; }
+    html:root :is(.modal-content, .feuille-contenu) { background-image: radial-gradient(80% 120px at 50% 0, color-mix(in srgb, #22d3ee 16%, transparent), transparent); }
+    html:root .modal-entete h3 { font-weight: 800; letter-spacing: -.035em; }
 
     /* Séance en cours : en-tête et silhouette sur un même héros sombre */
-    html:root:not([data-style]) #session-entete { margin: -4px -16px 0; padding: 18px 16px 4px;
+    html:root #session-entete { margin: -4px -16px 0; padding: 18px 16px 4px;
       background: radial-gradient(70% 120% at 90% 0, rgba(244,114,182,.30), transparent 70%), linear-gradient(180deg, #0b1020, #0b1020); }
-    html:root:not([data-style]) #session-entete + .session-haut { margin: 0 -16px 14px; padding: 4px 16px 18px; border-radius: 0 0 30px 30px; box-shadow: 0 30px 50px -36px rgba(167,139,250,.7);
+    html:root #session-entete + .session-haut { margin: 0 -16px 14px; padding: 4px 16px 18px; border-radius: 0 0 30px 30px; box-shadow: 0 30px 50px -36px rgba(167,139,250,.7);
       background: radial-gradient(60% 80% at 10% 100%, rgba(167,139,250,.28), transparent 70%), linear-gradient(180deg, #0b1020, #070a14); }
-    html:root:not([data-style])[data-theme="light"] #session-entete { background: radial-gradient(70% 120% at 90% 0, rgba(244,114,182,.22), transparent 70%), linear-gradient(180deg, #f1f0ff, #f1f0ff); }
-    html:root:not([data-style])[data-theme="light"] #session-entete + .session-haut { background: radial-gradient(60% 80% at 10% 100%, rgba(167,139,250,.24), transparent 70%), linear-gradient(180deg, #f1f0ff, #eef6ff); }
-    html:root:not([data-style]) #titre-session-modal { font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.7rem !important; letter-spacing: -.045em; }
-    html:root:not([data-style]) #session-chrono { font-size: .86rem; font-variant-numeric: tabular-nums; }
+    html:root[data-theme="light"] #session-entete { background: radial-gradient(70% 120% at 90% 0, rgba(244,114,182,.22), transparent 70%), linear-gradient(180deg, #f1f0ff, #f1f0ff); }
+    html:root[data-theme="light"] #session-entete + .session-haut { background: radial-gradient(60% 80% at 10% 100%, rgba(167,139,250,.24), transparent 70%), linear-gradient(180deg, #f1f0ff, #eef6ff); }
+    html:root #titre-session-modal { font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.7rem !important; letter-spacing: -.045em; }
+    html:root #session-chrono { font-size: .86rem; font-variant-numeric: tabular-nums; }
 
     /* Apparition douce des blocs de Repas du jour */
-    html:root:not([data-style]) body.sur-repas #ecran-repas > :is(.summary-card, .coach-carte, #cartes-stats-repas, #bloc-eau, #meals-container) { animation: monte .6s cubic-bezier(.2,.8,.2,1) both; }
-    html:root:not([data-style]) #ecran-repas > .coach-carte { animation-delay: .06s !important; }
-    html:root:not([data-style]) #ecran-repas > #cartes-stats-repas { animation-delay: .12s !important; }
-    html:root:not([data-style]) #ecran-repas > #bloc-eau { animation-delay: .18s !important; }
-    html:root:not([data-style]) #ecran-repas > #meals-container { animation-delay: .24s !important; }
+    html:root body.sur-repas #ecran-repas > :is(.summary-card, .coach-carte, #cartes-stats-repas, #bloc-eau, #meals-container) { animation: monte .6s cubic-bezier(.2,.8,.2,1) both; }
+    html:root #ecran-repas > .coach-carte { animation-delay: .06s !important; }
+    html:root #ecran-repas > #cartes-stats-repas { animation-delay: .12s !important; }
+    html:root #ecran-repas > #bloc-eau { animation-delay: .18s !important; }
+    html:root #ecran-repas > #meals-container { animation-delay: .24s !important; }
     @keyframes monte { from { opacity: 0; transform: translateY(14px) scale(.985); } }
     @media (prefers-reduced-motion: reduce) {
-      html:root:not([data-style]) body::before, .coach-carte::before, .onglet-plus::before, .gourde svg { animation: none !important; }
-      html:root:not([data-style]) body.sur-repas #ecran-repas > * { animation: none !important; }
+      html:root body::before, .coach-carte::before, .onglet-plus::before, .gourde svg { animation: none !important; }
+      html:root body.sur-repas #ecran-repas > * { animation: none !important; }
     }
 
-    /* =====================================================================
-       STYLES VISUELS (Réglages › Apparence › Style) : huit habillages complets
-       de l'appli, choisis par l'utilisateur. Chacun ne s'applique que sous
-       html:root[data-style="…"] (posé au démarrage, voir le script de thème) et
-       remplace les couleurs, les polices et la forme des blocs ; sans style
-       choisi, l'appli garde son habillage d'origine.
-       ===================================================================== */
-    /* --- Épuré --- */
-    html:root[data-style="epure"] body::before { display: none !important; }
-    html:root[data-style="epure"] .summary-card,
-    html:root[data-style="epure"] .fitness-card,
-    html:root[data-style="epure"] .analysis-card,
-    html:root[data-style="epure"] .meal-card,
-    html:root[data-style="epure"] .bloc-verre,
-    html:root[data-style="epure"] .carte-stats { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important; margin: 0 !important; }
-    html:root[data-style="epure"] .macros-bar { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
-    html:root[data-style="epure"] #ecran-repas .macro-item { border-radius: 0 !important; }
-    html:root[data-style="epure"] .btn-icone,
-    html:root[data-style="epure"] .filtre-chip,
-    html:root[data-style="epure"] .meal-kcals { background: transparent !important; box-shadow: none !important; }
-    html:root[data-style="epure"] .date-nav,
-    html:root[data-style="epure"] .app-bar { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-    html:root[data-style="epure"] .date-nav button { background: transparent !important; }
-    html:root[data-style="epure"] .meal-header { border-bottom: 0 !important; }
-    html:root[data-style="epure"] #carte-pas-seances input { box-shadow: none !important; }
-    html:root[data-style="epure"] .summary-card,
-    html:root[data-style="epure"] .fitness-card,
-    html:root[data-style="epure"] .analysis-card,
-    html:root[data-style="epure"] .meal-card,
-    html:root[data-style="epure"] .bloc-verre,
-    html:root[data-style="epure"] .carte-stats { padding: 14px 2px !important; border-bottom: 1px solid var(--verre-brd) !important; }
-    html:root[data-style="epure"] .macros-bar { padding: 8px 0 0 !important; }
-    html:root[data-style="epure"] .date-nav { background: transparent !important; border-bottom: 1px solid var(--verre-brd) !important; border-radius: 0 !important; }
-    html:root[data-style="epure"] .btn-icone,
-    html:root[data-style="epure"] .filtre-chip { border: 0 !important; color: var(--primary) !important; }
-    html:root[data-style="epure"] .meal-kcals { color: var(--text-muted) !important; border: 0 !important; }
-    html:root[data-style="epure"] #carte-pas-seances input { background: transparent !important; border-bottom: 1.5px solid var(--verre-brd) !important; border-radius: 0 !important; }
-    html:root[data-style="epure"] .btn-analysis { background: transparent !important; border: 1.5px solid var(--ai-color) !important; }
-    html:root[data-style="epure"] .jauge { height: 4px !important; }
-    html:root[data-style="epure"] #ecran-repas .summary-card > h1 { font-size: 2.6rem !important; font-weight: 800 !important; }
-    html:root[data-style="epure"] .titre-section { margin: 22px 0 2px !important; }
-    /* --- Éditorial --- */
-    html:root[data-style="editorial"] body::before { display: none !important; }
-    html:root[data-style="editorial"] .summary-card,
-    html:root[data-style="editorial"] .fitness-card,
-    html:root[data-style="editorial"] .analysis-card,
-    html:root[data-style="editorial"] .meal-card,
-    html:root[data-style="editorial"] .bloc-verre,
-    html:root[data-style="editorial"] .carte-stats { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important; margin: 0 !important; }
-    html:root[data-style="editorial"] .macros-bar { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
-    html:root[data-style="editorial"] #ecran-repas .macro-item { border-radius: 0 !important; }
-    html:root[data-style="editorial"] .btn-icone,
-    html:root[data-style="editorial"] .filtre-chip,
-    html:root[data-style="editorial"] .meal-kcals { background: transparent !important; box-shadow: none !important; }
-    html:root[data-style="editorial"] .date-nav,
-    html:root[data-style="editorial"] .app-bar { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-    html:root[data-style="editorial"] .date-nav button { background: transparent !important; }
-    html:root[data-style="editorial"] .meal-header { border-bottom: 0 !important; }
-    html:root[data-style="editorial"] #carte-pas-seances input { box-shadow: none !important; }
-    html:root[data-style="editorial"][data-theme="light"] { --bg:#f5efe3;--barre:#f5efe3;--text:#1f1a14;--text-muted:#7a6e5f;--primary:#b4441c;--verre-brd:rgba(31,26,20,.18);--verre-creux:transparent;--ai-color:#1f1a14; }
-    html:root[data-style="editorial"][data-theme="dark"] { --bg:#15120e;--barre:#15120e;--text:#efe6d6;--text-muted:#a39682;--primary:#e0774b;--verre-brd:rgba(239,230,214,.18);--verre-creux:transparent;--ai-color:#efe6d6; }
-    html:root[data-style="editorial"] body,
-    html:root[data-style="editorial"] button,
-    html:root[data-style="editorial"] input { font-family: 'Nunito', sans-serif !important; }
-    html:root[data-style="editorial"] .titre-ecran,
-    html:root[data-style="editorial"] .titre-section,
-    html:root[data-style="editorial"] .meal-title,
-    html:root[data-style="editorial"] #ecran-repas .summary-card > h1,
-    html:root[data-style="editorial"] .carte-stats-valeur b,
-    html:root[data-style="editorial"] .date-display,
-    html:root[data-style="editorial"] .app-bar h2 { font-family: 'Fraunces', serif !important; letter-spacing: 0 !important; text-transform: none !important; }
-    html:root[data-style="editorial"] .titre-ecran { font-size: 1.9rem !important; font-weight: 700 !important; border-bottom: 3px double var(--text) !important; padding-bottom: 6px; }
-    html:root[data-style="editorial"] .titre-ecran .ic { display: none !important; }
-    html:root[data-style="editorial"] #ecran-repas .summary-card > h1 { font-size: 3.4rem !important; font-weight: 400 !important; color: var(--text) !important; }
-    html:root[data-style="editorial"] .summary-card,
-    html:root[data-style="editorial"] .fitness-card,
-    html:root[data-style="editorial"] .analysis-card,
-    html:root[data-style="editorial"] .meal-card,
-    html:root[data-style="editorial"] .bloc-verre,
-    html:root[data-style="editorial"] .carte-stats { padding: 14px 0 !important; border-bottom: 1px solid var(--verre-brd) !important; }
-    html:root[data-style="editorial"] .titre-section { font-size: 1.15rem !important; font-weight: 700 !important; color: var(--text) !important; border-bottom: 3px double var(--verre-brd); padding-bottom: 4px; margin: 26px 0 0 !important; }
-    html:root[data-style="editorial"] .titre-section .icone-ui,
-    html:root[data-style="editorial"] .meal-title .icone-ui,
-    html:root[data-style="editorial"] #bloc-eau h3 .icone-ui,
-    html:root[data-style="editorial"] #carte-pas-seances h3 .icone-ui { display: none !important; }
-    html:root[data-style="editorial"] .meal-title { font-size: 1.15rem !important; font-style: italic; }
-    html:root[data-style="editorial"] .carte-stats-titre,
-    html:root[data-style="editorial"] .libelle,
-    html:root[data-style="editorial"] #bloc-eau h3,
-    html:root[data-style="editorial"] #carte-pas-seances > h3 { font-family: 'Fraunces', serif !important; font-style: italic; text-transform: none !important; letter-spacing: 0 !important; font-size: .95rem !important; color: var(--text-muted) !important; font-weight: 400 !important; }
-    html:root[data-style="editorial"] .jauge { height: 2px !important; }
-    html:root[data-style="editorial"] .jauge > i { background: var(--text) !important; }
-    html:root[data-style="editorial"] .macro-jauge { height: 2px !important; }
-    html:root[data-style="editorial"] .btn-icone,
-    html:root[data-style="editorial"] .filtre-chip { color: var(--primary) !important; text-decoration: underline; text-underline-offset: 3px; border: 0 !important; }
-    html:root[data-style="editorial"] .btn-analysis { background: var(--text) !important; color: var(--bg) !important; border-radius: 0 !important; }
-    html:root[data-style="editorial"] .date-nav { background: transparent !important; border-radius: 0 !important; }
-    html:root[data-style="editorial"] #carte-pas-seances input { background: transparent !important; border: 0 !important; border-bottom: 1px solid var(--text) !important; border-radius: 0 !important; font-family: 'Fraunces', serif !important; font-size: 1.2rem !important; }
-    /* --- Néo-brutaliste --- */
-    html:root[data-style="brutal"] body::before { display: none !important; }
-    html:root[data-style="brutal"] .summary-card,
-    html:root[data-style="brutal"] .fitness-card,
-    html:root[data-style="brutal"] .analysis-card,
-    html:root[data-style="brutal"] .meal-card,
-    html:root[data-style="brutal"] .bloc-verre,
-    html:root[data-style="brutal"] .carte-stats { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important; margin: 0 !important; }
-    html:root[data-style="brutal"] .macros-bar { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
-    html:root[data-style="brutal"] #ecran-repas .macro-item { border-radius: 0 !important; }
-    html:root[data-style="brutal"] .btn-icone,
-    html:root[data-style="brutal"] .filtre-chip,
-    html:root[data-style="brutal"] .meal-kcals { background: transparent !important; box-shadow: none !important; }
-    html:root[data-style="brutal"] .date-nav,
-    html:root[data-style="brutal"] .app-bar { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-    html:root[data-style="brutal"] .date-nav button { background: transparent !important; }
-    html:root[data-style="brutal"] .meal-header { border-bottom: 0 !important; }
-    html:root[data-style="brutal"] #carte-pas-seances input { box-shadow: none !important; }
-    html:root[data-style="brutal"][data-theme="light"] { --bg:#fff8e7;--barre:#fff8e7;--text:#111;--text-muted:#333;--primary:#111;--verre-brd:#111;--ai-color:#111;--ink:#111;--fond-carte:#fff; }
-    html:root[data-style="brutal"][data-theme="dark"] { --bg:#1a1a1a;--barre:#1a1a1a;--text:#fff;--text-muted:#ddd;--primary:#fff;--verre-brd:#fff;--ai-color:#111;--ink:#fff;--fond-carte:#262626; }
-    html:root[data-style="brutal"] body,
-    html:root[data-style="brutal"] button,
-    html:root[data-style="brutal"] input { font-family: 'Space Grotesk', sans-serif !important; }
-    html:root[data-style="brutal"] .summary-card,
-    html:root[data-style="brutal"] .fitness-card,
-    html:root[data-style="brutal"] .analysis-card,
-    html:root[data-style="brutal"] .meal-card,
-    html:root[data-style="brutal"] .bloc-verre,
-    html:root[data-style="brutal"] .carte-stats,
-    html:root[data-style="brutal"] .date-nav { border: 2.5px solid var(--ink) !important; box-shadow: 5px 5px 0 var(--ink) !important; background: var(--fond-carte) !important; padding: 14px !important; margin: 0 5px 16px 0 !important; border-radius: 0 !important; }
-    html:root[data-style="brutal"] .summary-card { background: #ffe14d !important; color: #111 !important; }
-    html:root[data-style="brutal"] .summary-card * { color: #111 !important; }
-    html:root[data-style="brutal"] #bloc-eau { background: #9fd8ff !important; }
-    html:root[data-style="brutal"] #bloc-eau * { color: #111 !important; }
-    html:root[data-style="brutal"] #carte-stats-poids { background: #b9f6ca !important; }
-    html:root[data-style="brutal"] #carte-stats-nutrition { background: #ffc6e0 !important; }
-    html:root[data-style="brutal"] #carte-stats-poids *,
-    html:root[data-style="brutal"] #carte-stats-nutrition * { color: #111 !important; }
-    html:root[data-style="brutal"] #ecran-repas .summary-card > h1 { font-size: 3rem !important; font-weight: 700 !important; }
-    html:root[data-style="brutal"] .titre-ecran,
-    html:root[data-style="brutal"] .titre-section { font-weight: 700 !important; text-transform: uppercase; letter-spacing: 1px !important; }
-    html:root[data-style="brutal"] .titre-section { font-size: .9rem !important; color: var(--text) !important; }
-    html:root[data-style="brutal"] .macro-item + .macro-item { border-left: 2.5px solid #111 !important; }
-    html:root[data-style="brutal"] .btn-icone,
-    html:root[data-style="brutal"] .filtre-chip { border: 2px solid currentColor !important; border-radius: 0 !important; font-weight: 700 !important; color: inherit !important; }
-    html:root[data-style="brutal"] .jauge,
-    html:root[data-style="brutal"] .macro-jauge { height: 10px !important; border: 2px solid #111 !important; border-radius: 0 !important; background: #fff !important; }
-    html:root[data-style="brutal"] .jauge > i,
-    html:root[data-style="brutal"] .macro-jauge > i { border-radius: 0 !important; }
-    html:root[data-style="brutal"] .meal-kcals { border: 2px solid var(--ink) !important; border-radius: 0 !important; color: var(--text) !important; }
-    html:root[data-style="brutal"] .btn-analysis { background: #7c4dff !important; color: #fff !important; border: 2.5px solid var(--ink) !important; box-shadow: 4px 4px 0 var(--ink) !important; border-radius: 0 !important; }
-    html:root[data-style="brutal"] #carte-pas-seances input { border: 2px solid var(--ink) !important; border-radius: 0 !important; }
-    /* --- Terminal --- */
-    html:root[data-style="terminal"] body::before { display: none !important; }
-    html:root[data-style="terminal"] .summary-card,
-    html:root[data-style="terminal"] .fitness-card,
-    html:root[data-style="terminal"] .analysis-card,
-    html:root[data-style="terminal"] .meal-card,
-    html:root[data-style="terminal"] .bloc-verre,
-    html:root[data-style="terminal"] .carte-stats { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important; margin: 0 !important; }
-    html:root[data-style="terminal"] .macros-bar { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
-    html:root[data-style="terminal"] #ecran-repas .macro-item { border-radius: 0 !important; }
-    html:root[data-style="terminal"] .btn-icone,
-    html:root[data-style="terminal"] .filtre-chip,
-    html:root[data-style="terminal"] .meal-kcals { background: transparent !important; box-shadow: none !important; }
-    html:root[data-style="terminal"] .date-nav,
-    html:root[data-style="terminal"] .app-bar { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-    html:root[data-style="terminal"] .date-nav button { background: transparent !important; }
-    html:root[data-style="terminal"] .meal-header { border-bottom: 0 !important; }
-    html:root[data-style="terminal"] #carte-pas-seances input { box-shadow: none !important; }
-    html:root[data-style="terminal"][data-theme="light"] { --bg:#f4f4ef;--barre:#f4f4ef;--text:#1b1b1b;--text-muted:#6b6b6b;--primary:#0a7d32;--verre-brd:#1b1b1b;--ai-color:#0a7d32; }
-    html:root[data-style="terminal"][data-theme="dark"] { --bg:#050805;--barre:#050805;--text:#c9f7cf;--text-muted:#5f8a66;--primary:#39ff6a;--verre-brd:#2c4a31;--ai-color:#39ff6a; }
-    html:root[data-style="terminal"] body,
-    html:root[data-style="terminal"] button,
-    html:root[data-style="terminal"] input,
-    html:root[data-style="terminal"] * { font-family: 'JetBrains Mono', monospace !important; }
-    html:root[data-style="terminal"] .summary-card,
-    html:root[data-style="terminal"] .fitness-card,
-    html:root[data-style="terminal"] .analysis-card,
-    html:root[data-style="terminal"] .meal-card,
-    html:root[data-style="terminal"] .bloc-verre,
-    html:root[data-style="terminal"] .carte-stats { padding: 12px 0 !important; border-bottom: 1px dashed var(--verre-brd) !important; }
-    html:root[data-style="terminal"] .titre-ecran { font-size: 1rem !important; }
-    html:root[data-style="terminal"] .titre-ecran .ic { display: none !important; }
-    html:root[data-style="terminal"] .titre-ecran::before,
-    html:root[data-style="terminal"] .titre-section::before,
-    html:root[data-style="terminal"] .meal-title::before { content: '> '; color: var(--primary); }
-    html:root[data-style="terminal"] .titre-section .icone-ui,
-    html:root[data-style="terminal"] .meal-title .icone-ui,
-    html:root[data-style="terminal"] #bloc-eau h3 .icone-ui,
-    html:root[data-style="terminal"] #carte-pas-seances h3 .icone-ui { display: none !important; }
-    html:root[data-style="terminal"] .titre-section { color: var(--primary) !important; font-size: .8rem !important; }
-    html:root[data-style="terminal"] #ecran-repas .summary-card > h1 { font-size: 2.6rem !important; font-weight: 700 !important; letter-spacing: -2px !important; }
-    html:root[data-style="terminal"] .meal-title { font-size: .9rem !important; text-transform: uppercase; }
-    html:root[data-style="terminal"] .jauge,
-    html:root[data-style="terminal"] .macro-jauge { height: 8px !important; border-radius: 0 !important; background: repeating-linear-gradient(90deg, var(--verre-brd) 0 6px, transparent 6px 8px) !important; }
-    html:root[data-style="terminal"] .jauge > i,
-    html:root[data-style="terminal"] .macro-jauge > i { border-radius: 0 !important; background-image: repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 8px) !important; }
-    html:root[data-style="terminal"] .btn-icone,
-    html:root[data-style="terminal"] .filtre-chip { color: var(--primary) !important; border: 0 !important; }
-    html:root[data-style="terminal"] .btn-icone::before,
-    html:root[data-style="terminal"] .filtre-chip::before { content: '['; }
-    html:root[data-style="terminal"] .btn-icone::after,
-    html:root[data-style="terminal"] .filtre-chip::after { content: ']'; }
-    html:root[data-style="terminal"] .meal-kcals { color: var(--primary) !important; border: 0 !important; }
-    html:root[data-style="terminal"] .date-nav { background: transparent !important; border: 1px dashed var(--verre-brd) !important; border-radius: 0 !important; }
-    html:root[data-style="terminal"] .btn-analysis { background: transparent !important; border: 1px solid var(--primary) !important; color: var(--primary) !important; border-radius: 0 !important; }
-    html:root[data-style="terminal"] #carte-pas-seances input { background: transparent !important; border: 1px dashed var(--verre-brd) !important; border-radius: 0 !important; }
-    /* --- Sport --- */
-    html:root[data-style="sport"] body::before { display: none !important; }
-    html:root[data-style="sport"] .summary-card,
-    html:root[data-style="sport"] .fitness-card,
-    html:root[data-style="sport"] .analysis-card,
-    html:root[data-style="sport"] .meal-card,
-    html:root[data-style="sport"] .bloc-verre,
-    html:root[data-style="sport"] .carte-stats { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important; margin: 0 !important; }
-    html:root[data-style="sport"] .macros-bar { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
-    html:root[data-style="sport"] #ecran-repas .macro-item { border-radius: 0 !important; }
-    html:root[data-style="sport"] .btn-icone,
-    html:root[data-style="sport"] .filtre-chip,
-    html:root[data-style="sport"] .meal-kcals { background: transparent !important; box-shadow: none !important; }
-    html:root[data-style="sport"] .date-nav,
-    html:root[data-style="sport"] .app-bar { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-    html:root[data-style="sport"] .date-nav button { background: transparent !important; }
-    html:root[data-style="sport"] .meal-header { border-bottom: 0 !important; }
-    html:root[data-style="sport"] #carte-pas-seances input { box-shadow: none !important; }
-    html:root[data-style="sport"][data-theme="light"] { --bg:#ffffff;--barre:#ffffff;--text:#0b0b0b;--text-muted:#6b7280;--primary:#00b86b;--verre-brd:rgba(0,0,0,.08); }
-    html:root[data-style="sport"][data-theme="dark"] { --bg:#000000;--barre:#000000;--text:#ffffff;--text-muted:#8a8f98;--primary:#00f08c;--verre-brd:rgba(255,255,255,.08); }
-    html:root[data-style="sport"] body,
-    html:root[data-style="sport"] button,
-    html:root[data-style="sport"] input { font-family: 'Barlow Condensed', sans-serif !important; }
-    html:root[data-style="sport"] .summary-card,
-    html:root[data-style="sport"] .fitness-card,
-    html:root[data-style="sport"] .analysis-card,
-    html:root[data-style="sport"] .meal-card,
-    html:root[data-style="sport"] .bloc-verre,
-    html:root[data-style="sport"] .carte-stats { padding: 10px 0 10px 14px !important; margin: 0 0 14px !important; border-left: 4px solid var(--rail, var(--primary)) !important; }
-    html:root[data-style="sport"] .summary-card { --rail: var(--primary); }
-    html:root[data-style="sport"] #carte-stats-poids { --rail: #4f8cff; }
-    html:root[data-style="sport"] #carte-stats-nutrition { --rail: #ff9f1a; }
-    html:root[data-style="sport"] #bloc-eau { --rail: #22d3ee; }
-    html:root[data-style="sport"] .meal-card { --rail: #ff5a5f; }
-    html:root[data-style="sport"] #carte-pas-seances { --rail: #a78bfa; }
-    html:root[data-style="sport"] #carte-bilan-jour { --rail: #facc15; }
-    html:root[data-style="sport"] .titre-ecran { font-size: 1.6rem !important; font-weight: 800 !important; text-transform: uppercase; letter-spacing: 1px !important; }
-    html:root[data-style="sport"] .titre-section,
-    html:root[data-style="sport"] .libelle,
-    html:root[data-style="sport"] .carte-stats-titre,
-    html:root[data-style="sport"] #bloc-eau h3,
-    html:root[data-style="sport"] #carte-pas-seances > h3,
-    html:root[data-style="sport"] .macro-lbl { text-transform: uppercase !important; letter-spacing: 2.5px !important; font-weight: 700 !important; }
-    html:root[data-style="sport"] #ecran-repas .summary-card > h1 { font-size: 4.4rem !important; font-weight: 800 !important; line-height: .9 !important; letter-spacing: 0 !important; }
-    html:root[data-style="sport"] .carte-stats-valeur b { font-size: 2rem !important; font-weight: 800 !important; }
-    html:root[data-style="sport"] .macro-val { font-size: 1.15rem !important; font-weight: 800 !important; }
-    html:root[data-style="sport"] .meal-title { font-size: 1.25rem !important; font-weight: 800 !important; text-transform: uppercase; }
-    html:root[data-style="sport"] .food-name { font-size: 1.05rem !important; }
-    html:root[data-style="sport"] .food-item-ligne b,
-    html:root[data-style="sport"] .food-kcal { font-size: 1.15rem !important; }
-    html:root[data-style="sport"] .jauge { height: 10px !important; border-radius: 2px !important; }
-    html:root[data-style="sport"] .jauge > i { border-radius: 2px !important; }
-    html:root[data-style="sport"] .btn-icone,
-    html:root[data-style="sport"] .filtre-chip { font-size: 1rem !important; font-weight: 700 !important; color: var(--text) !important; text-transform: uppercase; border: 1px solid var(--verre-brd) !important; border-radius: 2px !important; }
-    html:root[data-style="sport"] .meal-kcals { font-size: 1.05rem !important; color: var(--text) !important; }
-    html:root[data-style="sport"] .date-nav { background: transparent !important; border-radius: 0 !important; }
-    html:root[data-style="sport"] .date-display { text-transform: uppercase; letter-spacing: 2px; font-size: 1.1rem !important; }
-    html:root[data-style="sport"] .btn-analysis { border-radius: 2px !important; text-transform: uppercase; letter-spacing: 2px; background: var(--text) !important; color: var(--bg) !important; }
-    html:root[data-style="sport"] #carte-pas-seances input { background: transparent !important; border: 0 !important; font-size: 1.6rem !important; font-weight: 800 !important; }
-    /* --- Fil de la journée --- */
-    html:root[data-style="fil"] body::before { display: none !important; }
-    html:root[data-style="fil"] .summary-card,
-    html:root[data-style="fil"] .fitness-card,
-    html:root[data-style="fil"] .analysis-card,
-    html:root[data-style="fil"] .meal-card,
-    html:root[data-style="fil"] .bloc-verre,
-    html:root[data-style="fil"] .carte-stats { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-radius: 0 !important; margin: 0 !important; }
-    html:root[data-style="fil"] .macros-bar { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
-    html:root[data-style="fil"] #ecran-repas .macro-item { border-radius: 0 !important; }
-    html:root[data-style="fil"] .btn-icone,
-    html:root[data-style="fil"] .filtre-chip,
-    html:root[data-style="fil"] .meal-kcals { background: transparent !important; box-shadow: none !important; }
-    html:root[data-style="fil"] .date-nav,
-    html:root[data-style="fil"] .app-bar { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-    html:root[data-style="fil"] .date-nav button { background: transparent !important; }
-    html:root[data-style="fil"] .meal-header { border-bottom: 0 !important; }
-    html:root[data-style="fil"] #carte-pas-seances input { box-shadow: none !important; }
-    html:root[data-style="fil"][data-theme="light"] { --bg:#fbfaf8;--barre:#fbfaf8;--text:#2b2b33;--text-muted:#8b8a93;--primary:#6c5ce7;--verre-brd:rgba(43,43,51,.08); }
-    html:root[data-style="fil"][data-theme="dark"] { --bg:#141318;--barre:#141318;--text:#ecebf3;--text-muted:#8e8c9a;--primary:#a29bfe;--verre-brd:rgba(236,235,243,.08); }
-    html:root[data-style="fil"] body,
-    html:root[data-style="fil"] button,
-    html:root[data-style="fil"] input { font-family: 'Nunito', sans-serif !important; }
-    html:root[data-style="fil"] .summary-card,
-    html:root[data-style="fil"] #cartes-stats-repas,
-    html:root[data-style="fil"] #bloc-eau,
-    html:root[data-style="fil"] #carte-pas-seances,
-    html:root[data-style="fil"] #carte-bilan-jour { margin: 0 -16px !important; padding: 18px 16px !important; }
-    html:root[data-style="fil"][data-theme="light"] .summary-card { background: #ece9ff !important; }
-    html:root[data-style="fil"][data-theme="dark"] .summary-card { background: #241f3d !important; }
-    html:root[data-style="fil"][data-theme="light"] #cartes-stats-repas { background: #fff4e6 !important; }
-    html:root[data-style="fil"][data-theme="dark"] #cartes-stats-repas { background: #2b2216 !important; }
-    html:root[data-style="fil"][data-theme="light"] #bloc-eau { background: #e6f6ff !important; }
-    html:root[data-style="fil"][data-theme="dark"] #bloc-eau { background: #13262f !important; }
-    html:root[data-style="fil"][data-theme="light"] #carte-pas-seances { background: #eafaf0 !important; }
-    html:root[data-style="fil"][data-theme="dark"] #carte-pas-seances { background: #142a1d !important; }
-    html:root[data-style="fil"] #cartes-stats-repas .carte-stats { padding: 6px 0 !important; }
-    html:root[data-style="fil"] #ecran-repas .summary-card > h1 { font-size: 3rem !important; font-weight: 800 !important; color: var(--primary) !important; }
-    html:root[data-style="fil"] .titre-section { margin: 22px 0 6px !important; }
-    html:root[data-style="fil"] #meals-container { position: relative; padding-left: 26px; margin-top: 8px; }
-    html:root[data-style="fil"] #meals-container::before { content: ''; position: absolute; left: 7px; top: 12px; bottom: 12px; width: 2px; background: var(--verre-brd); }
-    html:root[data-style="fil"] #meals-container .meal-card { position: relative; padding: 6px 0 14px !important; }
-    html:root[data-style="fil"] #meals-container .meal-card::before { content: ''; position: absolute; left: -25px; top: 10px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); border: 3px solid var(--primary); box-sizing: border-box; }
-    html:root[data-style="fil"] .meal-title { font-weight: 800 !important; }
-    html:root[data-style="fil"] .food-item { border-bottom: 0 !important; padding: 5px 0 !important; }
-    html:root[data-style="fil"] .btn-icone,
-    html:root[data-style="fil"] .filtre-chip { color: var(--primary) !important; border: 0 !important; font-weight: 800 !important; }
-    html:root[data-style="fil"] .meal-kcals { color: var(--primary) !important; }
-    html:root[data-style="fil"] .date-nav { background: transparent !important; }
-    html:root[data-style="fil"] .btn-analysis { background: var(--primary) !important; color: #fff !important; border-radius: 999px !important; }
-    html:root[data-style="fil"] #carte-pas-seances input { background: transparent !important; border: 0 !important; font-size: 1.4rem !important; font-weight: 800 !important; }
-    /* --- Système --- */
-    html:root[data-style="systeme"] body::before { display: none !important; }
-    html:root[data-style="systeme"] .summary-card,
-    html:root[data-style="systeme"] .fitness-card,
-    html:root[data-style="systeme"] .analysis-card,
-    html:root[data-style="systeme"] .meal-card,
-    html:root[data-style="systeme"] .bloc-verre,
-    html:root[data-style="systeme"] .carte-stats,
-    html:root[data-style="systeme"] .date-nav { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-    html:root[data-style="systeme"] .macros-bar { background: transparent !important; box-shadow: none !important; }
-    html:root[data-style="systeme"] #ecran-repas .macro-item { border-radius: 0 !important; }
-    html:root[data-style="systeme"] .date-nav button { background: transparent !important; }
-    html:root[data-style="systeme"] .titre-section .icone-ui,
-    html:root[data-style="systeme"] .meal-title .icone-ui,
-    html:root[data-style="systeme"] .titre-ecran .ic,
-    html:root[data-style="systeme"] #bloc-eau h3 .icone-ui,
-    html:root[data-style="systeme"] #carte-pas-seances h3 .icone-ui { display: none !important; }
-    html:root[data-style="systeme"] .titre-ecran { flex-wrap: wrap; }
-    html:root[data-style="systeme"] .titre-ecran::before { flex-basis: 100%; }
-    html:root[data-style="systeme"] #cartes-stats-repas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-    html:root[data-style="systeme"] #cartes-stats-repas .carte-stats { margin: 0 !important; }
-    html:root[data-style="systeme"] #cartes-stats-repas .carte-stats-haut { flex-wrap: wrap; }
-    html:root[data-style="systeme"] #cartes-stats-repas .carte-stats-chevron { display: none; }
-    html:root[data-style="systeme"] #cartes-stats-repas .carte-stats-graph { width: 100% !important; height: 26px !important; }
-    html:root[data-style="systeme"] .app-bar { background: transparent !important; box-shadow: none !important; }
-    html:root[data-style="systeme"] { --bg:#03060f; --barre:#03060f; --text:#e6f4ff; --text-muted:#7fa6c9; --primary:#3ad1ff; --lueur:rgba(58,209,255,.55); --panneau:rgba(8,22,48,.78); --verre-brd:rgba(58,209,255,.25); --ai-color:#3ad1ff; }
-    html:root[data-style="systeme"][data-theme="light"] { --bg:#e9f1fb; --barre:#e9f1fb; --text:#06142b; --text-muted:#456285; --primary:#0077c8; --lueur:rgba(0,119,200,.35); --panneau:rgba(255,255,255,.82); --verre-brd:rgba(0,119,200,.25); --ai-color:#0077c8; }
-    html:root[data-style="systeme"] body { background: linear-gradient(rgba(58,209,255,.05) 1px, transparent 1px) 0 0 / 100% 32px, linear-gradient(90deg, rgba(58,209,255,.05) 1px, transparent 1px) 0 0 / 32px 100%, radial-gradient(90% 60% at 50% 0%, rgba(40,90,200,.28), transparent 70%), var(--bg) !important; background-attachment: fixed !important; }
-    html:root[data-style="systeme"] body::after { content: ''; position: fixed; left: 0; right: 0; height: 120px; top: -120px; pointer-events: none; z-index: 3; background: linear-gradient(transparent, rgba(58,209,255,.07), transparent); animation: st-systeme-balayage 5s linear infinite; }
-    @keyframes st-systeme-balayage { to { transform: translateY(calc(100vh + 240px)); } }
-    html:root[data-style="systeme"] body,
-    html:root[data-style="systeme"] button,
-    html:root[data-style="systeme"] input { font-family: 'Rajdhani', sans-serif !important; font-weight: 600; }
-    html:root[data-style="systeme"] .summary-card,
-    html:root[data-style="systeme"] .fitness-card,
-    html:root[data-style="systeme"] .analysis-card,
-    html:root[data-style="systeme"] .meal-card,
-    html:root[data-style="systeme"] .bloc-verre,
-    html:root[data-style="systeme"] .carte-stats,
-    html:root[data-style="systeme"] .date-nav { border: 1px solid var(--primary) !important; border-radius: 2px !important; margin: 0 0 14px !important; padding: 14px 16px !important; background: linear-gradient(var(--primary),var(--primary)) top left/14px 2px, linear-gradient(var(--primary),var(--primary)) top left/2px 14px, linear-gradient(var(--primary),var(--primary)) top right/14px 2px, linear-gradient(var(--primary),var(--primary)) top right/2px 14px, linear-gradient(var(--primary),var(--primary)) bottom left/14px 2px, linear-gradient(var(--primary),var(--primary)) bottom left/2px 14px, linear-gradient(var(--primary),var(--primary)) bottom right/14px 2px, linear-gradient(var(--primary),var(--primary)) bottom right/2px 14px, linear-gradient(180deg, rgba(58,209,255,.08), transparent 40%), var(--panneau) !important; background-repeat: no-repeat !important; box-shadow: 0 0 14px var(--lueur), inset 0 0 18px rgba(58,209,255,.12) !important; animation: st-systeme-ouverture .6s ease-out both; }
-    @keyframes st-systeme-ouverture { 0% { opacity: 0; transform: scaleY(.04); } 60% { opacity: 1; transform: scaleY(1.02); } 70% { opacity: .5; } 100% { transform: none; } }
-    html:root[data-style="systeme"] .titre-ecran { justify-content: center; text-align: center; font-family: 'Orbitron' !important; font-weight: 900 !important; font-size: 1.15rem !important; letter-spacing: 4px !important; text-transform: uppercase; color: #fff !important; text-shadow: 0 0 8px var(--primary), 0 0 18px var(--primary); }
-    html:root[data-style="systeme"][data-theme="light"] .titre-ecran { color: var(--text) !important; text-shadow: 0 0 10px var(--lueur); }
-    html:root[data-style="systeme"] .titre-ecran::before { content: '[ SYSTÈME ]'; font-size: .62rem; letter-spacing: 6px; color: var(--primary); text-shadow: none; margin-bottom: 4px; }
-    html:root[data-style="systeme"] #ecran-repas .summary-card { padding-top: 38px !important; position: relative; }
-    html:root[data-style="systeme"] .summary-card::before { content: '— QUÊTE QUOTIDIENNE —'; position: absolute; top: 12px; left: 0; right: 0; text-align: center; font-family: 'Orbitron'; font-weight: 700; font-size: .7rem; letter-spacing: 4px; color: var(--primary); text-shadow: 0 0 8px var(--lueur); }
-    html:root[data-style="systeme"] .reste-kcal { white-space: nowrap; }
-    html:root[data-style="systeme"] .titre-section { font-family: 'Orbitron' !important; font-weight: 700 !important; font-size: .74rem !important; letter-spacing: 4px !important; color: var(--primary) !important; text-transform: uppercase; margin: 20px 0 8px !important; }
-    html:root[data-style="systeme"] .titre-section::before { content: '◆ '; }
-    html:root[data-style="systeme"] .titre-section::after { content: ''; display: inline-block; vertical-align: middle; width: 40%; height: 1px; margin-left: 10px; background: linear-gradient(90deg, var(--primary), transparent); }
-    html:root[data-style="systeme"] .libelle,
-    html:root[data-style="systeme"] .carte-stats-titre,
-    html:root[data-style="systeme"] #bloc-eau h3,
-    html:root[data-style="systeme"] #carte-pas-seances > h3,
-    html:root[data-style="systeme"] .macro-lbl { font-family: 'Rajdhani' !important; font-weight: 700 !important; letter-spacing: 3px !important; text-transform: uppercase !important; color: var(--text-muted) !important; }
-    html:root[data-style="systeme"] #bloc-eau h3::before { content: '[ '; color: var(--primary); }
-    html:root[data-style="systeme"] #bloc-eau h3::after { content: ' ]'; color: var(--primary); }
-    html:root[data-style="systeme"] #carte-pas-seances > h3::before { content: '[ '; color: var(--primary); }
-    html:root[data-style="systeme"] #carte-pas-seances > h3::after { content: ' ]'; color: var(--primary); }
-    html:root[data-style="systeme"] #ecran-repas .summary-card > h1 { font-family: 'Orbitron' !important; font-weight: 900 !important; font-size: 3rem !important; color: #fff !important; letter-spacing: 2px !important; text-shadow: 0 0 10px var(--primary), 0 0 24px var(--primary); animation: st-systeme-pulsation 2.4s ease-in-out infinite; }
-    html:root[data-style="systeme"][data-theme="light"] #ecran-repas .summary-card > h1 { color: var(--primary) !important; text-shadow: 0 0 12px var(--lueur); }
-    @keyframes st-systeme-pulsation { 50% { text-shadow: 0 0 4px var(--primary), 0 0 10px var(--primary); } }
-    html:root[data-style="systeme"] .target-kcal,
-    html:root[data-style="systeme"] .reste-kcal { font-family: 'Rajdhani' !important; letter-spacing: 1px; }
-    html:root[data-style="systeme"] .reste-kcal::after { content: ' [EN COURS]'; color: #ffcc4d; font-size: .7rem; letter-spacing: 2px; }
-    html:root[data-style="systeme"] .carte-stats-valeur b,
-    html:root[data-style="systeme"] .macro-val { font-family: 'Orbitron' !important; font-weight: 700 !important; letter-spacing: 1px; }
-    html:root[data-style="systeme"] .carte-stats-valeur b { font-size: 1.25rem !important; text-shadow: 0 0 8px var(--lueur); }
-    html:root[data-style="systeme"] .jauge,
-    html:root[data-style="systeme"] .macro-jauge { height: 6px !important; border-radius: 0 !important; background: rgba(58,209,255,.1) !important; border: 1px solid rgba(58,209,255,.35); box-shadow: none !important; }
-    html:root[data-style="systeme"] .jauge > i,
-    html:root[data-style="systeme"] .macro-jauge > i { border-radius: 0 !important; box-shadow: 0 0 10px currentColor, 0 0 3px #fff; }
-    html:root[data-style="systeme"] #jauge-kcal,
-    html:root[data-style="systeme"] #jauge-eau { background: var(--primary) !important; color: var(--primary); }
-    html:root[data-style="systeme"] .btn-icone,
-    html:root[data-style="systeme"] .filtre-chip { background: rgba(58,209,255,.06) !important; color: var(--primary) !important; border: 1px solid var(--primary) !important; border-radius: 0 !important; font-family: 'Rajdhani' !important; font-weight: 700 !important; letter-spacing: 1px; text-transform: uppercase; box-shadow: inset 0 0 8px rgba(58,209,255,.15) !important; }
-    html:root[data-style="systeme"] .meal-header { border-bottom: 1px solid var(--verre-brd) !important; }
-    html:root[data-style="systeme"] .meal-title { font-family: 'Orbitron' !important; font-weight: 700 !important; font-size: .9rem !important; letter-spacing: 2px; text-transform: uppercase; }
-    html:root[data-style="systeme"] .meal-title::before { content: '▸ '; color: var(--primary); }
-    html:root[data-style="systeme"] .meal-kcals { background: transparent !important; color: var(--primary) !important; border: 1px solid var(--primary) !important; border-radius: 0 !important; font-family: 'Orbitron' !important; font-size: .7rem !important; }
-    html:root[data-style="systeme"] .food-item { border-bottom: 1px solid rgba(58,209,255,.12) !important; }
-    html:root[data-style="systeme"] .food-name { font-size: 1rem !important; }
-    html:root[data-style="systeme"] .btn-analysis { background: rgba(58,209,255,.12) !important; color: #fff !important; border: 1px solid var(--primary) !important; border-radius: 0 !important; font-family: 'Orbitron' !important; letter-spacing: 3px; text-transform: uppercase; font-size: .8rem !important; box-shadow: 0 0 16px var(--lueur) !important; }
-    html:root[data-style="systeme"][data-theme="light"] .btn-analysis { color: var(--primary) !important; }
-    html:root[data-style="systeme"] .date-display { font-family: 'Orbitron' !important; letter-spacing: 3px; text-transform: uppercase; font-size: .85rem !important; }
-    html:root[data-style="systeme"] #carte-pas-seances input { background: transparent !important; border: 1px solid var(--primary) !important; border-radius: 0 !important; font-family: 'Orbitron' !important; color: var(--primary) !important; box-shadow: none !important; }
-    /* --- Bataillon --- */
-    html:root[data-style="bataillon"] body::before { display: none !important; }
-    html:root[data-style="bataillon"] .summary-card,
-    html:root[data-style="bataillon"] .fitness-card,
-    html:root[data-style="bataillon"] .analysis-card,
-    html:root[data-style="bataillon"] .meal-card,
-    html:root[data-style="bataillon"] .bloc-verre,
-    html:root[data-style="bataillon"] .carte-stats,
-    html:root[data-style="bataillon"] .date-nav { box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-    html:root[data-style="bataillon"] .macros-bar { background: transparent !important; box-shadow: none !important; }
-    html:root[data-style="bataillon"] #ecran-repas .macro-item { border-radius: 0 !important; }
-    html:root[data-style="bataillon"] .date-nav button { background: transparent !important; }
-    html:root[data-style="bataillon"] .titre-section .icone-ui,
-    html:root[data-style="bataillon"] .meal-title .icone-ui,
-    html:root[data-style="bataillon"] .titre-ecran .ic,
-    html:root[data-style="bataillon"] #bloc-eau h3 .icone-ui,
-    html:root[data-style="bataillon"] #carte-pas-seances h3 .icone-ui { display: none !important; }
-    html:root[data-style="bataillon"] .titre-ecran { flex-wrap: wrap; }
-    html:root[data-style="bataillon"] .titre-ecran::before { flex-basis: 100%; }
-    html:root[data-style="bataillon"] #cartes-stats-repas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-    html:root[data-style="bataillon"] #cartes-stats-repas .carte-stats { margin: 0 !important; }
-    html:root[data-style="bataillon"] #cartes-stats-repas .carte-stats-haut { flex-wrap: wrap; }
-    html:root[data-style="bataillon"] #cartes-stats-repas .carte-stats-chevron { display: none; }
-    html:root[data-style="bataillon"] #cartes-stats-repas .carte-stats-graph { width: 100% !important; height: 26px !important; }
-    html:root[data-style="bataillon"] .app-bar { background: transparent !important; box-shadow: none !important; }
-    html:root[data-style="bataillon"] { --bg:#0f0e0c; --barre:#0f0e0c; --text:#e9dfc9; --text-muted:#9c8f76; --primary:#c62f22; --vert:#3e5a45; --cuir:#1d1a15; --laiton:#a8874f; --verre-brd:rgba(168,135,79,.3); --ai-color:#e9dfc9; }
-    html:root[data-style="bataillon"][data-theme="light"] { --bg:#d9ccae; --barre:#d9ccae; --text:#1f1a12; --text-muted:#5e5340; --primary:#a3231a; --cuir:#ece2c9; --laiton:#7a5f30; --verre-brd:rgba(60,45,20,.3); --ai-color:#1f1a12; }
-    html:root[data-style="bataillon"] body { background: radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 3px 3px, radial-gradient(120% 80% at 50% 0%, transparent 40%, rgba(0,0,0,.55)), var(--bg) !important; background-attachment: fixed !important; }
-    html:root[data-style="bataillon"][data-theme="light"] body { background: radial-gradient(rgba(60,40,10,.06) 1px, transparent 1px) 0 0 / 3px 3px, radial-gradient(120% 80% at 50% 0%, transparent 50%, rgba(80,50,10,.3)), var(--bg) !important; }
-    html:root[data-style="bataillon"] body::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 3; opacity: .35; mix-blend-mode: overlay; background: repeating-linear-gradient(0deg, rgba(0,0,0,.25) 0 1px, transparent 1px 3px); animation: st-bataillon-grain .25s steps(2) infinite; }
-    @keyframes st-bataillon-grain { 50% { transform: translateY(1px); } }
-    html:root[data-style="bataillon"] body,
-    html:root[data-style="bataillon"] button,
-    html:root[data-style="bataillon"] input { font-family: 'Oswald', sans-serif !important; font-weight: 500; }
-    html:root[data-style="bataillon"] .summary-card,
-    html:root[data-style="bataillon"] .fitness-card,
-    html:root[data-style="bataillon"] .analysis-card,
-    html:root[data-style="bataillon"] .meal-card,
-    html:root[data-style="bataillon"] .bloc-verre,
-    html:root[data-style="bataillon"] .carte-stats,
-    html:root[data-style="bataillon"] .date-nav { background: linear-gradient(180deg, rgba(255,255,255,.03), transparent), var(--cuir) !important; border: 1px solid var(--verre-brd) !important; border-left: 4px solid var(--primary) !important; border-radius: 0 !important; margin: 0 0 14px !important; padding: 14px 16px !important; box-shadow: 0 8px 18px rgba(0,0,0,.45) !important; }
-    html:root[data-style="bataillon"] .titre-ecran { font-family: 'Bebas Neue' !important; font-weight: 400 !important; font-size: 2.6rem !important; letter-spacing: 3px !important; color: var(--primary) !important; line-height: 1; text-shadow: 2px 2px 0 rgba(0,0,0,.6), 0 0 1px #000; }
-    html:root[data-style="bataillon"] .titre-ecran::before { content: 'RAPPORT N° 104 — JOUR EN COURS'; font-family: 'Special Elite'; font-size: .7rem; letter-spacing: 2px; color: var(--text-muted); text-shadow: none; }
-    html:root[data-style="bataillon"] .titre-ecran::after { content: ''; flex-basis: 100%; height: 3px; margin-top: 4px; background: linear-gradient(90deg, var(--primary), var(--primary) 60%, transparent); }
-    html:root[data-style="bataillon"] .titre-section { font-family: 'Bebas Neue' !important; font-weight: 400 !important; font-size: 1.35rem !important; letter-spacing: 3px !important; color: var(--text) !important; text-transform: uppercase; margin: 20px 0 8px !important; border-bottom: 1px solid var(--verre-brd); padding-bottom: 2px; }
-    html:root[data-style="bataillon"] .titre-section::before { content: '■ '; color: var(--primary); }
-    html:root[data-style="bataillon"] .libelle,
-    html:root[data-style="bataillon"] .carte-stats-titre,
-    html:root[data-style="bataillon"] #bloc-eau h3,
-    html:root[data-style="bataillon"] #carte-pas-seances > h3,
-    html:root[data-style="bataillon"] .macro-lbl { font-family: 'Special Elite' !important; font-weight: 400 !important; letter-spacing: 1px !important; text-transform: uppercase !important; color: var(--text-muted) !important; }
-    html:root[data-style="bataillon"] #bloc-eau h3::after { content: ' · gourde'; text-transform: none; }
-    html:root[data-style="bataillon"] #carte-pas-seances > h3::after { content: ' · marche'; text-transform: none; }
-    html:root[data-style="bataillon"] .summary-card .libelle::before { content: 'RATIONS · '; color: var(--primary); }
-    html:root[data-style="bataillon"] #ecran-repas .summary-card > h1 { font-family: 'Bebas Neue' !important; font-weight: 400 !important; font-size: 4.4rem !important; letter-spacing: 2px !important; color: var(--text) !important; line-height: .9 !important; text-shadow: 3px 3px 0 var(--primary); }
-    html:root[data-style="bataillon"] .carte-stats-valeur b { font-family: 'Bebas Neue' !important; font-weight: 400 !important; letter-spacing: 1.5px; font-size: 1.9rem !important; }
-    html:root[data-style="bataillon"] .macro-val { font-family: 'Oswald' !important; font-weight: 700 !important; font-size: 1rem !important; }
-    html:root[data-style="bataillon"] .target-kcal,
-    html:root[data-style="bataillon"] .reste-kcal { font-family: 'Special Elite' !important; }
-    html:root[data-style="bataillon"] .jauge,
-    html:root[data-style="bataillon"] .macro-jauge { height: 12px !important; border-radius: 2px !important; background: linear-gradient(180deg, #2a2721, #151310) !important; border: 1px solid var(--laiton); box-shadow: inset 0 1px 2px rgba(0,0,0,.8) !important; position: relative; }
-    html:root[data-style="bataillon"][data-theme="light"] .jauge,
-    html:root[data-style="bataillon"][data-theme="light"] .macro-jauge { background: linear-gradient(180deg, #bfb08f, #a89a79) !important; }
-    html:root[data-style="bataillon"] .jauge > i,
-    html:root[data-style="bataillon"] .macro-jauge > i { border-radius: 1px !important; background-image: linear-gradient(180deg, rgba(255,255,255,.35), transparent 50%, rgba(0,0,0,.25)) !important; }
-    html:root[data-style="bataillon"] #jauge-kcal { background-color: var(--primary) !important; }
-    html:root[data-style="bataillon"] #jauge-eau { background-color: #6e8fa3 !important; }
-    html:root[data-style="bataillon"] .btn-icone,
-    html:root[data-style="bataillon"] .filtre-chip { background: linear-gradient(180deg, #3a352c, #24211b) !important; color: var(--text) !important; border: 1px solid var(--laiton) !important; border-radius: 2px !important; font-family: 'Oswald' !important; text-transform: uppercase; letter-spacing: 1px; box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 2px 0 #000 !important; }
-    html:root[data-style="bataillon"][data-theme="light"] .btn-icone,
-    html:root[data-style="bataillon"][data-theme="light"] .filtre-chip { background: linear-gradient(180deg, #efe6d0, #d6c8a6) !important; box-shadow: inset 0 1px 0 #fff, 0 2px 0 rgba(60,40,10,.4) !important; }
-    html:root[data-style="bataillon"] .meal-header { border-bottom: 1px dashed var(--verre-brd) !important; }
-    html:root[data-style="bataillon"] .meal-title { font-family: 'Bebas Neue' !important; font-weight: 400 !important; font-size: 1.4rem !important; letter-spacing: 2px; }
-    html:root[data-style="bataillon"] .meal-kcals { background: var(--primary) !important; color: #f4e9d2 !important; border-radius: 0 !important; font-family: 'Special Elite' !important; transform: rotate(-3deg); border: 1px dashed rgba(255,255,255,.4) !important; }
-    html:root[data-style="bataillon"] .food-item { border-bottom: 1px solid rgba(168,135,79,.15) !important; }
-    html:root[data-style="bataillon"] .food-name { font-family: 'Oswald' !important; font-size: .95rem !important; letter-spacing: .3px; }
-    html:root[data-style="bataillon"] .btn-analysis { background: var(--primary) !important; color: #f4e9d2 !important; border-radius: 0 !important; font-family: 'Bebas Neue' !important; font-size: 1.3rem !important; letter-spacing: 3px; box-shadow: 0 3px 0 #000 !important; }
-    html:root[data-style="bataillon"] .date-display { font-family: 'Special Elite' !important; text-transform: uppercase; letter-spacing: 2px; }
-    html:root[data-style="bataillon"] #carte-pas-seances input { background: transparent !important; border: 0 !important; border-bottom: 2px solid var(--primary) !important; border-radius: 0 !important; font-family: 'Bebas Neue' !important; font-size: 1.8rem !important; box-shadow: none !important; }
-    /* --- Autres écrans (Activité, Statistiques, Profil, fenêtres) --- */
-    html:root[data-style="epure"] .cle { background: transparent !important; border-radius: 0 !important; box-shadow: none !important; border-bottom: 1px solid var(--verre-brd) !important; padding: 10px 2px !important; }
-    html:root[data-style="epure"] .btn-secondaire { background: transparent !important; color: var(--primary) !important; box-shadow: none !important; border: 1px solid var(--verre-brd) !important; }
-    html:root[data-style="epure"] .segment { background: transparent !important; border-radius: 0 !important; border-bottom: 1px solid var(--verre-brd) !important; box-shadow: none !important; }
-    html:root[data-style="epure"] .segment button[aria-pressed="true"] { background: transparent !important; color: var(--primary) !important; border-radius: 0 !important; box-shadow: inset 0 -2px 0 var(--primary) !important; }
-    html:root[data-style="epure"] .input-group input,
-    html:root[data-style="epure"] .input-group select,
-    html:root[data-style="epure"] .input-group textarea,
-    html:root[data-style="epure"] #modal-cardio input { background: transparent !important; border: 0 !important; border-bottom: 1.5px solid var(--verre-brd) !important; border-radius: 0 !important; box-shadow: none !important; }
-    html:root[data-style="editorial"] .cle { background: transparent !important; border-radius: 0 !important; box-shadow: none !important; border-bottom: 1px solid var(--verre-brd) !important; padding: 10px 2px !important; }
-    html:root[data-style="editorial"] .btn-secondaire { background: transparent !important; color: var(--primary) !important; box-shadow: none !important; border: 1px solid var(--verre-brd) !important; }
-    html:root[data-style="editorial"] .segment { background: transparent !important; border-radius: 0 !important; border-bottom: 1px solid var(--verre-brd) !important; box-shadow: none !important; }
-    html:root[data-style="editorial"] .segment button[aria-pressed="true"] { background: transparent !important; color: var(--primary) !important; border-radius: 0 !important; box-shadow: inset 0 -2px 0 var(--primary) !important; }
-    html:root[data-style="editorial"] .input-group input,
-    html:root[data-style="editorial"] .input-group select,
-    html:root[data-style="editorial"] .input-group textarea,
-    html:root[data-style="editorial"] #modal-cardio input { background: transparent !important; border: 0 !important; border-bottom: 1.5px solid var(--verre-brd) !important; border-radius: 0 !important; box-shadow: none !important; }
-    html:root[data-style="editorial"] .cle-val { font-family: 'Fraunces', serif !important; font-weight: 400 !important; font-size: 1.6rem !important; }
-    html:root[data-style="editorial"] .btn-secondaire { border: 0 !important; text-decoration: underline; text-underline-offset: 3px; }
-    html:root[data-style="brutal"] .cle,
-    html:root[data-style="brutal"] .btn-secondaire { background: var(--fond-carte) !important; border: 2.5px solid var(--ink) !important; border-radius: 0 !important; box-shadow: 4px 4px 0 var(--ink) !important; color: var(--text) !important; }
-    html:root[data-style="brutal"] .segment { background: var(--fond-carte) !important; border: 2.5px solid var(--ink) !important; border-radius: 0 !important; box-shadow: 4px 4px 0 var(--ink) !important; }
-    html:root[data-style="brutal"] .segment button { border-radius: 0 !important; }
-    html:root[data-style="brutal"] .segment button[aria-pressed="true"] { background: #ffe14d !important; color: #111 !important; box-shadow: none !important; }
-    html:root[data-style="brutal"] .input-group input,
-    html:root[data-style="brutal"] .input-group select,
-    html:root[data-style="brutal"] .input-group textarea,
-    html:root[data-style="brutal"] #modal-cardio input { background: var(--fond-carte) !important; border: 2.5px solid var(--ink) !important; border-radius: 0 !important; box-shadow: none !important; }
-    html:root[data-style="terminal"] .cle { background: transparent !important; border: 1px dashed var(--verre-brd) !important; border-radius: 0 !important; box-shadow: none !important; }
-    html:root[data-style="terminal"] .btn-secondaire { background: transparent !important; color: var(--primary) !important; border: 1px solid var(--primary) !important; border-radius: 0 !important; box-shadow: none !important; }
-    html:root[data-style="terminal"] .segment { background: transparent !important; border: 1px dashed var(--verre-brd) !important; border-radius: 0 !important; }
-    html:root[data-style="terminal"] .segment button { border-radius: 0 !important; }
-    html:root[data-style="terminal"] .segment button[aria-pressed="true"] { background: var(--primary) !important; color: var(--bg) !important; box-shadow: none !important; }
-    html:root[data-style="terminal"] .input-group input,
-    html:root[data-style="terminal"] .input-group select,
-    html:root[data-style="terminal"] .input-group textarea,
-    html:root[data-style="terminal"] #modal-cardio input { background: transparent !important; border: 1px dashed var(--verre-brd) !important; border-radius: 0 !important; box-shadow: none !important; }
-    html:root[data-style="sport"] .cle { background: transparent !important; border-radius: 0 !important; box-shadow: none !important; border-left: 3px solid var(--primary) !important; padding: 6px 0 6px 12px !important; }
-    html:root[data-style="sport"] .cle-val { font-family: 'Barlow Condensed', sans-serif !important; font-size: 1.9rem !important; font-weight: 800 !important; }
-    html:root[data-style="sport"] .cle-lbl { letter-spacing: 2px !important; }
-    html:root[data-style="sport"] .btn-secondaire { background: transparent !important; border: 1px solid var(--verre-brd) !important; border-radius: 2px !important; box-shadow: none !important; text-transform: uppercase; letter-spacing: 1px; }
-    html:root[data-style="sport"] .segment { background: transparent !important; border-radius: 2px !important; border: 1px solid var(--verre-brd) !important; }
-    html:root[data-style="sport"] .segment button { border-radius: 2px !important; text-transform: uppercase; letter-spacing: 1.5px; }
-    html:root[data-style="sport"] .segment button[aria-pressed="true"] { background: var(--text) !important; color: var(--bg) !important; box-shadow: none !important; }
-    html:root[data-style="sport"] .input-group input,
-    html:root[data-style="sport"] .input-group select,
-    html:root[data-style="sport"] .input-group textarea,
-    html:root[data-style="sport"] #modal-cardio input { border-radius: 2px !important; box-shadow: none !important; }
-    html:root[data-style="fil"] .cle { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; padding: 8px 2px !important; }
-    html:root[data-style="fil"] .btn-secondaire { background: transparent !important; color: var(--primary) !important; box-shadow: none !important; font-weight: 800 !important; }
-    html:root[data-style="fil"] .segment { background: transparent !important; box-shadow: none !important; }
-    html:root[data-style="fil"] .segment button { border-radius: 99px !important; }
-    html:root[data-style="fil"] .segment button[aria-pressed="true"] { background: var(--primary) !important; color: #fff !important; box-shadow: none !important; }
-    html:root[data-style="fil"] .input-group input,
-    html:root[data-style="fil"] .input-group select,
-    html:root[data-style="fil"] .input-group textarea,
-    html:root[data-style="fil"] #modal-cardio input { border-radius: 99px !important; box-shadow: none !important; }
-    html:root[data-style="systeme"] .cle { background: var(--panneau) !important; border: 1px solid var(--verre-brd) !important; border-radius: 0 !important; box-shadow: inset 0 0 12px rgba(58,209,255,.1) !important; }
-    html:root[data-style="systeme"] .cle-val { font-family: 'Orbitron', sans-serif !important; font-size: 1.1rem !important; text-shadow: 0 0 8px var(--lueur); }
-    html:root[data-style="systeme"] .cle-lbl { letter-spacing: 2.5px !important; color: var(--primary) !important; }
-    html:root[data-style="systeme"] .btn-secondaire { background: rgba(58,209,255,.06) !important; color: var(--primary) !important; border: 1px solid var(--primary) !important; border-radius: 0 !important; box-shadow: inset 0 0 8px rgba(58,209,255,.15) !important; text-transform: uppercase; letter-spacing: 1px; }
-    html:root[data-style="systeme"] .segment { background: transparent !important; border: 1px solid var(--primary) !important; border-radius: 0 !important; box-shadow: 0 0 10px var(--lueur) !important; }
-    html:root[data-style="systeme"] .segment button { border-radius: 0 !important; text-transform: uppercase; letter-spacing: 2px; }
-    html:root[data-style="systeme"] .segment button[aria-pressed="true"] { background: rgba(58,209,255,.18) !important; color: var(--text) !important; box-shadow: inset 0 0 10px rgba(58,209,255,.4) !important; }
-    html:root[data-style="systeme"] .input-group input,
-    html:root[data-style="systeme"] .input-group select,
-    html:root[data-style="systeme"] .input-group textarea,
-    html:root[data-style="systeme"] #modal-cardio input { background: rgba(58,209,255,.05) !important; border: 1px solid var(--verre-brd) !important; border-radius: 0 !important; box-shadow: none !important; }
-    html:root[data-style="bataillon"] .cle { background: var(--cuir) !important; border: 1px solid var(--verre-brd) !important; border-left: 3px solid var(--primary) !important; border-radius: 0 !important; box-shadow: none !important; }
-    html:root[data-style="bataillon"] .cle-val { font-family: 'Bebas Neue', sans-serif !important; font-weight: 400 !important; font-size: 1.8rem !important; letter-spacing: 1.5px; }
-    html:root[data-style="bataillon"] .cle-lbl { font-family: 'Special Elite', monospace !important; font-weight: 400 !important; }
-    html:root[data-style="bataillon"] .btn-secondaire { background: linear-gradient(180deg, #3a352c, #24211b) !important; color: var(--text) !important; border: 1px solid var(--laiton) !important; border-radius: 2px !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 2px 0 #000 !important; text-transform: uppercase; letter-spacing: 1px; }
-    html:root[data-style="bataillon"] .segment { background: var(--cuir) !important; border: 1px solid var(--laiton) !important; border-radius: 2px !important; }
-    html:root[data-style="bataillon"] .segment button { border-radius: 1px !important; text-transform: uppercase; letter-spacing: 1.5px; }
-    html:root[data-style="bataillon"] .segment button[aria-pressed="true"] { background: var(--primary) !important; color: #f4e9d2 !important; box-shadow: none !important; }
-    html:root[data-style="bataillon"] .input-group input,
-    html:root[data-style="bataillon"] .input-group select,
-    html:root[data-style="bataillon"] .input-group textarea,
-    html:root[data-style="bataillon"] #modal-cardio input { background: transparent !important; border: 0 !important; border-bottom: 2px solid var(--primary) !important; border-radius: 0 !important; box-shadow: none !important; }
-    html:root[data-style="terminal"] .btn-icone, html:root[data-style="terminal"] .filtre-chip { white-space: nowrap; padding-left: 2px !important; padding-right: 2px !important; }
-    html:root[data-style="bataillon"][data-theme="light"] .btn-secondaire { background: linear-gradient(180deg, #efe6d0, #d6c8a6) !important; box-shadow: inset 0 1px 0 #fff, 0 2px 0 rgba(60,40,10,.4) !important; }
-    @media (prefers-reduced-motion: reduce) { html:root[data-style] *, html:root[data-style] body::after { animation: none !important; } }
   </style>
 </head>
 <body>
@@ -3711,21 +3250,8 @@
       niveau = Math.max(0, Math.min(4, niveau));
       document.documentElement.setAttribute('data-theme', t);
       document.documentElement.setAttribute('data-densite', String(niveau));
-      // Style visuel (voir STYLES_VISUELS) : posé avant le premier affichage,
-      // polices comprises, pour ne pas voir l'habillage d'origine une frame.
-      var st = localStorage.getItem('anqaa_style');
-      var polSt = { editorial: 'Fraunces:opsz,wght@9..144,400;9..144,700&family=Nunito:wght@600;800', brutal: 'Space+Grotesk:wght@500;700',
-        terminal: 'JetBrains+Mono:wght@400;700', sport: 'Barlow+Condensed:wght@500;700;800', fil: 'Nunito:wght@600;800',
-        systeme: 'Rajdhani:wght@500;600;700&family=Orbitron:wght@700;900', bataillon: 'Bebas+Neue&family=Oswald:wght@500;700&family=Special+Elite' };
-      if (st && (st === 'epure' || polSt[st])) {
-        document.documentElement.setAttribute('data-style', st);
-        if (polSt[st]) {
-          var lienSt = document.createElement('link');
-          lienSt.rel = 'stylesheet'; lienSt.id = 'polices-style';
-          lienSt.href = 'https://fonts.googleapis.com/css2?family=' + polSt[st] + '&display=swap';
-          document.head.appendChild(lienSt);
-        }
-      }
+      // Les anciens styles visuels au choix ont été retirés : on oublie le choix enregistré.
+      try { localStorage.removeItem('anqaa_style'); } catch (e) {}
       var mtc = document.getElementById('meta-theme-color');
       if (mtc) mtc.setAttribute('content', t === 'dark' ? '#06070a' : '#eaeef5');
       // Pareil pour le manifest (ses propres background_color/theme_color,
@@ -3960,15 +3486,18 @@
       <div class="vitrine-sec"><h3>Mes programmes</h3></div>
       <div id="programmes-liste-container"></div>
       <div id="carte-stats-muscu"></div>
-      <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-top:12px; margin-bottom:6px;" onclick="ouvrirBibliotheque()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></svg> Parcourir les exercices</button>
-      <div style="display:flex; gap:8px; margin-bottom:6px;">
-        <button class="btn btn-primary" style="flex:1; min-height:auto; padding:10px 8px; font-size:0.78rem;" onclick="ouvrirCreationProgramme()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Créer un programme</button>
-        <button class="btn btn-secondaire" style="flex:1; min-height:auto; padding:10px 8px; font-size:0.78rem;" onclick="demarrerSeanceLibre()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z" /></svg> Séance vide</button>
+      <div class="vitrine-sec"><h3>Créer et explorer</h3></div>
+      <div class="actions-grille">
+        <button type="button" class="action-tuile" onclick="ouvrirCreationProgramme()"><span class="action-ic" style="background:linear-gradient(135deg,#34d399,#06b6d4)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg></span><b>Créer un programme</b><small>Tes exercices, séries et charges</small></button>
+        <button type="button" class="action-tuile" onclick="demarrerSeanceLibre()"><span class="action-ic" style="background:linear-gradient(135deg,#fbbf24,#f97316)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" /></svg></span><b>Séance vide</b><small>Ajoute les exercices au fil de l’eau</small></button>
+        <button type="button" class="action-tuile" onclick="ouvrirAssistantProgrammeIA()"><span class="action-ic" style="background:linear-gradient(135deg,#a78bfa,#6366f1)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /><path d="M20 3v4" /><path d="M22 5h-4" /></svg></span><b>Programme IA</b><small>Généré selon ton objectif</small></button>
+        <button type="button" class="action-tuile" onclick="ouvrirBibliotheque()"><span class="action-ic" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></svg></span><b>Exercices</b><small>Vidéos, muscles, conseils</small></button>
       </div>
       </div>
-      <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-bottom:6px;" onclick="ouvrirAssistantProgrammeIA()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /><path d="M20 3v4" /><path d="M22 5h-4" /><path d="M4 17v2" /><path d="M5 18H3" /></svg> Créer un programme avec l'IA</button>
-      <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-bottom:6px; background:transparent;" onclick="ouvrirModal('aide-routine-modal')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg> Comment créer une routine ?</button>
-      <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-bottom:6px; background:transparent;" onclick="ouvrirGymbro()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> Gymbro : comparer mes séances</button>
+      <div class="actions-liens">
+        <button type="button" onclick="ouvrirModal('aide-routine-modal')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg> Comment créer une routine ?</button>
+        <button type="button" onclick="ouvrirGymbro()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> Gymbro : comparer mes séances</button>
+      </div>
       </div>
       <div id="seance-mode-cardio" class="hidden"><div id="seance-cardio"></div></div>
       <!-- Pas du jour (déplacés de Repas du jour) : comptent dans la dépense du jour affiché. -->
@@ -4394,21 +3923,22 @@
 
     <div id="vitrine-profil" class="vitrine"></div>
 
-    <div class="bloc-verre" style="padding:15px; margin-bottom:16px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-        <div style="min-width:0;">
-          <div style="font-weight:700; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg> Mon compte</div>
-          <div id="reglages-email" style="font-weight:700; font-size:0.88rem; margin-top:4px; word-break:break-word;">Non connecté</div>
-        </div>
-        <button class="btn btn-secondaire" style="width:auto; flex:none; white-space:nowrap;"
-                onclick="ouvrirModal('compte-modal');">Gérer</button>
+    <div class="vitrine-sec"><h3>Mon compte</h3></div>
+    <div class="carte-liste" id="carte-compte">
+      <div class="ligne-reglage">
+        <span class="action-ic" style="background:linear-gradient(135deg,#38bdf8,#6366f1)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg></span>
+        <span class="ligne-txt"><small>Compte</small><b id="reglages-email">Non connecté</b>
+          <button class="puce-sync" id="reglages-puce-sync" data-etat="attente" onclick="ouvrirModal('sync-info-modal')" title="État de la synchronisation">
+            <span class="pastille" aria-hidden="true"></span><span id="reglages-puce-sync-txt">—</span>
+          </button></span>
+        <button type="button" class="pilule" onclick="ouvrirModal('compte-modal');">Gérer</button>
       </div>
-      <button class="puce-sync" id="reglages-puce-sync" data-etat="attente" onclick="ouvrirModal('sync-info-modal')" title="État de la synchronisation" style="min-height:auto; padding:8px 0 0;">
-        <span class="pastille" aria-hidden="true"></span><span id="reglages-puce-sync-txt">—</span>
-      </button>
-    </div>
-
-    <div class="bloc-verre" style="padding:15px; margin-bottom:16px;">
+      <div class="ligne-reglage">
+        <span class="action-ic" style="background:linear-gradient(135deg,#f472b6,#a855f7)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8" /></svg></span>
+        <span class="ligne-txt"><small>Nom d'utilisateur</small><b id="profil-pseudo">—</b></span>
+        <button type="button" class="pilule" onclick="ouvrirPseudoModal()">Modifier</button>
+      </div>
+      <p class="note ligne-note" id="profil-pseudo-note"></p>
       <!-- Photo de profil et bio : visibles seulement par les gymbros acceptés. -->
       <div id="profil-perso" class="profil-perso hidden">
         <button type="button" class="profil-avatar-btn" onclick="document.getElementById('profil-photo-input').click()" aria-label="Changer la photo de profil">
@@ -4423,19 +3953,15 @@
         </div>
       </div>
       <p class="note hidden" id="profil-perso-note" style="margin:0 0 12px;">Ta photo et ta bio ne sont visibles que par tes gymbros acceptés.</p>
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-        <div style="min-width:0;">
-          <div style="font-weight:700; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px;">Nom d'utilisateur</div>
-          <div id="profil-pseudo" style="font-weight:800; font-size:0.95rem; margin-top:4px; color:var(--primary);">—</div>
-        </div>
-        <button class="btn btn-secondaire" style="width:auto; flex:none; white-space:nowrap;" onclick="ouvrirPseudoModal()">Modifier</button>
-      </div>
-      <p class="note" id="profil-pseudo-note" style="margin:8px 0 0;"></p>
       <label class="hidden" style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:600; margin:10px 0 0; cursor:pointer;">
         <input type="checkbox" id="profil-partage" style="width:auto;" onchange="basculerPartageSeances(this.checked)">
         Partager mes séances avec mes gymbros
       </label>
-      <button class="btn btn-primary" style="margin-top:12px;" onclick="ouvrirGymbro()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> Gymbro : comparer avec un ami</button>
+      <button type="button" class="ligne-reglage ligne-reglage--bouton" onclick="ouvrirGymbro()">
+        <span class="action-ic" style="background:linear-gradient(135deg,#34d399,#06b6d4)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
+        <span class="ligne-txt"><small>Gymbros</small><b>Comparer mes séances avec un ami</b></span>
+        <span class="ligne-chevron"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></span>
+      </button>
     </div>
 
     <div class="fitness-card" id="carte-objectif">
@@ -4453,28 +3979,32 @@
       <p class="note hidden" style="margin:10px 0 0;" id="note-recomposition"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M8 16H3v5" /></svg> Mêmes calories qu'en maintien, mais protéines d'une sèche — pour prendre du muscle et perdre du gras en même temps (fonctionne surtout si tu progresses encore en charge).</p>
     </div>
 
-    <div class="titre-section">Infos personnelles</div>
-    <div class="input-group">
-      <label for="base-gender">Sexe</label>
-      <select id="base-gender" onchange="sauvegarderParametresGlobaux()">
-        <option value="m">Homme</option>
-        <option value="f">Femme</option>
-      </select>
-    </div>
-    <div class="input-group">
-      <label for="base-age">Âge</label>
-      <input type="number" id="base-age" value="25" inputmode="numeric" onchange="sauvegarderParametresGlobaux()">
-    </div>
-    <div class="input-group">
-      <label for="base-height">Taille (cm)</label>
-      <input type="number" id="base-height" value="175" inputmode="numeric" onchange="sauvegarderParametresGlobaux()">
+    <div class="vitrine-sec"><h3>Infos personnelles</h3></div>
+    <div class="carte-liste infos-grille">
+      <div class="input-group">
+        <label for="base-gender">Sexe</label>
+        <select id="base-gender" onchange="sauvegarderParametresGlobaux()">
+          <option value="m">Homme</option>
+          <option value="f">Femme</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label for="base-age">Âge</label>
+        <input type="number" id="base-age" value="25" inputmode="numeric" onchange="sauvegarderParametresGlobaux()">
+      </div>
+      <div class="input-group">
+        <label for="base-height">Taille (cm)</label>
+        <input type="number" id="base-height" value="175" inputmode="numeric" onchange="sauvegarderParametresGlobaux()">
+      </div>
     </div>
 
-    <div class="fitness-card">
-      <h3><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z" /><path d="m14.5 12.5 2-2" /><path d="m11.5 9.5 2-2" /><path d="m8.5 6.5 2-2" /><path d="m17.5 15.5 2-2" /></svg> Mesures corporelles</h3>
-      <p class="note" id="resume-mesures" style="margin:0 0 12px;">Aucune mesure enregistrée pour l'instant.</p>
-      <button class="btn btn-secondaire" style="width:100%; margin-bottom:8px;" onclick="ouvrirPhotosProgression()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /><circle cx="12" cy="13" r="3" /></svg> Photos de progression</button>
-      <button class="btn btn-secondaire" style="width:100%;" onclick="ouvrirMesuresModal()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Ajouter une mesure</button>
+    <div class="vitrine-sec"><h3>Mesures corporelles</h3></div>
+    <div class="carte-liste" id="carte-mesures">
+      <p class="note" id="resume-mesures">Aucune mesure enregistrée pour l'instant.</p>
+      <div class="actions-grille">
+        <button type="button" class="action-tuile" onclick="ouvrirPhotosProgression()"><span class="action-ic" style="background:linear-gradient(135deg,#a78bfa,#6366f1)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg></span><b>Photos de progression</b><small>Compare avant / après</small></button>
+        <button type="button" class="action-tuile" onclick="ouvrirMesuresModal()"><span class="action-ic" style="background:linear-gradient(135deg,#fbbf24,#f97316)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z" /><path d="m14.5 12.5 2-2" /><path d="m11.5 9.5 2-2" /><path d="m8.5 6.5 2-2" /><path d="m17.5 15.5 2-2" /></svg></span><b>Ajouter une mesure</b><small>Tour de taille, bras…</small></button>
+      </div>
     </div>
   </section>
 </main>
@@ -4722,9 +4252,7 @@
       </div>
     </div>
 
-    <div id="man-preview" style="background: var(--verre-creux); border: 0; padding: 14px; border-radius: 13px; text-align: center; font-weight: 700; font-size: 0.88rem; color: var(--primary); margin-bottom: 16px;">
-      Aperçu : 0 kcal | P: 0g | G: 0g | L: 0g
-    </div>
+    <div id="man-preview" class="apercu-macros" aria-live="polite"></div>
 
     <button class="btn btn-primary" onclick="validerAjoutManuel()">+ Ajouter au repas</button>
   </div>
@@ -5486,14 +5014,7 @@
     </div>
 
     <div class="input-group">
-      <label>Style</label>
-      <div class="styles-visuels" id="styles-visuels"></div>
-      <small class="note" style="display:block; margin-top:6px;">Change tout l'habillage : couleurs, polices, forme des blocs. Fonctionne en clair comme en sombre.</small>
-    </div>
-
-    <div class="input-group">
       <label>Couleurs</label>
-      <small class="note hidden" id="note-palettes-style" style="display:block; margin:0 0 6px;">Les couleurs ne s'appliquent qu'au style Anqā : les autres styles ont les leurs.</small>
       <div class="palettes-perso" id="palettes-perso"></div>
       <small class="note" style="display:block; margin-top:6px;">Ton choix ne change que ton appli, sur tous tes appareils.</small>
     </div>
@@ -7147,6 +6668,8 @@ function renderCardio() {
     ${seances.length ? carteStatsCardioHTML() : ''}
     <div class="vitrine-sec"><h3>Dernières séances</h3></div>
     <div class="cardio-liste">${liste}</div>`;
+  animerComptes(zone);
+  verifierTrophees();
 }
 
 /* --- Fenêtre d'ajout / modification --- */
@@ -7566,7 +7089,7 @@ function updateSummary(day) {
   const totals = sumMeals(day);
   const t = computeTargets(day, currentDate);
   const fr = n => Math.round(n).toLocaleString('fr-FR');
-  document.getElementById('total-kcals').textContent = fr(totals.kcal);
+  compterVers(document.getElementById('total-kcals'), Math.round(totals.kcal));
   document.getElementById('target-kcals-display').textContent = fr(t.target);
   const dep = document.getElementById('heros-depense'); if (dep) dep.textContent = fr(t.tdee);
   const pas = document.getElementById('heros-pas'); if (pas) pas.textContent = fr(Number(day.steps) || 0);
@@ -7576,7 +7099,8 @@ function updateSummary(day) {
   const elReste = document.getElementById('reste-kcals');
   const lib = document.getElementById('reste-libelle');
   if (elReste) {
-    elReste.innerHTML = `${fr(Math.abs(reste))}<em>kcal</em>`;
+    if (!elReste.querySelector('em')) elReste.innerHTML = '0<em>kcal</em>';
+    compterVers(elReste, Math.round(Math.abs(reste)));
     elReste.classList.toggle('depasse', reste < 0);
     if (lib) lib.textContent = reste >= 0 ? 'Il te reste' : 'Dépassement';
   }
@@ -8561,8 +8085,8 @@ function calculerApercuManuel() {
   const p = nombreChamp('man-p100') * f;
   const c = nombreChamp('man-c100') * f;
   const l = nombreChamp('man-f100') * f;
-  document.getElementById('man-preview').textContent =
-    `Aperçu : ${Math.round(kcal)} kcal | P: ${Math.round(p)}g | G: ${Math.round(c)}g | L: ${Math.round(l)}g`;
+  document.getElementById('man-preview').innerHTML =
+    `<b>${Math.round(kcal)}<small> kcal</small></b><span><i style="background:var(--protein)"></i>P ${Math.round(p)} g</span><span><i style="background:var(--carbs)"></i>G ${Math.round(c)} g</span><span><i style="background:var(--fat)"></i>L ${Math.round(l)} g</span>`;
 }
 
 function validerAjoutManuel() {
@@ -10694,8 +10218,23 @@ function installerStyleGraphiques() {
       if (typeof couleur !== 'string' || couleur === 'transparent') return;
       chart.ctx.restore();
     },
-    // Ligne verticale lumineuse à la position survolée (graphiques en courbes).
+    // Ligne verticale lumineuse à la position survolée (graphiques en courbes),
+    // et un point lumineux sur la dernière valeur de chaque courbe.
     afterDatasetsDraw(chart) {
+      if (chart.config.type === 'line') chart.data.datasets.forEach((ds, i) => {
+        const meta = chart.getDatasetMeta(i);
+        const couleur = ds._couleurNeon || ds.borderColor;
+        if (!meta || meta.hidden || ds.showLine === false || typeof couleur !== 'string' || couleur === 'transparent' || !meta.data) return;
+        let k = meta.data.length - 1;
+        while (k >= 0 && (ds.data[k] == null || isNaN(meta.data[k].y))) k--;
+        if (k < 0) return;
+        const { x, y } = meta.data[k], ctx = chart.ctx;
+        ctx.save();
+        ctx.fillStyle = couleurAlpha(couleur, 0.22); ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = couleur; ctx.strokeStyle = themeClairActif() ? '#ffffff' : '#0b1020'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.restore();
+      });
       const actifs = chart.tooltip && chart.tooltip.getActiveElements ? chart.tooltip.getActiveElements() : [];
       if (!actifs.length || chart.config.type !== 'line') return;
       const x = actifs[0].element.x, zone = chart.chartArea, ctx = chart.ctx;
@@ -11167,8 +10706,13 @@ const ECRANS = ['repas', 'seance', 'stats', 'admin', 'reglages'];
 const ECRAN_ICONE = { repas: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg>', activite: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" /></svg>', seance: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg>', stats: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>', admin: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" /><path d="M5 21h14" /></svg>', reglages: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 0 0-16 0" /></svg>' };
 let ecranActif = 'repas';
 
+const ORDRE_ONGLETS = ['repas', 'seance', 'stats', 'reglages', 'admin'];
 function allerA(nom) {
   if (ECRANS.indexOf(nom) === -1) nom = 'repas';
+  // Glissement dans le sens de la barre d'onglets (à droite = vers la gauche).
+  const sens = Math.sign(ORDRE_ONGLETS.indexOf(nom) - ORDRE_ONGLETS.indexOf(ecranActif));
+  document.documentElement.style.setProperty('--ecran-tx', sens * 28 + 'px');
+  document.documentElement.style.setProperty('--ecran-ty', sens ? '0px' : '8px');
   ecranActif = nom;
   ECRANS.forEach(e => {
     const sec = document.getElementById('ecran-' + e);
@@ -11329,78 +10873,13 @@ function appliquerTheme(t) {
 // Plus de bouton dans l'en-tete (retiré) : seul le choix explicite dans les
 // réglages (choisirTheme, via le segment Clair/Sombre) appelle encore
 // appliquerTheme().
-function choisirTheme(t) { appliquerTheme(t); renderChoixPalettePerso(); renderChoixStyle(); majCouleurBarreStyle(); }
+function choisirTheme(t) { appliquerTheme(t); renderChoixPalettePerso(); majCouleurBarreStyle(); renderVitrineProfil(); renderVitrineMuscu(); }
 
-/* =====================================================================
-   STYLES VISUELS — Réglages › Apparence › Style. Un habillage complet de
-   l'appli (couleurs, polices, forme des blocs, animations), au choix de
-   chaque utilisateur. Le choix vit dans son profil (synchronisé entre ses
-   appareils) et en local (anqaa_style) pour être posé dès le démarrage.
-   Les règles CSS sont dans la feuille principale, sous html[data-style].
-   Les polices ne sont chargées que pour le style choisi.
-   ===================================================================== */
-const STYLES_VISUELS = [
-  { id: '', nom: 'Anqā', detail: 'Le style d’origine', clair: ['#eaeef5', '#0e1420', '#00703a'], sombre: ['#06070a', '#f4f7fb', '#14b566'], police: "'Outfit', sans-serif" },
-  { id: 'epure', nom: 'Épuré', detail: 'À plat, sans cartes', clair: ['#eaeef5', '#0e1420', '#00703a'], sombre: ['#06070a', '#f4f7fb', '#14b566'], police: "'Outfit', sans-serif" },
-  { id: 'editorial', nom: 'Éditorial', detail: 'Comme un journal', clair: ['#f5efe3', '#1f1a14', '#b4441c'], sombre: ['#15120e', '#efe6d6', '#e0774b'], police: "'Fraunces', Georgia, serif", polices: 'Fraunces:opsz,wght@9..144,400;9..144,700&family=Nunito:wght@600;800' },
-  { id: 'brutal', nom: 'Néo-brutaliste', detail: 'Contours noirs, aplats vifs', clair: ['#fff8e7', '#111111', '#ffe14d'], sombre: ['#1a1a1a', '#ffffff', '#ffe14d'], police: "'Space Grotesk', sans-serif", polices: 'Space+Grotesk:wght@500;700' },
-  { id: 'terminal', nom: 'Terminal', detail: 'Écran de console', clair: ['#f4f4ef', '#1b1b1b', '#0a7d32'], sombre: ['#050805', '#c9f7cf', '#39ff6a'], police: "'JetBrains Mono', monospace", polices: 'JetBrains+Mono:wght@400;700' },
-  { id: 'sport', nom: 'Sport', detail: 'Montre de sport', clair: ['#ffffff', '#0b0b0b', '#00b86b'], sombre: ['#000000', '#ffffff', '#00f08c'], police: "'Barlow Condensed', sans-serif", polices: 'Barlow+Condensed:wght@500;700;800' },
-  { id: 'fil', nom: 'Fil de la journée', detail: 'Bandeaux pastel, ligne de temps', clair: ['#fbfaf8', '#2b2b33', '#6c5ce7'], sombre: ['#141318', '#ecebf3', '#a29bfe'], police: "'Nunito', sans-serif", polices: 'Nunito:wght@600;800' },
-  { id: 'systeme', nom: 'Système', detail: 'Fenêtres holographiques, quête du jour', clair: ['#e9f1fb', '#06142b', '#0077c8'], sombre: ['#03060f', '#e6f4ff', '#3ad1ff'], police: "'Orbitron', sans-serif", polices: 'Rajdhani:wght@500;600;700&family=Orbitron:wght@700;900' },
-  { id: 'bataillon', nom: 'Bataillon', detail: 'Rapport militaire', clair: ['#d9ccae', '#1f1a12', '#a3231a'], sombre: ['#0f0e0c', '#e9dfc9', '#c62f22'], police: "'Bebas Neue', 'Oswald', sans-serif", polices: 'Bebas+Neue&family=Oswald:wght@500;700&family=Special+Elite' }
-];
-const STYLE_LS = 'anqaa_style';
-function styleActif() {
-  const id = (userProfile && userProfile.style) || '';
-  return STYLES_VISUELS.some(x => x.id === id) ? id : '';
-}
-function chargerPolicesStyle(st) {
-  let lien = document.getElementById('polices-style');
-  if (!st || !st.polices) { if (lien) lien.remove(); return; }
-  const href = 'https://fonts.googleapis.com/css2?family=' + st.polices + '&display=swap';
-  if (lien && lien.getAttribute('href') === href) return;
-  if (!lien) { lien = document.createElement('link'); lien.rel = 'stylesheet'; lien.id = 'polices-style'; document.head.appendChild(lien); }
-  lien.href = href;
-}
-// Barre d'état du téléphone à la couleur de fond du style.
+// Barre d'état du téléphone à la couleur de fond.
 function majCouleurBarreStyle() {
   const mtc = document.getElementById('meta-theme-color');
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
   if (mtc && bg) mtc.setAttribute('content', bg);
-}
-function appliquerStyleUtilisateur() {
-  const id = styleActif();
-  const st = STYLES_VISUELS.find(x => x.id === id);
-  if (id) document.documentElement.setAttribute('data-style', id);
-  else document.documentElement.removeAttribute('data-style');
-  try { if (id) localStorage.setItem(STYLE_LS, id); else localStorage.removeItem(STYLE_LS); } catch (e) {}
-  chargerPolicesStyle(st);
-  majCouleurBarreStyle();
-  renderChoixStyle();
-  // Les graphiques lisent les couleurs au dessin : on les redessine.
-  if (typeof ecranActif !== 'undefined' && ecranActif === 'stats' && typeof majToutesStats === 'function') { try { majToutesStats(); } catch (e) {} }
-}
-function choisirStyle(id) {
-  userProfile.style = id || '';
-  saveData();
-  appliquerStyleUtilisateur();
-}
-function renderChoixStyle() {
-  const c = document.getElementById('styles-visuels');
-  if (!c) return;
-  const sombre = document.documentElement.getAttribute('data-theme') === 'dark';
-  const actif = styleActif();
-  c.innerHTML = STYLES_VISUELS.map(st => {
-    const [bg, texte, accent] = sombre ? st.sombre : st.clair;
-    return `<button type="button" class="style-visuel${st.id === actif ? ' choisi' : ''}" onclick="choisirStyle(${argJs(st.id)})" aria-pressed="${st.id === actif}">
-      <span class="style-visuel-apercu" style="background:${bg};color:${texte};font-family:${st.police};"><b>Aa</b><i style="background:${accent};"></i></span>
-      <span class="style-visuel-nom">${escapeHtml(st.nom)}</span><small>${escapeHtml(st.detail)}</small></button>`;
-  }).join('');
-  const pal = document.getElementById('palettes-perso');
-  if (pal) pal.classList.toggle('palettes-inactives', !!actif);
-  const notePal = document.getElementById('note-palettes-style');
-  if (notePal) notePal.classList.toggle('hidden', !actif);
 }
 
 /* =====================================================================
@@ -11457,7 +10936,7 @@ function couleursEffectives() {
   return p ? p.donnees : couleursAppActuelles;
 }
 function appliquerCouleursUtilisateur() {
-  try { appliquerStyleUtilisateur(); } catch (e) {}
+  majCouleurBarreStyle();
   const p = palettePersoActive();
   try {
     if (p) localStorage.setItem(COULEURS_PERSO_KEY, JSON.stringify(p.donnees));
@@ -21493,15 +20972,17 @@ function renderVitrineMuscu() {
     <div class="hx" role="button" tabindex="0" onclick="ouvrirStats('muscu')" onkeydown="if(event.key==='Enter')this.click()" aria-label="Ta semaine de musculation : voir le détail">
       <div class="hx-corps">${silhouetteSVG('face', couleurs)}</div>
       <div class="hx-k">Semaine ${numeroSemaine(auj)} · Musculation</div><div class="hx-titre">Ta semaine</div>
-      <div class="hx-geant">${total}</div><div class="hx-unite">série${total > 1 ? 's' : ''} · ${seancesSem.length} séance${seancesSem.length > 1 ? 's' : ''}</div>
+      <div class="hx-geant" data-compte="${total}">${total}</div><div class="hx-unite">série${total > 1 ? 's' : ''} · ${seancesSem.length} séance${seancesSem.length > 1 ? 's' : ''}</div>
       <div class="hx-puces"><span class="hx-puce"><i style="background:${ZONES_INFO.mav.couleur};color:${ZONES_INFO.mav.couleur}"></i><b>${ideal}</b> en zone idéale</span><span class="hx-puce"><i style="background:${ZONES_INFO.sous.couleur};color:${ZONES_INFO.sous.couleur}"></i><b>${aTravailler}</b> à travailler</span></div>
     </div>
     ${sdj}
     <div class="bento">
-      <div class="bt"><span class="bt-glow" style="background:#6366f1"></span><span class="bt-k">Tonnage semaine</span><div class="bt-n">${tonnage >= 10000 ? nombreFr(tonnage / 1000, 1) + '<small>t</small>' : nombreFr(Math.round(tonnage)) + '<small>kg</small>'}</div><div class="bt-s">charge × répétitions</div><span class="bt-deco" style="color:#6366f1">${svgV('poids', 1.6, 86)}</span></div>
-      <div class="bt"><span class="bt-glow" style="background:#f59e0b"></span><span class="bt-k">Records ce mois</span><div class="bt-n">${records}</div><div class="bt-s">${recTexte}</div><span class="bt-deco" style="color:#f59e0b">${svgV('trophee', 1.6, 86)}</span></div>
+      <div class="bt"><span class="bt-glow" style="background:#6366f1"></span><span class="bt-k">Tonnage semaine</span><div class="bt-n" data-compte="${tonnage >= 10000 ? Math.round(tonnage / 100) / 10 : Math.round(tonnage)}" data-dec="${tonnage >= 10000 && Math.round(tonnage / 100) % 10 ? 1 : 0}">${tonnage >= 10000 ? nombreFr(tonnage / 1000, 1) + '<small>t</small>' : nombreFr(Math.round(tonnage)) + '<small>kg</small>'}</div><div class="bt-s">charge × répétitions</div><span class="bt-deco" style="color:#6366f1">${svgV('poids', 1.6, 86)}</span></div>
+      <div class="bt"><span class="bt-glow" style="background:#f59e0b"></span><span class="bt-k">Records ce mois</span><div class="bt-n" data-compte="${records}">${records}</div><div class="bt-s">${recTexte}</div><span class="bt-deco" style="color:#f59e0b">${svgV('trophee', 1.6, 86)}</span></div>
       <div class="bt large"><span class="bt-k">Séances par jour</span><div class="semaine-barres">${parJour.map(([l, n, a]) => `<div class="${a ? 'auj' : ''}"><i class="${n ? '' : 'vide'}" style="height:${n ? 18 + 24 * Math.min(2, n) : 8}px"></i>${l}</div>`).join('')}</div></div>
     </div>`;
+  animerComptes(c);
+  verifierTrophees();
 }
 function numeroSemaine(iso) {
   const d = dateLocale(iso); d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
@@ -21518,9 +20999,9 @@ function heroCardioHTML(b, phrase) {
     <div class="hx-k">Semaine ${numeroSemaine(todayStr())} · Cardio</div><div class="hx-titre">Minutes actives</div>
     <div class="arc"><svg viewBox="0 0 320 170" aria-hidden="true"><defs><linearGradient id="grad-arc" x1="0" x2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset=".5" stop-color="#22d3ee"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs>
       <path d="M20,160 A${r},${r} 0 0 1 300,160" fill="none" stroke="rgba(127,127,127,.18)" stroke-width="22" stroke-linecap="round"/>
-      <path class="arc-val" d="M20,160 A${r},${r} 0 0 1 300,160" fill="none" stroke="url(#grad-arc)" stroke-width="22" stroke-linecap="round" style="stroke-dasharray:${demi};stroke-dashoffset:${demi * (1 - part)}"/>
+      <path class="arc-val" d="M20,160 A${r},${r} 0 0 1 300,160" fill="none" stroke="url(#grad-arc)" stroke-width="22" stroke-linecap="round" style="--plein:${demi};stroke-dasharray:${demi};stroke-dashoffset:${demi * (1 - part)}"/>
       <circle cx="${rx.toFixed(1)}" cy="${ry.toFixed(1)}" r="5" fill="#34d399" stroke="#fff" stroke-width="2"/></svg>
-      <div class="arc-c"><b class="cardio-gros">${Math.round(b.equiv)}<small>min</small></b><small>sur ${OBJECTIF_CARDIO.cible} à ${OBJECTIF_CARDIO.haut} min conseillées</small></div></div>
+      <div class="arc-c"><b class="cardio-gros" data-compte="${Math.round(b.equiv)}">${Math.round(b.equiv)}<small>min</small></b><small>sur ${OBJECTIF_CARDIO.cible} à ${OBJECTIF_CARDIO.haut} min conseillées</small></div></div>
     <div class="hx-puces">${[1, 2, 3].map(n => `<span class="hx-puce"><i style="background:${['', '#a78bfa', '#22d3ee', '#34d399'][n]};color:${['', '#a78bfa', '#22d3ee', '#34d399'][n]}"></i>${NOMS_INTENSITE[n]} <b>${b.parInt[n]}</b></span>`).join('')}</div>
     ${phrase ? `<p class="hx-phrase">${escapeHtml(phrase)}</p>` : ''}
   </div>`;
@@ -21601,10 +21082,10 @@ function renderVitrineProfil() {
   c.innerHTML = `
     <div class="couv" aria-hidden="true"><svg viewBox="0 0 400 180" preserveAspectRatio="none"><path d="M0,120 C80,60 160,170 240,100 S360,40 400,80" fill="none" stroke="#fff" stroke-width="40" opacity=".5"/><path d="M0,60 C100,10 200,120 300,50 S380,10 400,20" fill="none" stroke="#fff" stroke-width="18" opacity=".4"/></svg></div>
     <div class="pf"><div class="pf-av">${av}</div><h3>${escapeHtml(nom)}</h3>${bio ? `<p>${escapeHtml(bio)}</p>` : ''}
-      <button type="button" class="pf-modif" onclick="document.getElementById('profil-perso').closest('.bloc-verre').scrollIntoView({behavior:'smooth',block:'center'})">Modifier le profil</button>
+      <button type="button" class="pf-modif" onclick="document.getElementById('carte-compte').scrollIntoView({behavior:'smooth',block:'center'})">Modifier le profil</button>
       <div class="niveau"><div class="niveau-t"><b>Niveau ${niv.n} · ${niv.titre}</b><span>${nombreFr(niv.xp)} / ${nombreFr(niv.haut)} XP</span></div><div class="xp"><i style="width:${pct}%"></i></div>
         <div class="niveau-s">+40 XP par séance de muscu · +25 par séance cardio · +10 par journée notée</div></div></div>
-    <div class="chiffres-geants"><div class="cg"><b>${musculationHistorique.length}</b><small>séances</small></div><div class="cg"><b>${niv.joursNotes}</b><small>jours suivis</small></div><div class="cg"><b>${joursDAffilee()}</b><small>d'affilée</small></div></div>
+    <div class="chiffres-geants"><div class="cg"><b data-compte="${musculationHistorique.length}">${musculationHistorique.length}</b><small>séances</small></div><div class="cg"><b data-compte="${niv.joursNotes}">${niv.joursNotes}</b><small>jours suivis</small></div><div class="cg"><b data-compte="${joursDAffilee()}">${joursDAffilee()}</b><small>d'affilée</small></div></div>
     <div class="vitrine-sec"><h3>Badges</h3><span>${badges.filter(b => b.ok).length} / ${badges.length}</span></div>
     <div class="carte-badges"><div class="badges">${badges.map(b => `<div class="badge${b.ok ? '' : ' verrou'}" title="${escapeHtml(b.detail)}"><span class="med" style="${b.ok ? `background:${b.g};--l:${b.l}` : ''}">${svgV(b.ic)}${b.ok && b.valeur ? `<em>${b.valeur}</em>` : ''}</span><b>${escapeHtml(b.nom)}</b>${escapeHtml(b.detail)}</div>`).join('')}</div></div>
     <div class="vitrine-sec"><h3>Ton corps cette semaine</h3><button type="button" onclick="ouvrirStats('muscu')">Détail</button></div>
@@ -21613,6 +21094,68 @@ function renderVitrineProfil() {
     <div class="vitrine-sec"><h3>Mon objectif</h3></div>
     <div class="carte-objectifs"><div class="obj-tuiles">${tuile('seche', 'Sèche', 'bas', 'linear-gradient(135deg,#22d3ee,#0ea5e9)')}${tuile('maintien', 'Maintien', 'cible', 'linear-gradient(135deg,#34d399,#10b981)')}${tuile('masse', 'Masse', 'haut', 'linear-gradient(135deg,#fbbf24,#f97316)')}${tuile('recomposition', 'Recompo', 'recomp', 'linear-gradient(135deg,#a78bfa,#6366f1)')}</div>
       <div class="obj-cibles"><span><b>${nombreFr(t.target)}</b> kcal</span><span><b>${t.protein}</b> g prot.</span><span><b>${t.carbs}</b> g gluc.</span><span><b>${t.fat}</b> g lip.</span></div></div>`;
+  animerComptes(c);
+  verifierTrophees();
+}
+/* Bandeau de célébration (record, badge, niveau) : glisse du haut avec des
+   confettis, puis repart seul. Annoncé aux lecteurs d'écran. */
+function celebrer(titre, sous, icone) {
+  let z = document.getElementById('celebration');
+  if (!z) {
+    z = document.createElement('div');
+    z.id = 'celebration'; z.className = 'celebration';
+    z.setAttribute('role', 'status'); z.setAttribute('aria-live', 'polite');
+    document.body.appendChild(z);
+  }
+  const couleurs = ['#34d399', '#22d3ee', '#a78bfa', '#f472b6', '#fbbf24'];
+  const confettis = Array.from({ length: 18 }, (_, i) => {
+    const a = i / 18 * Math.PI * 2, d = 60 + (i % 3) * 26;
+    return `<i style="--x:${Math.round(Math.cos(a) * d)}px;--y:${Math.round(Math.sin(a) * d * 0.7)}px;--r:${i * 47}deg;background:${couleurs[i % 5]};animation-delay:${i * 12}ms"></i>`;
+  }).join('');
+  z.innerHTML = `<div class="celebration-carte"><span class="celebration-ic">${svgV(icone || 'trophee', 2)}</span><span class="celebration-txt"><b>${escapeHtml(titre)}</b><small>${escapeHtml(sous || '')}</small></span><span class="confettis" aria-hidden="true">${confettis}</span></div>`;
+  z.classList.remove('visible'); void z.offsetWidth; z.classList.add('visible');
+  clearTimeout(celebrer.minuteur);
+  celebrer.minuteur = setTimeout(() => z.classList.remove('visible'), 3200);
+  try { if (navigator.vibrate) navigator.vibrate(30); } catch (e) {}
+}
+/* Chiffres qui défilent jusqu'à leur valeur (depuis la précédente, ou 0
+   pour un bloc qui vient d'être dessiné). Seul le premier nœud texte change :
+   l'unité (<small>, <em>) reste en place. Rien en mouvement réduit. */
+function mouvementReduit() { return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches; }
+function compterVers(el, valeur, dec) {
+  if (!el) return;
+  dec = dec || 0;
+  const texte = v => Number(v).toLocaleString('fr-FR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  let noeud = el.firstChild;
+  if (!noeud || noeud.nodeType !== 3) { noeud = document.createTextNode(''); el.insertBefore(noeud, el.firstChild); }
+  const depart = Number(el._valeurAffichee) || 0;
+  el._valeurAffichee = valeur;
+  cancelAnimationFrame(el._animCompte);
+  if (mouvementReduit() || depart === valeur || !document.contains(el)) { noeud.nodeValue = texte(valeur); return; }
+  const t0 = performance.now(), duree = 750;
+  const pas = t => {
+    const k = Math.min(1, (t - t0) / duree), e = 1 - Math.pow(1 - k, 3);
+    noeud.nodeValue = texte(depart + (valeur - depart) * e);
+    if (k < 1) el._animCompte = requestAnimationFrame(pas);
+  };
+  el._animCompte = requestAnimationFrame(pas);
+}
+function animerComptes(racine) {
+  if (!racine) return;
+  racine.querySelectorAll('[data-compte]').forEach(el => compterVers(el, Number(el.dataset.compte), Number(el.dataset.dec) || 0));
+}
+/* Badges et niveau : un bandeau de fête quand l'un d'eux vient d'être
+   gagné. Le premier passage (nouvel appareil) mémorise sans fêter. */
+function verifierTrophees() {
+  if (typeof appData === 'undefined' || !Object.keys(appData).length) return;
+  const niv = niveauUtilisateur(), gagnes = badgesUtilisateur().filter(b => b.ok);
+  let avant = null;
+  try { avant = JSON.parse(localStorage.getItem('anqaa_trophees') || 'null'); } catch (e) {}
+  try { localStorage.setItem('anqaa_trophees', JSON.stringify({ niveau: niv.n, badges: gagnes.map(b => b.cle) })); } catch (e) {}
+  if (!avant) return;
+  const nouveau = gagnes.find(b => !(avant.badges || []).includes(b.cle));
+  if (niv.n > (avant.niveau || 1)) celebrer('Niveau ' + niv.n + ' atteint !', niv.titre + ' · ' + nombreFr(niv.xp) + ' XP', 'eclair');
+  else if (nouveau) celebrer('Badge débloqué : ' + nouveau.nom, nouveau.detail, nouveau.ic);
 }
 // Les tuiles d'objectif passent par le sélecteur existant (même règles : pas de réécriture du passé).
 function choisirObjectifVitrine(cle) {
@@ -22068,8 +21611,8 @@ function renderSessionExerciceBlocHTML(exo, ei) {
       const sec = Math.max(0, Math.floor((Date.now() - debutRepos) / 1000));
       const m = Math.floor(sec / 60), s = sec % 60;
       return `<div class="repos-barre">
-        <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2" /><line x1="12" x2="15" y1="14" y2="11" /><circle cx="12" cy="14" r="8" /></svg>
-        Repos · <span id="repos-chrono-${clefRepos}">${m}:${String(s).padStart(2, '0')}</span>
+        <svg class="repos-anneau" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15" class="repos-piste"/><circle cx="18" cy="18" r="15" class="repos-val" id="repos-anneau-${clefRepos}" style="stroke-dasharray:${REPOS_TOUR};stroke-dashoffset:${REPOS_TOUR * (1 - sec / REPOS_DUREE_MAX_SEC)}"/></svg>
+        Repos <span class="repos-chrono" id="repos-chrono-${clefRepos}">${m}:${String(s).padStart(2, '0')}</span>
         <button type="button" onclick="arreterRepos(${ei},${si})" aria-label="Arrêter le minuteur de repos"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
       </div>`;
     })() : '';
@@ -22081,9 +21624,9 @@ function renderSessionExerciceBlocHTML(exo, ei) {
         ${celluleFrec}
         <input type="number" inputmode="decimal" step="0.5" value="${escapeHtml(set.poids ?? '')}" placeholder="—" onchange="modifierSerieSession(${ei},${si},'poids',this.value)">
         <input type="number" inputmode="numeric" step="1" value="${escapeHtml(set.reps ?? '')}" placeholder="${exo.plage && set.technique !== 'echauffement' ? escapeHtml(textePlage(exo.plage)) : '—'}" onchange="modifierSerieSession(${ei},${si},'reps',this.value)">
-        <button type="button" class="serie-check ${set.fait ? 'faite' : ''}" onclick="basculerSerieSession(${ei},${si})" aria-label="Marquer la série comme faite"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></button>
+        <button type="button" class="serie-check ${set.fait ? 'faite' : ''}" data-serie="${ei}_${si}" onclick="basculerSerieSession(${ei},${si})" aria-label="Marquer la série comme faite"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></button>
       </div>
-    </div>${bandeRirHTML(ei, si, set)}${barreRepos}${blocPaliersHTML(ei, si, set)}`;
+    </div>${set.fait && set.record ? `<div class="serie-record">${svgV('trophee', 2)} Nouveau record · ${nombreFr(Math.round(unRmEstime(Number(set.poids), Number(set.reps))))} kg estimés sur 1 répétition</div>` : ''}${bandeRirHTML(ei, si, set)}${barreRepos}${blocPaliersHTML(ei, si, set)}`;
   }).join('');
   const nomExo = escapeHtml(exerciceComplet ? libelleExercice(exerciceComplet) : exo.nom);
   if (exo.replie) {
@@ -22495,6 +22038,20 @@ function basculerSerieSession(ei, si) {
   // précédente (non répondue) disparaît.
   if (set.fait && set.technique !== 'echauffement' && rirDemandeActif()) rirDemande = { ei, si };
   else if (rirDemande && rirDemande.ei === ei && rirDemande.si === si) rirDemande = null;
+  // Record : meilleure charge estimée sur 1 répétition, comparée à tout
+  // l'historique et aux autres séries de la séance (célébré une seule fois).
+  delete set.record;
+  const exoSession = musculationSessionActive.exercices[ei];
+  if (set.fait && set.technique !== 'echauffement') {
+    const v = unRmEstime(Number(set.poids), Number(set.reps));
+    const avant = meilleur1RM(exoSession.exerciceId, musculationHistorique);
+    const dejaAujourdhui = musculationSessionActive.exercices.filter(x => x.exerciceId === exoSession.exerciceId)
+      .some(x => x.series.some(z => z !== set && z.fait && unRmEstime(Number(z.poids), Number(z.reps)) >= v));
+    if (avant && v > avant.valeur && !dejaAujourdhui) {
+      set.record = true;
+      celebrer('Nouveau record !', `${libelleExercice(trouverExercice(exoSession.exerciceId)) || exoSession.nom} · ${nombreFr(Number(set.poids))} kg × ${set.reps}`, 'trophee');
+    }
+  }
   if (set.fait) {
     reposActifs[clef] = Date.now();
     // Cocher une série vaut "je commence cette série" : le repos qui la
@@ -22506,6 +22063,7 @@ function basculerSerieSession(ei, si) {
   sauvegarderSessionActive();
   renderSessionModal();
   majBandeauSeanceFlottant();
+  if (set.fait) { const b = document.querySelector(`.serie-check[data-serie="${clef}"]`); if (b) b.classList.add('pop'); }
 }
 function arreterRepos(ei, si) {
   delete reposActifs[ei + '_' + si];
@@ -22548,6 +22106,7 @@ function reindexerReposApresSuppressionExercice(eiSupprime) {
 // suivante n'a pas encore été cochée — pas de minuterie infinie oubliée en
 // arrière-plan pendant qu'on discute entre deux séries.
 const REPOS_DUREE_MAX_SEC = 120;
+const REPOS_TOUR = 2 * Math.PI * 15; // circonférence de l'anneau du minuteur
 function majReposActifs() {
   let expire = false;
   Object.keys(reposActifs).forEach(clef => {
@@ -22557,6 +22116,8 @@ function majReposActifs() {
     if (!el) return;
     const m = Math.floor(sec / 60), s = sec % 60;
     el.textContent = m + ':' + String(s).padStart(2, '0');
+    const anneau = document.getElementById('repos-anneau-' + clef);
+    if (anneau) anneau.style.strokeDashoffset = REPOS_TOUR * (1 - sec / REPOS_DUREE_MAX_SEC);
   });
   if (expire) renderSessionModal();
 }

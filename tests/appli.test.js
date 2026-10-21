@@ -1177,29 +1177,13 @@ test('Repas du jour refait : anneaux, semaine, série de jours, coach', () => av
   }
 }));
 
-test('styles visuels : choix dans Réglages, gardé au redémarrage, chaque style sur chaque écran', () => avecAppli({}, async ({ page }) => {
-  const ids = await page.evaluate(() => STYLES_VISUELS.map(s => s.id));
-  assert.deepEqual(ids, ['', 'epure', 'editorial', 'brutal', 'terminal', 'sport', 'fil', 'systeme', 'bataillon']);
-  assert.equal(await page.evaluate(() => document.querySelectorAll('#styles-visuels .style-visuel').length), 9);
-  // Toucher une vignette applique le style et l'enregistre (profil + local).
-  await page.evaluate(() => { allerA('reglages'); ouvrirModal('reglages-modal'); });
-  await page.click('#styles-visuels .style-visuel:nth-child(8)');
-  let r = await page.evaluate(() => ({ attr: document.documentElement.getAttribute('data-style'), local: localStorage.getItem('anqaa_style'), profil: userProfile.style,
-    choisi: document.querySelector('#styles-visuels .style-visuel.choisi .style-visuel-nom').textContent,
-    couleur: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(), palettesInactives: document.getElementById('palettes-perso').classList.contains('palettes-inactives') }));
-  assert.deepEqual(r, { attr: 'systeme', local: 'systeme', profil: 'systeme', choisi: 'Système', couleur: '#0077c8', palettesInactives: true });
-  // Au redémarrage, posé avant l'appli (pas de flash de l'habillage d'origine).
+test('anciens styles visuels retirés : un choix enregistré n\'est plus appliqué', () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => { localStorage.setItem('anqaa_style', 'systeme'); });
   await page.reload({ waitUntil: 'domcontentloaded' });
-  assert.equal(await page.evaluate(() => document.documentElement.getAttribute('data-style')), 'systeme');
-  await page.waitForFunction(() => typeof allerA === 'function' && typeof Chart !== 'undefined');
-  await page.evaluate(() => { connexionObligatoire = false; const sp = document.getElementById('splash-screen'); if (sp) sp.style.display = 'none'; });
-  // Chaque style, chaque écran : aucune erreur (vérifiée par avecAppli).
-  for (const id of ids) {
-    await page.evaluate(id => { choisirStyle(id); for (const e of ['repas', 'seance', 'reglages', 'repas']) allerA(e); ouvrirStats('nutrition'); ouvrirStats('muscu'); fermerStats(); }, id);
-  }
-  // Revenir au style Anqā retire tout.
-  r = await page.evaluate(() => { choisirStyle(''); return [document.documentElement.hasAttribute('data-style'), localStorage.getItem('anqaa_style'), userProfile.style]; });
-  assert.deepEqual(r, [false, null, '']);
+  await page.waitForFunction(() => typeof allerA === 'function');
+  const r = await page.evaluate(() => ({ attr: document.documentElement.hasAttribute('data-style'), local: localStorage.getItem('anqaa_style'),
+    selecteur: !!document.getElementById('styles-visuels'), fn: typeof choisirStyle }));
+  assert.deepEqual(r, { attr: false, local: null, selecteur: false, fn: 'undefined' });
 }));
 
 test('le thème sombre ne casse aucun écran', () => avecAppli({ theme: 'dark' }, async ({ page }) => {
@@ -1265,4 +1249,45 @@ test('vitrines : Activité (corps, séance du jour, programmes), Cardio (arc, tr
   await page.click('#vitrine-profil .obj-tuile:has-text("Masse")');
   const o = await page.evaluate(() => ({ select: document.getElementById('objectif-select').value, goal: getDay(todayStr()).goal, on: document.querySelector('#vitrine-profil .obj-tuile.on').textContent.trim() }));
   assert.deepEqual(o, { select: 'masse', goal: 'masse', on: 'Masse' });
+}));
+
+test('séance : un record est fêté une fois, la série cochée « pop », le repos tourne en anneau', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const exo = toutesLesExercices().find(e => e.groupe === 'pectoraux');
+    musculationHistorique.push({ id: 'h1', programmeId: null, programmeNom: 'Séance', date: shiftDate(todayStr(), -3), debut: Date.now() - 3e6, fin: Date.now(), dureeMin: 50, maj: Date.now(),
+      exercices: [{ exerciceId: exo.id, nom: exo.nom, series: [{ poids: 60, reps: 8, fait: true }, { poids: 60, reps: 8, fait: true }] }] });
+    allerA('seance'); demarrerSeanceLibre(); ajouterExerciceASession(exo.id);
+    const s = musculationSessionActive.exercices[0].series;
+    s[0].poids = 70; s[0].reps = 8; s[1].poids = 70; s[1].reps = 8;
+    basculerSerieSession(0, 0);
+    const premier = { fete: document.getElementById('celebration').textContent, record: document.querySelectorAll('.serie-record').length,
+      pop: !!document.querySelector('.serie-check.pop[data-serie="0_0"]'), anneau: !!document.querySelector('#repos-anneau-0_0') };
+    document.getElementById('celebration').textContent = '';
+    basculerSerieSession(0, 1); // même charge : pas un nouveau record
+    return { ...premier, deuxieme: document.getElementById('celebration').textContent, records: document.querySelectorAll('.serie-record').length };
+  });
+  assert.match(r.fete, /Nouveau record/);
+  assert.deepEqual({ record: r.record, pop: r.pop, anneau: r.anneau, deuxieme: r.deuxieme, records: r.records }, { record: 1, pop: true, anneau: true, deuxieme: '', records: 1 });
+}));
+
+test('trophées : un badge tout juste gagné est fêté, une seule fois', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    localStorage.setItem('anqaa_trophees', JSON.stringify({ niveau: 1, badges: [] }));
+    for (let k = 0; k < 3; k++) { const d = shiftDate(todayStr(), -k), j = getDay(d); j.meals[MEALS[0]].push({ name: 'Pomme', grams: 100, kcal: 52, p: 0, c: 14, f: 0 }); saveData(d); }
+    renderApp();
+    const fete = document.getElementById('celebration').textContent;
+    document.getElementById('celebration').textContent = '';
+    renderApp();
+    return { fete, encore: document.getElementById('celebration').textContent, memo: JSON.parse(localStorage.getItem('anqaa_trophees')).badges };
+  });
+  assert.match(r.fete, /Badge débloqué : Série/);
+  assert.equal(r.encore, '');
+  assert.ok(r.memo.includes('serie'));
+}));
+
+test('animations : les chiffres défilent jusqu\'à leur valeur exacte', () => avecAppli({ animations: true }, async ({ page }) => {
+  await page.evaluate(() => { const j = getDay(todayStr()); j.meals[MEALS[1]].push({ name: 'Riz', grams: 100, kcal: 1234, p: 3, c: 28, f: 0 }); saveData(todayStr()); allerA('repas'); renderApp(); });
+  await page.waitForFunction(() => document.getElementById('total-kcals').textContent.replace(/\s/g, '') === '1234');
+  await page.evaluate(() => { allerA('seance'); choisirModeSeance('cardio'); });
+  await page.waitForFunction(() => /^0/.test(document.querySelector('#seance-cardio .cardio-gros').textContent));
 }));

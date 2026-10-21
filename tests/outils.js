@@ -32,7 +32,10 @@ async function lancerNavigateur() {
    démarrage et fenêtres d'accueil fermés. Renvoie { page, erreurs, dialogues } :
    `erreurs` reçoit toute exception JavaScript non rattrapée de la page. */
 async function ouvrirAppli(navigateur, options = {}) {
-  const ctx = await navigateur.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  // Mouvement réduit par défaut : les chiffres s'affichent tout de suite à
+  // leur valeur (pas de défilement), ce que les tests lisent aussitôt.
+  const ctx = await navigateur.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1,
+    reducedMotion: options.animations ? 'no-preference' : 'reduce' });
   await ctx.route(/^https?:/, r => {
     if (/\/npm\/chart\.js@/.test(r.request().url())) return r.fulfill({ path: CHART_JS, contentType: 'application/javascript' });
     return r.abort();
