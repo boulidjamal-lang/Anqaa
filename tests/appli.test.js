@@ -1377,3 +1377,19 @@ test('séance du jour : le programme suivant dans l\'ordre de la liste', () => a
   });
   assert.deepEqual(r, ['A', 'C', 'C', 'A', 'A', 'A']);
 }));
+
+test('bilan de fin de séance : récapitulatif sans IA (tonnage, séries, records, écart)', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const exo = toutesLesExercices().find(e => e.groupe === 'pectoraux');
+    musculationProgrammes.push({ id: 'pb', nom: 'Pecs', exercices: [{ exerciceId: exo.id, nom: exo.nom, series: [{ poids: 60, reps: 8 }, { poids: 60, reps: 8 }] }], maj: Date.now() });
+    musculationHistorique.push({ id: 'h0', programmeId: 'pb', programmeNom: 'Pecs', date: shiftDate(todayStr(), -3), dureeMin: 40, exercices: [{ exerciceId: exo.id, nom: exo.nom, series: [{ poids: 60, reps: 8, fait: true }, { poids: 60, reps: 8, fait: true }] }] });
+    allerA('seance'); demarrerSeance('pb');
+    musculationSessionActive.exercices[0].series.forEach(s => { s.poids = 70; s.reps = 8; s.fait = true; });
+    terminerSeance();
+    const z = document.getElementById('bilan-seance-recap');
+    return { titre: z.querySelector('h4').textContent, tonnage: z.querySelector('.bilan-geant b').textContent.replace(/\s/g, ''),
+      tuiles: [...z.querySelectorAll('.bilan-tuile b')].map(b => b.textContent), records: z.querySelectorAll('.bilan-records > div').length,
+      ecart: z.querySelector('.bilan-ecart').textContent.trim(), sansIA: !!document.querySelector('#bilan-seance-container .bilan-sans-ia') };
+  });
+  assert.deepEqual(r, { titre: 'Pecs', tonnage: '1120', tuiles: ['1', '2', '1'], records: 1, ecart: '▲ 17 % vs la dernière fois', sansIA: true });
+}));

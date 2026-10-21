@@ -3175,6 +3175,102 @@
     #ecran-admin .ligne-txt small { font-weight: 600; }
     @media (max-width: 360px) { html:root .admin-apercu { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
+
+    /* =====================================================================
+       FENÊTRES — socle commun (modales et feuilles du bas)
+       ===================================================================== */
+    html:root .modal-content { padding: 20px 18px 22px; border-radius: 30px; }
+    html:root .feuille-contenu { padding: 8px 18px calc(22px + env(safe-area-inset-bottom, 0px)); border-radius: 30px 30px 0 0; }
+    html:root .feuille-poignee { width: 44px; height: 5px; margin: 2px auto 14px; background: color-mix(in srgb, var(--text-muted) 45%, transparent); }
+    html:root .modal-entete { gap: 12px; margin-bottom: 18px; }
+    html:root .modal-entete h3, html:root .feuille-entete .feuille-titre { display: block; min-width: 0; margin: 0;
+      font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.3rem; font-weight: 800; letter-spacing: -.035em; line-height: 1.15; color: var(--text); text-transform: none; text-align: left; }
+    html:root .modal-entete h3 > .icone-ui, html:root .feuille-entete .feuille-titre > .icone-ui { width: 34px; height: 34px; padding: 8px; margin-right: 8px; vertical-align: middle; border-radius: 12px; color: #fff;
+      background: var(--fen-g, linear-gradient(135deg, #22d3ee, #6366f1)); box-shadow: 0 8px 16px -8px rgba(99,102,241,.7); }
+    html:root :is(.close-modal, .feuille-fermer) { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%; background: var(--piste); color: var(--text); font-size: 1.25rem; }
+    html:root :is(.close-modal, .feuille-fermer):focus-visible { outline: 0; box-shadow: 0 0 0 2px color-mix(in srgb, var(--text-muted) 40%, transparent); }
+    html:root :is(.modal-content, .feuille-contenu) :is(.bloc-verre, .fitness-card) { background: var(--piste) !important; box-shadow: none !important; -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 20px !important; }
+    html:root :is(.modal-content, .feuille-contenu) .note { line-height: 1.5; }
+    html:root :is(.modal-content, .feuille-contenu) .input-group label { font-size: .64rem; letter-spacing: .08em; }
+    html:root :is(.modal-content, .feuille-contenu) .btn { min-height: 50px; border-radius: 16px; }
+    html:root :is(.modal-content, .feuille-contenu) .titre-section { font-size: .98rem; margin-top: 18px; }
+    /* Teinte de l'icône d'en-tête selon la famille de la fenêtre */
+    :is(#manual-modal, #barcode-modal, #ai-modal, #macros-popup-modal, #feuille-choix-recette, #feuille-recette-perso, #feuille-choix-repas) { --fen-g: linear-gradient(135deg, #34d399, #10b981); }
+    :is(#fiche-exercice-modal, #picker-exercices-modal, #exercice-perso-modal, #apercu-programme-modal, #historique-detail-modal, #programme-detail-modal, #bilan-seance-modal, #ia-programme-modal, #muscu-reglages-modal, #aide-routine-modal, #modal-tempo, #modal-plage) { --fen-g: linear-gradient(135deg, #f472b6, #7c3aed); }
+    :is(#mesures-modal, #photos-modal, #partage-stats-modal) { --fen-g: linear-gradient(135deg, #38bdf8, #6366f1); }
+    :is(#gymbro-modal, #pseudo-modal) { --fen-g: linear-gradient(135deg, #34d399, #06b6d4); }
+    :is(#confirm-suppression-modal) { --fen-g: linear-gradient(135deg, #f87171, #dc2626); }
+    :is(#reglages-modal, #compte-modal, #sync-info-modal, #install-modal, [id^="feuille-admin"], #feuille-journal, #feuille-rattachement) { --fen-g: linear-gradient(135deg, #94a3b8, #475569); }
+
+
+    /* Bilan de fin de séance */
+    .bilan-heros { position: relative; overflow: hidden; isolation: isolate; padding: 18px; min-height: 190px; border-radius: 26px; color: #fff;
+      background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 45%, #be185d 100%); box-shadow: 0 22px 40px -20px rgba(190,24,93,.75); }
+    .bilan-heros::after { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(60% 80% at 85% 30%, rgba(244,114,182,.4), transparent 70%); }
+    .bilan-corps { position: absolute; right: -8px; top: 8px; bottom: 8px; width: 150px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; z-index: -1; }
+    .bilan-corps svg { width: 100%; height: 100%; filter: drop-shadow(0 0 12px rgba(244,114,182,.6)); }
+    .bilan-heros small { font-size: .64rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
+    .bilan-heros h4 { margin: 4px 0 0; max-width: 58%; font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.6rem; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; overflow-wrap: anywhere; }
+    .bilan-geant { margin-top: 14px; }
+    .bilan-geant b { display: block; font-family: 'Manrope', 'Inter', sans-serif; font-size: 3.2rem; font-weight: 800; letter-spacing: -.06em; line-height: .95; font-variant-numeric: tabular-nums; }
+    .bilan-geant span { font-size: .8rem; font-weight: 700; opacity: .8; }
+    .bilan-ecart { display: inline-block; margin-top: 10px; padding: 5px 10px; border-radius: 99px; font-size: .7rem; font-weight: 800; background: rgba(255,255,255,.2); }
+    .bilan-ecart.hausse { background: rgba(52,211,153,.3); } .bilan-ecart.baisse { background: rgba(251,113,133,.3); }
+    .bilan-tuiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+    .bilan-tuile { display: grid; justify-items: center; padding: 12px 6px; border-radius: 18px; background: var(--piste); text-align: center; }
+    .bilan-tuile b { font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.55rem; font-weight: 800; letter-spacing: -.05em; line-height: 1; font-variant-numeric: tabular-nums; }
+    .bilan-tuile small { font-size: .66rem; font-weight: 700; color: var(--text-muted); }
+    .bilan-tuile span { margin-top: 4px; font-size: .6rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+    .bilan-records { display: grid; gap: 6px; margin-bottom: 6px; }
+    .bilan-records > div { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: linear-gradient(90deg, color-mix(in srgb, #fbbf24 22%, transparent), color-mix(in srgb, #f59e0b 8%, transparent)); }
+    .bilan-trophee { width: 30px; height: 30px; flex: none; border-radius: 10px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #fde68a, #f59e0b); }
+    .bilan-trophee .icone-ui { width: 16px; height: 16px; color: #fff; }
+    .bilan-records b { flex: 1; min-width: 0; font-size: .84rem; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bilan-records em { font-style: normal; font-size: .78rem; font-weight: 800; white-space: nowrap; }
+    .bilan-ia-titre { margin-top: 16px !important; }
+    .bilan-sans-ia { margin: 0; padding: 12px 14px; border-radius: 16px; background: var(--piste); }
+
+
+    /* Fenêtres muscu : détail d'une séance, d'un programme, réglages */
+    html:root .hd-titre { font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.8rem; letter-spacing: -.045em; }
+    html:root .hd-resume { position: relative; overflow: hidden; isolation: isolate; padding: 14px 16px; border-radius: 22px; color: #fff;
+      background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #be185d 100%); box-shadow: 0 18px 34px -20px rgba(190,24,93,.8); }
+    html:root .hd-resume-ligne { border-bottom-color: rgba(255,255,255,.14); }
+    html:root .hd-resume-ligne > span { color: rgba(255,255,255,.72); }
+    html:root .hd-resume-ligne b { font-family: 'Manrope', 'Inter', sans-serif; font-weight: 800; }
+    html:root .hd-exo { border-radius: 20px; background: var(--piste); }
+    html:root .hd-exo-nom { font-family: 'Manrope', 'Inter', sans-serif; font-weight: 800; }
+    html:root #programme-detail-modal .stats-grille > div, html:root #muscu-stats-totaux > div { padding: 10px 12px; border-radius: 16px; background: var(--piste); }
+    html:root .stats-valeur { font-family: 'Manrope', 'Inter', sans-serif; font-weight: 800; letter-spacing: -.03em; }
+    html:root .zones-reglage-ligne input[type="number"], html:root .increment-ligne input[type="number"] { height: 36px; border: 0; border-radius: 11px; background: var(--piste); font-family: 'Manrope', 'Inter', sans-serif; }
+    html:root .zones-reglage-ligne { border-bottom-color: var(--trait); }
+
+
+    /* Fenêtres repas : code-barres, photo, aperçu */
+    html:root #reader { position: relative; overflow: hidden; min-height: 210px; margin-bottom: 14px; border-radius: 22px; background: #05070c; isolation: isolate; }
+    html:root #reader::before { content: ''; position: absolute; inset: 18% 12%; z-index: 2; pointer-events: none; border-radius: 16px;
+      background: linear-gradient(#34d399, #34d399) 0 0/26px 3px no-repeat, linear-gradient(#34d399, #34d399) 0 0/3px 26px no-repeat,
+        linear-gradient(#34d399, #34d399) 100% 0/26px 3px no-repeat, linear-gradient(#34d399, #34d399) 100% 0/3px 26px no-repeat,
+        linear-gradient(#34d399, #34d399) 0 100%/26px 3px no-repeat, linear-gradient(#34d399, #34d399) 0 100%/3px 26px no-repeat,
+        linear-gradient(#34d399, #34d399) 100% 100%/26px 3px no-repeat, linear-gradient(#34d399, #34d399) 100% 100%/3px 26px no-repeat; }
+    html:root #reader::after { content: ''; position: absolute; left: 14%; right: 14%; top: 20%; height: 2px; z-index: 2; pointer-events: none; border-radius: 2px;
+      background: linear-gradient(90deg, transparent, #22d3ee, transparent); box-shadow: 0 0 12px #22d3ee; animation: balayage 2.2s ease-in-out infinite alternate; }
+    @keyframes balayage { to { top: 78%; } }
+    html:root #reader video { border-radius: 22px; }
+    html:root .btn-barcode { border: 0; border-radius: 14px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #34d399, #06b6d4); }
+    html:root input[type="file"] { width: 100%; padding: 14px; border: 1.5px dashed var(--trait); border-radius: 18px; background: transparent; color: var(--text-muted); font: inherit; font-size: .8rem; }
+    html:root input[type="file"]::file-selector-button { margin-right: 12px; padding: 9px 14px; border: 0; border-radius: 99px; cursor: pointer; font: inherit; font-weight: 800;
+      color: #fff; background: linear-gradient(135deg, #a78bfa, #6366f1); }
+    @media (prefers-reduced-motion: reduce) { html:root #reader::after { animation: none; } }
+
+
+    /* Cases à cocher : arrondies, cochées en dégradé */
+    html:root input[type="checkbox"] { -webkit-appearance: none; appearance: none; flex: none; width: 22px !important; height: 22px; margin: 0; border-radius: 7px; cursor: pointer;
+      background: var(--piste); box-shadow: inset 0 0 0 1.5px var(--trait); transition: background .15s, box-shadow .15s; vertical-align: middle; }
+    html:root input[type="checkbox"]:checked { box-shadow: none;
+      background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6 9 17l-5-5'/></svg>") center / 14px no-repeat, linear-gradient(135deg, #34d399, #06b6d4); }
+    html:root input[type="checkbox"]:focus-visible { outline: 0; box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 40%, transparent); }
+
     /* Apparition */
     .vitrine > *, #seance-cardio > * { animation: monte .55s cubic-bezier(.2,.8,.2,1) both; }
     .vitrine > :nth-child(2), #seance-cardio > :nth-child(2) { animation-delay: .05s; }
@@ -5402,8 +5498,10 @@
       <h3 id="titre-bilan-seance"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" /></svg> Bilan de la séance</h3>
       <button class="close-modal" onclick="fermerBilanSeance()" aria-label="Fermer">&times;</button>
     </div>
+    <div id="bilan-seance-recap"></div>
+    <div class="titre-section bilan-ia-titre">Le mot du coach</div>
     <div id="bilan-seance-container"></div>
-    <button class="btn btn-primary" style="margin-top:6px;" onclick="fermerBilanSeance()">Fermer</button>
+    <button class="btn btn-primary" style="margin-top:12px;" onclick="fermerBilanSeance()">Fermer</button>
   </div>
 </div>
 
@@ -22325,6 +22423,7 @@ function terminerSeance() {
   // dernierePerfProgramme et musculationHistorique lus ici le seraient tels
   // quels après l'unshift, comparant alors la séance à elle-même.
   const contexteBilan = construireContexteBilanSeance(entree, dureeMin);
+  const recapBilan = recapSeanceHTML(entree, dureeMin);
 
   musculationHistorique.unshift(entree);
   sauvegarderHistorique();
@@ -22352,8 +22451,42 @@ function terminerSeance() {
   seanceLibreAProposer = etaitLibre ? entree : null;
   document.getElementById('bilan-seance-container').innerHTML =
     '<div class="loader"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 18V5" /><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4" /><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5" /><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77" /><path d="M18 18a4 4 0 0 0 2-7.464" /><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517" /><path d="M6 18a4 4 0 0 1-2-7.464" /><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77" /></svg> L\'IA analyse ta séance…</div>';
+  document.getElementById('bilan-seance-recap').innerHTML = recapBilan;
   ouvrirModal('bilan-seance-modal');
+  animerComptes(document.getElementById('bilan-seance-recap'));
   afficherBilanSeanceIA(contexteBilan);
+}
+/* Récapitulatif de la séance qui vient de finir, sans IA : tonnage, durée,
+   séries, records battus (charge estimée sur 1 répétition, face à tout
+   l'historique), muscles travaillés, et l'écart de tonnage avec la dernière
+   séance du même programme. Construit AVANT l'ajout à l'historique. */
+function recapSeanceHTML(entree, dureeMin) {
+  const faites = e => e.series.filter(s => s.fait);
+  const tonnage = entree.exercices.reduce((v, e) => v + faites(e).reduce((m, s) => m + (Number(s.poids) || 0) * (Number(s.reps) || 0), 0), 0);
+  const nbSeries = entree.exercices.reduce((n, e) => n + faites(e).length, 0);
+  const records = [];
+  const groupes = {};
+  entree.exercices.forEach(e => {
+    const exo = trouverExercice(e.exerciceId);
+    if (exo && faites(e).length) groupes[exo.groupe] = '#f9a8d4';
+    const meilleur = faites(e).reduce((b, s) => { const v = unRmEstime(Number(s.poids), Number(s.reps)); return v > (b ? b.v : 0) ? { v, s } : b; }, null);
+    const avant = meilleur1RM(e.exerciceId, musculationHistorique);
+    if (meilleur && avant && meilleur.v > avant.valeur) records.push({ nom: exo ? libelleExercice(exo) : e.nom, s: meilleur.s });
+  });
+  const prec = entree.programmeId ? dernierePerfProgramme(entree.programmeId) : null;
+  const tonPrec = prec ? volumeSeance(prec) : 0;
+  const ecart = tonPrec > 0 ? Math.round((tonnage - tonPrec) / tonPrec * 100) : null;
+  const t = tonnage >= 10000 ? { v: Math.round(tonnage / 100) / 10, dec: 1, u: 't' } : { v: Math.round(tonnage), dec: 0, u: 'kg' };
+  const tuile = (k, v, u, dec) => `<div class="bilan-tuile"><b data-compte="${v}"${dec ? ` data-dec="${dec}"` : ''}>${nombreFr(v, dec || 0)}</b><small>${u}</small><span>${k}</span></div>`;
+  return `<div class="bilan-heros">
+      <div class="bilan-corps">${silhouetteSVG('face', groupes, { neutre: 'rgba(255,255,255,.12)', contour: 'rgba(255,255,255,.05)' })}${silhouetteSVG('dos', groupes, { neutre: 'rgba(255,255,255,.12)', contour: 'rgba(255,255,255,.05)' })}</div>
+      <small>Séance terminée</small>
+      <h4>${escapeHtml(entree.programmeNom || 'Séance libre')}</h4>
+      <div class="bilan-geant"><b data-compte="${t.v}"${t.dec ? ' data-dec="1"' : ''}>${nombreFr(t.v, t.dec)}</b><span>${t.u} soulevés</span></div>
+      ${ecart != null ? `<span class="bilan-ecart ${ecart >= 0 ? 'hausse' : 'baisse'}">${ecart >= 0 ? '▲' : '▼'} ${Math.abs(ecart)} % vs la dernière fois</span>` : ''}
+    </div>
+    <div class="bilan-tuiles">${tuile('Durée', dureeMin, 'min')}${tuile('Séries', nbSeries, 'faites')}${tuile('Records', records.length, records.length > 1 ? 'battus' : 'battu')}</div>
+    ${records.length ? `<div class="bilan-records">${records.map(x => `<div><span class="bilan-trophee">${svgV('trophee', 2)}</span><b>${escapeHtml(x.nom)}</b><em>${nombreFr(Number(x.s.poids))} kg × ${x.s.reps}</em></div>`).join('')}</div>` : ''}`;
 }
 const LABELS_OBJECTIF_JOUR = { seche: 'perdre du poids', maintien: 'maintenir son poids', masse: 'prendre du muscle' };
 
@@ -22422,7 +22555,7 @@ ${lignesExercices}`;
 async function afficherBilanSeanceIA(contexte) {
   const c = document.getElementById('bilan-seance-container');
   if (!geminiKey) {
-    c.innerHTML = '<div class="error-box">Ajoute ta clé API Gemini dans Profil pour obtenir une analyse de séance par l\'IA.</div>';
+    c.innerHTML = '<p class="note bilan-sans-ia">Ajoute ta clé API Gemini dans Réglages pour recevoir ici l\'avis détaillé du coach IA sur ta séance.</p>';
     return;
   }
   const prompt = `Tu es un coach de musculation expert, exigeant mais bienveillant. Voici le détail complet de la séance qui vient de se terminer, comparée à l'historique de la personne. Donne un avis précis et honnête : était-ce une bonne séance, qu'est-ce qui a été bien, qu'est-ce qui doit progresser, et surtout comment s'améliorer concrètement la prochaine fois (charge, volume, régularité, exercices zappés, repos...). Appuie-toi sur les chiffres donnés plutôt que des généralités. Réponds en français, tutoiement, sans markdown, entre 150 et 220 mots.
