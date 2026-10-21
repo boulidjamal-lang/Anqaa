@@ -1360,3 +1360,20 @@ test('séance : pavé de saisie à la salle (− / +, pas selon le matériel, va
   // Validée ; le pavé passe à la série suivante, qui reprend la charge.
   assert.deepEqual(r, { fait: true, valeurs: [65, 7], pave: true, suivant: '65' });
 }));
+
+test('séance du jour : le programme suivant dans l\'ordre de la liste', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    ['A', 'B', 'C'].forEach(n => musculationProgrammes.push({ id: 'p' + n, nom: n, exercices: [], maj: Date.now() }));
+    const fait = (id, k) => musculationHistorique.unshift({ id: 'h' + id + k, programmeId: id, programmeNom: id, date: shiftDate(todayStr(), -k), fin: Date.now() - k * 1000, exercices: [] });
+    const res = [programmeSuggere().p.nom];   // rien de fait : le premier
+    fait('pB', 2); res.push(programmeSuggere().p.nom);   // après B : C
+    fait('pA', 5); res.push(programmeSuggere().p.nom);   // A plus ancien : toujours C
+    fait('pC', 1); res.push(programmeSuggere().p.nom);   // après C, le dernier : retour à A
+    musculationHistorique.unshift({ id: 'libre', programmeId: null, date: todayStr(), exercices: [] });
+    res.push(programmeSuggere().p.nom);   // une séance vide ne compte pas
+    allerA('seance'); choisirModeSeance('muscu');
+    res.push(document.querySelector('#vitrine-muscu .sdj h4').textContent);
+    return res;
+  });
+  assert.deepEqual(r, ['A', 'C', 'C', 'A', 'A', 'A']);
+}));

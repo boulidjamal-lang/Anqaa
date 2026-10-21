@@ -4197,7 +4197,7 @@
     <div class="feuille-titre" id="feuille-activite-titre">Lancer une activité</div>
     <button class="feuille-action" id="opt-seance-jour" onclick="depuisFeuilleActivite('jour')">
       <span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l14 9-14 9V3z" /></svg></span>
-      <span><span id="opt-seance-jour-nom">Séance du jour</span><span class="sous" id="opt-seance-jour-sous">Le programme que tu n'as pas fait depuis le plus longtemps</span></span>
+      <span><span id="opt-seance-jour-nom">Séance du jour</span><span class="sous" id="opt-seance-jour-sous">Le suivant dans l'ordre de tes programmes</span></span>
     </button>
     <button class="feuille-action" id="opt-seance-vide" onclick="depuisFeuilleActivite('vide')">
       <span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" /></svg></span>
@@ -11145,7 +11145,7 @@ const TOUR_ETAPES = [
   { ecran: 'repas', cible: '#bloc-eau', titre: "L'eau", texte: 'Un toucher sur +250 ml, +500 ml ou +1 L à chaque fois que tu bois.' },
   { ecran: 'repas', cible: '#onglets', titre: 'La barre d’onglets', texte: "Repas, Activité, Progrès (tes statistiques détaillées) et Profil, toujours en bas de l'écran." },
   { ecran: 'repas', cible: '#onglet-seance', titre: 'Activité', texte: 'Ta musculation (programmes, séances, bibliothèque d’exercices) et ton cardio. La visite « Musculation » détaille la partie muscu.' },
-  { ecran: 'seance', cible: '#vitrine-muscu .hx', titre: 'Ta semaine de muscu', texte: "Le corps se colore selon le volume de la semaine : vert en zone idéale, gris à travailler. Touche-le pour le détail. Juste dessous, la séance du jour : le programme que tu n'as pas fait depuis le plus longtemps." },
+  { ecran: 'seance', cible: '#vitrine-muscu .hx', titre: 'Ta semaine de muscu', texte: "Le corps se colore selon le volume de la semaine : vert en zone idéale, gris à travailler. Touche-le pour le détail. Juste dessous, la séance du jour : le programme suivant dans l'ordre de ta liste, après ta dernière séance." },
   { ecran: 'seance', cible: '#carte-pas-seances', titre: 'Tes pas', texte: "En bas de l'écran Activité : note tes pas du jour. La jauge montre où tu en es (7 500 pas, c'est le repère santé), et le surplus compte dans ta dépense." },
   { ecran: 'seance', cible: '#seance-mode-nav', titre: 'Musculation ou cardio', texte: "Bascule entre tes séances de musculation et ton cardio : course, vélo, natation, marche, rameur, HIIT, sport co." },
   { ecran: 'seance', modeCardio: true, cible: '#seance-cardio .hx--cardio', titre: 'Ta semaine de cardio', texte: "L'objectif conseillé : 150 à 300 min par semaine, une minute intense comptant double. La jauge montre où tu en es, la barre en dessous ta répartition facile / modérée / intense. Ajoute une séance avec le bouton juste en dessous : durée, distance, intensité." },
@@ -20909,11 +20909,19 @@ function groupesProgramme(p) {
   (p.exercices || []).forEach(pe => { const exo = trouverExercice(pe.exerciceId); if (exo && exo.groupe) g[exo.groupe] = (g[exo.groupe] || 0) + 1; });
   return g;
 }
-// Le programme à faire : celui fait il y a le plus longtemps (ou jamais).
+// Le programme à faire : le suivant, dans l'ordre de la liste, de celui de
+// la dernière séance faite avec un programme (après le dernier, retour au
+// premier). Aucune séance avec un programme encore : le premier de la liste.
 function programmeSuggere() {
   if (!musculationProgrammes.length) return null;
-  return musculationProgrammes.map(p => ({ p, d: (dernierePerfProgramme(p.id) || {}).date || '' }))
-    .sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0))[0];
+  let derniere = null;
+  musculationHistorique.forEach(h => {
+    if (!musculationProgrammes.some(p => p.id === h.programmeId)) return;
+    if (!derniere || h.date > derniere.date || (h.date === derniere.date && (h.fin || 0) > (derniere.fin || 0))) derniere = h;
+  });
+  const i = derniere ? musculationProgrammes.findIndex(p => p.id === derniere.programmeId) : -1;
+  const p = musculationProgrammes[(i + 1) % musculationProgrammes.length];
+  return { p, d: (dernierePerfProgramme(p.id) || {}).date || '' };
 }
 const TEINTES_PROGRAMMES = ['linear-gradient(160deg,#be185d,#7c3aed)', 'linear-gradient(160deg,#1d4ed8,#0891b2)', 'linear-gradient(160deg,#ea580c,#ca8a04)', 'linear-gradient(160deg,#047857,#0e7490)', 'linear-gradient(160deg,#6d28d9,#db2777)', 'linear-gradient(160deg,#334155,#0f766e)'];
 const GROUPES_BAS = ['quadriceps', 'ischios', 'fessiers', 'mollets', 'adducteurs'];
