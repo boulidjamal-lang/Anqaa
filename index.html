@@ -21147,13 +21147,20 @@ function animerComptes(racine) {
 /* Badges et niveau : un bandeau de fête quand l'un d'eux vient d'être
    gagné. Le premier passage (nouvel appareil) mémorise sans fêter. */
 function verifierTrophees() {
-  if (typeof appData === 'undefined' || !Object.keys(appData).length) return;
-  const niv = niveauUtilisateur(), gagnes = badgesUtilisateur().filter(b => b.ok);
+  if (typeof appData === 'undefined') return;
+  const niv = niveauUtilisateur();
+  // Rien de noté (données pas encore chargées, ou tout nouveau compte) : on
+  // ne mémorise rien, sinon l'arrivée des données passerait pour un exploit.
+  if (!niv.joursNotes && !niv.cardio && !musculationHistorique.length) return;
+  const gagnes = badgesUtilisateur().filter(b => b.ok);
   let avant = null;
   try { avant = JSON.parse(localStorage.getItem('anqaa_trophees') || 'null'); } catch (e) {}
   try { localStorage.setItem('anqaa_trophees', JSON.stringify({ niveau: niv.n, badges: gagnes.map(b => b.cle) })); } catch (e) {}
   if (!avant) return;
-  const nouveau = gagnes.find(b => !(avant.badges || []).includes(b.cle));
+  const nouveaux = gagnes.filter(b => !(avant.badges || []).includes(b.cle)), nouveau = nouveaux[0];
+  // Un saut de plusieurs niveaux ou badges d'un coup = des données qui
+  // arrivent (synchronisation), pas un exploit du moment : pas de fête.
+  if (niv.n - (avant.niveau || 1) > 1 || nouveaux.length > 1) return;
   if (niv.n > (avant.niveau || 1)) celebrer('Niveau ' + niv.n + ' atteint !', niv.titre + ' · ' + nombreFr(niv.xp) + ' XP', 'eclair');
   else if (nouveau) celebrer('Badge débloqué : ' + nouveau.nom, nouveau.detail, nouveau.ic);
 }

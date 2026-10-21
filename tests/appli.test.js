@@ -1285,6 +1285,21 @@ test('trophées : un badge tout juste gagné est fêté, une seule fois', () => 
   assert.ok(r.memo.includes('serie'));
 }));
 
+test('trophées : l\'arrivée des données au démarrage n\'est pas fêtée', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    renderApp(); // rien de noté : rien de mémorisé
+    const avant = localStorage.getItem('anqaa_trophees');
+    // Les données arrivent d'un coup (synchronisation) : plusieurs niveaux et badges.
+    for (let k = 0; k < 25; k++) { const d = shiftDate(todayStr(), -k), j = getDay(d); j.meals[MEALS[0]].push({ name: 'Pomme', grams: 100, kcal: 52, p: 0, c: 14, f: 0 }); j.eauMl = 4000; saveData(d); }
+    for (let k = 0; k < 12; k++) musculationHistorique.push({ id: 'h' + k, date: shiftDate(todayStr(), -k), exercices: [] });
+    renderApp(); const premier = (document.getElementById('celebration') || {}).textContent || '';
+    localStorage.setItem('anqaa_trophees', JSON.stringify({ niveau: 1, badges: [] }));
+    renderApp(); const saut = (document.getElementById('celebration') || {}).textContent || '';
+    return { avant, premier, saut };
+  });
+  assert.deepEqual(r, { avant: null, premier: '', saut: '' });
+}));
+
 test('animations : les chiffres défilent jusqu\'à leur valeur exacte', () => avecAppli({ animations: true }, async ({ page }) => {
   await page.evaluate(() => { const j = getDay(todayStr()); j.meals[MEALS[1]].push({ name: 'Riz', grams: 100, kcal: 1234, p: 3, c: 28, f: 0 }); saveData(todayStr()); allerA('repas'); renderApp(); });
   await page.waitForFunction(() => document.getElementById('total-kcals').textContent.replace(/\s/g, '') === '1234');
