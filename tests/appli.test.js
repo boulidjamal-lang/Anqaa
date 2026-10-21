@@ -1210,3 +1210,49 @@ test('le thème sombre ne casse aucun écran', () => avecAppli({ theme: 'dark' }
   await page.evaluate(() => { allerA('seance'); choisirModeSeance('cardio'); ouvrirCardio(); });
   assert.ok(await page.isVisible('#modal-cardio'));
 }));
+
+test('vitrines : Activité (corps, séance du jour, programmes), Cardio (arc, tracés), Profil (niveau, badges, objectif)', () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => {
+    const exos = toutesLesExercices();
+    const pecs = exos.filter(e => e.groupe === 'pectoraux').slice(0, 2), jambes = exos.filter(e => e.groupe === 'quadriceps').slice(0, 2);
+    const prog = (id, nom, liste) => ({ id, nom, maj: Date.now(), exercices: liste.map(e => ({ exerciceId: e.id, nom: e.nom, series: [{ poids: 40, reps: 10 }, { poids: 40, reps: 10 }] })) });
+    musculationProgrammes.push(prog('pa', 'Haut', pecs), prog('pb', 'Bas', jambes));
+    // « Haut » fait aujourd'hui : la séance du jour suggérée est « Bas », jamais faite.
+    musculationHistorique.push({ id: 'h1', programmeId: 'pa', programmeNom: 'Haut', date: todayStr(), debut: Date.now() - 3e6, fin: Date.now(), dureeMin: 50, maj: Date.now(),
+      exercices: pecs.map(e => ({ exerciceId: e.id, nom: e.nom, series: [{ poids: 50, reps: 10, fait: true }, { poids: 50, reps: 8, fait: true }] })) });
+    sauvegarderHistorique();
+    const j = getDay(todayStr()); j.workouts = [{ type: 'course', time: 30, distance: 5, intensite: 2, cardio: true }]; saveData(todayStr());
+    allerA('seance'); choisirModeSeance('muscu');
+  });
+  const m = await page.evaluate(() => ({
+    geant: document.querySelector('#vitrine-muscu .hx-geant').textContent,
+    corps: !!document.querySelector('#vitrine-muscu .hx-corps svg path'),
+    sdj: document.querySelector('#vitrine-muscu .sdj h4').textContent,
+    programmes: [...document.querySelectorAll('#vitrine-muscu .pc b')].map(b => b.textContent),
+    pasEnBas: !!document.querySelector('#seance-mode-cardio ~ #carte-pas-seances')
+  }));
+  assert.deepEqual(m, { geant: '4', corps: true, sdj: 'Bas', programmes: ['Haut', 'Bas'], pasEnBas: true });
+  await page.click('#vitrine-muscu .sdj');
+  await page.waitForSelector('#apercu-programme-modal.show');
+  assert.match(await page.textContent('#titre-apercu-programme'), /Bas/);
+  await page.evaluate(() => { fermerModal('apercu-programme-modal'); choisirModeSeance('cardio'); });
+  const c = await page.evaluate(() => ({
+    arc: !!document.querySelector('#seance-cardio .hx--cardio .arc-val'),
+    trace: document.querySelectorAll('#seance-cardio .cardio-seance .trace').length,
+    longue: document.querySelector('#seance-cardio .bento .bt-n').textContent
+  }));
+  assert.deepEqual(c, { arc: true, trace: 1, longue: '5km' });
+  await page.evaluate(() => allerA('reglages'));
+  const p = await page.evaluate(() => ({
+    niveau: document.querySelector('#vitrine-profil .niveau-t b').textContent,
+    badges: document.querySelectorAll('#vitrine-profil .badge').length,
+    objectifCache: getComputedStyle(document.getElementById('carte-objectif')).display
+  }));
+  // 1 séance (40 XP) + 1 cardio (25 XP), aucun repas : 65 XP, sous le seuil du niveau 2 (100 XP).
+  assert.equal(p.badges, 8);
+  assert.match(p.niveau, /^Niveau 1 · Débutant$/);
+  assert.equal(p.objectifCache, 'none');
+  await page.click('#vitrine-profil .obj-tuile:has-text("Masse")');
+  const o = await page.evaluate(() => ({ select: document.getElementById('objectif-select').value, goal: getDay(todayStr()).goal, on: document.querySelector('#vitrine-profil .obj-tuile.on').textContent.trim() }));
+  assert.deepEqual(o, { select: 'masse', goal: 'masse', on: 'Masse' });
+}));

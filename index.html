@@ -2838,6 +2838,179 @@
     .profil-entete-boutons { display: flex; gap: 8px; align-items: center; }
     #nav-admin { width: auto; padding: 0 12px; font-weight: 800; font-size: 0.74rem; }
 
+
+    /* =====================================================================
+       VITRINES — Activité (Musculation, Cardio) et Profil : héros bord à
+       bord, corps coloré, séance du jour, mosaïque de chiffres, programmes
+       illustrés, arc de cardio, niveau, badges, objectif en tuiles.
+       ===================================================================== */
+    .vitrine { --ombre-v: var(--ombre, 0 14px 30px -16px rgba(0,0,0,.35)); }
+    .vitrine :is(.hx-titre, .hx-geant, .hx-puce b, .bt-n, .sdj h4, .pc b, .pf h3, .niveau-t b, .cg b, .vitrine-sec h3, .arc-c b, .cardio-seance-txt b, .cardio-seance-n) { font-family: 'Manrope', 'Inter', sans-serif; }
+    .vitrine-sec { display: flex; justify-content: space-between; align-items: baseline; margin: 20px 4px 10px; }
+    .vitrine-sec h3 { margin: 0; font-size: 1.12rem; font-weight: 800; letter-spacing: -.03em; }
+    .vitrine-sec button { border: 0; background: none; padding: 4px 0; font: inherit; font-size: .8rem; font-weight: 800; color: var(--primary); cursor: pointer; }
+    .vitrine-sec span { font-size: .78rem; font-weight: 800; color: var(--text-muted); }
+    .vitrine [role="button"] { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .vitrine [role="button"]:focus-visible, .vitrine button:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+
+    /* Héros immersif (bord à bord) */
+    .hx { position: relative; margin: 0 -16px 14px; padding: 20px 16px 20px; overflow: hidden; isolation: isolate; min-height: 330px; color: #f4f6ff; --hx-t: #f4f6ff; }
+    .hx::before { content: ''; position: absolute; inset: 0; z-index: -2;
+      background: radial-gradient(70% 60% at 78% 40%, rgba(34,211,238,.35), transparent 70%), radial-gradient(60% 50% at 10% 90%, rgba(167,139,250,.30), transparent 70%), linear-gradient(180deg, #0b1020, #070a14); }
+    .hx::after { content: ''; position: absolute; inset: 0; z-index: -1; opacity: .5;
+      background: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px) 0 0/100% 28px, linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px) 0 0/28px 100%;
+      -webkit-mask: radial-gradient(80% 70% at 70% 45%, #000, transparent); mask: radial-gradient(80% 70% at 70% 45%, #000, transparent); }
+    :root[data-theme="light"] .hx { color: #0d1020; --hx-t: #0d1020; }
+    :root[data-theme="light"] .hx::before { background: radial-gradient(70% 60% at 78% 40%, rgba(34,211,238,.30), transparent 70%), radial-gradient(60% 50% at 10% 90%, rgba(167,139,250,.28), transparent 70%), linear-gradient(180deg, #e9f6ff, #f4f1ff); }
+    :root[data-theme="light"] .hx::after { background: linear-gradient(rgba(13,16,32,.05) 1px, transparent 1px) 0 0/100% 28px, linear-gradient(90deg, rgba(13,16,32,.05) 1px, transparent 1px) 0 0/28px 100%; }
+    .hx-k { font-size: .68rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+    .hx-titre { margin: 4px 0 0; font-weight: 800; font-size: 2.1rem; letter-spacing: -.045em; line-height: 1; }
+    .hx-geant { font-weight: 800; font-size: 5.4rem; letter-spacing: -.07em; line-height: .9; margin-top: 18px; font-variant-numeric: tabular-nums;
+      background: linear-gradient(180deg, var(--hx-t) 35%, color-mix(in srgb, var(--hx-t) 30%, transparent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hx-unite { font-size: .95rem; font-weight: 800; opacity: .75; margin-top: 4px; }
+    .hx-corps { position: absolute; right: -6px; top: 26px; width: 210px; height: 300px; z-index: -1; pointer-events: none; }
+    .hx-corps svg { width: 100%; height: 100%; filter: drop-shadow(0 0 18px rgba(34,211,238,.45)); }
+    .hx-puces { display: flex; gap: 8px; margin-top: 22px; flex-wrap: wrap; }
+    .hx-puce { display: flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: 14px; font-size: .78rem; font-weight: 700;
+      background: rgba(255,255,255,.08); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+    :root[data-theme="light"] .hx-puce { background: rgba(255,255,255,.6); box-shadow: inset 0 0 0 1px rgba(13,16,32,.08); }
+    .hx-puce b { font-weight: 800; font-size: .95rem; }
+    .hx-puce i { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 10px currentColor; flex: none; }
+    .hx-phrase { margin: 14px 0 0; font-size: .8rem; font-weight: 600; line-height: 1.45; opacity: .8; }
+    /* Le premier bloc de l'écran colle au segment Muscu | Cardio */
+    #seance-mode-muscu > .vitrine > .hx:first-child, #seance-cardio > .hx:first-child { margin-top: -4px; border-radius: 0 0 30px 30px; }
+
+    /* Mosaïque */
+    .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .bt { position: relative; overflow: hidden; border-radius: 24px; padding: 14px; min-height: 132px; isolation: isolate;
+      background: var(--verre); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8); box-shadow: var(--ombre-v), inset 0 0 0 1px var(--trait); }
+    .bt.large { grid-column: span 2; min-height: 0; }
+    .bt-k { display: block; font-size: .64rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--text-muted); }
+    .bt-n { font-weight: 800; font-size: 2rem; letter-spacing: -.05em; line-height: 1; margin-top: 8px; font-variant-numeric: tabular-nums; }
+    .bt-n small { font-size: .8rem; letter-spacing: 0; color: var(--text-muted); margin-left: 3px; }
+    .bt-s { position: relative; font-size: .72rem; font-weight: 700; color: var(--text-muted); margin-top: 4px; max-width: 78%; }
+    .bt-deco { position: absolute; right: -14px; bottom: -14px; width: 92px; height: 92px; z-index: -1; opacity: .22; }
+    .bt-deco .icone-ui { width: 92px; height: 92px; }
+    :is(.vitrine, .bento, .hx, .cardio-liste) .icone-ui { color: inherit; }
+    .bt-glow { position: absolute; right: -30%; bottom: -50%; width: 160px; height: 160px; border-radius: 50%; filter: blur(30px); z-index: -1; opacity: .55; }
+    .semaine-barres { display: flex; align-items: flex-end; gap: 6px; height: 72px; margin-top: 12px; }
+    .semaine-barres div { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; height: 100%; font-size: .6rem; font-weight: 800; color: var(--text-muted); }
+    .semaine-barres div.auj { color: var(--text); }
+    .semaine-barres i { width: 100%; border-radius: 8px 8px 4px 4px; background: linear-gradient(180deg, #34d399, #06b6d4); box-shadow: 0 6px 16px -6px rgba(6,182,212,.7); }
+    .semaine-barres--cardio i { background: linear-gradient(180deg, #a78bfa, #22d3ee); box-shadow: 0 6px 16px -6px rgba(167,139,250,.7); }
+    .semaine-barres i.vide { background: var(--piste); box-shadow: none; }
+
+    /* Séance du jour */
+    .sdj { position: relative; overflow: hidden; border-radius: 28px; padding: 18px; margin-bottom: 12px; color: #fff; min-height: 196px; isolation: isolate;
+      background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 45%, #be185d 100%); box-shadow: 0 24px 44px -20px rgba(190,24,93,.8); transition: transform .15s; }
+    .sdj:active { transform: scale(.985); }
+    .sdj::after { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(60% 80% at 85% 30%, rgba(244,114,182,.45), transparent 70%); }
+    .sdj-corps { position: absolute; right: -10px; top: -4px; width: 175px; height: 230px; z-index: -1; pointer-events: none; }
+    .sdj-corps svg { width: 100%; height: 100%; filter: drop-shadow(0 0 16px rgba(244,114,182,.75)); }
+    .sdj small { font-size: .66rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
+    .sdj h4 { margin: 6px 0 4px; font-weight: 800; font-size: 1.9rem; letter-spacing: -.045em; line-height: 1; max-width: 60%; overflow-wrap: anywhere; }
+    .sdj p { margin: 0; font-size: .78rem; opacity: .85; font-weight: 600; max-width: 58%; }
+    .sdj-bas { display: flex; align-items: center; gap: 8px; margin-top: 24px; }
+    .sdj-puce { padding: 5px 10px; border-radius: 99px; background: rgba(255,255,255,.2); font-size: .7rem; font-weight: 800; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); white-space: nowrap; }
+    .sdj-play { margin-left: auto; width: 52px; height: 52px; flex: none; border-radius: 50%; background: #fff; color: #be185d; display: grid; place-items: center; box-shadow: 0 10px 24px -8px rgba(0,0,0,.4); }
+    .sdj-play .icone-ui { width: 22px; height: 22px; margin-left: 3px; }
+
+    /* Programmes illustrés */
+    .carrousel { display: flex; gap: 10px; overflow-x: auto; margin: 0 -16px 8px; padding: 2px 16px 14px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+    .carrousel::-webkit-scrollbar { display: none; }
+    .pc { flex: none; width: 160px; height: 200px; position: relative; overflow: hidden; border: 0; border-radius: 26px; padding: 14px; color: #fff; text-align: left; isolation: isolate; cursor: pointer;
+      font: inherit; scroll-snap-align: start; box-shadow: 0 18px 34px -18px rgba(0,0,0,.6); transition: transform .15s; }
+    .pc:active { transform: scale(.96); }
+    .pc b { position: absolute; left: 14px; right: 14px; bottom: 36px; font-weight: 800; font-size: 1.4rem; letter-spacing: -.04em; line-height: 1.05; overflow-wrap: anywhere; }
+    .pc small { position: absolute; left: 14px; bottom: 16px; font-size: .7rem; font-weight: 700; opacity: .85; }
+    .pc .pc-corps { position: absolute; right: -24px; top: -6px; width: 130px; height: 175px; z-index: -1; opacity: .95; }
+    .pc .pc-corps svg { width: 100%; height: 100%; }
+    .pc .tag { position: relative; display: inline-block; font-size: .62rem; font-weight: 800; padding: 4px 8px; border-radius: 99px; background: rgba(255,255,255,.2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+    .titre-gestion { margin: 18px 4px 10px; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+
+    /* Cardio : arc et séances */
+    .hx--cardio { min-height: 0; }
+    .hx--cardio::before { background: radial-gradient(70% 60% at 50% 70%, rgba(34,211,238,.32), transparent 70%), radial-gradient(60% 50% at 10% 20%, rgba(167,139,250,.30), transparent 70%), linear-gradient(180deg, #0b1020, #070a14); }
+    :root[data-theme="light"] .hx--cardio::before { background: radial-gradient(70% 60% at 50% 70%, rgba(34,211,238,.28), transparent 70%), radial-gradient(60% 50% at 10% 20%, rgba(167,139,250,.26), transparent 70%), linear-gradient(180deg, #e9f6ff, #f4f1ff); }
+    .arc { position: relative; width: 100%; max-width: 360px; margin: 10px auto 0; aspect-ratio: 320 / 175; }
+    .arc svg { width: 100%; height: 100%; overflow: visible; }
+    .arc-val { transition: stroke-dashoffset 1.2s cubic-bezier(.3,.9,.2,1); filter: drop-shadow(0 0 10px rgba(34,211,238,.5)); }
+    .arc-c { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; }
+    .hx .arc-c .cardio-gros { display: block; font-weight: 800; font-size: 4.2rem; letter-spacing: -.07em; line-height: .9; color: inherit; font-variant-numeric: tabular-nums; }
+    .hx .arc-c .cardio-gros small { font-size: 1rem; letter-spacing: 0; margin-left: 4px; opacity: .7; }
+    .arc-c > small { display: block; margin-top: 4px; font-size: .74rem; font-weight: 700; opacity: .75; }
+    .hx--cardio .hx-puces { justify-content: center; }
+    .cardio-liste { display: grid; gap: 10px; }
+    .cardio-liste .cardio-seance { position: relative; overflow: hidden; padding: 14px 92px 14px 14px; border: 0; border-radius: 22px; isolation: isolate;
+      background: var(--verre); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8); box-shadow: var(--ombre-v), inset 0 0 0 1px var(--trait); }
+    .cardio-liste .cardio-seance-ico { width: 44px; height: 44px; border-radius: 15px; color: #fff; background: var(--c); box-shadow: 0 10px 20px -10px var(--c); }
+    .cardio-liste .cardio-seance-ico svg { stroke: currentColor; }
+    .cardio-liste .cardio-pastille { position: absolute; right: 12px; bottom: 10px; font-size: .62rem; }
+    .trace { position: absolute; right: 10px; top: 8px; width: 70px; height: 46px; opacity: .9; }
+    .cardio-ajouter { margin: 2px 0 12px; }
+
+    /* Profil */
+    .couv { position: relative; margin: 0 -16px; height: 178px; overflow: hidden; isolation: isolate; border-radius: 0 0 30px 30px;
+      background: radial-gradient(60% 90% at 15% 20%, #34d399, transparent 60%), radial-gradient(60% 90% at 85% 10%, #22d3ee, transparent 60%), radial-gradient(70% 100% at 60% 100%, #a78bfa, transparent 60%), #0b1020; }
+    :root[data-theme="light"] .couv { background: radial-gradient(60% 90% at 15% 20%, #6ee7b7, transparent 60%), radial-gradient(60% 90% at 85% 10%, #67e8f9, transparent 60%), radial-gradient(70% 100% at 60% 100%, #c4b5fd, transparent 60%), #eef2ff; }
+    .couv::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, var(--bg)); }
+    .couv svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .35; mix-blend-mode: overlay; }
+    .pf { position: relative; margin-top: -74px; text-align: center; }
+    .pf-av { width: 116px; height: 116px; margin: 0 auto; border-radius: 50%; padding: 3px; background: conic-gradient(from 210deg, #34d399, #22d3ee, #a78bfa, #f472b6, #34d399); box-shadow: 0 16px 36px -14px rgba(34,211,238,.7); }
+    .pf-av .avatar { width: 100%; height: 100%; border-radius: 50%; border: 3px solid var(--carte-plein); object-fit: cover; font-size: 2.6rem; font-weight: 800;
+      background: linear-gradient(135deg, #0f766e, #1d4ed8); color: #fff; }
+    .pf h3 { margin: 10px 0 0; font-weight: 800; font-size: 1.8rem; letter-spacing: -.045em; overflow-wrap: anywhere; }
+    .pf p { margin: 4px auto 0; max-width: 290px; color: var(--text-muted); font-size: .86rem; font-weight: 500; overflow-wrap: anywhere; }
+    .pf-modif { margin-top: 12px; border: 0; border-radius: 99px; padding: 9px 18px; background: var(--piste); color: var(--text); font: inherit; font-size: .8rem; font-weight: 800; cursor: pointer; }
+    .niveau, .cg, .carte-badges, .carte-corps, .carte-objectifs { background: var(--verre); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8); box-shadow: var(--ombre-v), inset 0 0 0 1px var(--trait); }
+    .niveau { margin: 16px 0 4px; padding: 14px 16px; border-radius: 22px; text-align: left; }
+    .niveau-t { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-weight: 800; }
+    .niveau-t b { font-size: 1.05rem; letter-spacing: -.02em; }
+    .niveau-t span { font-size: .72rem; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .xp { height: 10px; border-radius: 99px; background: var(--piste); margin-top: 10px; overflow: hidden; }
+    .xp i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #34d399, #22d3ee, #a78bfa); box-shadow: 0 0 14px rgba(34,211,238,.6); transition: width 1s cubic-bezier(.3,.9,.2,1); }
+    .niveau-s { margin-top: 8px; font-size: .66rem; font-weight: 600; color: var(--text-muted); }
+    .chiffres-geants { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+    .cg { padding: 14px 10px; border-radius: 22px; text-align: center; }
+    .cg b { display: block; font-weight: 800; font-size: 1.7rem; letter-spacing: -.05em; line-height: 1; font-variant-numeric: tabular-nums;
+      background: linear-gradient(180deg, var(--text), color-mix(in srgb, var(--text) 55%, transparent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .cg small { font-size: .62rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--text-muted); }
+    .carte-badges, .carte-corps, .carte-objectifs { padding: 16px; border-radius: 26px; margin-bottom: 12px; }
+    .badges { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 8px; }
+    .badge { display: grid; justify-items: center; align-content: start; gap: 6px; text-align: center; font-size: .6rem; font-weight: 700; line-height: 1.25; color: var(--text-muted); }
+    .badge .med { position: relative; width: 58px; height: 58px; border-radius: 20px; display: grid; place-items: center; color: #fff; transform: rotate(-8deg);
+      box-shadow: 0 14px 26px -12px var(--l, rgba(0,0,0,.5)), inset 0 2px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.18); }
+    .badge .med .icone-ui { width: 26px; height: 26px; transform: rotate(8deg); filter: drop-shadow(0 2px 2px rgba(0,0,0,.25)); }
+    .badge .med em { position: absolute; right: -6px; bottom: -6px; transform: rotate(8deg); font-style: normal; font-size: .62rem; font-weight: 800; padding: 2px 6px; border-radius: 99px; background: var(--carte-plein); color: var(--text); box-shadow: 0 4px 10px -4px rgba(0,0,0,.4); }
+    .badge.verrou .med { background: var(--piste); color: var(--text-muted); box-shadow: inset 0 0 0 1.5px var(--trait); }
+    .badge.verrou .med .icone-ui { opacity: .55; filter: none; }
+    .badge b { color: var(--text); font-size: .7rem; font-weight: 800; }
+    .badge.verrou b { color: var(--text-muted); }
+    .corps-duo { display: grid; grid-template-columns: 1fr 1fr; align-items: end; gap: 6px; }
+    .corps-duo svg { width: 100%; height: 230px; filter: drop-shadow(0 0 14px rgba(52,211,153,.35)); }
+    .legende-zones { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 12px; margin-top: 8px; font-size: .68rem; font-weight: 700; color: var(--text-muted); }
+    .legende-zones i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; box-shadow: 0 0 8px currentColor; }
+    .obj-tuiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .obj-tuile { padding: 12px 2px 10px; border: 0; border-radius: 18px; text-align: center; background: var(--piste); font: inherit; font-size: .7rem; font-weight: 800; color: var(--text-muted); cursor: pointer; transition: transform .15s; }
+    .obj-tuile:active { transform: scale(.94); }
+    .obj-tuile.on { background: var(--carte-plein); color: var(--text); box-shadow: 0 0 0 2px #10b981, 0 12px 24px -12px rgba(16,185,129,.7); }
+    .obj-ic { width: 36px; height: 36px; margin: 0 auto 7px; border-radius: 12px; display: grid; place-items: center; color: #fff; box-shadow: 0 8px 16px -8px rgba(0,0,0,.5); }
+    .obj-ic .icone-ui { width: 18px; height: 18px; }
+    .obj-cibles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--trait); text-align: center; font-size: .64rem; font-weight: 700; color: var(--text-muted); }
+    .obj-cibles b { display: block; font-size: 1rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+    .obj-note { margin: 10px 0 0; font-size: .74rem; color: var(--text-muted); }
+    /* Les tuiles remplacent la carte « Objectif » (son sélecteur reste la source) */
+    #vitrine-profil:not(:empty) ~ #carte-objectif { display: none; }
+    .profil-entete { position: relative; z-index: 2; }
+    #vitrine-profil:not(:empty) { margin-top: -58px; }
+
+    /* Apparition */
+    .vitrine > *, #seance-cardio > * { animation: monte .55s cubic-bezier(.2,.8,.2,1) both; }
+    .vitrine > :nth-child(2), #seance-cardio > :nth-child(2) { animation-delay: .05s; }
+    .vitrine > :nth-child(3), #seance-cardio > :nth-child(3) { animation-delay: .1s; }
+    .vitrine > :nth-child(n+4), #seance-cardio > :nth-child(n+4) { animation-delay: .15s; }
+    @media (prefers-reduced-motion: reduce) { .vitrine > *, #seance-cardio > * { animation: none !important; } .arc-val, .xp i { transition: none; } }
+
     /* =====================================================================
        HABILLAGE ANQĀ (style par défaut) : polices, fond « aurore », cartes
        en verre dépoli, boutons et champs modernes. Les styles au choix
@@ -2877,6 +3050,47 @@
     html:root:not([data-style]) :is(.input-group input, .input-group select, .input-group textarea):focus { border-color: var(--primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent); }
     html:root:not([data-style]) .feuille-action { border-radius: 18px; }
     html:root:not([data-style]) .cle-val { font-family: 'Manrope', sans-serif; letter-spacing: -0.03em; }
+    /* Repas du jour : le résumé devient un héros immersif bord à bord,
+       comme les vitrines d'Activité et de Profil. */
+    html:root:not([data-style]) #ecran-repas .summary-card { margin: 0 -16px 14px !important; padding: 22px 16px 18px !important; border-radius: 0 0 32px 32px !important;
+      -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: 0 30px 50px -34px rgba(34,211,238,.55) !important;
+      background: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px) 0 0/100% 28px, linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px) 0 0/28px 100%,
+        radial-gradient(60% 70% at 18% 40%, rgba(34,211,238,.30), transparent 70%), radial-gradient(60% 60% at 95% 100%, rgba(167,139,250,.30), transparent 70%), linear-gradient(180deg, #0b1020, #070a14) !important; }
+    html:root:not([data-style])[data-theme="light"] #ecran-repas .summary-card { box-shadow: 0 30px 50px -34px rgba(34,211,238,.6) !important;
+      background: linear-gradient(rgba(13,16,32,.04) 1px, transparent 1px) 0 0/100% 28px, linear-gradient(90deg, rgba(13,16,32,.04) 1px, transparent 1px) 0 0/28px 100%,
+        radial-gradient(60% 70% at 18% 40%, rgba(34,211,238,.26), transparent 70%), radial-gradient(60% 60% at 95% 100%, rgba(167,139,250,.26), transparent 70%), linear-gradient(180deg, #e9f6ff, #f4f1ff) !important; }
+    html:root:not([data-style]) #ecran-repas .heros { grid-template-columns: 164px 1fr; }
+    html:root:not([data-style]) #ecran-repas .anneaux { width: 164px; height: 164px; }
+    html:root:not([data-style]) #ecran-repas .anneaux-centre h1 { font-size: 1.6rem; }
+    html:root:not([data-style]) #ecran-repas .reste-kcal { font-size: 2.3rem !important; letter-spacing: -.06em;
+      background: linear-gradient(180deg, var(--text) 40%, color-mix(in srgb, var(--text) 45%, transparent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    html:root:not([data-style]) #ecran-repas .reste-kcal em { -webkit-text-fill-color: var(--text-muted); }
+    html:root:not([data-style]) #ecran-repas .reste-kcal.depasse { -webkit-text-fill-color: var(--danger); }
+    html:root:not([data-style]) #ecran-repas .heros-puces div { padding: 8px 10px; border-radius: 14px; background: color-mix(in srgb, var(--carte-plein) 45%, transparent); box-shadow: inset 0 0 0 1px var(--trait); }
+    html:root:not([data-style]) #ecran-repas .heros-puces { border-top: 0; padding-top: 4px; }
+
+    /* Progrès : chiffres clés façon mosaïque, avec une lueur colorée */
+    html:root:not([data-style]) .cle { position: relative; overflow: hidden; isolation: isolate; }
+    html:root:not([data-style]) .cle::after { content: ''; position: absolute; right: -40px; bottom: -60px; width: 130px; height: 130px; border-radius: 50%; z-index: -1; filter: blur(28px); opacity: .35; background: #22d3ee; }
+    html:root:not([data-style]) .cle:nth-child(4n+2)::after { background: #a78bfa; }
+    html:root:not([data-style]) .cle:nth-child(4n+3)::after { background: #34d399; }
+    html:root:not([data-style]) .cle:nth-child(4n)::after { background: #f59e0b; }
+    html:root:not([data-style]) .cle-val { font-size: 1.55rem; letter-spacing: -.05em; }
+
+    /* Fenêtres et feuilles : un liseré d'aurore en tête */
+    html:root:not([data-style]) :is(.modal-content, .feuille-contenu) { background-image: radial-gradient(80% 120px at 50% 0, color-mix(in srgb, #22d3ee 16%, transparent), transparent); }
+    html:root:not([data-style]) .modal-entete h3 { font-weight: 800; letter-spacing: -.035em; }
+
+    /* Séance en cours : en-tête et silhouette sur un même héros sombre */
+    html:root:not([data-style]) #session-entete { margin: -4px -16px 0; padding: 18px 16px 4px;
+      background: radial-gradient(70% 120% at 90% 0, rgba(244,114,182,.30), transparent 70%), linear-gradient(180deg, #0b1020, #0b1020); }
+    html:root:not([data-style]) #session-entete + .session-haut { margin: 0 -16px 14px; padding: 4px 16px 18px; border-radius: 0 0 30px 30px; box-shadow: 0 30px 50px -36px rgba(167,139,250,.7);
+      background: radial-gradient(60% 80% at 10% 100%, rgba(167,139,250,.28), transparent 70%), linear-gradient(180deg, #0b1020, #070a14); }
+    html:root:not([data-style])[data-theme="light"] #session-entete { background: radial-gradient(70% 120% at 90% 0, rgba(244,114,182,.22), transparent 70%), linear-gradient(180deg, #f1f0ff, #f1f0ff); }
+    html:root:not([data-style])[data-theme="light"] #session-entete + .session-haut { background: radial-gradient(60% 80% at 10% 100%, rgba(167,139,250,.24), transparent 70%), linear-gradient(180deg, #f1f0ff, #eef6ff); }
+    html:root:not([data-style]) #titre-session-modal { font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.7rem !important; letter-spacing: -.045em; }
+    html:root:not([data-style]) #session-chrono { font-size: .86rem; font-variant-numeric: tabular-nums; }
+
     /* Apparition douce des blocs de Repas du jour */
     html:root:not([data-style]) body.sur-repas #ecran-repas > :is(.summary-card, .coach-carte, #cartes-stats-repas, #bloc-eau, #meals-container) { animation: monte .6s cubic-bezier(.2,.8,.2,1) both; }
     html:root:not([data-style]) #ecran-repas > .coach-carte { animation-delay: .06s !important; }
@@ -3736,22 +3950,14 @@
     <h2 class="titre-ecran"><span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg></span> Activité</h2>
 
     <div id="seance-vue-accueil">
-      <!-- Pas du jour (déplacés de Repas du jour) : comptent dans la dépense du jour affiché. -->
-        <div class="fitness-card" id="carte-pas-seances">
-        <h3 class="titre-depliant" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-poids')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-poids')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" /></svg> Pas du jour</h3>
-        <div class="input-group" style="margin-bottom:0;">
-          <label for="daily-steps">Nombre de pas</label>
-          <input type="number" id="daily-steps" placeholder="ex : 8500" step="100" inputmode="numeric" oninput="renderJaugePas(this.value)" onchange="sauvegarderParametresJour()">
-          <div id="jauge-pas" class="jauge-pas"></div>
-        </div>
-      </div>
-      <p class="note note-repliee" id="note-poids" style="margin: -4px 2px 14px;"></p>
       <div class="segment seance-mode-nav" id="seance-mode-nav" role="group" aria-label="Type de séance">
         <button type="button" onclick="choisirModeSeance('muscu')" aria-pressed="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Musculation</button>
         <button type="button" onclick="choisirModeSeance('cardio')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.2 12h3.3l1.5-3 3 6 1.5-3h8.3" /></svg> Cardio</button>
       </div>
       <div id="seance-mode-muscu">
+      <div id="vitrine-muscu" class="vitrine"></div>
       <div id="seance-lancer">
+      <div class="titre-gestion">Gérer mes programmes</div>
       <div id="carte-stats-muscu"></div>
       <div id="programmes-liste-container"></div>
       <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-top:12px; margin-bottom:6px;" onclick="ouvrirBibliotheque()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></svg> Parcourir les exercices</button>
@@ -3765,6 +3971,16 @@
       <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-bottom:6px; background:transparent;" onclick="ouvrirGymbro()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> Gymbro : comparer mes séances</button>
       </div>
       <div id="seance-mode-cardio" class="hidden"><div id="seance-cardio"></div></div>
+      <!-- Pas du jour (déplacés de Repas du jour) : comptent dans la dépense du jour affiché. -->
+        <div class="fitness-card" id="carte-pas-seances">
+        <h3 class="titre-depliant" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-poids')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-poids')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" /></svg> Pas du jour</h3>
+        <div class="input-group" style="margin-bottom:0;">
+          <label for="daily-steps">Nombre de pas</label>
+          <input type="number" id="daily-steps" placeholder="ex : 8500" step="100" inputmode="numeric" oninput="renderJaugePas(this.value)" onchange="sauvegarderParametresJour()">
+          <div id="jauge-pas" class="jauge-pas"></div>
+        </div>
+      </div>
+      <p class="note note-repliee" id="note-poids" style="margin: -4px 2px 14px;"></p>
       <div id="fil-gymbros"></div>
     </div>
 
@@ -4175,6 +4391,8 @@
       <span class="profil-entete-boutons"><button type="button" class="btn-icone hidden" id="nav-admin" onclick="allerA('admin')" aria-label="Administration" title="Administration"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" /><path d="M5 21h14" /></svg> Admin</button>
       <button type="button" class="btn-icone btn-engrenage" onclick="ouvrirModal('reglages-modal')" aria-label="Réglages" title="Réglages"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></svg></button></span>
     </div>
+
+    <div id="vitrine-profil" class="vitrine"></div>
 
     <div class="bloc-verre" style="padding:15px; margin-bottom:16px;">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
@@ -6625,6 +6843,7 @@ function renderApp() {
   renderCartesStatsRepas();
   renderSemaine();
   majSalut();
+  renderVitrineProfil();
 }
 
 /* ---------- En-tête : « Bonjour … », date et série de jours ---------- */
@@ -6898,47 +7117,35 @@ function renderCardio() {
   const zone = document.getElementById('seance-cardio');
   if (!zone) return;
   const b = bilanSemaineCardio(lundiDe(todayStr()));
-  const cle = cleZoneCardio(b.equiv);
   let phrase;
   if (b.equiv < OBJECTIF_CARDIO.cible) phrase = `Encore ${Math.ceil(OBJECTIF_CARDIO.cible - b.equiv)} min pour atteindre l'objectif de la semaine.`;
   else if (b.equiv < OBJECTIF_CARDIO.haut) phrase = `Objectif atteint. Jusqu'à ${OBJECTIF_CARDIO.haut} min, c'est encore mieux pour la santé et l'endurance.`;
   else phrase = `Plus de ${OBJECTIF_CARDIO.haut} min : excellent pour la santé et l'endurance.`;
-  let equilibre = '';
   if (b.total >= 120) {
     const pf = Math.round(b.parInt[1] / b.total * 100);
-    equilibre = pf >= 65
+    phrase += pf >= 65
       ? ` ${pf} % en facile : bon équilibre pour progresser.`
       : ` ${pf} % en facile : pour progresser en endurance, vise environ 80 % de séances faciles.`;
   }
-  const repart = b.total > 0
-    ? `<div class="cardio-repart" aria-hidden="true">${[1, 2, 3].filter(n => b.parInt[n] > 0).map(n => `<i style="flex:${b.parInt[n]};background:${couleurIntensite(n)}"></i>`).join('')}</div>
-       <div class="cardio-legende">${[1, 2, 3].map(n => `<span><i style="background:${couleurIntensite(n)}"></i>${NOMS_INTENSITE[n]} ${b.parInt[n]}</span>`).join('')}</div>`
-    : '';
   const seances = seancesCardio();
   const liste = seances.length
     ? seances.slice(0, 12).map(({ date, index, w }) => {
-        const n = intensiteCardio(w);
-        return `<button type="button" class="cardio-seance" onclick="ouvrirCardio(${argJs(date)}, ${index})">
+        const n = intensiteCardio(w), c = COULEURS_SPORT[w.type] || '#6366f1';
+        return `<button type="button" class="cardio-seance" style="--c:${c}" onclick="ouvrirCardio(${argJs(date)}, ${index})">
           <span class="cardio-seance-ico">${ICONES_CARDIO[w.type] || ICONE_CARDIO}</span>
           <span class="cardio-seance-txt"><b>${escapeHtml(SPORT_LABELS[w.type] || w.type)}${w.note ? ' — ' + escapeHtml(w.note) : ''}</b><small>${escapeHtml(resumeSeanceCardio(w))}</small><small>${escapeHtml(formatDateDisplay(date))}</small></span>
+          ${traceSeanceSVG(c, date.split('-').reduce((s, x) => s + Number(x), 0) + index * 3)}
           <span class="cardio-pastille" style="background:${couleurIntensite(n)};color:${couleurTexteIntensite(n)}">${NOMS_INTENSITE[n]}</span>
         </button>`;
       }).join('')
     : `<p class="note" style="margin:0;">Aucune séance cardio pour l'instant. Ajoute ta première course, sortie vélo ou séance de natation.</p>`;
   zone.innerHTML = `
-    <div class="bloc-verre cardio-carte">
-      <div class="cardio-titre">Cette semaine</div>
-      <div class="cardio-tete"><div class="cardio-gros">${Math.round(b.equiv)}<small>min</small></div><div class="cardio-statut" style="color:${couleurTexteZone(cle)}">${NOMS_ZONE_CARDIO[cle]}</div></div>
-      ${barreCardioHTML(b.equiv)}
-      ${repart}
-      <p class="note" style="margin:8px 0 0;">${phrase}${equilibre} Recommandé : ${OBJECTIF_CARDIO.cible} à ${OBJECTIF_CARDIO.haut} min par semaine, 1 min intense compte double.</p>
-    </div>
-    ${seancesCardio().length ? carteStatsCardioHTML() : ''}
+    ${heroCardioHTML(b, phrase + ` Recommandé : ${OBJECTIF_CARDIO.cible} à ${OBJECTIF_CARDIO.haut} min par semaine, 1 min intense compte double.`)}
     <button type="button" class="btn btn-primary cardio-ajouter" onclick="ouvrirCardio()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Ajouter une séance cardio</button>
-    <div class="bloc-verre cardio-carte">
-      <div class="cardio-titre">Dernières séances</div>
-      ${liste}
-    </div>`;
+    ${seances.length ? bentoCardioHTML() : ''}
+    ${seances.length ? carteStatsCardioHTML() : ''}
+    <div class="vitrine-sec"><h3>Dernières séances</h3></div>
+    <div class="cardio-liste">${liste}</div>`;
 }
 
 /* --- Fenêtre d'ajout / modification --- */
@@ -10992,6 +11199,7 @@ function allerA(nom) {
   if (nom === 'stats') { prepareStats(); }
   if (nom === 'seance') { renderSeance(); choisirModeSeance(modeSeance, true); chargerFilGymbros(); }
   if (nom === 'repas') { majNoteCleIA(); renderPremiersPas(); }
+  if (nom === 'reglages') renderVitrineProfil();
   // Les aliments ne sont chargés qu'à l'ouverture de leur feuille :
   // inutile d'interroger Supabase tant que personne ne les regarde.
   if (nom === 'admin') chargerAdmin();
@@ -11501,14 +11709,16 @@ const TOUR_ETAPES = [
   { ecran: 'repas', cible: '#bloc-eau', titre: "L'eau", texte: 'Un toucher sur +250 ml, +500 ml ou +1 L à chaque fois que tu bois.' },
   { ecran: 'repas', cible: '#onglets', titre: 'La barre d’onglets', texte: "Repas, Activité, Progrès (tes statistiques détaillées) et Profil, toujours en bas de l'écran." },
   { ecran: 'repas', cible: '#onglet-seance', titre: 'Activité', texte: 'Ta musculation (programmes, séances, bibliothèque d’exercices) et ton cardio. La visite « Musculation » détaille la partie muscu.' },
-  { ecran: 'seance', cible: '#carte-pas-seances', titre: 'Tes pas', texte: "En haut de l'écran Activité : note tes pas du jour. La jauge montre où tu en es (7 500 pas, c'est le repère santé), et le surplus compte dans ta dépense." },
+  { ecran: 'seance', cible: '#vitrine-muscu .hx', titre: 'Ta semaine de muscu', texte: "Le corps se colore selon le volume de la semaine : vert en zone idéale, gris à travailler. Touche-le pour le détail. Juste dessous, la séance du jour : le programme que tu n'as pas fait depuis le plus longtemps." },
+  { ecran: 'seance', cible: '#carte-pas-seances', titre: 'Tes pas', texte: "En bas de l'écran Activité : note tes pas du jour. La jauge montre où tu en es (7 500 pas, c'est le repère santé), et le surplus compte dans ta dépense." },
   { ecran: 'seance', cible: '#seance-mode-nav', titre: 'Musculation ou cardio', texte: "Bascule entre tes séances de musculation et ton cardio : course, vélo, natation, marche, rameur, HIIT, sport co." },
-  { ecran: 'seance', modeCardio: true, cible: '#seance-cardio .cardio-carte', titre: 'Ta semaine de cardio', texte: "L'objectif conseillé : 150 à 300 min par semaine, une minute intense comptant double. La jauge montre où tu en es, la barre en dessous ta répartition facile / modérée / intense. Ajoute une séance avec le bouton juste en dessous : durée, distance, intensité." },
+  { ecran: 'seance', modeCardio: true, cible: '#seance-cardio .hx--cardio', titre: 'Ta semaine de cardio', texte: "L'objectif conseillé : 150 à 300 min par semaine, une minute intense comptant double. La jauge montre où tu en es, la barre en dessous ta répartition facile / modérée / intense. Ajoute une séance avec le bouton juste en dessous : durée, distance, intensité." },
   { ecran: 'seance', modeCardio: true, cible: '#carte-stats-cardio', titre: 'Tes stats cardio', texte: "Tes minutes des 8 dernières semaines, tes séances, ta distance et tes pas. Touche la carte pour le détail : allure, records et pas jour par jour." },
   { ecran: 'stats', avant: () => { ouvrirStats('nutrition'); }, cible: '#stats-periode', titre: 'Le détail d’une carte', texte: "Chaque carte de stats ouvre son détail. Choisis la période : 7 jours, 30 jours, 3 mois… ou « Perso » pour la régler aux curseurs. En Nutrition, le bilan IA l'analyse en entier. « ‹ Retour » te ramène où tu étais." },
   { ecran: 'stats', avant: () => { ouvrirStats('nutrition'); }, cible: '#carte-bilan-jour', titre: 'Bilan de la journée', texte: "Dans Ma nutrition, sous ta dépense du jour : une analyse de ta journée par l'IA (nutrition, activité et séance du jour)." },
   { cible: '#moi-entete', titre: 'Ton profil', texte: 'Touche ta photo ou ton nom d’utilisateur, en haut : ton compte, ton objectif, tes informations et tes mesures corporelles.' },
-  { ecran: 'reglages', cible: '#carte-objectif', titre: 'Ton objectif', texte: "Maintien, sèche, prise de masse ou recomposition : il règle tes calories et tes macros. En changer ne réécrit jamais ton historique." },
+  { ecran: 'reglages', cible: '#vitrine-profil .niveau', titre: 'Ton niveau', texte: "Chaque séance de muscu (+40 XP), de cardio (+25) et chaque journée notée (+10) te fait monter de niveau. Les badges se débloquent avec ta régularité." },
+  { ecran: 'reglages', cible: '#vitrine-profil .carte-objectifs', titre: 'Ton objectif', texte: "Maintien, sèche, prise de masse ou recomposition : il règle tes calories et tes macros. En changer ne réécrit jamais ton historique." },
   { ecran: 'reglages', cible: '.btn-engrenage', titre: 'Réglages', texte: "Thème clair ou sombre, palette de couleurs, densité d'affichage, installation sur l'écran d'accueil, et les deux visites guidées." },
   { titre: "C'est parti !", texte: "Tu connais l'essentiel. Pour tout savoir sur les programmes, les séances et les jauges de volume, lance la visite « Musculation » depuis les Réglages." }
 ];
@@ -18009,6 +18219,7 @@ function renderSeance() {
   renderListeProgrammes();
   majBandeauSeanceFlottant();
   renderCarteStatsMuscu();
+  renderVitrineMuscu();
 }
 
 function afficherVueSeance() {
@@ -21174,6 +21385,257 @@ function couleursZones(seriesParGroupe) {
   });
   return out;
 }
+/* =====================================================================
+   VITRINES — Activité (Musculation, Cardio) et Profil, version 2026.
+   Le haut de chaque écran devient une vitrine visuelle calculée sur les
+   vraies données : le corps coloré selon le volume de la semaine, la
+   séance du jour, une mosaïque de chiffres, les programmes avec les
+   muscles qu'ils travaillent, l'arc des minutes de cardio, le niveau, les
+   badges. Les blocs de gestion (liste des programmes, formulaires du
+   profil…) restent en dessous, inchangés.
+   ===================================================================== */
+const ICO_V = {
+  play: '<path d="M6 3l14 9-14 9V3z" fill="currentColor" stroke="none" />',
+  plus: '<path d="M5 12h14" /><path d="M12 5v14" />',
+  trophee: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />',
+  chrono: '<circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2" /><path d="M10 2h4" />',
+  poids: '<path d="M14.4 14.4 9.6 9.6" /><path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z" /><path d="m21.5 21.5-1.4-1.4" /><path d="M3.9 3.9 2.5 2.5" /><path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z" />',
+  flamme: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />',
+  cible: '<circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />',
+  goutte: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />',
+  route: '<circle cx="6" cy="19" r="3" /><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" /><circle cx="18" cy="5" r="3" />',
+  amis: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />',
+  eclair: '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />',
+  bas: '<path d="m19 12-7 7-7-7" /><path d="M12 5v14" />', haut: '<path d="m5 12 7-7 7 7" /><path d="M12 19V5" />',
+  recomp: '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" />'
+};
+const svgV = (k, w, taille) => `<svg class="icone-ui" ${taille ? `width="${taille}" height="${taille}"` : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w || 2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO_V[k]}</svg>`;
+
+/* Silhouette (face ou dos), muscles colorés par groupe ; viewBox pour
+   cadrer (torse, jambes…). Couleurs neutres selon le thème ou imposées. */
+function silhouetteSVG(vue, couleurs, opts) {
+  opts = opts || {};
+  const planche = MANNEQUIN[femmeProfil() ? 'femme' : 'homme'];
+  const sombre = !themeClairActif();
+  const neutre = opts.neutre || (sombre ? '#252c3d' : '#cdd5e3');
+  const contour = opts.contour || (sombre ? '#121827' : '#e3e8f1');
+  const muscles = planche[vue].map(([slug, traces]) => {
+    const g = GROUPE_PAR_SLUG[slug];
+    const f = (g && couleurs[g]) || neutre;
+    return traces.map(d => `<path d="${d}" fill="${f}"/>`).join('');
+  }).join('');
+  return `<svg viewBox="${opts.vb || planche.vb[vue]}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${planche.contour[vue]}" fill="${contour}"/>${muscles}</svg>`;
+}
+// Cadrages (homme et femme partagent la même planche de coordonnées)
+const CADRES_SILHOUETTE = { torse: '120 150 520 760', dos: '840 150 520 760', jambes: '120 650 520 760', buste: '100 160 560 720' };
+
+// Couleurs « zone » de la semaine pour la silhouette.
+function couleursSemaine() {
+  const series = seriesSemaine(lundiDeLaSemaine(todayStr()), true);
+  return { series, couleurs: couleursZones(series) };
+}
+
+/* ---------- Musculation ---------- */
+function groupesProgramme(p) {
+  const g = {};
+  (p.exercices || []).forEach(pe => { const exo = trouverExercice(pe.exerciceId); if (exo && exo.groupe) g[exo.groupe] = (g[exo.groupe] || 0) + 1; });
+  return g;
+}
+// Le programme à faire : celui fait il y a le plus longtemps (ou jamais).
+function programmeSuggere() {
+  if (!musculationProgrammes.length) return null;
+  return musculationProgrammes.map(p => ({ p, d: (dernierePerfProgramme(p.id) || {}).date || '' }))
+    .sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0))[0];
+}
+const TEINTES_PROGRAMMES = ['linear-gradient(160deg,#be185d,#7c3aed)', 'linear-gradient(160deg,#1d4ed8,#0891b2)', 'linear-gradient(160deg,#ea580c,#ca8a04)', 'linear-gradient(160deg,#047857,#0e7490)', 'linear-gradient(160deg,#6d28d9,#db2777)', 'linear-gradient(160deg,#334155,#0f766e)'];
+const GROUPES_BAS = ['quadriceps', 'ischios', 'fessiers', 'mollets', 'adducteurs'];
+const GROUPES_DOS = ['dos', 'trapezes', 'lombaires'];
+function vignetteProgramme(p, i) {
+  const g = groupesProgramme(p), cles = Object.keys(g);
+  const blanc = {}; cles.forEach(k => { blanc[k] = 'rgba(255,255,255,.95)'; });
+  const bas = cles.filter(k => GROUPES_BAS.includes(k)).length, dos = cles.filter(k => GROUPES_DOS.includes(k)).length;
+  const vue = dos > bas && dos >= cles.length / 3 ? 'dos' : 'face';
+  const vb = bas > cles.length / 2 ? CADRES_SILHOUETTE.jambes : vue === 'dos' ? CADRES_SILHOUETTE.dos : CADRES_SILHOUETTE.torse;
+  const der = dernierePerfProgramme(p.id);
+  return `<button type="button" class="pc" style="background:${TEINTES_PROGRAMMES[i % TEINTES_PROGRAMMES.length]}" onclick="apercuProgramme(${argJs(p.id)})" aria-label="${escapeHtml(p.nom)} : voir et démarrer">
+    <span class="tag">${p.exercices.length} exercice${p.exercices.length > 1 ? 's' : ''}</span>
+    <span class="pc-corps${vb === CADRES_SILHOUETTE.jambes ? ' pc-corps--jambes' : ''}">${silhouetteSVG(vue, blanc, { vb, neutre: 'rgba(255,255,255,.14)', contour: 'rgba(255,255,255,.08)' })}</span>
+    <b>${escapeHtml(p.nom)}</b><small>${der ? 'Dernière : ' + escapeHtml(formatDateDisplay(der.date).toLowerCase()) : 'Jamais faite'}</small></button>`;
+}
+function renderVitrineMuscu() {
+  const c = document.getElementById('vitrine-muscu');
+  if (!c) return;
+  const auj = todayStr(), lundi = lundiDeLaSemaine(auj);
+  const { series, couleurs } = couleursSemaine();
+  const seancesSem = musculationHistorique.filter(h => h.date >= lundi && h.date <= auj);
+  // Séries réellement faites (les muscles secondaires, comptés en fraction pour les zones, ne s'ajoutent pas ici).
+  const total = seancesSem.reduce((n, h) => n + (h.exercices || []).reduce((m, e) => m + (e.series || []).filter(s => s.fait).length, 0), 0);
+  const zones = Object.keys(ZONES_VOLUME).map(g => cleZoneVolume(g, series[g] || 0));
+  const ideal = zones.filter(z => z === 'mav').length, aTravailler = zones.filter(z => z === 'sous' || z === 'mv').length;
+  // Séance du jour
+  const sug = programmeSuggere();
+  let sdj;
+  if (sug) {
+    const g = groupesProgramme(sug.p), noms = Object.keys(g).sort((a, b) => g[b] - g[a]).slice(0, 3).map(k => GROUPES_MUSCULAIRES[k] || k);
+    const rose = {}; Object.keys(g).forEach(k => { rose[k] = '#f9a8d4'; });
+    const nbSeries = sug.p.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
+    sdj = `<div class="sdj" role="button" tabindex="0" onclick="apercuProgramme(${argJs(sug.p.id)})" onkeydown="if(event.key==='Enter')this.click()">
+      <div class="sdj-corps">${silhouetteSVG('face', rose, { vb: CADRES_SILHOUETTE.buste, neutre: 'rgba(255,255,255,.12)', contour: 'rgba(255,255,255,.06)' })}</div>
+      <small>Séance du jour</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(noms.join(', '))} · ${sug.p.exercices.length} exercice${sug.p.exercices.length > 1 ? 's' : ''}</p>
+      <div class="sdj-bas"><span class="sdj-puce">${nbSeries} séries</span><span class="sdj-puce">${sug.d ? escapeHtml(formatDateDisplay(sug.d)) : 'Jamais faite'}</span><span class="sdj-play">${svgV('play')}</span></div></div>`;
+  } else {
+    sdj = `<div class="sdj" role="button" tabindex="0" onclick="demarrerSeanceLibre()" onkeydown="if(event.key==='Enter')this.click()">
+      <small>Première séance</small><h4>C'est parti</h4><p>Lance une séance vide, ou crée ton premier programme plus bas.</p>
+      <div class="sdj-bas"><span class="sdj-puce">Séance vide</span><span class="sdj-play">${svgV('play')}</span></div></div>`;
+  }
+  // Mosaïque : tonnage de la semaine, records du mois, séances par jour
+  const tonnage = seancesSem.reduce((v, h) => v + volumeSeance(h), 0);
+  const debutMois = auj.slice(0, 8) + '01';
+  const duMois = musculationHistorique.filter(h => h.date >= debutMois), avant = musculationHistorique.filter(h => h.date < debutMois);
+  let records = 0, meilleurRec = null;
+  [...new Set(duMois.flatMap(h => h.exercices.map(e => e.exerciceId)))].forEach(id => {
+    const b = meilleur1RM(id, duMois), a = meilleur1RM(id, avant);
+    if (b && (!a || b.valeur > a.valeur)) { records++; if (!meilleurRec || b.valeur > meilleurRec.b.valeur) meilleurRec = { b, id }; }
+  });
+  const lettres = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+  const parJour = lettres.map((l, i) => { const d = decalerJours(lundi, i); return [l, musculationHistorique.filter(h => h.date === d).length, d === auj]; });
+  const recTexte = meilleurRec ? escapeHtml(libelleExercice(trouverExercice(meilleurRec.id)) || '') + ' · ' + nombreFr(meilleurRec.b.poids) + ' kg × ' + meilleurRec.b.reps : 'Bats une charge pour en voir un ici';
+  c.innerHTML = `
+    <div class="hx" role="button" tabindex="0" onclick="ouvrirStats('muscu')" onkeydown="if(event.key==='Enter')this.click()" aria-label="Ta semaine de musculation : voir le détail">
+      <div class="hx-corps">${silhouetteSVG('face', couleurs)}</div>
+      <div class="hx-k">Semaine ${numeroSemaine(auj)} · Musculation</div><div class="hx-titre">Ta semaine</div>
+      <div class="hx-geant">${total}</div><div class="hx-unite">série${total > 1 ? 's' : ''} · ${seancesSem.length} séance${seancesSem.length > 1 ? 's' : ''}</div>
+      <div class="hx-puces"><span class="hx-puce"><i style="background:${ZONES_INFO.mav.couleur};color:${ZONES_INFO.mav.couleur}"></i><b>${ideal}</b> en zone idéale</span><span class="hx-puce"><i style="background:${ZONES_INFO.sous.couleur};color:${ZONES_INFO.sous.couleur}"></i><b>${aTravailler}</b> à travailler</span></div>
+    </div>
+    ${sdj}
+    <div class="bento">
+      <div class="bt"><span class="bt-glow" style="background:#6366f1"></span><span class="bt-k">Tonnage semaine</span><div class="bt-n">${tonnage >= 10000 ? nombreFr(tonnage / 1000, 1) + '<small>t</small>' : nombreFr(Math.round(tonnage)) + '<small>kg</small>'}</div><div class="bt-s">charge × répétitions</div><span class="bt-deco" style="color:#6366f1">${svgV('poids', 1.6, 86)}</span></div>
+      <div class="bt"><span class="bt-glow" style="background:#f59e0b"></span><span class="bt-k">Records ce mois</span><div class="bt-n">${records}</div><div class="bt-s">${recTexte}</div><span class="bt-deco" style="color:#f59e0b">${svgV('trophee', 1.6, 86)}</span></div>
+      <div class="bt large"><span class="bt-k">Séances par jour</span><div class="semaine-barres">${parJour.map(([l, n, a]) => `<div class="${a ? 'auj' : ''}"><i class="${n ? '' : 'vide'}" style="height:${n ? 18 + 24 * Math.min(2, n) : 8}px"></i>${l}</div>`).join('')}</div></div>
+    </div>
+    ${musculationProgrammes.length ? `<div class="vitrine-sec"><h3>Mes programmes</h3><button type="button" onclick="document.getElementById('programmes-liste-container').scrollIntoView({behavior:'smooth',block:'start'})">Gérer</button></div>
+    <div class="carrousel">${musculationProgrammes.map(vignetteProgramme).join('')}</div>` : ''}`;
+}
+function numeroSemaine(iso) {
+  const d = dateLocale(iso); d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+  const j1 = new Date(d.getFullYear(), 0, 4);
+  return 1 + Math.round(((d - j1) / 864e5 - 3 + ((j1.getDay() + 6) % 7)) / 7);
+}
+
+/* ---------- Cardio ---------- */
+function heroCardioHTML(b, phrase) {
+  const r = 140, demi = Math.PI * r, part = Math.min(1, b.equiv / OBJECTIF_CARDIO.haut);
+  const repere = Math.PI * (1 - OBJECTIF_CARDIO.cible / OBJECTIF_CARDIO.haut);
+  const rx = 160 + r * Math.cos(repere), ry = 160 - r * Math.sin(repere);
+  return `<div class="hx hx--cardio" role="button" tabindex="0" onclick="ouvrirStats('activite')" onkeydown="if(event.key==='Enter')this.click()" aria-label="Tes minutes de cardio : voir le détail">
+    <div class="hx-k">Semaine ${numeroSemaine(todayStr())} · Cardio</div><div class="hx-titre">Minutes actives</div>
+    <div class="arc"><svg viewBox="0 0 320 170" aria-hidden="true"><defs><linearGradient id="grad-arc" x1="0" x2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset=".5" stop-color="#22d3ee"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs>
+      <path d="M20,160 A${r},${r} 0 0 1 300,160" fill="none" stroke="rgba(127,127,127,.18)" stroke-width="22" stroke-linecap="round"/>
+      <path class="arc-val" d="M20,160 A${r},${r} 0 0 1 300,160" fill="none" stroke="url(#grad-arc)" stroke-width="22" stroke-linecap="round" style="stroke-dasharray:${demi};stroke-dashoffset:${demi * (1 - part)}"/>
+      <circle cx="${rx.toFixed(1)}" cy="${ry.toFixed(1)}" r="5" fill="#34d399" stroke="#fff" stroke-width="2"/></svg>
+      <div class="arc-c"><b class="cardio-gros">${Math.round(b.equiv)}<small>min</small></b><small>sur ${OBJECTIF_CARDIO.cible} à ${OBJECTIF_CARDIO.haut} min conseillées</small></div></div>
+    <div class="hx-puces">${[1, 2, 3].map(n => `<span class="hx-puce"><i style="background:${['', '#a78bfa', '#22d3ee', '#34d399'][n]};color:${['', '#a78bfa', '#22d3ee', '#34d399'][n]}"></i>${NOMS_INTENSITE[n]} <b>${b.parInt[n]}</b></span>`).join('')}</div>
+    ${phrase ? `<p class="hx-phrase">${escapeHtml(phrase)}</p>` : ''}
+  </div>`;
+}
+function bentoCardioHTML() {
+  const seances = seancesCardio();
+  let longue = null, allure = null;
+  seances.forEach(({ date, w }) => {
+    const km = Number(w.distance) || 0;
+    if (km > 0 && (!longue || km > longue.km)) longue = { km, date, w };
+    const a = (w.type === 'course') && allureCardio(w.type, w.time, w.distance);
+    if (a && km >= 1 && (!allure || a.valeur < allure.a.valeur)) allure = { a, date, w };
+  });
+  const lundi = lundiDeLaSemaine(todayStr());
+  const parJour = ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((l, i) => { const d = decalerJours(lundi, i); return [l, seances.filter(s => s.date === d).reduce((m, s) => m + (Number(s.w.time) || 0), 0)]; });
+  const max = Math.max(30, ...parJour.map(x => x[1]));
+  return `<div class="bento">
+    <div class="bt"><span class="bt-glow" style="background:#f97316"></span><span class="bt-k">Plus longue sortie</span><div class="bt-n">${longue ? nombreFr(longue.km, 1) + '<small>km</small>' : '—'}</div><div class="bt-s">${longue ? escapeHtml((SPORT_LABELS[longue.w.type] || '') + ' · ' + formatDateDisplay(longue.date)) : 'Note une distance pour la voir ici'}</div><span class="bt-deco" style="color:#f97316">${svgV('trophee', 1.6, 86)}</span></div>
+    <div class="bt"><span class="bt-glow" style="background:#22d3ee"></span><span class="bt-k">Meilleure allure</span><div class="bt-n">${allure ? texteMinSec(allure.a.valeur) + '<small>/km</small>' : '—'}</div><div class="bt-s">${allure ? 'Course · ' + escapeHtml(nombreFr(Number(allure.w.distance), 1)) + ' km' : 'En course, avec la distance'}</div><span class="bt-deco" style="color:#22d3ee">${svgV('chrono', 1.6, 86)}</span></div>
+    <div class="bt large"><span class="bt-k">Minutes par jour</span><div class="semaine-barres semaine-barres--cardio">${parJour.map(([l, m]) => `<div><i class="${m ? '' : 'vide'}" style="height:${m ? Math.max(10, m / max * 56) : 8}px"></i>${l}</div>`).join('')}</div></div>
+  </div>`;
+}
+// Petit tracé décoratif façon parcours, propre à chaque séance (stable).
+function traceSeanceSVG(couleur, graine) {
+  let x = 4, y = 38, d = `M${x},${y}`;
+  for (let k = 0; k < 9; k++) { x += 7; y = 8 + (Math.sin(graine + k * 1.7) + 1) * 14; d += ` Q${x - 3},${(y + 8).toFixed(1)} ${x},${y.toFixed(1)}`; }
+  return `<svg class="trace" viewBox="0 0 70 46" aria-hidden="true"><path d="${d}" fill="none" stroke="${couleur}" stroke-width="3" stroke-linecap="round"/><circle cx="4" cy="38" r="3.5" fill="${couleur}"/><circle cx="${x}" cy="${y.toFixed(1)}" r="3.5" fill="#fff" stroke="${couleur}" stroke-width="2"/></svg>`;
+}
+const COULEURS_SPORT = { course: '#f97316', cyclisme: '#3b82f6', natation: '#06b6d4', marche_rapide: '#10b981', rameur: '#8b5cf6', hiit: '#e11d48', foot: '#eab308' };
+
+/* ---------- Profil : niveau, badges ---------- */
+const TITRES_NIVEAU = [[1, 'Débutant'], [2, 'Motivé'], [4, 'Régulier'], [6, 'Assidu'], [9, 'Athlète'], [12, 'Machine'], [16, 'Légende']];
+function seuilNiveau(n) { return 50 * n * (n - 1); }
+function niveauUtilisateur() {
+  const joursNotes = Object.keys(appData).filter(d => { const j = appData[d]; return j && j.meals && Object.values(j.meals).some(l => Array.isArray(l) && l.length); }).length;
+  const cardio = seancesCardio().length;
+  const xp = musculationHistorique.length * 40 + cardio * 25 + joursNotes * 10;
+  let n = 1; while (seuilNiveau(n + 1) <= xp) n++;
+  const titre = TITRES_NIVEAU.filter(([m]) => n >= m).pop()[1];
+  return { n, titre, xp, bas: seuilNiveau(n), haut: seuilNiveau(n + 1), joursNotes, cardio };
+}
+function badgesUtilisateur() {
+  const auj = todayStr(), serie = joursDAffilee(), seances = musculationHistorique.length;
+  const sept = Array.from({ length: 7 }, (_, i) => shiftDate(auj, -i - 1));
+  const dansCible = sept.filter(d => { const j = appData[d]; if (!j || !j.meals) return false; const k = sumMeals(j).kcal, t = computeTargets(j, d).target; return k > 0 && Math.abs(k - t) <= t * 0.1; }).length;
+  const hydrate = sept.filter(d => { const j = appData[d]; return j && Number(j.eauMl) >= quotaEauSuggere(d); }).length;
+  const km = seancesCardio().reduce((s, x) => s + (Number(x.w.distance) || 0), 0);
+  const depuis30 = shiftDate(auj, -30);
+  const recents = musculationHistorique.filter(h => h.date >= depuis30), anciens = musculationHistorique.filter(h => h.date < depuis30);
+  const record = [...new Set(recents.flatMap(h => h.exercices.map(e => e.exerciceId)))].some(id => { const b = meilleur1RM(id, recents), a = meilleur1RM(id, anciens); return b && a && b.valeur > a.valeur; });
+  const gymbros = (typeof gymbroLiens !== 'undefined' ? gymbroLiens : []).filter(l => l.statut === 'acceptee').length;
+  const palier = (v, p) => p.find(x => v < x) || p[p.length - 1];
+  return [
+    { cle: 'serie', nom: 'Série', detail: serie >= 3 ? serie + ' jours' : 'Note 3 jours d’affilée', ok: serie >= 3, valeur: serie >= 3 ? serie : '', ic: 'flamme', g: 'linear-gradient(135deg,#fbbf24,#f97316)', l: 'rgba(249,115,22,.7)' },
+    { cle: 'seances', nom: seances >= 100 ? 'Centurion' : 'Séances', detail: seances >= 10 ? seances + ' au total' : 'Objectif : 10 séances', ok: seances >= 10, valeur: seances >= 10 ? seances : '', ic: 'poids', g: 'linear-gradient(135deg,#a78bfa,#6366f1)', l: 'rgba(99,102,241,.7)', prochain: seances >= 10 ? palier(seances, [50, 100, 250, 500]) : 10 },
+    { cle: 'cible', nom: 'Pile poil', detail: dansCible >= 5 ? dansCible + ' j sur 7 dans la cible' : '5 jours sur 7 dans la cible', ok: dansCible >= 5, ic: 'cible', g: 'linear-gradient(135deg,#34d399,#10b981)', l: 'rgba(16,185,129,.7)' },
+    { cle: 'record', nom: 'Record', detail: record ? 'Battu ce mois-ci' : 'Bats une charge', ok: record, ic: 'trophee', g: 'linear-gradient(135deg,#fde68a,#f59e0b)', l: 'rgba(245,158,11,.7)' },
+    { cle: 'eau', nom: 'Hydraté', detail: hydrate >= 5 ? hydrate + ' j sur 7' : '5 jours sur 7 d’eau', ok: hydrate >= 5, ic: 'goutte', g: 'linear-gradient(135deg,#7dd3fc,#0284c7)', l: 'rgba(2,132,199,.7)' },
+    { cle: 'marathon', nom: 'Marathon', detail: km >= 42 ? nombreFr(km, 0) + ' km cumulés' : nombreFr(km, 0) + ' / 42 km', ok: km >= 42, ic: 'route', g: 'linear-gradient(135deg,#fb7185,#e11d48)', l: 'rgba(225,29,72,.7)' },
+    { cle: 'gymbro', nom: 'En équipe', detail: gymbros ? gymbros + ' gymbro' + (gymbros > 1 ? 's' : '') : 'Ajoute un gymbro', ok: gymbros > 0, ic: 'amis', g: 'linear-gradient(135deg,#22d3ee,#6366f1)', l: 'rgba(99,102,241,.7)' },
+    { cle: 'eclair', nom: 'Explosif', detail: 'Niveau 10 atteint', ok: niveauUtilisateur().n >= 10, ic: 'eclair', g: 'linear-gradient(135deg,#f472b6,#a855f7)', l: 'rgba(168,85,247,.7)' }
+  ];
+}
+function renderVitrineProfil() {
+  const c = document.getElementById('vitrine-profil');
+  if (!c) return;
+  const pseudo = monPseudo ? monPseudo.pseudo : '';
+  const nom = pseudo ? '@' + pseudo : (sessionUtilisateur ? (sessionUtilisateur.email || '').split('@')[0] : 'Mon profil');
+  const bio = (typeof monProfil !== 'undefined' && monProfil && monProfil.bio) || '';
+  const av = avatarHTML(pseudo || nom, sessionUtilisateur && typeof monProfil !== 'undefined' && monProfil ? monProfil.avatar : null);
+  const niv = niveauUtilisateur();
+  const pct = Math.max(2, Math.min(100, (niv.xp - niv.bas) / (niv.haut - niv.bas) * 100));
+  const { couleurs } = couleursSemaine();
+  const obj = dernierObjectifConnu(todayStr());
+  const t = computeTargets(getDay(todayStr()), todayStr());
+  const tuile = (cle, nomO, ic, g) => `<button type="button" class="obj-tuile${obj === cle ? ' on' : ''}" onclick="choisirObjectifVitrine('${cle}')" aria-pressed="${obj === cle}"><span class="obj-ic" style="background:${g}">${svgV(ic)}</span>${nomO}</button>`;
+  const badges = badgesUtilisateur();
+  c.innerHTML = `
+    <div class="couv" aria-hidden="true"><svg viewBox="0 0 400 180" preserveAspectRatio="none"><path d="M0,120 C80,60 160,170 240,100 S360,40 400,80" fill="none" stroke="#fff" stroke-width="40" opacity=".5"/><path d="M0,60 C100,10 200,120 300,50 S380,10 400,20" fill="none" stroke="#fff" stroke-width="18" opacity=".4"/></svg></div>
+    <div class="pf"><div class="pf-av">${av}</div><h3>${escapeHtml(nom)}</h3>${bio ? `<p>${escapeHtml(bio)}</p>` : ''}
+      <button type="button" class="pf-modif" onclick="document.getElementById('profil-perso').closest('.bloc-verre').scrollIntoView({behavior:'smooth',block:'center'})">Modifier le profil</button>
+      <div class="niveau"><div class="niveau-t"><b>Niveau ${niv.n} · ${niv.titre}</b><span>${nombreFr(niv.xp)} / ${nombreFr(niv.haut)} XP</span></div><div class="xp"><i style="width:${pct}%"></i></div>
+        <div class="niveau-s">+40 XP par séance de muscu · +25 par séance cardio · +10 par journée notée</div></div></div>
+    <div class="chiffres-geants"><div class="cg"><b>${musculationHistorique.length}</b><small>séances</small></div><div class="cg"><b>${niv.joursNotes}</b><small>jours suivis</small></div><div class="cg"><b>${joursDAffilee()}</b><small>d'affilée</small></div></div>
+    <div class="vitrine-sec"><h3>Badges</h3><span>${badges.filter(b => b.ok).length} / ${badges.length}</span></div>
+    <div class="carte-badges"><div class="badges">${badges.map(b => `<div class="badge${b.ok ? '' : ' verrou'}" title="${escapeHtml(b.detail)}"><span class="med" style="${b.ok ? `background:${b.g};--l:${b.l}` : ''}">${svgV(b.ic)}${b.ok && b.valeur ? `<em>${b.valeur}</em>` : ''}</span><b>${escapeHtml(b.nom)}</b>${escapeHtml(b.detail)}</div>`).join('')}</div></div>
+    <div class="vitrine-sec"><h3>Ton corps cette semaine</h3><button type="button" onclick="ouvrirStats('muscu')">Détail</button></div>
+    <div class="carte-corps" role="button" tabindex="0" onclick="ouvrirStats('muscu')"><div class="corps-duo">${silhouetteSVG('face', couleurs)}${silhouetteSVG('dos', couleurs)}</div>
+      <div class="legende-zones">${['mav', 'mev', 'mv', 'mrv'].map(z => `<span><i style="background:${ZONES_INFO[z].couleur};color:${ZONES_INFO[z].couleur}"></i>${ZONES_INFO[z].court}</span>`).join('')}</div></div>
+    <div class="vitrine-sec"><h3>Mon objectif</h3></div>
+    <div class="carte-objectifs"><div class="obj-tuiles">${tuile('seche', 'Sèche', 'bas', 'linear-gradient(135deg,#22d3ee,#0ea5e9)')}${tuile('maintien', 'Maintien', 'cible', 'linear-gradient(135deg,#34d399,#10b981)')}${tuile('masse', 'Masse', 'haut', 'linear-gradient(135deg,#fbbf24,#f97316)')}${tuile('recomposition', 'Recompo', 'recomp', 'linear-gradient(135deg,#a78bfa,#6366f1)')}</div>
+      <div class="obj-cibles"><span><b>${nombreFr(t.target)}</b> kcal</span><span><b>${t.protein}</b> g prot.</span><span><b>${t.carbs}</b> g gluc.</span><span><b>${t.fat}</b> g lip.</span></div></div>`;
+}
+// Les tuiles d'objectif passent par le sélecteur existant (même règles : pas de réécriture du passé).
+function choisirObjectifVitrine(cle) {
+  const sel = document.getElementById('objectif-select');
+  if (!sel || sel.value === cle) return;
+  sel.value = cle;
+  sel.dispatchEvent(new Event('change', { bubbles: true }));
+  renderVitrineProfil();
+}
+
 /* Couleurs "séance" : intensité de la couleur principale selon le nombre
    de séries faites pendant la séance en cours. */
 function couleursSeance(seriesParGroupe) {
