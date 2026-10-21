@@ -1804,10 +1804,8 @@
     @keyframes pulseBandeauFlottant { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
     .bandeau-seance-flottant-texte { font-weight: 700; font-size: 0.8rem; flex: 1; }
 
-    /* Programmes en tuiles (2 par ligne) plutôt qu'en liste empilée : plus
-       compact, plus rapide à parcourir quand il y en a beaucoup. */
-    #programmes-liste-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    #programmes-liste-container .vide { grid-column: 1 / -1; }
+    /* Programmes : un carrousel de cartes illustrées (voir vignetteProgramme). */
+    #programmes-liste-container { display: block; }
     .programme-carte {
       background: var(--verre);
       -webkit-backdrop-filter: blur(var(--verre-flou)) saturate(var(--verre-sat));
@@ -2926,6 +2924,8 @@
     .pc .pc-corps { position: absolute; right: -24px; top: -6px; width: 130px; height: 175px; z-index: -1; opacity: .95; }
     .pc .pc-corps svg { width: 100%; height: 100%; }
     .pc .tag { position: relative; display: inline-block; font-size: .62rem; font-weight: 800; padding: 4px 8px; border-radius: 99px; background: rgba(255,255,255,.2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+    .pc-options { position: absolute; top: 10px; right: 10px; z-index: 1; width: 32px; height: 32px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+      background: rgba(255,255,255,.22); color: #fff; font: 800 1.1rem/1 inherit; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
     .titre-gestion { margin: 18px 4px 10px; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
 
     /* Cardio : arc et séances */
@@ -3957,9 +3957,9 @@
       <div id="seance-mode-muscu">
       <div id="vitrine-muscu" class="vitrine"></div>
       <div id="seance-lancer">
-      <div class="titre-gestion">Gérer mes programmes</div>
-      <div id="carte-stats-muscu"></div>
+      <div class="vitrine-sec"><h3>Mes programmes</h3></div>
       <div id="programmes-liste-container"></div>
+      <div id="carte-stats-muscu"></div>
       <button class="btn btn-secondaire" style="width:100%; min-height:auto; padding:10px 8px; font-size:0.78rem; margin-top:12px; margin-bottom:6px;" onclick="ouvrirBibliotheque()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></svg> Parcourir les exercices</button>
       <div style="display:flex; gap:8px; margin-bottom:6px;">
         <button class="btn btn-primary" style="flex:1; min-height:auto; padding:10px 8px; font-size:0.78rem;" onclick="ouvrirCreationProgramme()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Créer un programme</button>
@@ -4500,6 +4500,7 @@
   <button type="button" role="menuitem" onclick="choisirTechniqueMenu('echec')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4" /></svg> Échec</button>
 </div>
 <div class="menu-technique-popup hidden" id="menu-programme-popup" role="menu">
+  <button type="button" role="menuitem" onclick="choisirOptionProgramme('modifier')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></svg> Modifier</button>
   <button type="button" role="menuitem" onclick="choisirOptionProgramme('dupliquer')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg> Dupliquer</button>
   <button type="button" role="menuitem" onclick="choisirOptionProgramme('supprimer')" style="color:var(--danger);"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg> Supprimer</button>
 </div>
@@ -18298,20 +18299,7 @@ function renderListeProgrammes() {
     c.innerHTML = '<div class="vide">Aucun programme pour l’instant. Crée ton premier programme, ou lance une séance vide.</div>';
     return;
   }
-  c.innerHTML = musculationProgrammes.map(p => {
-    const derniere = dernierePerfProgramme(p.id);
-    const meta = p.exercices.length + ' exercice(s)' + (derniere ? ' · dernière fois ' + formatDateDisplay(derniere.date) : '');
-    return `<div class="programme-carte">
-      <button type="button" class="programme-entete" style="display:block;width:100%;background:none;border:none;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer;" onclick="ouvrirEditionProgramme(${argJs(p.id)})" aria-label="Modifier ${escapeHtml(p.nom)}">
-        <div class="programme-nom">${escapeHtml(p.nom)}</div>
-        <div class="programme-meta">${meta}</div>
-      </button>
-      <div class="programme-actions">
-        <button class="btn btn-primary" style="width:auto; flex:1;" onclick="apercuProgramme(${argJs(p.id)})"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z" /></svg> Démarrer</button>
-        <button class="btn-icone btn-options-programme" onclick="ouvrirMenuProgramme(this,${argJs(p.id)})" title="Plus d'options" aria-label="Plus d'options pour ${escapeHtml(p.nom)}">⋯</button>
-      </div>
-    </div>`;
-  }).join('');
+  c.innerHTML = `<div class="carrousel">${musculationProgrammes.map(vignetteProgramme).join('')}</div>`;
 }
 
 /* =====================================================================
@@ -21457,10 +21445,11 @@ function vignetteProgramme(p, i) {
   const vue = dos > bas && dos >= cles.length / 3 ? 'dos' : 'face';
   const vb = bas > cles.length / 2 ? CADRES_SILHOUETTE.jambes : vue === 'dos' ? CADRES_SILHOUETTE.dos : CADRES_SILHOUETTE.torse;
   const der = dernierePerfProgramme(p.id);
-  return `<button type="button" class="pc" style="background:${TEINTES_PROGRAMMES[i % TEINTES_PROGRAMMES.length]}" onclick="apercuProgramme(${argJs(p.id)})" aria-label="${escapeHtml(p.nom)} : voir et démarrer">
+  return `<div class="pc" role="button" tabindex="0" style="background:${TEINTES_PROGRAMMES[i % TEINTES_PROGRAMMES.length]}" onclick="apercuProgramme(${argJs(p.id)})" onkeydown="if(event.key==='Enter')this.click()" aria-label="${escapeHtml(p.nom)} : voir et démarrer">
+    <button type="button" class="pc-options btn-options-programme" onclick="event.stopPropagation(); ouvrirMenuProgramme(this, ${argJs(p.id)})" title="Modifier, dupliquer, supprimer" aria-label="Options de ${escapeHtml(p.nom)}">⋯</button>
     <span class="tag">${p.exercices.length} exercice${p.exercices.length > 1 ? 's' : ''}</span>
     <span class="pc-corps${vb === CADRES_SILHOUETTE.jambes ? ' pc-corps--jambes' : ''}">${silhouetteSVG(vue, blanc, { vb, neutre: 'rgba(255,255,255,.14)', contour: 'rgba(255,255,255,.08)' })}</span>
-    <b>${escapeHtml(p.nom)}</b><small>${der ? 'Dernière : ' + escapeHtml(formatDateDisplay(der.date).toLowerCase()) : 'Jamais faite'}</small></button>`;
+    <b>${escapeHtml(p.nom)}</b><small>${der ? 'Dernière : ' + escapeHtml(formatDateDisplay(der.date).toLowerCase()) : 'Jamais faite'}</small></div>`;
 }
 function renderVitrineMuscu() {
   const c = document.getElementById('vitrine-muscu');
@@ -21512,9 +21501,7 @@ function renderVitrineMuscu() {
       <div class="bt"><span class="bt-glow" style="background:#6366f1"></span><span class="bt-k">Tonnage semaine</span><div class="bt-n">${tonnage >= 10000 ? nombreFr(tonnage / 1000, 1) + '<small>t</small>' : nombreFr(Math.round(tonnage)) + '<small>kg</small>'}</div><div class="bt-s">charge × répétitions</div><span class="bt-deco" style="color:#6366f1">${svgV('poids', 1.6, 86)}</span></div>
       <div class="bt"><span class="bt-glow" style="background:#f59e0b"></span><span class="bt-k">Records ce mois</span><div class="bt-n">${records}</div><div class="bt-s">${recTexte}</div><span class="bt-deco" style="color:#f59e0b">${svgV('trophee', 1.6, 86)}</span></div>
       <div class="bt large"><span class="bt-k">Séances par jour</span><div class="semaine-barres">${parJour.map(([l, n, a]) => `<div class="${a ? 'auj' : ''}"><i class="${n ? '' : 'vide'}" style="height:${n ? 18 + 24 * Math.min(2, n) : 8}px"></i>${l}</div>`).join('')}</div></div>
-    </div>
-    ${musculationProgrammes.length ? `<div class="vitrine-sec"><h3>Mes programmes</h3><button type="button" onclick="document.getElementById('programmes-liste-container').scrollIntoView({behavior:'smooth',block:'start'})">Gérer</button></div>
-    <div class="carrousel">${musculationProgrammes.map(vignetteProgramme).join('')}</div>` : ''}`;
+    </div>`;
 }
 function numeroSemaine(iso) {
   const d = dateLocale(iso); d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
@@ -22289,7 +22276,8 @@ function choisirOptionProgramme(action) {
   const id = menuProgrammeSur;
   fermerMenuProgramme();
   if (!id) return;
-  if (action === 'dupliquer') dupliquerProgramme(id);
+  if (action === 'modifier') ouvrirEditionProgramme(id);
+  else if (action === 'dupliquer') dupliquerProgramme(id);
   else if (action === 'supprimer') supprimerProgramme(id);
 }
 // Tap en dehors du menu (ou de la pastille/bouton qui vient de l'ouvrir) =

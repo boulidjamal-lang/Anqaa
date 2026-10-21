@@ -1228,10 +1228,20 @@ test('vitrines : Activité (corps, séance du jour, programmes), Cardio (arc, tr
     geant: document.querySelector('#vitrine-muscu .hx-geant').textContent,
     corps: !!document.querySelector('#vitrine-muscu .hx-corps svg path'),
     sdj: document.querySelector('#vitrine-muscu .sdj h4').textContent,
-    programmes: [...document.querySelectorAll('#vitrine-muscu .pc b')].map(b => b.textContent),
+    programmes: [...document.querySelectorAll('#programmes-liste-container .pc b')].map(b => b.textContent),
+    // Un seul affichage des programmes (le carrousel), pas de doublon.
+    pcAilleurs: document.querySelectorAll('.pc').length - document.querySelectorAll('#programmes-liste-container .pc').length,
+    ancienneListe: document.querySelectorAll('.programme-carte').length,
     pasEnBas: !!document.querySelector('#seance-mode-cardio ~ #carte-pas-seances')
   }));
-  assert.deepEqual(m, { geant: '4', corps: true, sdj: 'Bas', programmes: ['Haut', 'Bas'], pasEnBas: true });
+  assert.deepEqual(m, { geant: '4', corps: true, sdj: 'Bas', programmes: ['Haut', 'Bas'], pcAilleurs: 0, ancienneListe: 0, pasEnBas: true });
+  // Le ⋯ d'une carte : modifier, dupliquer, supprimer — sans ouvrir l'aperçu.
+  await page.click('#programmes-liste-container .pc:nth-child(1) .pc-options');
+  assert.ok(await page.isVisible('#menu-programme-popup'));
+  assert.equal(await page.evaluate(() => !!document.querySelector('#apercu-programme-modal.show')), false);
+  await page.click('#menu-programme-popup [onclick*="modifier"]');
+  assert.equal(await page.evaluate(() => programmeEnEdition && programmeEnEdition.nom), 'Haut');
+  await page.evaluate(() => { programmeEnEdition = null; renderSeance(); });
   await page.click('#vitrine-muscu .sdj');
   await page.waitForSelector('#apercu-programme-modal.show');
   assert.match(await page.textContent('#titre-apercu-programme'), /Bas/);
