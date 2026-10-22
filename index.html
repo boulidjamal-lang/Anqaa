@@ -20231,7 +20231,7 @@ function afficherFicheExerciceBiblio(id, options) {
     // fixe distante pendant tout le téléchargement.
     const brutFiche = !e.perso && typeof e.video !== 'string' && VIDEOS_SMARTWORKOUT[e.id];
     const miniFiche = brutFiche ? 'assets/miniatures/' + brutFiche[0] : null;
-    html += `<div class="fiche-exo-video${miniFiche ? ' fiche-exo-video--mini' : ''}">${miniFiche ? `<video class="mini" src="${miniFiche}.mp4" poster="${miniFiche}.jpg" autoplay muted loop playsinline disablepictureinpicture aria-hidden="true"></video>` : ''}<video class="hd" src="${escapeHtml(video.video)}"${video.poster && !miniFiche ? ` poster="${escapeHtml(video.poster)}"` : ''} autoplay muted loop playsinline preload="auto" onplaying="this.classList.add('prete')" oncanplay="this.classList.add('prete')" aria-label="Démonstration : ${escapeHtml(libelleExercice(e))}"></video></div>
+    html += `<div class="fiche-exo-video${miniFiche ? ' fiche-exo-video--mini' : ''}">${miniFiche ? `<video class="mini" src="${miniFiche}.mp4" poster="${miniFiche}.jpg" autoplay muted loop playsinline disablepictureinpicture aria-hidden="true"></video>` : ''}<span class="hd-place" data-url="${escapeHtml(video.video)}"${video.poster && !miniFiche ? ` data-poster="${escapeHtml(video.poster)}"` : ''} data-label="Démonstration : ${escapeHtml(libelleExercice(e))}"></span></div>
     <p class="note fiche-exo-note-source">Vidéo : <a href="${escapeHtml(video.page)}" target="_blank" rel="noopener" style="color:var(--accent);">SmartWorkout</a></p>`;
   } else if (media && media.img && media.img.length) {
     // Deux photos (départ/arrivée) qui alternent, comme Strong et la
@@ -20274,6 +20274,7 @@ function afficherFicheExerciceBiblio(id, options) {
 
   html += `</div>`;
   document.getElementById('fiche-exercice-container').innerHTML = html;
+  brancherVideosHD(document.getElementById('fiche-exercice-container'));
   rendreHistoriqueFiche();
   ouvrirModal('fiche-exercice-modal');
   if (!video && media && media.img && media.img.length > 1) demarrerAnimationFiche();
@@ -20452,6 +20453,90 @@ function basculerMetriqueFiche(m) {
   rendreHistoriqueFiche();
   rendreCourbePleinEcran();
 }
+/* Vidéos HD (SmartWorkout) gardées prêtes. Leur serveur met ~0,8 s à
+   répondre et n'envoie aucun en-tête de cache : chaque nouvelle balise
+   <video> retéléchargeait tout (~1 Mo), d'où ~1 s de mini-vidéo floue avant
+   la HD. On garde donc les balises déjà chargées, et on précharge celles de
+   la séance en cours et du programme ouvert : la fiche et l'agrandissement
+   reprennent la balise, déjà prête, au lieu d'en créer une nouvelle. */
+const videosHD = new Map();          // lien -> <video> (la plus récente en dernier)
+const VIDEOS_HD_MAX = 16;
+let videosHDAttente = [], videosHDEnCours = 0;
+let videoHDEmpruntee = null;         // { video, parent, suivant } : prise à la fiche par l'agrandissement
+function economieDonnees() {
+  const c = navigator.connection;
+  return !!(c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')));
+}
+function videoHD(url) {
+  let v = videosHD.get(url);
+  if (v) { videosHD.delete(url); videosHD.set(url, v); return v; }
+  v = document.createElement('video');
+  v.className = 'hd';
+  v.muted = true; v.defaultMuted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';
+  ['muted', 'playsinline', 'disablepictureinpicture', 'disableremoteplayback'].forEach(a => v.setAttribute(a, ''));
+  const prete = () => v.classList.add('prete');
+  v.addEventListener('canplay', prete);
+  v.addEventListener('playing', prete);
+  v.src = url;
+  videosHD.set(url, v);
+  // Au-delà de la limite, les plus anciennes qui ne sont pas affichées sont oubliées.
+  for (const [u, x] of videosHD) {
+    if (videosHD.size <= VIDEOS_HD_MAX) break;
+    if (!x.isConnected) { x.removeAttribute('src'); x.load(); videosHD.delete(u); }
+  }
+  return v;
+}
+/* Remplace les emplacements .hd-place par les balises gardées (ou neuves). */
+function brancherVideosHD(racine, emprunt) {
+  return [...racine.querySelectorAll('.hd-place')].map(p => {
+    const v = videoHD(p.dataset.url);
+    if (emprunt && v.isConnected) videoHDEmpruntee = { video: v, parent: v.parentNode, suivant: v.nextSibling };
+    if (p.dataset.poster) v.poster = p.dataset.poster; else v.removeAttribute('poster');
+    if (p.dataset.label) v.setAttribute('aria-label', p.dataset.label);
+    p.replaceWith(v);
+    const lecture = v.play();
+    if (lecture && lecture.catch) lecture.catch(() => {});
+    return v;
+  });
+}
+/* L'agrandissement refermé : la vidéo retourne dans la fiche d'où elle venait. */
+function rendreVideosHD() {
+  const e = videoHDEmpruntee;
+  videoHDEmpruntee = null;
+  if (!e || !e.parent || !e.parent.isConnected || e.video.isConnected) return;
+  e.parent.insertBefore(e.video, e.suivant && e.suivant.parentNode === e.parent ? e.suivant : null);
+  const lecture = e.video.play();
+  if (lecture && lecture.catch) lecture.catch(() => {});
+}
+function prechargerVideosExercices(ids) {
+  if (economieDonnees()) return;
+  ids.forEach(id => {
+    const exo = trouverExercice(id);
+    const v = exo && (!exo.perso || typeof exo.video === 'string') && videoExercice(exo);
+    const url = v && v.video;
+    if (url && !videosHD.has(url) && !videosHDAttente.includes(url) && videosHDAttente.length < VIDEOS_HD_MAX) videosHDAttente.push(url);
+  });
+  prechargerVideoSuivante();
+}
+// Deux à la fois, pour ne pas ralentir le reste de l'appli.
+function prechargerVideoSuivante() {
+  while (videosHDEnCours < 2 && videosHDAttente.length) {
+    const url = videosHDAttente.shift();
+    if (videosHD.has(url)) continue;
+    videosHDEnCours++;
+    const v = videoHD(url);
+    let fini = false;
+    const suite = () => { if (fini) return; fini = true; clearTimeout(minuteur); videosHDEnCours--; prechargerVideoSuivante(); };
+    const minuteur = setTimeout(suite, 15000);
+    v.addEventListener('canplaythrough', suite, { once: true });
+    v.addEventListener('error', suite, { once: true });
+    v.load();
+    // Safari (iPhone) ne télécharge souvent rien sur un simple préchargement :
+    // une lecture muette aussitôt mise en pause lance le téléchargement.
+    const lecture = v.play();
+    if (lecture && lecture.then) lecture.then(() => { if (!v.isConnected) v.pause(); }).catch(() => {});
+  }
+}
 /* Plein écran : la courbe occupe tout l'écran, avec les mêmes périodes et
    courbes à afficher. Sur Android, l'écran passe en paysage tout seul ;
    ailleurs, une astuce invite à tourner le téléphone. */
@@ -20469,12 +20554,9 @@ function agrandirVideoExercice(exerciceId) {
   if (v && v.video) {
     const mini = brut ? 'assets/miniatures/' + brut[0] : null;
     zone.innerHTML = (mini ? `<video src="${mini}.mp4" poster="${mini}.jpg" autoplay muted loop playsinline disablepictureinpicture aria-hidden="true" style="filter:blur(1px);"></video>` : '')
-      + `<video class="hd" src="${escapeHtml(v.video)}"${v.poster && !mini ? ` poster="${escapeHtml(v.poster)}"` : ''} autoplay muted loop playsinline disablepictureinpicture preload="auto" aria-label="Démonstration : ${escapeHtml(libelleExercice(exo))}"></video>`;
-    const hd = zone.querySelector('video.hd');
-    const montrer = () => hd.classList.add('prete');
-    hd.addEventListener('playing', montrer, { once: true });
-    hd.addEventListener('canplay', montrer, { once: true });
-    if (!mini) montrer();
+      + `<span class="hd-place" data-url="${escapeHtml(v.video)}"${v.poster && !mini ? ` data-poster="${escapeHtml(v.poster)}"` : ''} data-label="Démonstration : ${escapeHtml(libelleExercice(exo))}"></span>`;
+    const hd = brancherVideosHD(zone, true)[0];
+    if (hd && !mini) hd.classList.add('prete');
   } else {
     const media = mediaExercice(exo);
     const img = (media && media.img && media.img[0]) || (v && v.poster);
@@ -20487,6 +20569,7 @@ function fermerVideoExercice() {
   if (!z || z.classList.contains('hidden')) return;
   z.classList.add('hidden');
   document.getElementById('video-zoom-media').innerHTML = '';
+  rendreVideosHD();
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') fermerVideoExercice(); });
 function agrandirCourbeFiche() {
@@ -20630,6 +20713,7 @@ function apercuProgramme(programmeId) {
     sous: escapeHtml(cles.slice(0, 4).map(k => GROUPES_MUSCULAIRES[k] || k).join(', ')),
     puces: [`${programme.exercices.length} exercice${programme.exercices.length > 1 ? 's' : ''}`, `${series} série${series > 1 ? 's' : ''}`, `≈ ${Math.round(series * 2.5)} min`]
   });
+  prechargerVideosExercices(programme.exercices.map(pe => pe.exerciceId));
   document.getElementById('apercu-programme-container').innerHTML = programme.exercices.map(pe => {
     const exo = trouverExercice(pe.exerciceId);
     if (!exo) return '';
@@ -22875,6 +22959,7 @@ function renderSessionModal() {
     });
   }
   document.getElementById('session-notes').value = s.notes || '';
+  prechargerVideosExercices(s.exercices.map(e => e.exerciceId));
   initSwipeSeries('session-exercices-container');
   initSwipeExercices('session-exercices-container');
 }

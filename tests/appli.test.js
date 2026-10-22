@@ -1472,6 +1472,24 @@ test("séance en cours : en-tête (chrono, avancée, corps) et un mini-cadran pa
   assert.ok(r.agrandi);
 }));
 
+test('vidéos HD : préchargées au démarrage de la séance, reprises telles quelles par la fiche et l\'agrandissement', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const exo = toutesLesExercices().find(e => VIDEOS_SMARTWORKOUT[e.id]);
+    const url = videoExercice(exo).video;
+    musculationProgrammes.push({ id: 'pv', nom: 'Test', exercices: [{ exerciceId: exo.id, series: [{ poids: 20, reps: 8 }] }], maj: Date.now() });
+    allerA('seance'); demarrerSeance('pv');
+    const prechargee = videosHD.get(url);
+    afficherFicheExerciceBiblio(exo.id);
+    const fiche = document.querySelector('#fiche-exercice-container video.hd');
+    agrandirVideoExercice(exo.id);
+    const zoom = document.querySelector('#video-zoom-media video.hd');
+    fermerVideoExercice();
+    return { prechargee: !!prechargee, memeFiche: fiche === prechargee, memeZoom: zoom === prechargee,
+      revenue: document.querySelector('#fiche-exercice-container video.hd') === prechargee, src: fiche && fiche.getAttribute('src') === url };
+  });
+  assert.deepEqual(r, { prechargee: true, memeFiche: true, memeZoom: true, revenue: true, src: true });
+}));
+
 test('séance : pavé de saisie à la salle (− / +, pas selon le matériel, valider)', () => avecAppli({}, async ({ page }) => {
   const r0 = await page.evaluate(() => {
     const exo = toutesLesExercices().find(e => e.materiel === 'barre');
