@@ -388,7 +388,7 @@ test('faisceaux des jambes : règles, alertes et mannequin (fiche et statistique
     res.curl = repartitionFaisceaux(exo('Curl des ischio-jambiers en position couchée'), 'ischios');
     // Semaine : squats (sans les mollets en secondaire), leg curl et mollets debout seulement.
     const series = n => Array.from({ length: n }, () => ({ poids: 50, reps: 8, fait: true, rir: 1 }));
-    musculationHistorique.unshift({ id: 'jambes', date: todayStr(), exercices: ['Squat avec haltères', 'Curl des ischio-jambiers en position couchée', 'Élévation des Mollets Debout'].map(n => ({ exerciceId: exo(n).id, series: series(6) })) });
+    musculationHistorique.unshift({ id: 'jambes', date: todayStr(), exercices: ['Squat avec haltères', 'Curl des ischio-jambiers en position couchée', 'Élévation des mollets debout'].map(n => ({ exerciceId: exo(n).id, series: series(6) })) });
     allerA('stats'); choisirOngletStats('muscu');
     renderZonesMuscu('muscu-zones-container');
     res.alertes = {};
@@ -1244,8 +1244,10 @@ test('Repas du jour refait : anneaux, semaine, série de jours, coach', () => av
     const a = document.getElementById('anneau-kcal'), tour = 2 * Math.PI * 72;
     const part = 1 - parseFloat(a.style.strokeDashoffset) / tour;
     const res = { part: Math.round(part * 100), attendu: Math.round(600 / cible * 100), trop: a.getAttribute('stroke'),
-      jours: document.querySelectorAll('#semaine-jours .semaine-jour').length, actif: document.querySelector('#semaine-jours .semaine-jour.actif b').textContent,
-      dernier: document.querySelector('#semaine-jours .semaine-jour:last-of-type').dataset.date === t,
+      jours: document.querySelectorAll('#semaine-jours .semaine-jour:not(.futur)').length, actif: document.querySelector('#semaine-jours .semaine-jour.actif b').textContent,
+      dernier: [...document.querySelectorAll('#semaine-jours .semaine-jour:not(.futur)')].pop().dataset.date === t,
+      futurs: [...document.querySelectorAll('#semaine-jours .semaine-jour.futur')].map(b => [b.dataset.date > t, b.disabled, b.getAttribute('aria-hidden')].join()),
+      dimanche: new Date([...document.querySelectorAll('#semaine-jours .semaine-jour')].pop().dataset.date + 'T12:00:00').getDay(),
       serie: document.getElementById('serie-jours').textContent.trim(), coach: document.getElementById('coach-jour').textContent };
     // Dépassement : l'anneau passe à l'orange-rouge.
     getDay(t).meals[MEALS[1]].push({ name: 'Pizza', grams: 600, kcal: cible, p: 60, c: 200, f: 80 }); saveData(t); renderApp();
@@ -1254,9 +1256,13 @@ test('Repas du jour refait : anneaux, semaine, série de jours, coach', () => av
   });
   assert.equal(r.part, r.attendu);
   assert.equal(r.trop, 'url(#grad-kcal)');
-  // Roulette : 180 jours d'historique jusqu'à aujourd'hui (jamais de futur), aujourd'hui au centre.
+  // Roulette : 180 jours d'historique jusqu'à aujourd'hui, aujourd'hui au centre ; les jours
+  // à venir de la semaine (3 au moins) suivent, grisés et inactifs, jusqu'au dimanche.
   assert.equal(r.jours, 181);
   assert.equal(r.dernier, true);
+  assert.ok(r.futurs.length >= 3 && r.futurs.length <= 9, String(r.futurs.length));
+  assert.ok(r.futurs.every(f => f === 'true,true,true'), r.futurs.join(' '));
+  assert.equal(r.dimanche, 0);
   assert.equal(r.actif, String(new Date().getDate()));
   assert.equal(r.serie, '3');
   assert.match(r.coach, /Coach du jour/);
@@ -1329,10 +1335,13 @@ test('vitrines : Activité (corps, séance du jour, programmes), Cardio (arc, tr
   await page.evaluate(() => { fermerModal('apercu-programme-modal'); choisirModeSeance('cardio'); });
   const c = await page.evaluate(() => ({
     arc: !!document.querySelector('#seance-cardio .hx--cardio .arc-val'),
+    // Plus de tracé décoratif : la vraie distance, et les séances groupées par mois.
     trace: document.querySelectorAll('#seance-cardio .cardio-seance .trace').length,
+    valeur: document.querySelector('#seance-cardio .cardio-seance-val').textContent,
+    mois: document.querySelectorAll('#seance-cardio .cardio-mois').length,
     longue: document.querySelector('#seance-cardio .bento .bt-n').textContent
   }));
-  assert.deepEqual(c, { arc: true, trace: 1, longue: '5km' });
+  assert.deepEqual(c, { arc: true, trace: 0, valeur: '5 km', mois: 1, longue: '5km' });
   await page.evaluate(() => allerA('reglages'));
   const p = await page.evaluate(() => ({
     niveau: document.querySelector('#vitrine-profil .niveau-t b').textContent,
@@ -1442,10 +1451,17 @@ test('bouton + : l\'action utile de chaque écran', () => avecAppli({}, async ({
   }
   await page.evaluate(() => allerA('reglages'));
   await page.click('#onglet-plus'); assert.equal(await ouvert(), 'mesures-modal'); await fermer();
-  // Séance en cours : le + ajoute un exercice.
+  // Séance en cours : plein écran, barre d'onglets cachée ; l'ajout d'exercice
+  // passe par le bouton de la séance, « Réduire » ramène à l'écran d'avant.
   await page.evaluate(() => { allerA('seance'); choisirModeSeance('muscu'); demarrerSeanceLibre(); });
   assert.equal(await page.getAttribute('#onglet-plus', 'aria-label'), 'Ajouter un exercice');
-  await page.click('#onglet-plus'); assert.equal(await ouvert(), 'picker-exercices-modal');
+  assert.equal(await page.evaluate(() => document.body.classList.contains('mode-seance')), true);
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.onglets')).pointerEvents), 'none');
+  await page.click('#seance-vue-active button:has-text("Ajouter un exercice")'); assert.equal(await ouvert(), 'picker-exercices-modal'); await fermer();
+  await page.click('.seance-reduire');
+  assert.deepEqual(await page.evaluate(() => [ecranActif, document.body.classList.contains('mode-seance'), document.getElementById('bandeau-seance-flottant').classList.contains('hidden')]), ['reglages', false, false]);
+  await page.click('#bandeau-seance-flottant');
+  assert.deepEqual(await page.evaluate(() => [ecranActif, document.body.classList.contains('mode-seance')]), ['seance', true]);
 }));
 
 test("séance en cours : en-tête (chrono, avancée, corps) et un mini-cadran par muscle", () => avecAppli({}, async ({ page }) => {
@@ -1895,4 +1911,36 @@ test("synchro : après la première, seules les nouveautés sont téléchargées
   assert.equal(serveur.journal.filter(q => q.table === 'recettes_perso').length, recettes);
   await synchro(tel, 'manuel');
   assert.ok(serveur.journal.filter(q => q.table === 'recettes_perso').length > recettes);
+}));
+
+test('bibliothèque : classiques en tête puis l\'alphabet ; icônes d\'aliments ; objectifs du premier lancement', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const noms = () => [...document.querySelectorAll('#picker-liste-exercices .exo-ligne-nom')].map(n => n.firstChild.textContent.trim());
+    ouvrirPickerExercices('bibliotheque');
+    const res = { tete: noms().slice(0, 5) };
+    const champ = document.getElementById('picker-recherche');
+    champ.value = 'curl'; rendrePickerExercices();
+    res.curl = noms().slice(0, 3);
+    const l = noms(), k = l.filter(n => /^curl/i.test(n)).length;
+    res.toutesCurl = k > 3 && l.slice(0, k).every(n => /^curl/i.test(n));
+    champ.value = ''; document.getElementById('picker-filtre-groupe').value = 'abdos'; rendrePickerExercices();
+    const abdos = noms(); const apres = abdos.slice(2);
+    res.abdos = abdos.slice(0, 2);
+    res.alpha = apres.every((n, i) => !i || COLLATEUR_FR.compare(apres[i - 1], n) <= 0);
+    fermerModal('picker-exercices-modal');
+    res.icones = ['Thé vert', 'Escalope de veau', 'Laitue', 'Gâteau au chocolat', 'Pain au chocolat', 'Œufs brouillés', 'Plat mystère'].map(iconeAliment);
+    getDay(todayStr()).meals[MEALS[0]].push({ name: 'Plat mystère', grams: 100, kcal: 100, p: 1, c: 1, f: 1 }); saveData(todayStr()); allerA('repas'); renderApp();
+    res.ligne = [...document.querySelectorAll('.food-initiale')].map(x => x.textContent.trim()).pop();
+    res.objectifs = [...document.querySelectorAll('#onb-objectif .onb-option')].map(b => b.dataset.valeur + ':' + b.querySelector('strong').textContent);
+    return res;
+  });
+  assert.deepEqual(r.tete, ['Squat avec barre', 'Développé couché avec barre', 'Soulevé de terre', 'Développé militaire', 'Traction']);
+  assert.deepEqual(r.curl, ['Curl à la barre', 'Curl prise marteau', r.curl[2]]);
+  assert.match(r.curl[2], /^Curl/);
+  assert.equal(r.toutesCurl, true);
+  assert.deepEqual(r.abdos, ['Planche', 'Crunchs abdominaux']);
+  assert.equal(r.alpha, true);
+  assert.deepEqual(r.icones, ['🍵', '🥩', '🥗', '🍰', '🥐', '🍳', '🍽️']);
+  assert.equal(r.ligne, '🍽️');
+  assert.deepEqual(r.objectifs, ['seche:Sèche', 'maintien:Maintien', 'masse:Prise de masse', 'recomposition:Recomposition']);
 }));
