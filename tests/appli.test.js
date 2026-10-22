@@ -1376,6 +1376,23 @@ test('trophées : un badge tout juste gagné est fêté, une seule fois', () => 
   assert.ok(r.memo.includes('serie'));
 }));
 
+test('trophées : un badge déjà gagné n\'est pas refêté quand ses données arrivent après le démarrage', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const d = todayStr(), j = getDay(d); j.meals[MEALS[0]].push({ name: 'Pomme', grams: 100, kcal: 52, p: 0, c: 14, f: 0 }); saveData(d);
+    localStorage.setItem('anqaa_trophees', JSON.stringify({ niveau: niveauUtilisateur().n, badges: ['gymbro'] }));
+    const fete = () => { const c = document.getElementById('celebration'); const t = c ? c.textContent : ''; if (c) c.textContent = ''; return t; };
+    gymbroLiens = [];   // relance : la liste des gymbros n'est pas encore chargée
+    renderApp(); const auDemarrage = fete();
+    const memo = JSON.parse(localStorage.getItem('anqaa_trophees')).badges;
+    gymbroLiens = [{ pseudo: 'carl', sens: 'envoyee', statut: 'acceptee' }];   // elle arrive
+    renderApp(); const aLArrivee = fete();
+    return { auDemarrage, aLArrivee, memo };
+  });
+  assert.equal(r.auDemarrage, '');
+  assert.ok(r.memo.includes('gymbro'), 'le badge reste mémorisé');
+  assert.equal(r.aLArrivee, '', 'pas de fête pour un badge déjà gagné');
+}));
+
 test('trophées : l\'arrivée des données au démarrage n\'est pas fêtée', () => avecAppli({}, async ({ page }) => {
   const r = await page.evaluate(() => {
     renderApp(); // rien de noté : rien de mémorisé
