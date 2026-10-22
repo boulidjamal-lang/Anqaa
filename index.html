@@ -10,34 +10,11 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-  <!-- Le zoom est neutralisé ici, dans le <head>, avant que quoi que ce soit
-       de l'appli ne soit chargé : la meta ci-dessus pour les navigateurs qui
-       l'honorent, ces trois écouteurs pour Safari iOS qui l'ignore. Aucune
-       dépendance : ce bloc s'exécute au parsing du document. -->
-  <script>
-    (function () {
-      var stop = function (e) { if (e.cancelable) e.preventDefault(); };
-      ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (t) {
-        document.addEventListener(t, stop, { passive: false });
-      });
-      document.addEventListener('touchmove', function (e) {
-        if (e.touches && e.touches.length > 1) stop(e);
-      }, { passive: false });
-      // Double-tap = zoom sur iOS. On ne neutralise QUE le vrai double-tap :
-      // deux appuis rapprochés au même endroit et sur la même cible. Sinon,
-      // taper vite sur deux éléments différents perdrait le second appui.
-      var dernier = 0, dx = 0, dy = 0, dcible = null;
-      document.addEventListener('touchend', function (e) {
-        var t = e.changedTouches && e.changedTouches[0];
-        var now = Date.now();
-        var x = t ? t.clientX : 0, y = t ? t.clientY : 0;
-        if (now - dernier < 320 && e.target === dcible &&
-            Math.abs(x - dx) < 30 && Math.abs(y - dy) < 30) stop(e);
-        dernier = now; dx = x; dy = y; dcible = e.target;
-      }, { passive: false });
-    })();
-  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+  <!-- Le pincement pour zoomer reste permis (accessibilité : texte trop
+       petit, vue fatiguée). Seul le zoom par double appui est retiré, en CSS
+       (touch-action: manipulation, voir html, body) : taper deux fois vite
+       sur « + » compte bien deux appuis, sans zoomer la page. -->
   <title>Askēsis — nutrition, activité &amp; musculation</title>
   <!-- Plus de media query ici : la couleur de la barre du navigateur suit
        désormais le thème choisi DANS l'appli (clair par défaut, sombre
@@ -89,7 +66,7 @@
 
       --bg: #eaeef5;
       --text: #0e1420;
-      --text-muted: #5d6879;
+      --text-muted: #586375;   /* 4,8:1 sur le gris des onglets (#e3e4e9) */
 
       --primary: #00703a;
       --primary-txt: #ffffff;          /* texte pose SUR la couleur primaire */
@@ -274,7 +251,9 @@
          fond ailleurs, d'où le bandeau visible même quand le thème est clair. */
       background: var(--bg);
     }
-    html, body { min-height: 100%; touch-action: pan-x pan-y; }
+    html, body { min-height: 100%; touch-action: manipulation; }
+    /* Aussi dans les zones qui défilent seules (bande des jours, listes) ; 0 de spécificité : les pan-y et none posés ailleurs gardent la main. */
+    :where(*) { touch-action: manipulation; }
     body {
       font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background-color: var(--bg);
@@ -604,6 +583,20 @@
       position: relative; overflow: hidden;
     }
     .summary-card > * { position: relative; z-index: 1; }
+    /* Carte entière cliquable qui contient aussi ses propres boutons : le
+       toucher reste géré par la carte, et un vrai bouton la recouvre pour le
+       clavier et les lecteurs d'écran, sans intercepter le doigt (jamais de
+       bouton dans un bouton). Son clic remonte jusqu'à la carte. */
+    .carte-action, .summary-card > .carte-action { position: absolute; inset: 0; z-index: 0; margin: 0; padding: 0; border: 0; border-radius: inherit; background: none; pointer-events: none; }
+    .carte-action:focus-visible, .summary-card > .carte-action:focus-visible { z-index: 3; outline: none; box-shadow: inset 0 0 0 3px var(--primary); }
+    /* Zones tactiles d'au moins 44 × 44 px (repère Apple) sans changer le
+       dessin : une zone invisible, centrée, prolonge les petits boutons.
+       :where() = aucune spécificité, les positions déjà posées gardent la main. */
+    :where(.app-bar h2[onclick], #moi-entete, .macro-item, #ecran-repas .eau-boutons .btn-icone, .repas-ajouter, .food-info, .btn-delete, .segment > button,
+      #pg-periode-btn, .titre-depliant, .pg-lien, .force-carte-titre, .btn-engrenage, .pf-modif, #reglages-puce-sync, .pilule) { position: relative; }
+    :where(.app-bar h2[onclick], #moi-entete, .macro-item, #ecran-repas .eau-boutons .btn-icone, .repas-ajouter, .food-info, .btn-delete, .segment > button,
+      #pg-periode-btn, .titre-depliant, .pg-lien, .force-carte-titre, .btn-engrenage, .pf-modif, #reglages-puce-sync, .pilule, .tuile-plus, .pc-options)::after {
+      content: ''; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%); }
     .summary-card span.libelle { color: var(--text-muted); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
     .summary-card h1 { margin: 8px 0 4px 0; font-size: var(--densite-h1-taille); font-weight: 900; color: var(--primary); letter-spacing: -1px; }    .reste-kcal { font-size: 0.8rem; font-weight: 700; margin-bottom: 16px; }
 
@@ -1098,7 +1091,7 @@
       width: 100%; padding: 9px 12px; min-height: 40px;
       background: var(--verre); border: 1px solid transparent;
       color: var(--text); border-radius: 10px;
-      font-size: 0.88rem; font-family: inherit; outline: none;
+      font-size: max(16px, 0.88rem); font-family: inherit; outline: none;
     }
     .aliments-filtres input:focus, .aliments-filtres select:focus { border-color: var(--primary); }
 
@@ -1163,7 +1156,8 @@
       width: 100%; padding: 12px 15px; min-height: 44px;
       background: var(--verre-creux);
       border: 1px solid transparent; color: var(--text);
-      border-radius: 14px; font-size: 0.92rem; font-family: inherit;
+      /* 16 px au moins : en dessous, iOS zoome sur la page à chaque saisie. */
+      border-radius: 14px; font-size: max(16px, 0.92rem); font-family: inherit;
       outline: none; transition: all 0.25s;
       box-shadow: inset 0 1px 0 var(--verre-lo);
     }
@@ -1183,7 +1177,7 @@
     .trio input {
       width: 100%; padding: 9px 8px; min-height: 38px; text-align: center;
       background: var(--verre-creux); border: 1px solid transparent; color: var(--text);
-      border-radius: 11px; font-size: 0.82rem; font-family: inherit; outline: none;
+      border-radius: 11px; font-size: max(16px, 0.82rem); font-family: inherit; outline: none;
       box-shadow: inset 0 1px 0 var(--verre-lo);
     }
     .trio input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent); }
@@ -2184,7 +2178,7 @@
       background: var(--primary); color: var(--primary-txt); font-size: 0.7rem; box-shadow: 0 0 0 2px var(--bg); }
     .profil-perso-texte { flex: 1; min-width: 0; }
     .profil-perso-titre { display: block; font-weight: 700; font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
-    .profil-perso textarea { width: 100%; resize: none; font-family: inherit; font-size: 0.84rem; padding: 8px 10px; min-height: 0; }
+    .profil-perso textarea { width: 100%; resize: none; font-family: inherit; font-size: max(16px, 0.84rem); padding: 8px 10px; min-height: 0; }
     .profil-bio-pied { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
     .profil-bio-pied small { color: var(--text-muted); font-size: 0.68rem; }
     /* Cartes de statistiques (Repas du jour, Activité) et fenêtre de détail. */
@@ -2426,6 +2420,8 @@
     #cartes-stats-repas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
     #ecran-repas .carte-stats--tuile { margin: 0 !important; padding: 14px 15px 0 !important; overflow: hidden; display: flex; flex-direction: column; min-height: 156px; }
     .tuile-tete { display: flex; align-items: center; gap: 8px; }
+    /* La place du « + » de la pesée : le titre passe à la ligne au lieu d'être recouvert (petits écrans). */
+    #carte-stats-poids .tuile-tete { padding-right: 40px; }
     .tuile-icone { width: 30px; height: 30px; flex: none; border-radius: 10px; display: grid; place-items: center; color: #fff; }
     .tuile-icone .icone-ui { width: 16px; height: 16px; }
     .tuile-icone--poids { background: linear-gradient(135deg, #38bdf8, #6366f1); }
@@ -2476,7 +2472,7 @@
     .eau-texte { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.035em; margin-top: 2px; }
     .eau-texte em { font-style: normal; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0; }
     #bloc-eau.atteint .eau-texte { color: var(--primary); }
-    #ecran-repas .eau-boutons { display: flex; gap: 6px; margin-top: 8px !important; }
+    #ecran-repas .eau-boutons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px !important; }
     #ecran-repas .eau-boutons .btn-icone { height: 32px !important; min-width: 0 !important; padding: 0 10px !important; border-radius: 99px !important; font-size: 0.72rem !important; font-weight: 800;
       color: #0284c7 !important; background: rgba(56,189,248,.14) !important; box-shadow: none !important; flex: none !important; width: auto !important; }
     :root[data-theme="dark"] #ecran-repas .eau-boutons .btn-icone { color: #7dd3fc !important; }
@@ -3198,7 +3194,7 @@
     }
     html.flou-leger *, html.flou-leger *::before, html.flou-leger *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
     /* --- Progrès : en-tête à pastille, Résumé, tuiles, cartes, replis --- */
-    html:root { --pg-bon: #047857; --pg-mauvais: #c2410c; }
+    html:root { --pg-bon: #047857; --pg-mauvais: #b93d0b; }   /* 4,8:1 sur la pastille orange pâle */
     html:root[data-theme="dark"] { --pg-bon: #34d399; --pg-mauvais: #fb923c; }
     html:root .pg-tete { justify-content: space-between; margin-bottom: 12px; }
     .pg-periode-zone { position: relative; flex: none; }
@@ -3610,7 +3606,9 @@
     .mc-rangee::-webkit-scrollbar { display: none; }
     .mc { flex: 1 0 76px; min-width: 76px; display: grid; justify-items: center; align-content: start; gap: 1px; padding: 0 2px; border: 0; border-radius: 14px; background: none; color: var(--text); font: inherit; text-align: center; cursor: pointer; }
     .mc[aria-expanded="true"] { background: var(--piste); }
-    .mc--sec { opacity: .78; }
+    /* Muscle secondaire : cadran estompé, texte lisible (l'opacité sur tout le bloc passait la zone sous 4,5:1). */
+    .mc--sec .mc-r { opacity: .72; }
+    .mc--sec .mc-n { color: var(--text-muted); }
     .mc-r { position: relative; width: 62px; height: 62px; margin-bottom: 3px; }
     .mc-r svg { width: 100%; height: 100%; transform: rotate(-90deg); }
     .mc-r b { position: absolute; inset: 0; display: grid; place-items: center; font: 800 1.1rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.03em; }
@@ -3624,7 +3622,7 @@
     html:root .dialogue-carte { max-width: 360px; padding: 22px 20px 18px; text-align: center; }
     #dialogue-texte { margin: 0 0 18px; font-size: .98rem; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; color: var(--text); }
     .dialogue-copie { display: flex; gap: 8px; margin: -6px 0 16px; }
-    .dialogue-copie input { flex: 1; min-width: 0; padding: 10px 12px; border: 0; border-radius: 12px; background: var(--piste); color: var(--text); font: 600 .85rem 'Inter', sans-serif; }
+    .dialogue-copie input { flex: 1; min-width: 0; padding: 10px 12px; border: 0; border-radius: 12px; background: var(--piste); color: var(--text); font: 600 max(16px, .85rem) 'Inter', sans-serif; }
     html:root .dialogue-copie .btn { min-height: 0; width: auto; padding: 0 14px; }
     .dialogue-boutons { display: flex; gap: 10px; }
     html:root .dialogue-boutons .btn { flex: 1; min-height: 48px; margin: 0; }
@@ -3934,7 +3932,8 @@
     <!-- Résumé du jour : anneaux concentriques (calories dehors, puis
          protéines, glucides, lipides), ce qu'il reste et les macros. Toucher
          une macro ouvre sa courbe ; le reste de la carte, la dépense. -->
-    <div class="summary-card" role="button" tabindex="0" onclick="ouvrirDepense()" onkeydown="if(event.key==='Enter')ouvrirDepense()" style="cursor:pointer;" aria-label="Calories du jour — toucher pour voir la dépense estimée et ta nutrition">
+    <div class="summary-card" onclick="ouvrirDepense()" style="cursor:pointer;">
+      <button type="button" class="carte-action" aria-label="Calories du jour : voir la dépense estimée et ta nutrition"></button>
       <div class="heros">
         <div class="anneaux" aria-hidden="true">
           <svg viewBox="0 0 158 158">
@@ -6737,9 +6736,9 @@ const ICONES_TUILE = {
   nutrition: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />'
 };
 function tuileStatsHTML(o) {
-  const titre = { poids: 'Poids · 30 j', nutrition: 'Nutrition · 30 j' }[o.onglet] || o.titre;
-  return `<div class="carte-stats carte-stats--compacte carte-stats--tuile fitness-card" id="${o.id}" role="button" tabindex="0" aria-label="${escapeHtml(o.titre)} : ouvrir le détail"
-      onclick="ouvrirStats('${o.onglet}')" onkeydown="if(event.key==='Enter')ouvrirStats('${o.onglet}')">
+  const titre = { poids: 'Poids · 30\u00a0j', nutrition: 'Nutrition · 30\u00a0j' }[o.onglet] || o.titre;
+  return `<div class="carte-stats carte-stats--compacte carte-stats--tuile fitness-card" id="${o.id}" onclick="ouvrirStats('${o.onglet}')">
+    <button type="button" class="carte-action" aria-label="${escapeHtml(o.titre)} : ouvrir le détail"></button>
     <div class="tuile-tete"><span class="tuile-icone tuile-icone--${o.onglet}" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONES_TUILE[o.onglet] || ''}</svg></span><span class="carte-stats-titre">${escapeHtml(titre)}</span></div>
     <div class="carte-stats-valeur"><b>${escapeHtml(o.valeur)}</b><span>${escapeHtml(o.unite || '')}</span></div>
     ${o.ligne ? `<div class="carte-stats-ligne">${escapeHtml(o.ligne)}</div>` : ''}
@@ -6773,8 +6772,8 @@ function carteStatsHTML(o) {
   // Version compacte (Repas du jour) : une ligne, sans les cases ni le pied ;
   // le détail reste dans la fenêtre qui s'ouvre au toucher.
   if (o.compacte) return tuileStatsHTML(o);
-  return `<div class="carte-stats fitness-card${o.compacte ? ' carte-stats--compacte' : ''}" id="${o.id}" role="button" tabindex="0" aria-label="${escapeHtml(o.titre)} : ouvrir le détail"
-      onclick="ouvrirStats('${o.onglet}')" onkeydown="if(event.key==='Enter')ouvrirStats('${o.onglet}')">
+  return `<div class="carte-stats fitness-card${o.compacte ? ' carte-stats--compacte' : ''}" id="${o.id}" onclick="ouvrirStats('${o.onglet}')">
+    <button type="button" class="carte-action" aria-label="${escapeHtml(o.titre)} : ouvrir le détail"></button>
     <div class="carte-stats-haut"><div class="carte-stats-texte">
       <div class="carte-stats-titre">${escapeHtml(o.titre)}</div>
       <div class="carte-stats-valeur"><b>${escapeHtml(o.valeur)}</b><span>${escapeHtml(o.unite || '')}</span></div>
@@ -22086,7 +22085,8 @@ function vignetteProgramme(p, i) {
   const vue = dos > bas && dos >= cles.length / 3 ? 'dos' : 'face';
   const vb = bas > cles.length / 2 ? CADRES_SILHOUETTE.jambes : vue === 'dos' ? CADRES_SILHOUETTE.dos : CADRES_SILHOUETTE.torse;
   const der = dernierePerfProgramme(p.id);
-  return `<div class="pc" role="button" tabindex="0" style="background:${TEINTES_PROGRAMMES[i % TEINTES_PROGRAMMES.length]}" onclick="apercuProgramme(${argJs(p.id)})" onkeydown="if(event.key==='Enter')this.click()" aria-label="${escapeHtml(p.nom)} : voir et démarrer">
+  return `<div class="pc" style="background:${TEINTES_PROGRAMMES[i % TEINTES_PROGRAMMES.length]}" onclick="apercuProgramme(${argJs(p.id)})">
+    <button type="button" class="carte-action" aria-label="${escapeHtml(p.nom)} : voir et démarrer"></button>
     <button type="button" class="pc-options btn-options-programme" onclick="event.stopPropagation(); ouvrirMenuProgramme(this, ${argJs(p.id)})" title="Modifier, dupliquer, supprimer" aria-label="Options de ${escapeHtml(p.nom)}">⋯</button>
     <span class="tag">${p.exercices.length} exercice${p.exercices.length > 1 ? 's' : ''}</span>
     <span class="pc-corps${vb === CADRES_SILHOUETTE.jambes ? ' pc-corps--jambes' : ''}">${silhouetteSVG(vue, blanc, { vb, neutre: 'rgba(255,255,255,.14)', contour: 'rgba(255,255,255,.08)' })}</span>
@@ -22109,12 +22109,12 @@ function renderVitrineMuscu() {
     const g = groupesProgramme(sug.p), noms = Object.keys(g).sort((a, b) => g[b] - g[a]).slice(0, 3).map(k => GROUPES_MUSCULAIRES[k] || k);
     const rose = {}; Object.keys(g).forEach(k => { rose[k] = '#f9a8d4'; });
     const nbSeries = sug.p.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
-    sdj = `<div class="sdj" role="button" tabindex="0" onclick="apercuProgramme(${argJs(sug.p.id)})" onkeydown="if(event.key==='Enter')this.click()">
+    sdj = `<div class="sdj" onclick="apercuProgramme(${argJs(sug.p.id)})"><button type="button" class="carte-action" aria-label="Séance du jour, ${escapeHtml(sug.p.nom)} : voir et démarrer"></button>
       <div class="sdj-corps">${silhouetteSVG('face', rose, { vb: CADRES_SILHOUETTE.buste, neutre: 'rgba(255,255,255,.12)', contour: 'rgba(255,255,255,.06)' })}</div>
       <small>Séance du jour</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(noms.join(', '))} · ${sug.p.exercices.length} exercice${sug.p.exercices.length > 1 ? 's' : ''}</p>
       <div class="sdj-bas"><span class="sdj-puce">${nbSeries} séries</span><span class="sdj-puce">${sug.d ? escapeHtml(formatDateDisplay(sug.d)) : 'Jamais faite'}</span><button type="button" class="sdj-play" onclick="event.stopPropagation(); demarrerSeance(${argJs(sug.p.id)})" aria-label="Commencer ${escapeHtml(sug.p.nom)} maintenant">${svgV('play')}</button></div></div>`;
   } else {
-    sdj = `<div class="sdj" role="button" tabindex="0" onclick="demarrerSeanceLibre()" onkeydown="if(event.key==='Enter')this.click()">
+    sdj = `<div class="sdj" onclick="demarrerSeanceLibre()"><button type="button" class="carte-action" aria-label="Démarrer une séance vide"></button>
       <small>Première séance</small><h4>C'est parti</h4><p>Lance une séance vide, ou crée ton premier programme plus bas.</p>
       <div class="sdj-bas"><span class="sdj-puce">Séance vide</span><span class="sdj-play">${svgV('play')}</span></div></div>`;
   }
@@ -22903,7 +22903,7 @@ function renderResumeProgres() {
     const iso = dateIsoPourIndexStats(i), r = globalMasterRempli[i], sm = seancesJours.has(iso);
     if (r) nbR++; if (sm) nbM++;
     const txt = `${dateCourtePg(iso)} : ${r ? 'repas notés' : 'pas de repas noté'}${sm ? ', séance' : ''}`;
-    cases.push(`<i class="${r && sm ? 'rm' : r ? 'r' : sm ? 'm' : ''}" data-bulle="${escapeHtml(txt)}" aria-label="${escapeHtml(txt)}"></i>`);
+    cases.push(`<i class="${r && sm ? 'rm' : r ? 'r' : sm ? 'm' : ''}" role="img" data-bulle="${escapeHtml(txt)}" aria-label="${escapeHtml(txt)}"></i>`);
   }
   const regularite = `<h3 class="pg-h">Régularité</h3><div class="pg-carte">
     ${serie.actuelle ? `<div class="pg-serie"><span class="pg-flamme">🔥 ${serie.actuelle} jour${serie.actuelle > 1 ? 's' : ''}</span><span>de suite avec tes repas notés · record ${serie.record}</span></div>` : `<div class="pg-serie"><span>Note tes repas aujourd'hui pour lancer une série de jours (record : ${serie.record}).</span></div>`}

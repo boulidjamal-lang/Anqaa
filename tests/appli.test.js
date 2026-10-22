@@ -579,7 +579,7 @@ test('Repas du jour : toucher une macro ouvre sa courbe face à son objectif', (
   await page.click('#onglet-repas');
   // Le reste du résumé : la dépense du jour et le bilan de la journée,
   // dans une fenêtre sur Repas du jour (plus dans Progrès, qui parle de la période).
-  await page.click('#ecran-repas .summary-card h1');
+  await page.click('#ecran-repas .summary-card .anneaux');
   const dep = await page.evaluate(() => ({ ecran: ecranActif, modale: document.getElementById('depense-modal').classList.contains('show'),
     dansProgres: !!document.querySelector('#ecran-stats #bloc-depense, #ecran-stats #carte-bilan-jour'),
     bilanJour: !!document.querySelector('#depense-modal #carte-bilan-jour'),
@@ -1973,4 +1973,45 @@ test('IA : cachée sans clé liée au compte, visible avec', () => avecAppli({},
   assert.deepEqual([avec.classe, avec.photo, avec.idees, avec.bilanJour, avec.periode, avec.programme, avec.aideIA], [true, true, true, true, true, true, true]);
   assert.equal(avec.etapesMuscu, 1);
   assert.match(avec.texteBilan, /par l'IA/);
+}));
+
+test('accessibilité : zoom permis, champs à 16 px, pas de bouton dans un bouton, cartes au clavier, zones de 44 px', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const t = todayStr();
+    for (let k = 0; k < 12; k++) { const d = shiftDate(t, -k); getDay(d).meals[MEALS[0]].push({ name: 'Riz', grams: 100, kcal: 1800, p: 100, c: 200, f: 60 }); saveData(d); }
+    musculationProgrammes.push({ id: 'pa', nom: 'Haut', exercices: [], maj: Date.now() });
+    const res = { viewport: document.querySelector('meta[name="viewport"]').content, toucher: getComputedStyle(document.documentElement).touchAction };
+    const champs = [...document.querySelectorAll('input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=hidden]), select:not(.hidden), textarea')];
+    res.petitsChamps = champs.filter(c => parseFloat(getComputedStyle(c).fontSize) < 16).map(c => c.id || c.className);
+    const imbriques = [];
+    for (const e of ['repas', 'seance', 'stats', 'reglages']) {
+      allerA(e); if (e === 'stats') ouvrirStats('resume'); renderApp();
+      document.querySelectorAll('button, a[href], [role="button"]').forEach(b => {
+        if (b.querySelector('button, a[href], input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])')) imbriques.push(e + ':' + (b.id || b.className));
+      });
+    }
+    res.imbriques = imbriques;
+    allerA('stats'); ouvrirStats('resume');
+    res.casesSansRole = document.querySelectorAll('i[data-bulle]:not([role="img"])').length;
+    allerA('repas');
+    const zone = getComputedStyle(document.querySelector('.repas-ajouter'), '::after');
+    res.zone = [parseFloat(zone.width) >= 44, parseFloat(zone.height) >= 44];
+    return res;
+  });
+  assert.doesNotMatch(r.viewport, /user-scalable|maximum-scale/);
+  assert.equal(r.toucher, 'manipulation');
+  assert.deepEqual(r.petitsChamps, []);
+  assert.deepEqual(r.imbriques, []);
+  assert.equal(r.casesSansRole, 0);
+  assert.deepEqual(r.zone, [true, true]);
+  // Le résumé des calories s'ouvre au clavier (Entrée sur son bouton) comme au doigt.
+  await page.focus('#ecran-repas .summary-card .carte-action');
+  await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(() => document.getElementById('depense-modal').classList.contains('show')), true);
+  await page.evaluate(() => fermerModal('depense-modal'));
+  // Une carte de programme : le toucher l'ouvre toujours une seule fois.
+  await page.evaluate(() => { allerA('seance'); choisirModeSeance('muscu'); window.__apercus = 0; apercuProgramme = () => { window.__apercus++; }; });
+  await page.click('#programmes-liste-container .pc b');
+  await page.focus('#programmes-liste-container .pc .carte-action'); await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(() => window.__apercus), 2);
 }));
