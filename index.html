@@ -3174,6 +3174,152 @@
       html:root *, html:root *::before, html:root *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
     }
     html.flou-leger *, html.flou-leger *::before, html.flou-leger *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    /* --- Progrès : en-tête à pastille, Résumé, tuiles, cartes, replis --- */
+    html:root { --pg-bon: #047857; --pg-mauvais: #c2410c; }
+    html:root[data-theme="dark"] { --pg-bon: #34d399; --pg-mauvais: #fb923c; }
+    html:root .pg-tete { justify-content: space-between; margin-bottom: 12px; }
+    .pg-periode-zone { position: relative; flex: none; }
+    .pg-periode { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; cursor: pointer;
+      background: var(--verre); box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); color: var(--text); font: 800 .82rem/1 'Inter', sans-serif; }
+    .pg-periode .icone-ui { width: 15px; height: 15px; transition: transform .2s; }
+    .pg-periode[aria-expanded="true"] .icone-ui { transform: rotate(180deg); }
+    .pg-periode-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 30; width: 230px; padding: 6px; border-radius: 18px;
+      background: var(--carte-plein); box-shadow: 0 24px 50px -16px rgba(0,0,0,.35), inset 0 0 0 1px var(--trait); }
+    html:root .pg-periode-menu .segment { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 0; padding: 0; background: none; }
+    html:root .pg-periode-menu .segment button { min-height: 42px; font-size: .84rem; }
+    html:root .pg-periode-menu .segment button[aria-pressed="true"] { background: var(--primary); color: #fff; }
+    html:root .pg-onglets { margin-bottom: 6px; }
+    html:root .pg-onglets button { padding: 0 2px; font-size: .76rem; }
+    html:root #ecran-stats .stats-periode-resume { margin: 4px 2px 14px; font-weight: 600; }
+
+    .pg-heros { position: relative; overflow: hidden; border-radius: 26px; padding: 18px 16px 14px; margin-bottom: 12px; color: #fff;
+      background: radial-gradient(120% 90% at 100% 0%, rgba(34,211,238,.35), transparent 60%), radial-gradient(90% 80% at 0% 100%, rgba(167,139,250,.45), transparent 60%), linear-gradient(150deg, #0f766e, #1e3a8a 70%, #4c1d95);
+      box-shadow: 0 22px 40px -22px rgba(30,58,138,.8); }
+    .pg-heros small { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+    html:root .pg-heros h3 { margin: 6px 0 4px; font: 800 1.36rem/1.2 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; color: #fff; }
+    .pg-heros p { margin: 0 0 6px; font-size: .84rem; line-height: 1.4; opacity: .92; }
+    .pg-lien-clair { padding: 0; border: 0; background: none; color: #fff; font: inherit; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .pg-h-courbe { display: block; width: 100%; height: auto; margin: 8px 0 2px; overflow: visible; }
+    .pg-h-courbe text { fill: rgba(255,255,255,.85); font: 600 11px 'Inter', sans-serif; }
+    .pg-h-pt { fill: rgba(255,255,255,.5); }
+    .pg-h-tend { fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .pg-h-proj { fill: none; stroke: #fff; stroke-width: 2; stroke-dasharray: 5 5; opacity: .85; }
+    .pg-h-cible { fill: none; stroke: #fff; stroke-width: 2; }
+    .pg-h-der { fill: #fff; stroke: #1e3a8a; stroke-width: 2; }
+    .pg-heros-puces { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.22); }
+    .pg-heros-puces b { display: block; font: 800 1.05rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; }
+    .pg-heros-puces span { font-size: 11px; font-weight: 600; opacity: .85; }
+
+    .pg-grille2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .pg-tuile { position: relative; min-width: 0; overflow: hidden; padding: 12px 12px 10px; border-radius: 20px; background: var(--verre); box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); }
+    .pg-tuile--lien { cursor: pointer; transition: transform .15s; }
+    .pg-tuile--lien:active { transform: scale(.98); }
+    .pg-tuile small { display: block; padding-right: 14px; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+    .pg-tuile b { display: block; margin-top: 6px; font: 800 1.45rem/1.1 'Manrope', 'Inter', sans-serif; letter-spacing: -.03em; color: var(--text); white-space: nowrap; }
+    .pg-tuile b i { margin-left: 3px; font: 700 .74rem 'Inter', sans-serif; font-style: normal; letter-spacing: 0; color: var(--text-muted); }
+    .pg-ev { margin-top: 3px; font-size: .74rem; font-weight: 700; color: var(--text-muted); }
+    .pg-ev.bon { color: var(--pg-bon); }
+    .pg-ev.mauvais { color: var(--pg-mauvais); }
+    .pg-chev { position: absolute; top: 9px; right: 11px; font-weight: 800; color: var(--text-muted); }
+    .pg-mini { display: block; width: 100%; height: 34px; margin-top: 8px; color: var(--text-muted); }
+    .pg-jauge { height: 8px; margin: 20px 0 6px; overflow: hidden; border-radius: 99px; background: var(--piste); }
+    .pg-jauge i { display: block; height: 100%; border-radius: 99px; }
+
+    .pg-carte { margin-bottom: 12px; padding: 14px; border-radius: 22px; background: var(--verre); box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); }
+    html:root .pg-carte .chart-container { margin: 0; padding: 0; background: none; box-shadow: none; }
+    html:root .pg-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 20px 2px 10px; font: 800 1.02rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; color: var(--text); }
+    .pg-lien { min-height: 32px; padding: 6px 0; border: 0; background: none; font: 700 .8rem 'Inter', sans-serif; color: var(--primary); cursor: pointer; }
+    .pg-maint { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; }
+    .pg-anneau { width: 74px; height: 74px; }
+    .pg-anneau text { font: 800 13px 'Manrope', 'Inter', sans-serif; fill: var(--text); }
+    .pg-maint small { display: block; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+    .pg-maint b { display: block; margin-top: 2px; font: 800 1.55rem/1.15 'Manrope', 'Inter', sans-serif; letter-spacing: -.03em; }
+    .pg-maint .pg-sur { font: 700 .85rem 'Inter', sans-serif; color: var(--text-muted); letter-spacing: 0; }
+    .pg-maint p { margin: 3px 0 0; font-size: .78rem; line-height: 1.4; color: var(--text-muted); }
+    .pg-fait { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--trait); font-size: .84rem; line-height: 1.35; }
+    .pg-fait:first-child { border-top: 0; padding-top: 0; }
+    .pg-fait:last-child { padding-bottom: 0; }
+    .pg-fait > div > span { display: block; margin-top: 1px; font-size: .78rem; color: var(--text-muted); }
+    .pg-fait-ic { width: 32px; height: 32px; flex: none; display: grid; place-items: center; border-radius: 11px; font-size: 16px; }
+    .pg-f-or { background: rgba(245,158,11,.16); }
+    .pg-f-violet { background: rgba(139,92,246,.16); }
+    .pg-f-rouge { background: rgba(239,68,68,.14); }
+    .pg-f-vert { background: rgba(16,185,129,.15); }
+    .pg-f-orange { background: rgba(249,115,22,.15); }
+    .pg-f-neutre { background: var(--piste); }
+    .pg-serie { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; font-size: .82rem; font-weight: 700; }
+    .pg-flamme { white-space: nowrap; padding: 4px 10px; border-radius: 99px; background: rgba(249,115,22,.14); color: var(--pg-mauvais); font-weight: 800; }
+    .pg-cal { display: grid; grid-template-columns: repeat(auto-fill, minmax(16px, 1fr)); gap: 5px; }
+    .pg-cal i { aspect-ratio: 1; border-radius: 5px; background: var(--piste); cursor: pointer; }
+    .pg-cal i.r, .pg-legende i.r { background: #34d399; }
+    .pg-cal i.m, .pg-legende i.m { background: #6366f1; }
+    .pg-cal i.rm { background: linear-gradient(135deg, #34d399 50%, #6366f1 50%); }
+    .pg-legende { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 11px; font-weight: 600; color: var(--text-muted); }
+    .pg-legende span { display: inline-flex; align-items: center; gap: 5px; }
+    .pg-legende i { width: 10px; height: 10px; border-radius: 3px; background: var(--piste); }
+    .pg-legende-note { margin: 8px 2px 0; font-size: 11px; color: var(--text-muted); }
+    .pg-vide { margin: 0; font-size: .82rem; line-height: 1.45; color: var(--text-muted); }
+    html:root #ecran-stats .stats-bilan { margin-top: 8px; }
+
+    .pg-projection { margin: -2px 2px 8px; font-size: .82rem; line-height: 1.45; color: var(--text-muted); }
+    .pg-projection b { color: var(--text); }
+    .pg-mesure { display: grid; grid-template-columns: 1fr auto 64px; gap: 12px; align-items: center; padding: 9px 0; border-top: 1px solid var(--trait); font-size: .86rem; }
+    .pg-mesure:first-child { border-top: 0; padding-top: 0; }
+    .pg-mesure span { font-size: .8rem; color: var(--text-muted); }
+    .pg-mesure em, .pg-pas-tete em { font-style: normal; text-align: right; font-size: .8rem; font-weight: 800; color: var(--text-muted); }
+    :is(.pg-mesure, .pg-pas-tete) em.bon { color: var(--pg-bon); }
+    :is(.pg-mesure, .pg-pas-tete) em.mauvais { color: var(--pg-mauvais); }
+    .pg-photos { display: flex; gap: 12px; align-items: center; cursor: pointer; }
+    .pg-photos-ic { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: 14px; color: #fff; background: linear-gradient(135deg, #22d3ee, #6366f1); }
+    .pg-photos b { display: block; font-size: .9rem; }
+    .pg-photos div span { display: block; margin-top: 2px; font-size: .78rem; line-height: 1.4; color: var(--text-muted); }
+    .pg-pas-tete { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+    .pg-pas-tete b { font: 800 1.4rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.03em; }
+    .pg-pas-tete span { font-size: .78rem; font-weight: 600; color: var(--text-muted); }
+    .pg-pas-tete em { margin-left: auto; }
+    html:root .chart-container--bas { height: 150px; }
+
+    .pg-constat { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 12px; padding: 12px 14px; border-radius: 18px; font-size: .84rem; line-height: 1.4;
+      background: linear-gradient(135deg, rgba(99,102,241,.13), rgba(34,211,238,.10)); }
+    .pg-constat > span { font-size: 18px; }
+    .pg-constat div span { display: block; margin-top: 2px; font-size: .78rem; color: var(--text-muted); }
+    html:root .pg-series { margin-bottom: 8px; }
+    html:root .pg-series button { min-height: 36px; font-size: .74rem; }
+    .nutri-serie:not(.nutri-serie--active) { height: 0; overflow: hidden; visibility: hidden; }
+    .pg-repart { display: flex; gap: 2px; height: 12px; overflow: hidden; border-radius: 99px; }
+    .pg-repart i { display: block; }
+
+    html:root .chart-container.pg-replie { height: 0; min-height: 0; margin: 0; padding: 0; overflow: hidden; visibility: hidden; }
+    html:root #note-cardio-allure.pg-vide { margin: 0 0 12px !important; padding: 12px 14px; border-radius: 18px; background: var(--verre); box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); }
+    html:root #pg-cardio-tuiles { margin-bottom: 4px; }
+
+    html:root #muscu-stats-totaux { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .pg-lift { display: grid; grid-template-columns: minmax(0, 1fr) 84px 74px; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--trait); cursor: pointer; }
+    .pg-lift:first-child { border-top: 0; padding-top: 0; }
+    .pg-lift b { display: -webkit-box; overflow: hidden; font-size: .86rem; line-height: 1.25; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .pg-lift div span { font-size: 11.5px; color: var(--text-muted); }
+    html:root .pg-lift .pg-mini { height: 30px; margin: 0; }
+    .pg-lift em { font-style: normal; text-align: right; font-size: .86rem; font-weight: 800; }
+    .pg-lift em i { display: block; font-style: normal; font-size: 11.5px; font-weight: 700; color: var(--text-muted); }
+    .pg-lift em i.bon { color: var(--pg-bon); }
+    .pg-lift em i.mauvais { color: var(--pg-mauvais); }
+    html:root #pg-grille-muscu .zones-grille { margin: 0; padding: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+    html:root #pg-grille-muscu .zones-grille-ligne { grid-template-columns: 70px repeat(8, minmax(0, 1fr)); gap: 3px; }
+    html:root #pg-grille-muscu .zones-grille-ligne > span[role="rowheader"] { white-space: normal; text-overflow: clip; line-height: 1.15; }
+    html:root #pg-grille-muscu .zones-case:not(.vide) { cursor: pointer; }
+    .pg-repli { margin-bottom: 10px; border-radius: 18px; background: var(--verre); box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); }
+    .pg-repli > summary { display: flex; align-items: center; justify-content: space-between; min-height: 50px; padding: 0 16px; list-style: none; font-size: .88rem; font-weight: 800; cursor: pointer; }
+    .pg-repli > summary::-webkit-details-marker { display: none; }
+    .pg-repli > summary::after { content: '›'; font-size: 1.2rem; color: var(--text-muted); transition: transform .2s; }
+    .pg-repli[open] > summary::after { transform: rotate(90deg); }
+    .pg-repli > :not(summary) { margin-left: 14px; margin-right: 14px; }
+    .pg-repli[open] { padding-bottom: 12px; }
+    .pg-bulle { position: fixed; z-index: 400; max-width: 260px; padding: 8px 11px; border-radius: 12px; background: var(--text); color: var(--bg); font-size: .78rem; font-weight: 700; line-height: 1.35;
+      box-shadow: 0 10px 24px -8px rgba(0,0,0,.45); opacity: 0; pointer-events: none; transform: translateY(4px); transition: opacity .15s, transform .15s; }
+    .pg-bulle.visible { opacity: 1; transform: none; }
+    html:root #ecran-stats .titre-section > .icone-ui { display: none; }
+    html:root #ecran-stats .titre-section { margin: 20px 2px 10px; font: 800 1.02rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; }
+    html:root #ecran-stats .pg-repli .titre-section { margin-top: 14px; font-size: .92rem; }
     /* Apparition */
     .vitrine > *, #seance-cardio > * { animation: monte .55s cubic-bezier(.2,.8,.2,1) both; }
     .vitrine > :nth-child(2), #seance-cardio > :nth-child(2) { animation-delay: .05s; }
@@ -3622,25 +3768,26 @@
   </section>
 
   <!-- ================= ÉCRAN 3 : STATISTIQUES ================= -->
-  <section id="ecran-stats" class="ecran" role="region" aria-label="Statistiques">
-    <!-- Onglet Progrès : ouvert depuis la barre d'onglets (toutes les
-         catégories) ou depuis une carte (Repas du jour, Activité), une
-         catégorie à la fois. -->
-    <div class="stats-entete">
-      <h2 class="titre-ecran" id="stats-titre">Statistiques</h2>
+  <section id="ecran-stats" class="ecran" role="region" aria-label="Progrès">
+    <!-- Progrès : un en-tête (titre + période en pastille), cinq onglets
+         (Résumé, Corps, Repas, Cardio, Muscu). La période vaut pour tout
+         l'écran ; « Perso » ouvre les curseurs pour une plage précise. -->
+    <div class="stats-entete pg-tete">
+      <h2 class="titre-ecran" id="stats-titre">Progrès</h2>
+      <div class="pg-periode-zone">
+        <button type="button" class="pg-periode" id="pg-periode-btn" aria-haspopup="true" aria-expanded="false" aria-controls="pg-periode-menu" onclick="basculerMenuPeriode()"><span id="pg-periode-lib">30 jours</span><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></button>
+        <div class="pg-periode-menu hidden" id="pg-periode-menu">
+          <div class="segment stats-periodes" id="stats-periode" role="group" aria-label="Période analysée"></div>
+        </div>
+      </div>
     </div>
-
-    <!-- Organisation : d'abord la catégorie (Corps, Nutrition, Activité,
-         Muscu), puis une seule période pour tout l'écran, en pastilles
-         (7 j … Tout) ; « Perso » ouvre les curseurs pour une plage précise.
-         Le bilan IA de la période, en bas, couvre toutes les catégories. -->
-    <div class="segment stats-onglets-nav hidden" id="stats-onglets-nav" role="group" aria-label="Catégorie de statistiques">
-      <button type="button" onclick="choisirOngletStats('poids')" aria-pressed="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></svg> Corps</button>
-      <button type="button" onclick="choisirOngletStats('nutrition')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></svg> Nutrition</button>
-      <button type="button" onclick="choisirOngletStats('activite')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.2 12h3.3l1.5-3 3 6 1.5-3h8.3" /></svg> Cardio</button>
-      <button type="button" onclick="choisirOngletStats('muscu')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Muscu</button>
+    <div class="segment stats-onglets-nav pg-onglets" id="stats-onglets-nav" role="group" aria-label="Catégorie de Progrès">
+      <button type="button" onclick="choisirOngletStats('resume')" aria-pressed="true">Résumé</button>
+      <button type="button" onclick="choisirOngletStats('poids')" aria-pressed="false">Corps</button>
+      <button type="button" onclick="choisirOngletStats('nutrition')" aria-pressed="false">Repas</button>
+      <button type="button" onclick="choisirOngletStats('activite')" aria-pressed="false">Cardio</button>
+      <button type="button" onclick="choisirOngletStats('muscu')" aria-pressed="false">Muscu</button>
     </div>
-    <div class="segment stats-periodes" id="stats-periode" role="group" aria-label="Période analysée"></div>
     <p class="stats-periode-resume" id="stats-periode-resume"></p>
     <div class="bloc-verre hidden" id="periode-poids-bloc">
       <h3 style="margin-top:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M8 13h.01" /><path d="M12 13h.01" /><path d="M16 13h.01" /><path d="M8 17h.01" /><path d="M12 17h.01" /><path d="M16 17h.01" /></svg> Période personnalisée</h3>
@@ -3656,94 +3803,72 @@
       <div class="plage-duree" id="plage-duree"></div>
     </div>
 
-    <div class="stats-tab stats-tab-actif" data-tab="poids">
+    <div class="stats-tab stats-tab-actif" data-tab="resume">
+      <div id="pg-resume"></div>
+    <div class="stats-bilan">
+      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg> Bilan de la période</div>
+      <div class="analysis-card">
+        <p class="note note-explicative">Sur la période choisie en haut : nutrition, poids, activité et séances de musculation.</p>
+        <button class="btn btn-analysis" onclick="lancerAnalysePeriode()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" /></svg> Analyser ma période</button>
+        <div id="analysis-loader-stats" class="loader hidden"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 18V5" /><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4" /><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5" /><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77" /><path d="M18 18a4 4 0 0 0 2-7.464" /><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517" /><path d="M6 18a4 4 0 0 1-2-7.464" /><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77" /></svg> Analyse de la période…</div>
+        <div id="analysis-box-stats" class="analysis-output hidden"></div>
+      </div>
+    </div>
+    </div>
+
+    <div class="stats-tab" data-tab="poids">
       <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg> Chiffres clés</div>
       <div class="grille-cles" id="grille-cles"></div>
 
       <div class="titre-depliant titre-section" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-tendance')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-tendance')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></svg> Poids &amp; tendance</div>
       <div class="chart-container"><canvas id="poidsChart"></canvas></div>
       <p class="note note-repliee" id="note-tendance" style="margin: -6px 2px 4px;"></p>
+      <p class="pg-projection" id="pg-projection-corps"></p>
 
       <div class="titre-depliant titre-section" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-compo')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-compo')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z" /><path d="m14.5 12.5 2-2" /><path d="m11.5 9.5 2-2" /><path d="m8.5 6.5 2-2" /><path d="m17.5 15.5 2-2" /></svg> Composition corporelle (balance à impédancemétrie)</div>
       <div class="compo-grille" id="compo-grille"></div>
       <p class="note note-repliee" id="note-compo" style="margin: -6px 2px 4px;"></p>
+      <h3 class="pg-h">Mensurations <button type="button" class="pg-lien" onclick="ouvrirMesuresModal()">+ Ajouter</button></h3>
+      <div class="pg-carte" id="pg-mensurations"></div>
+      <h3 class="pg-h">Photos <button type="button" class="pg-lien" onclick="ouvrirPhotosProgression()">Comparer</button></h3>
+      <div class="pg-carte pg-photos" role="button" tabindex="0" onclick="ouvrirPhotosProgression()" onkeydown="if(event.key==='Enter')this.click()">
+        <span class="pg-photos-ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg></span>
+        <div><b>Avant / après</b><span>Même pose, même lumière, une photo par mois : compare-les côte à côte.</span></div>
+      </div>
+      <h3 class="pg-h">Pas</h3>
+      <div class="pg-carte">
+        <div class="pg-pas-tete" id="pg-pas-tete"></div>
+        <div class="chart-container chart-container--bas"><canvas id="stepsChart"></canvas></div>
+      </div>
     </div>
 
     <div class="stats-tab" data-tab="nutrition">
-      <!-- Dépense estimée du jour affiché dans Repas du jour (ancienne fenêtre
-           « Calories estimées du jour ») : toucher le résumé des calories
-           ouvre ce détail Nutrition, en haut. -->
-      <div class="bloc-verre" id="bloc-depense">
-        <h3 style="margin-top:0;margin-bottom:10px;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4" /></svg> Dépense estimée <span id="depense-jour" style="color:var(--text-muted);"></span></h3>
-        <div id="detail-depense" class="note" style="margin:0;"></div>
-        <details style="margin-top:12px;">
-          <summary style="cursor:pointer;font-size:0.75rem;color:var(--text-muted);font-weight:700;">D'où viennent ces chiffres ?</summary>
-          <p class="note" style="margin:10px 0 0;">
-            Métabolisme de base : formule de Mifflin-St Jeor (poids, taille, âge, sexe).
-            Si un % de masse grasse est enregistré dans Mesures corporelles (saisi à
-            la main ou importé depuis la balance Withings), la formule Katch-McArdle
-            prend le relais et se base sur ta masse maigre plutôt que ton poids total
-            — plus précis pour les profils très musclés ou avec un taux de masse
-            grasse élevé. L'objectif de protéines se base aussi sur la masse maigre
-            dans ce cas (les lipides restent sur le poids total, leur plancher étant
-            hormonal, pas lié au tissu maigre). L'objectif "Recomposition" reprend
-            les calories du maintien mais des protéines au niveau d'une sèche : c'est
-            la combinaison qui permet de prendre du muscle et perdre du gras en même
-            temps, à condition de continuer à progresser en charge à l'entraînement.
-            Le facteur × 1,2 correspond à un mode de vie sédentaire — il inclut déjà
-            environ 4 000 pas, c'est pourquoi seuls les pas au-delà sont ajoutés.
-            Les séances utilisent les MET du <em>Compendium of Physical Activities</em>
-            et ton poids. Quand la distance est notée (course, marche, vélo), le MET
-            suit ta vitesse réelle ; sinon, celui du sport, ajusté par l'intensité
-            notée. On retire ton propre métabolisme de repos (âge, sexe, taille, poids
-            ou masse maigre) sur la durée de la séance : l'heure de sport remplace une
-            heure de repos déjà comptée, elle ne s'y ajoute pas.
-            Pour une séance de musculation trackée dans l'onglet Activité, le temps de
-            repos entre les séries n'est pas compté comme de l'effort (il se passe à
-            un rythme proche du repos, déjà compté ailleurs) : seul le nombre de
-            séries réellement faites compte, à raison d'environ 40 secondes d'effort
-            par série. Une séance de musculation ajoutée à la main dans Activité
-            (sans détail des séries) reste calculée sur sa durée totale déclarée.
-          </p>
-        </details>
-      </div>
-
-      <div class="titre-depliant titre-section" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-bilan-jour')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-bilan-jour')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" /></svg> Bilan de la journée</div>
-      <div class="analysis-card" id="carte-bilan-jour">
-        <p class="note note-repliee" id="note-bilan-jour">Un bilan de ta nutrition et de ton activité (pas, séances, et le détail de ta séance de musculation si tu en as fait une) pour le jour affiché dans Repas du jour.</p>
-        <button class="btn btn-analysis" onclick="lancerAnalyseJour()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" /></svg> Analyser ma journée</button>
-        <span class="puce-ia"></span>
-        <div id="analysis-loader" class="loader hidden"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 18V5" /><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4" /><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5" /><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77" /><path d="M18 18a4 4 0 0 0 2-7.464" /><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517" /><path d="M6 18a4 4 0 0 1-2-7.464" /><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77" /></svg> Analyse en cours…</div>
-        <div id="analysis-box" class="analysis-output hidden"></div>
-        <p class="note" id="note-cle-ia" style="margin-top:10px;"></p>
-      </div>
-      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg> Chiffres clés</div>
       <div class="grille-cles" id="grille-cles-nutrition"></div>
-
-      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6" /><path d="m22 7-8.5 8.5-5-5L2 17" /></svg> Calories (consommées vs objectif)</div>
-      <div class="chart-container"><canvas id="caloriesChart"></canvas></div>
-
-      <!-- Une macro par graphique, chacune face à son objectif du jour (qui
-           varie avec le poids et l'activité). Toucher une macro dans le
-           résumé de Repas du jour ouvre ce détail sur la bonne (ouvrirMacro). -->
-      <div class="macro-stat" id="macro-stat-p">
-        <div class="titre-section titre-section--macro"><i class="macro-pastille" style="background:var(--protein)"></i> Protéines (g) — consommées vs objectif</div>
-        <div class="chart-container"><canvas id="macroChart-p"></canvas></div>
+      <div id="pg-constat-nutrition"></div>
+      <div class="pg-carte">
+        <div class="segment pg-series" id="nutri-series-nav" role="group" aria-label="Courbe affichée">
+          <button type="button" onclick="choisirSerieNutrition('kcal')" aria-pressed="true">Calories</button>
+          <button type="button" onclick="choisirSerieNutrition('p')" aria-pressed="false">Prot.</button>
+          <button type="button" onclick="choisirSerieNutrition('c')" aria-pressed="false">Gluc.</button>
+          <button type="button" onclick="choisirSerieNutrition('f')" aria-pressed="false">Lip.</button>
+          <button type="button" onclick="choisirSerieNutrition('eau')" aria-pressed="false">Eau</button>
+        </div>
+        <div class="nutri-serie nutri-serie--active" data-serie="kcal"><div class="chart-container"><canvas id="caloriesChart"></canvas></div></div>
+        <div class="nutri-serie macro-stat" data-serie="p" id="macro-stat-p"><div class="chart-container"><canvas id="macroChart-p"></canvas></div></div>
+        <div class="nutri-serie macro-stat" data-serie="c" id="macro-stat-c"><div class="chart-container"><canvas id="macroChart-c"></canvas></div></div>
+        <div class="nutri-serie macro-stat" data-serie="f" id="macro-stat-f"><div class="chart-container"><canvas id="macroChart-f"></canvas></div></div>
+        <div class="nutri-serie" data-serie="eau"><div class="chart-container"><canvas id="eauChart"></canvas></div></div>
+        <p class="pg-legende-note">Les bandes grisées sont les week-ends. Touche la courbe pour voir un jour.</p>
       </div>
-      <div class="macro-stat" id="macro-stat-c">
-        <div class="titre-section titre-section--macro"><i class="macro-pastille" style="background:var(--carbs)"></i> Glucides (g) — consommés vs objectif</div>
-        <div class="chart-container"><canvas id="macroChart-c"></canvas></div>
-      </div>
-      <div class="macro-stat" id="macro-stat-f">
-        <div class="titre-section titre-section--macro"><i class="macro-pastille" style="background:var(--fat)"></i> Lipides (g) — consommés vs objectif</div>
-        <div class="chart-container"><canvas id="macroChart-f"></canvas></div>
-      </div>
-
-      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg> Eau bue (vs objectif)</div>
-      <div class="chart-container"><canvas id="eauChart"></canvas></div>
+      <h3 class="pg-h">Répartition moyenne</h3>
+      <div class="pg-carte" id="pg-repartition"></div>
+      <h3 class="pg-h">Ce que tu manges le plus</h3>
+      <div class="pg-carte" id="pg-top-aliments"></div>
     </div>
 
     <div class="stats-tab" data-tab="activite">
+      <div class="pg-carte" id="pg-cardio-semaine"></div>
+      <div class="grille-cles" id="pg-cardio-tuiles"></div>
       <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.2 12h3.3l1.5-3 3 6 1.5-3h8.3" /></svg> Minutes de cardio par semaine</div>
       <div class="chart-container"><canvas id="cardioSemainesChart"></canvas></div>
       <p class="note" id="note-cardio-semaines" style="margin:-6px 2px 4px;"></p>
@@ -3755,34 +3880,20 @@
 
       <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" /></svg> Records</div>
       <div class="cardio-records" id="cardio-records"></div>
-
-      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" /></svg> Pas quotidiens</div>
-      <div class="chart-container"><canvas id="stepsChart"></canvas></div>
-
-      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Activités (minutes par sport)</div>
-      <div class="chart-container"><canvas id="workoutChart"></canvas></div>
     </div>
 
     <div class="stats-tab" data-tab="muscu">
-      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Musculation</div>
       <div class="stats-grille" id="muscu-stats-totaux"></div>
-      <button type="button" class="btn btn-secondaire btn-partage-stats" onclick="ouvrirPartageStats()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v13" /><path d="m16 6-4-4-4 4" /><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /></svg> Partager mon bilan</button>
-
-      <div class="segment muscu-soustabs-nav" id="muscu-soustabs-nav" role="group" aria-label="Détail musculation">
-        <button type="button" onclick="choisirSousOngletMuscu('semaine')" aria-pressed="true">Semaine</button>
-        <button type="button" onclick="choisirSousOngletMuscu('progression')" aria-pressed="false">Progression</button>
-        <button type="button" onclick="choisirSousOngletMuscu('seances')" aria-pressed="false">Séances</button>
-        <button type="button" onclick="choisirSousOngletMuscu('programmes')" aria-pressed="false">Programmes</button>
-      </div>
-
-      <!-- Semaine : jauges de volume et corps de la semaine en cours (une
-           zone est hebdomadaire : ne suit pas la période choisie). -->
-      <div class="stats-soustab stats-soustab-actif" data-soustab="semaine">
+      <h3 class="pg-h">Ta force <button type="button" class="pg-lien" onclick="ouvrirRepliMuscu('progression')">Tous les exercices ›</button></h3>
+      <div class="pg-carte" id="pg-force"></div>
+      <h3 class="pg-h">Séries par muscle, semaine par semaine</h3>
+      <div class="pg-carte" id="pg-grille-muscu"></div>
+      <details class="pg-repli" data-repli="semaine" ontoggle="replieMuscuBascule(this)">
+        <summary>Cette semaine, muscle par muscle</summary>
         <div id="muscu-zones-container"></div>
-      </div>
-
-      <!-- Progression : courbe et records par exercice, puis niveau de force. -->
-      <div class="stats-soustab" data-soustab="progression">
+      </details>
+      <details class="pg-repli" data-repli="progression" ontoggle="replieMuscuBascule(this)">
+        <summary>Progression par exercice</summary>
         <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6" /><path d="m22 7-8.5 8.5-5-5L2 17" /></svg> Progression par exercice</div>
         <div class="input-group" style="margin-bottom:12px;">
           <label for="muscu-exo-select">Exercice (tous ceux déjà pratiqués, ne serait-ce qu'une fois)</label>
@@ -3794,9 +3905,9 @@
         <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2" /><path d="M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2" /><path d="M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3" /><path d="M4 22h16" /><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z" /><path d="M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3" /></svg> Records personnels</div>
         <div id="muscu-stats-records"></div>
         <div id="muscu-force-container"></div>
-      </div>
-
-      <div class="stats-soustab" data-soustab="seances">
+      </details>
+      <details class="pg-repli" data-repli="seances" ontoggle="replieMuscuBascule(this)">
+        <summary>Séances et programmes</summary>
         <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg> Séances de musculation par mois</div>
         <div class="chart-container"><canvas id="muscuParMoisChart"></canvas></div>
         <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M8 13h.01" /><path d="M12 13h.01" /><path d="M16 13h.01" /><path d="M8 17h.01" /><path d="M12 17h.01" /><path d="M16 17h.01" /></svg> Historique des séances</div>
@@ -3804,23 +3915,10 @@
 
         <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Séances par groupe musculaire</div>
         <div class="chart-container"><canvas id="muscuGroupeChart"></canvas></div>
-      </div>
-
-      <div class="stats-soustab" data-soustab="programmes">
         <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg> Statistiques par programme</div>
         <div id="muscu-stats-programmes"></div>
-      </div>
-    </div>
-
-    <!-- Bilan IA : commun à toutes les catégories, sur la période choisie. -->
-    <div class="stats-bilan">
-      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg> Bilan de la période</div>
-      <div class="analysis-card">
-        <p class="note note-explicative">Sur la période choisie en haut : nutrition, poids, activité et séances de musculation.</p>
-        <button class="btn btn-analysis" onclick="lancerAnalysePeriode()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" /></svg> Analyser ma période</button>
-        <div id="analysis-loader-stats" class="loader hidden"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 18V5" /><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4" /><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5" /><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77" /><path d="M18 18a4 4 0 0 0 2-7.464" /><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517" /><path d="M6 18a4 4 0 0 1-2-7.464" /><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77" /></svg> Analyse de la période…</div>
-        <div id="analysis-box-stats" class="analysis-output hidden"></div>
-      </div>
+      </details>
+      <button type="button" class="btn btn-secondaire btn-partage-stats" onclick="ouvrirPartageStats()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v13" /><path d="m16 6-4-4-4 4" /><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /></svg> Partager mon bilan</button>
     </div>
   </section>
 
@@ -5192,6 +5290,60 @@
   </div>
 </div>
 
+<!-- Dépense du jour et bilan IA de la journée (ouverts depuis le résumé
+     des calories de Repas du jour). -->
+<div id="depense-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-depense">
+  <div class="modal-content">
+    <div class="modal-entete">
+      <h3 id="titre-depense">Ta journée</h3>
+      <button class="close-modal" onclick="fermerModal('depense-modal')" aria-label="Fermer">&times;</button>
+    </div>
+      <div class="bloc-verre" id="bloc-depense">
+        <h3 style="margin-top:0;margin-bottom:10px;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4" /></svg> Dépense estimée <span id="depense-jour" style="color:var(--text-muted);"></span></h3>
+        <div id="detail-depense" class="note" style="margin:0;"></div>
+        <details style="margin-top:12px;">
+          <summary style="cursor:pointer;font-size:0.75rem;color:var(--text-muted);font-weight:700;">D'où viennent ces chiffres ?</summary>
+          <p class="note" style="margin:10px 0 0;">
+            Métabolisme de base : formule de Mifflin-St Jeor (poids, taille, âge, sexe).
+            Si un % de masse grasse est enregistré dans Mesures corporelles (saisi à
+            la main ou importé depuis la balance Withings), la formule Katch-McArdle
+            prend le relais et se base sur ta masse maigre plutôt que ton poids total
+            — plus précis pour les profils très musclés ou avec un taux de masse
+            grasse élevé. L'objectif de protéines se base aussi sur la masse maigre
+            dans ce cas (les lipides restent sur le poids total, leur plancher étant
+            hormonal, pas lié au tissu maigre). L'objectif "Recomposition" reprend
+            les calories du maintien mais des protéines au niveau d'une sèche : c'est
+            la combinaison qui permet de prendre du muscle et perdre du gras en même
+            temps, à condition de continuer à progresser en charge à l'entraînement.
+            Le facteur × 1,2 correspond à un mode de vie sédentaire — il inclut déjà
+            environ 4 000 pas, c'est pourquoi seuls les pas au-delà sont ajoutés.
+            Les séances utilisent les MET du <em>Compendium of Physical Activities</em>
+            et ton poids. Quand la distance est notée (course, marche, vélo), le MET
+            suit ta vitesse réelle ; sinon, celui du sport, ajusté par l'intensité
+            notée. On retire ton propre métabolisme de repos (âge, sexe, taille, poids
+            ou masse maigre) sur la durée de la séance : l'heure de sport remplace une
+            heure de repos déjà comptée, elle ne s'y ajoute pas.
+            Pour une séance de musculation trackée dans l'onglet Activité, le temps de
+            repos entre les séries n'est pas compté comme de l'effort (il se passe à
+            un rythme proche du repos, déjà compté ailleurs) : seul le nombre de
+            séries réellement faites compte, à raison d'environ 40 secondes d'effort
+            par série. Une séance de musculation ajoutée à la main dans Activité
+            (sans détail des séries) reste calculée sur sa durée totale déclarée.
+          </p>
+        </details>
+      </div>
+      <div class="titre-depliant titre-section" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-bilan-jour')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-bilan-jour')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" /></svg> Bilan de la journée</div>
+      <div class="analysis-card" id="carte-bilan-jour">
+        <p class="note note-repliee" id="note-bilan-jour">Un bilan de ta nutrition et de ton activité (pas, séances, et le détail de ta séance de musculation si tu en as fait une) pour le jour affiché dans Repas du jour.</p>
+        <button class="btn btn-analysis" onclick="lancerAnalyseJour()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" /></svg> Analyser ma journée</button>
+        <span class="puce-ia"></span>
+        <div id="analysis-loader" class="loader hidden"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 18V5" /><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4" /><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5" /><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77" /><path d="M18 18a4 4 0 0 0 2-7.464" /><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517" /><path d="M6 18a4 4 0 0 1-2-7.464" /><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77" /></svg> Analyse en cours…</div>
+        <div id="analysis-box" class="analysis-output hidden"></div>
+        <p class="note" id="note-cle-ia" style="margin-top:10px;"></p>
+      </div>
+  </div>
+</div>
+
 <div id="mesures-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-mesures">
   <div class="modal-content">
     <div class="modal-entete">
@@ -5229,6 +5381,20 @@
         <div><label>Hydratation (%)</label><input type="number" step="0.1" inputmode="decimal" id="mes-eau-pct" placeholder="—"></div>
       </div>
       <p class="note note-explicative" style="margin:8px 0 0;">Rempli automatiquement par « Importer ma dernière pesée Withings » si ta balance le mesure, sinon à saisir toi-même. Laisse vide ce que tu n'as pas.</p>
+    </div>
+
+    <div class="input-group">
+      <label style="display:block;font-weight:700;font-size:0.72rem;margin-bottom:6px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;">Mensurations (cm)</label>
+      <div class="trio">
+        <div><label for="mes-taille-cm">Tour de taille</label><input type="number" step="0.5" inputmode="decimal" id="mes-taille-cm" placeholder="—"></div>
+        <div><label for="mes-hanches-cm">Hanches</label><input type="number" step="0.5" inputmode="decimal" id="mes-hanches-cm" placeholder="—"></div>
+        <div><label for="mes-poitrine-cm">Poitrine</label><input type="number" step="0.5" inputmode="decimal" id="mes-poitrine-cm" placeholder="—"></div>
+      </div>
+      <div class="trio" style="margin-top:8px;">
+        <div><label for="mes-bras-cm">Bras</label><input type="number" step="0.5" inputmode="decimal" id="mes-bras-cm" placeholder="—"></div>
+        <div><label for="mes-cuisse-cm">Cuisse</label><input type="number" step="0.5" inputmode="decimal" id="mes-cuisse-cm" placeholder="—"></div>
+      </div>
+      <p class="note note-explicative" style="margin:8px 0 0;">Au mètre ruban, le matin, toujours au même endroit (taille : au niveau du nombril). Suivies dans Progrès › Corps.</p>
     </div>
 
     <button class="btn btn-primary" style="margin-top:6px;" onclick="enregistrerMesures()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /><path d="M7 3v4a1 1 0 0 0 1 1h7" /></svg> Enregistrer</button>
@@ -6875,10 +7041,13 @@ function renderStatsCardio() {
       })
     })
   });
+  const zoneA = document.getElementById('cardioAllureChart') && document.getElementById('cardioAllureChart').parentElement;
+  if (zoneA) zoneA.classList.toggle('pg-replie', pts.length < 3);
   const noteA = document.getElementById('note-cardio-allure');
   if (noteA) {
+    noteA.classList.toggle('pg-vide', pts.length < 3);
     if (!pts.length) noteA.textContent = "Indique la distance de tes séances (course, vélo, natation, marche, rameur) pour suivre ton allure.";
-    else if (pts.length < 2) noteA.textContent = `Une seule séance avec distance sur la période : ${pts[0].a.texte}.`;
+    else if (pts.length < 3) noteA.textContent = `Encore ${3 - pts.length} sortie${3 - pts.length > 1 ? 's' : ''} avec la distance pour voir ta courbe d'${enMin ? 'allure' : 'vitesse'} (dernière : ${pts[pts.length - 1].a.texte}).`;
     else {
       const n = Math.min(3, Math.floor(pts.length / 2));
       const moy = arr => arr.reduce((t, x) => t + x.a.valeur, 0) / arr.length;
@@ -7373,6 +7542,7 @@ function ouvrirMesuresModal() {
   document.getElementById('mes-muscle-kg').value = existante.muscleKg ?? '';
   document.getElementById('mes-os-kg').value = existante.osKg ?? '';
   document.getElementById('mes-eau-pct').value = existante.eauPct ?? '';
+  remplirChampsMensurations(existante);
 
   ouvrirModal('mesures-modal');
 }
@@ -7393,6 +7563,7 @@ function enregistrerMesures() {
     osKg: lireOuNull('mes-os-kg'),
     eauPct: lireOuNull('mes-eau-pct')
   };
+  MENSURATIONS.forEach(([cle, id]) => { const v = lireOuNull(id); if (v != null && v > 0) userProfile.mesures[dateCible][cle] = v; });
 
   // Le poids continue aussi d'alimenter le calcul des calories du jour ciblé.
   if (poidsSaisi !== '') {
@@ -7404,7 +7575,7 @@ function enregistrerMesures() {
 
   afficherResumeMesures();
   buildMasterArrays();
-  if (ecranActif === 'stats') mettreAJourStats();
+  if (ecranActif === 'stats') majToutesStats();
   // Le résumé affiché à l'écran ne concerne que le jour couramment consulté :
   // ne le retoucher que si c'est bien celui qu'on vient d'enregistrer.
   if (dateCible === currentDate) updateSummary(getDay(currentDate));
@@ -9781,19 +9952,18 @@ function afficherChiffresClesPoids(s, e) {
   }
 
   const cartes = [
-    { lbl: 'Pesées', val: b.pesees + ' sur ' + b.jours + ' jours',
-      sous: b.pesees < 2 ? 'Il faut au moins deux pesées pour une tendance.' : 'Suivi régulier, la tendance est fiable.' },
-    { lbl: 'Variation de poids', val: fmtSigne(b.deltaPoids, ' kg'),
-      cls: classeRythme,
-      sous: b.pesees < 2 ? 'Il faut au moins deux pesées.' : avisRythme },
+    { lbl: 'Tendance', val: b.poidsFin != null ? nombreFr(Math.round(b.poidsFin * 10) / 10) + ' kg' : '—',
+      sous: b.deltaPoids != null ? fmtSigne(b.deltaPoids, ' kg') + ' sur la période' : 'Il faut au moins deux pesées.' },
     { lbl: 'Rythme', val: b.rythmeSemaine == null ? '—' : fmtSigne(b.rythmeSemaine, ' kg/sem.', 2),
-      sous: b.pesees + (b.pesees > 1 ? ' pesées' : ' pesée') + ' sur la période' }
+      cls: classeRythme, sous: b.pesees < 2 ? 'Il faut au moins deux pesées.' : avisRythme },
+    { lbl: 'Pesées', val: b.pesees + ' / ' + b.jours, large: true,
+      sous: b.pesees < 2 ? 'Il faut au moins deux pesées pour une tendance.' : b.pesees >= b.jours / 4 ? 'Suivi régulier : tendance fiable.' : 'Pèse-toi plus souvent pour une tendance plus sûre.' }
   ];
 
   g.innerHTML = '';
   cartes.forEach(c => {
     const el = document.createElement('div');
-    el.className = 'cle';
+    el.className = 'cle' + (c.large ? ' large' : '');
     const l = document.createElement('div'); l.className = 'cle-lbl'; l.textContent = c.lbl;
     const v = document.createElement('div'); v.className = 'cle-val' + (c.cls ? ' ' + c.cls : ''); v.textContent = c.val;
     el.appendChild(l); el.appendChild(v);
@@ -9835,7 +10005,7 @@ function variationPeriode(actuel, precedent, enPoints) {
     const d = Math.round(actuel - precedent);
     return d === 0 ? { txt: '= stable vs période préc.', cls: 'eq' } : { txt: (d > 0 ? '▲ +' : '▼ ') + d + ' pts vs période préc.', cls: d > 0 ? 'hausse' : 'baisse' };
   }
-  if (precedent === 0) return actuel > 0 ? { txt: '▲ nouveau vs période préc.', cls: 'hausse' } : null;
+  if (precedent === 0) return null;
   const pct = Math.round((actuel - precedent) / Math.abs(precedent) * 100);
   return pct === 0 ? { txt: '= stable vs période préc.', cls: 'eq' } : { txt: (pct > 0 ? '▲ +' : '▼ ') + pct + ' % vs période préc.', cls: pct > 0 ? 'hausse' : 'baisse' };
 }
@@ -9858,32 +10028,25 @@ function afficherChiffresClesNutrition(s, e) {
   const bp = s - n >= 0 && periodeStats !== 'tout' ? bilanPeriode(s - n, s - 1) : null;
   const prec = bp && bp.joursRemplis ? bp : null;
   const cartes = [
-    { lbl: 'Jours renseignés', val: b.joursRemplis + ' / ' + b.jours,
-      sous: b.joursRemplis < b.jours * 0.6 ? 'Trop de trous : les moyennes ci-dessous sont fragiles.' : 'Suivi régulier, les moyennes sont fiables.' },
-    { lbl: 'Calories / jour', val: b.moyConso + ' kcal',
-      sous: 'Objectif moyen : ' + b.moyCible + ' kcal', evol: prec && variationPeriode(b.moyConso, prec.moyConso) },
-    { lbl: 'Écart moyen', val: fmtSigne(b.ecartMoyen, ' kcal', 0),
-      cls: Math.abs(b.ecartMoyen) <= 150 ? 'pos' : 'att',
-      sous: b.ecartMoyen < 0 ? 'En déficit sur la période' : b.ecartMoyen > 0 ? 'En surplus sur la période' : 'À l’équilibre' },
-    { lbl: 'Dans la cible', val: b.partCible + ' %',
+    { lbl: 'Moyenne / jour', val: nombreFr(b.moyConso, 0) + ' kcal',
+      sous: 'Objectif ' + nombreFr(b.moyCible, 0) + ' · ' + (b.ecartMoyen < 0 ? 'déficit ' : b.ecartMoyen > 0 ? 'surplus ' : 'équilibre ') + fmtSigne(b.ecartMoyen, ' kcal', 0), evol: prec && variationPeriode(b.moyConso, prec.moyConso) },
+    { lbl: 'Dans la cible', val: b.dansLaCible + ' / ' + b.joursRemplis + ' j',
       cls: b.partCible >= 70 ? 'pos' : b.partCible >= 40 ? 'att' : 'neg',
-      sous: b.dansLaCible + ' jours à ± 10 % de l’objectif', evol: prec && variationPeriode(b.partCible, prec.partCible, true) },
+      sous: 'à ± 10 % de l’objectif', evol: prec && variationPeriode(b.partCible, prec.partCible, true) },
     { lbl: 'Protéines', val: b.protParKg == null ? '—' : (Math.round(b.protParKg * 10) / 10).toString().replace('.', ',') + ' g/kg',
       cls: b.protParKg == null ? '' : (b.protParKg >= 1.6 ? 'pos' : 'att'),
-      sous: b.protParKg == null ? '' : (b.protParKg >= 1.6 ? 'Suffisant pour préserver le muscle' : 'En dessous de 1,6 g/kg, la masse maigre trinque'), evol: prec && variationPeriode(b.protParKg, prec.protParKg) },
-    { lbl: 'Entraînement', val: b.minutesParSemaine + ' min/sem.',
-      cls: b.minutesParSemaine >= 150 ? 'pos' : '',
-      sous: b.joursSport + ' jours actifs' + (b.minutesParSemaine >= 150 ? ' — recommandation OMS atteinte' : ''), evol: prec && variationPeriode(b.minutesParSemaine, prec.minutesParSemaine) },
-    { lbl: 'Pas / jour', val: b.moyPas.toLocaleString('fr-FR'), sous: 'Moyenne sur les jours renseignés', evol: prec && variationPeriode(b.moyPas, prec.moyPas) },
-    { lbl: 'Eau / jour', val: b.moyEau.toLocaleString('fr-FR') + ' ml',
+      sous: b.protParKg == null ? '' : (b.protParKg >= 1.6 ? 'Suffisant pour le muscle' : 'Vise au moins 1,6 g/kg'), evol: prec && variationPeriode(b.protParKg, prec.protParKg) },
+    { lbl: 'Eau / jour', val: nombreFr(b.moyEau / 1000, 1) + ' L',
       cls: b.moyEau >= b.moyEauObjectif ? 'pos' : '',
-      sous: 'Objectif moyen sur la période : ' + b.moyEauObjectif.toLocaleString('fr-FR') + ' ml/jour', evol: prec && variationPeriode(b.moyEau, prec.moyEau) }
+      sous: 'Objectif ' + nombreFr(b.moyEauObjectif / 1000, 1) + ' L', evol: prec && variationPeriode(b.moyEau, prec.moyEau) }
   ];
+  if (b.joursRemplis < b.jours * 0.6) cartes.push({ lbl: 'Jours notés', val: b.joursRemplis + ' / ' + b.jours, large: true, cls: 'att',
+    sous: 'Beaucoup de jours sans repas noté : les moyennes sont fragiles.' });
 
   g.innerHTML = '';
   cartes.forEach(c => {
     const el = document.createElement('div');
-    el.className = 'cle';
+    el.className = 'cle' + (c.large ? ' large' : '');
     const l = document.createElement('div'); l.className = 'cle-lbl'; l.textContent = c.lbl;
     const v = document.createElement('div'); v.className = 'cle-val' + (c.cls ? ' ' + c.cls : ''); v.textContent = c.val;
     el.appendChild(l); el.appendChild(v);
@@ -9952,14 +10115,17 @@ function appliquerPeriodeStats() {
 function rendrePeriodesStats() {
   const c = document.getElementById('stats-periode');
   if (c && !c.children.length) {
-    c.innerHTML = PERIODES_STATS.map(p => `<button type="button" onclick="choisirPeriodeStats(${argJs(p[0])})" aria-pressed="false">${p[1]}</button>`).join('');
+    c.innerHTML = PERIODES_STATS.map(p => `<button type="button" onclick="choisirPeriodeStats(${argJs(p[0])})" aria-pressed="false">${LIBELLES_PERIODE[p[0]]}</button>`).join('');
   }
   if (c) [...c.children].forEach((btn, i) => btn.setAttribute('aria-pressed', String(PERIODES_STATS[i][0] === periodeStats)));
+  const lib = document.getElementById('pg-periode-lib');
+  if (lib) lib.textContent = LIBELLES_PERIODE[periodeStats];
   const bloc = document.getElementById('periode-poids-bloc');
   if (bloc) bloc.classList.toggle('hidden', periodeStats !== 'perso');
 }
 function choisirPeriodeStats(cle) {
   periodeStats = cle;
+  basculerMenuPeriode(false);
   try { localStorage.setItem(STATS_PERIODE_LS, cle); } catch (e) {}
   appliquerPeriodeStats();
   majToutesStats();
@@ -9969,6 +10135,8 @@ function majToutesStats() {
   mettreAJourStatsNutrition();
   mettreAJourStatsMuscu();
   renderStatsCardio();
+  renderExtrasCardio();
+  renderResumeProgres();
 }
 /* Dates de la période pour la musculation (ISO). */
 function bornesMuscuIso() {
@@ -9983,34 +10151,33 @@ function bornesMuscuIso() {
    mettreAJourStats()/mettreAJourStatsNutrition()/mettreAJourStatsMuscu()).
    Le premier onglet (Poids) est actif par défaut à l'entrée sur l'écran
    (classe stats-tab-actif posée directement dans le HTML). */
-const TITRES_STATS = { poids: 'Poids et composition', nutrition: 'Ma nutrition', activite: 'Mes stats cardio', muscu: 'Mes stats muscu' };
+const ONGLETS_STATS = ['resume', 'poids', 'nutrition', 'activite', 'muscu'];
 function choisirOngletStats(nom) {
+  if (!ONGLETS_STATS.includes(nom)) nom = 'resume';
   document.querySelectorAll('#ecran-stats .stats-tab').forEach(t => {
     t.classList.toggle('stats-tab-actif', t.dataset.tab === nom);
   });
-  majSegment('stats-onglets-nav', ['poids', 'nutrition', 'activite', 'muscu'], nom);
+  majSegment('stats-onglets-nav', ONGLETS_STATS, nom);
   majBoutonPlus();
-  const titre = document.getElementById('stats-titre');
-  if (titre) titre.textContent = TITRES_STATS[nom] || 'Statistiques';
-  // Le bilan IA couvre toute la période (nutrition, poids, activité,
-  // muscu) : il vit dans la fenêtre Nutrition.
-  const bilan = document.querySelector('#ecran-stats .stats-bilan');
-  if (bilan) bilan.classList.toggle('hidden', nom !== 'nutrition');
+  // Les graphiques d'un onglet masqué n'ont pas de taille : recalés à l'arrivée.
+  if (typeof Chart !== 'undefined' && Chart.getChart) {
+    const t = document.querySelector(`#ecran-stats .stats-tab[data-tab="${nom}"]`);
+    // Redessin immédiat (sans animation) : une animation lancée pendant que
+    // l'onglet était masqué peut avoir laissé une image figée en cours de route.
+    if (t) t.querySelectorAll('canvas').forEach(cv => { const ch = Chart.getChart(cv); if (ch) requestAnimationFrame(() => { try { ch.resize(); ch.update('none'); } catch (err) {} }); });
+  }
 }
 /* Ouvre Progrès sur une catégorie (depuis sa carte ou l'onglet). */
-function ouvrirStats(onglet, avecCategories) {
+function ouvrirStats(onglet) {
   allerA('stats');
   choisirOngletStats(onglet);
-  // Ouvert depuis une carte : une seule catégorie. Depuis l'onglet Progrès :
-  // les quatre catégories, au choix.
-  const nav = document.getElementById('stats-onglets-nav');
-  if (nav) nav.classList.toggle('hidden', !avecCategories);
 }
-function ouvrirProgres() { ouvrirStats('poids', true); }
+function ouvrirProgres() { ouvrirStats('resume'); }
 /* Repas du jour › une macro du résumé : ouvre le détail Nutrition sur le
    graphique de cette macro, mis en évidence un instant. */
 function ouvrirMacro(cle) {
   ouvrirStats('nutrition');
+  choisirSerieNutrition(cle);
   setTimeout(() => {
     const bloc = document.getElementById('macro-stat-' + cle);
     if (!bloc) return;
@@ -10021,19 +10188,13 @@ function ouvrirMacro(cle) {
 }
 /* Résumé des calories (Repas du jour) › détail Nutrition, dépense du jour en haut. */
 function ouvrirDepense() {
-  ouvrirStats('nutrition');
-  window.scrollTo(0, 0);
-  const b = document.getElementById('bloc-depense');
-  if (b) { b.classList.remove('macro-stat--vise'); void b.offsetWidth; b.classList.add('macro-stat--vise'); }
+  ouvrirModal('depense-modal');
 }
 // Deuxième niveau d'onglets, à l'intérieur de l'onglet Musculation (voir
 // commentaire sur .stats-soustab dans le CSS) : classe différente de
 // .stats-tab pour ne pas être recapturée par choisirOngletStats ci-dessus.
 function choisirSousOngletMuscu(nom) {
-  document.querySelectorAll('#ecran-stats .stats-soustab').forEach(t => {
-    t.classList.toggle('stats-soustab-actif', t.dataset.soustab === nom);
-  });
-  majSegment('muscu-soustabs-nav', ['semaine', 'progression', 'seances', 'programmes'], nom);
+  ouvrirRepliMuscu(nom === 'programmes' ? 'seances' : nom);
 }
 
 /* Les curseurs émettent « input » à chaque pixel. Sans temporisation, glisser
@@ -10079,13 +10240,14 @@ function mettreAJourStats() {
       const d = new Date(dateIsoPourIndexStats(idx) + 'T12:00:00');
       return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', ...(d.getFullYear() !== new Date().getFullYear() ? { year: 'numeric' } : {}) });
     };
-    resume.textContent = `Du ${jour(s)} au ${jour(e)} · ${n === 1 ? '1 jour' : n + ' jours'}`
-      + (periodeStats === 'tout' ? ' (séances : tout l’historique)' : '');
+    resume.textContent = `${jour(s)} → ${jour(e)} · `
+      + (periodeStats === 'tout' ? 'tout l’historique' : n === 1 ? 'comparé à la veille' : `comparé aux ${n} jours d’avant`);
   }
 
   // Les chiffres clés ne coûtent rien à recalculer : pas besoin d'attendre
   // le rendu des graphiques, ni que l'écran soit visible.
   afficherChiffresClesPoids(s, e);
+  renderExtrasCorps(s, e);
   clearTimeout(statsTimer);
   /* Chart.js dessine dans un canvas de taille nulle quand l'ecran est masque :
      les courbes revenaient vides au retour sur l'onglet. */
@@ -10101,6 +10263,7 @@ function mettreAJourStatsNutrition() {
   // Même logique que pour Poids : les chiffres clés ne coûtent rien à
   // recalculer, pas besoin d'attendre le rendu des graphiques.
   afficherChiffresClesNutrition(s, e);
+  renderExtrasNutrition(s, e);
   clearTimeout(statsNutritionTimer);
   const ecran = document.getElementById('ecran-stats');
   if (!ecran || !ecran.classList.contains('actif')) return;
@@ -10453,7 +10616,7 @@ function renderChartsNutrition(s, e) {
       // que de tracer un trait droit qui laisserait croire à une saisie.
       { label: 'Consommées', data: globalMasterConsumed.slice(s, e + 1), borderColor: cPrimaire, backgroundColor: 'rgba(0,200,120,0.14)', tension: 0.35, fill: true, pointRadius: 0, borderWidth: 2, spanGaps: false },
       { label: 'Objectif', data: globalMasterTarget.slice(s, e + 1), borderColor: cAccent, borderDash: [5, 5], tension: 0.35, pointRadius: 0, fill: false, borderWidth: 2, spanGaps: false }
-    ] }, options: optionsGraphiqueBase(p, { avecLegende: true })
+    ] }, options: avecWeekEnds(optionsGraphiqueBase(p, { avecLegende: true }), s, e), plugins: [pluginWeekEnds]
   });
   // Une macro par graphique : empilées, les trois se lisaient mal et sans
   // objectif. Ici la quantité du jour en aire pleine, l'objectif du jour en
@@ -10470,7 +10633,7 @@ function renderChartsNutrition(s, e) {
       data: { labels, datasets: [
         { label: nom + ' (g)', data: valeurs.slice(s, e + 1), borderColor: couleur, backgroundColor: couleurAlpha(couleur, 0.16), tension: 0.35, fill: true, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2, spanGaps: false },
         { label: 'Objectif', data: cibles.slice(s, e + 1), borderColor: p.texte, borderDash: [5, 5], tension: 0.35, pointRadius: 0, fill: false, borderWidth: 2, spanGaps: false }
-      ] }, options: optionsGraphiqueBase(p, { avecLegende: true })
+      ] }, options: avecWeekEnds(optionsGraphiqueBase(p, { avecLegende: true }), s, e), plugins: [pluginWeekEnds]
     });
   });
   // Même traitement visuel que le graphique Calories juste au-dessus : une
@@ -10493,31 +10656,10 @@ function renderChartsNutrition(s, e) {
     data: { labels, datasets: [
       { label: 'Eau bue', data: globalMasterEauBue.slice(s, e + 1), borderColor: cPrimaire, backgroundColor: 'rgba(0,200,120,0.14)', tension: 0.35, fill: true, pointRadius: 0, borderWidth: 2, spanGaps: false },
       { label: 'Objectif', data: globalMasterEauObjectif.slice(s, e + 1), borderColor: cAccent, borderDash: [5, 5], tension: 0.35, pointRadius: 0, fill: false, borderWidth: 2 }
-    ] }, options: optionsGraphiqueBase(p, { avecLegende: true })
+    ] }, options: avecWeekEnds(optionsGraphiqueBase(p, { avecLegende: true }), s, e), plugins: [pluginWeekEnds]
   });
 
-  if (workoutChartInstance) workoutChartInstance.destroy();
-
-  const clesSport = Object.keys(SPORT_LABELS);
-  const workoutDatasets = clesSport.map((sportKey, i) => {
-    return {
-      label: SPORT_LABELS[sportKey],
-      data: globalMasterWorkoutData[sportKey].slice(s, e + 1),
-      backgroundColor: SPORT_COLORS[sportKey] || '#ffffff',
-      borderRadius: rayonPileBarres(i, clesSport.length, 5), borderSkipped: false
-    };
-  });
-
-  workoutChartInstance = new Chart(document.getElementById('workoutChart'), {
-    type: 'bar',
-    data: { labels, datasets: workoutDatasets },
-    options: Object.assign({}, optionsGraphiqueBase(p, { avecLegende: true }), {
-      scales: Object.assign({}, baseOpts.scales, {
-        x: Object.assign({ stacked: true }, baseOpts.scales.x),
-        y: Object.assign({ stacked: true }, baseOpts.scales.y)
-      })
-    })
-  });
+  if (workoutChartInstance) { workoutChartInstance.destroy(); workoutChartInstance = null; }
 }
 
 function majNoteCompo(s, e) {
@@ -10525,6 +10667,8 @@ function majNoteCompo(s, e) {
   if (!n) return;
   const nb = globalMasterGrasse.slice(s, e + 1).filter(v => v != null).length;
   n.classList.toggle('toujours-visible', !nb);
+  const g = document.getElementById('compo-grille');
+  if (g) g.classList.toggle('hidden', !nb);
   n.textContent = nb
     ? "Composition globale (corps entier) mesurée par ta balance ou saisie à la main, tout en % du poids (muscle et os, donnés en kg par Withings, sont convertis par rapport au poids du jour)."
     : "Aucune composition corporelle enregistrée sur cette période. Ajoute-en une depuis ton Profil (ou importe ta pesée Withings).";
@@ -11028,8 +11172,8 @@ const TOUR_ETAPES = [
   { ecran: 'seance', cible: '#carte-pas-seances', titre: 'Tes pas', texte: "En bas de l'écran Activité : note tes pas du jour. La jauge montre où tu en es (7 500 pas, c'est le repère santé), et le surplus compte dans ta dépense." },
   { ecran: 'seance', cible: '#seance-mode-nav', titre: 'Musculation ou cardio', texte: "Bascule entre tes séances de musculation et ton cardio : course, vélo, natation, marche, rameur, HIIT, sport co." },
   { ecran: 'seance', modeCardio: true, cible: '#seance-cardio .hx--cardio', titre: 'Ta semaine de cardio', texte: "L'objectif conseillé : 150 à 300 min par semaine, une minute intense comptant double. La jauge montre où tu en es, la barre en dessous ta répartition facile / modérée / intense. Ajoute une séance avec le bouton juste en dessous : durée, distance, intensité." },
-  { ecran: 'stats', avant: () => { ouvrirStats('nutrition'); }, cible: '#stats-periode', titre: 'Le détail d’une carte', texte: "Chaque carte de stats ouvre son détail. Choisis la période : 7 jours, 30 jours, 3 mois… ou « Perso » pour la régler aux curseurs. En Nutrition, le bilan IA l'analyse en entier. « ‹ Retour » te ramène où tu étais." },
-  { ecran: 'stats', avant: () => { ouvrirStats('nutrition'); }, cible: '#carte-bilan-jour', titre: 'Bilan de la journée', texte: "Dans Ma nutrition, sous ta dépense du jour : une analyse de ta journée par l'IA (nutrition, activité et séance du jour)." },
+  { ecran: 'stats', avant: () => { ouvrirStats('resume'); }, cible: '#pg-periode-btn', titre: 'Ta progression', texte: "Le Résumé dit en une phrase où tu en es : ta courbe de poids, ta maintenance réelle, ce qui a bougé. Choisis la période ici (7 jours, 30 jours, 3 mois… ou « Perso »). Corps, Repas, Cardio et Muscu donnent le détail." },
+  { ecran: 'repas', cible: '#ecran-repas .summary-card', titre: 'Bilan de la journée', texte: "Touche le résumé des calories : ta dépense du jour en détail, et une analyse de ta journée par l'IA (nutrition, activité et séance du jour)." },
   { ecran: 'repas', cible: '#moi-entete', titre: 'Ton profil', texte: 'Touche ta photo ou ton nom d’utilisateur, en haut : ton compte, ton objectif, tes informations et tes mesures corporelles.' },
   { ecran: 'reglages', cible: '#vitrine-profil .niveau', titre: 'Ton niveau', texte: "Chaque séance de muscu (+40 XP), de cardio (+25) et chaque journée notée (+10) te fait monter de niveau. Les badges se débloquent avec ta régularité." },
   { ecran: 'reglages', cible: '#vitrine-profil .carte-objectifs', titre: 'Ton objectif', texte: "Maintien, sèche, prise de masse ou recomposition : il règle tes calories et tes macros. En changer ne réécrit jamais ton historique." },
@@ -11079,7 +11223,7 @@ const TOUR_MUSCU = [
     texte: () => "Ta dernière série faite, touche « Terminer la séance » : elle rejoint ton historique avec tes records (1RM, charge, volume, répétitions) et compte dans la dépense de ta journée."
       + (musculationSessionActive && musculationSessionActive.demo ? " Ici, rien n'est enregistré : la démonstration se ferme à l'étape suivante." : '') },
   // C. Après la séance
-  { ecran: 'stats', avant: () => { ouvrirStats('muscu'); }, cible: '#muscu-soustabs-nav', titre: 'Le détail muscu', texte: "Semaine (jauges et corps de la semaine, 8 dernières semaines), Progression (courbe, records et niveau de force par exercice), Séances (historique) et Programmes." },
+  { ecran: 'stats', avant: () => { ouvrirStats('muscu'); }, cible: '#pg-grille-muscu', titre: 'Le détail muscu', texte: "Ta force exercice par exercice, puis tes séries par muscle sur 8 semaines (touche une case pour son détail). En dessous : la semaine muscle par muscle, la progression par exercice, tes séances et programmes." },
   { titre: 'Bon entraînement !', texte: "Tu peux revoir cette visite à tout moment depuis Profil › Réglages." }
 ];
 let tourListe = TOUR_ETAPES;
@@ -14814,6 +14958,7 @@ async function importerPoidsWithings() {
     document.getElementById('mes-muscle-kg').value = existante.muscleKg ?? '';
     document.getElementById('mes-os-kg').value = existante.osKg ?? '';
     document.getElementById('mes-eau-pct').value = existante.eauPct ?? '';
+    remplirChampsMensurations(existante);
 
     document.getElementById('mes-poids').value = Math.round(valeurMesureWithings(mesurePoids) * 10) / 10;
 
@@ -17694,6 +17839,8 @@ function renderStatsMuscu(dateDebut, dateFin) {
     precedent = musculationHistorique.filter(h => h.date >= debutPrec && h.date <= finPrec);
   }
   renderStatsTotauxMuscu(historiqueFiltre, 'muscu-stats-totaux', precedent, jours);
+  renderForceProgres('pg-force', historiqueFiltre, precedent);
+  renderGrilleMuscu('pg-grille-muscu');
   renderChartSeancesParMois(historiqueFiltre, 'muscuParMoisChart', 'muscuParMoisChartInstance', dateDebut, dateFin);
   initialiserSelectProgression(historiqueFiltre, 'muscu-exo-select', 'muscu-progression-vide');
   renderStatsRecordsMuscu(historiqueFiltre, 'muscu-stats-records');
@@ -17820,8 +17967,7 @@ function renderZonesMuscu(idCible) {
 
   let html = `<div class="titre-section">Cette semaine · ${fmt(lundi)} – ${fmt(decalerJours(lundi, 6))}</div>
     <p class="note" style="margin:0 0 6px;">Seules les séries de travail comptent (proches de l'échec) : 1 pour le muscle principal de l'exercice, 0,5 pour ses muscles secondaires. Les séries marquées « Échauffement » et celles trop légères par rapport à ton 1RM récent (plus de ${RIR_MAX_SERIE_TRAVAIL} répétitions en réserve estimées) sont ignorées.</p>
-    ${corpsSVG(couleursZones(semaine), 'Zone atteinte par chaque muscle cette semaine')}
-    <div style="height:12px;"></div>`;
+`;
   html += actifs.length
     ? actifs.map(g => ligneZoneHTML(g, semaine[g]) + detailFaisceauxHTML(g, faisceaux)).join('')
     : '<p class="note">Aucune série faite cette semaine pour l\'instant.</p>';
@@ -17835,27 +17981,6 @@ function renderZonesMuscu(idCible) {
     ${legendeZonesHTML()}
     <button type="button" class="btn btn-secondaire" style="margin:4px 0 14px;" onclick="ouvrirReglagesMuscu('zones')">${userProfile.zonesPerso ? 'Modifier mes zones personnalisées' : 'Personnaliser les zones par muscle'}</button>`;
 
-  // Tableau des 8 dernières semaines : zone + nombre de séries par muscle.
-  const semaines = [];
-  for (let i = 0; i < 8; i++) semaines.push(decalerJours(lundi, -7 * i));
-  const parSemaine = semaines.map(l => seriesSemaine(l, false));
-  const lignes = groupes.filter(g => parSemaine.some(s => s[g] > 0));
-  if (lignes.length) {
-    // Grille : une ligne par muscle, une case par semaine (la plus ancienne à
-    // gauche), colorée selon la zone, avec le nombre de séries.
-    const chrono = semaines.slice().reverse(), parChrono = parSemaine.slice().reverse();
-    html += `<div class="titre-section">Semaine par semaine</div>
-      <div class="zones-grille" role="table" aria-label="Zone de chaque muscle sur les 8 dernières semaines">
-        <div class="zones-grille-ligne zones-grille-tete" role="row"><span role="columnheader">Muscle</span>${chrono.map((l, i) => `<span role="columnheader">${i === chrono.length - 1 ? 'Sem.' : fmt(l).split(' ')[0]}</span>`).join('')}</div>
-        ${lignes.map(g => `<div class="zones-grille-ligne" role="row"><span role="rowheader">${escapeHtml(GROUPES_MUSCULAIRES[g])}</span>${parChrono.map((s, i) => {
-          const n = s[g] || 0;
-          if (!n) return `<i class="zones-case vide" role="cell" aria-label="${escapeHtml(fmt(chrono[i]))} : aucune série"></i>`;
-          const z = cleZoneVolume(g, n), info = ZONES_INFO[z];
-          return `<i class="zones-case zones-case--${z}" role="cell" style="background:${info.couleur}" title="Semaine du ${escapeHtml(fmt(chrono[i]))} : ${escapeHtml(info.nom)}, ${formatSeries(n)} séries" aria-label="Semaine du ${escapeHtml(fmt(chrono[i]))} : ${escapeHtml(info.nom)}, ${formatSeries(n)} séries">${formatSeries(n)}</i>`;
-        }).join('')}</div>`).join('')}
-        <div class="zones-grille-legende">${ORDRE_ZONES.map(k => `<span><i style="background:${ZONES_INFO[k].couleur}"></i>${escapeHtml(ZONES_INFO[k].nom)}</span>`).join('')}</div>
-      </div>`;
-  }
   c.innerHTML = html;
 }
 
@@ -17911,6 +18036,16 @@ function renderStatsTotauxMuscu(historique, idCible, precedent, jours) {
       : ['4 dernières semaines', seancesRecentes + ' séance(s)', null],
     ['Dernière séance', historique[0] ? formatDateDisplay(historique[0].date) : '—', null]
   ];
+  if (idCible === 'muscu-stats-totaux') {
+    const f = evolutionForce(historique, precedent);
+    const vol = t.volume >= 1000 ? nombreFr(Math.round(t.volume / 100) / 10) + ' t' : Math.round(t.volume).toLocaleString('fr-FR') + ' kg';
+    const ev = (a, b) => { if (!p || b == null) return ''; const d = a - b; return d === 0 ? '' : `<div class="cle-evol ${d > 0 ? 'hausse' : 'baisse'}">${d > 0 ? '↗ +' : '↘ −'}${Math.abs(d)}</div>`; };
+    const pctVol = p && p.volume > 0 ? Math.round((t.volume - p.volume) / p.volume * 100) : null;
+    c.innerHTML = `<div><small>Séances</small><div class="stats-valeur">${t.seances}</div>${ev(t.seances, p && p.seances)}</div>`
+      + `<div><small>Volume</small><div class="stats-valeur">${vol}</div>${pctVol ? `<div class="cle-evol ${pctVol > 0 ? 'hausse' : 'baisse'}">${pctVol > 0 ? '↗ +' : '↘ −'}${Math.abs(pctVol)} %</div>` : ''}</div>`
+      + `<div><small>Force</small><div class="stats-valeur">${texteForce(f)}</div><div class="cle-evol ${f ? (f.pct >= 0 ? 'hausse' : 'baisse') : 'eq'}">${f ? '1RM est. moyen' : 'à comparer'}</div></div>`;
+    return;
+  }
   c.innerHTML = cellules.map(([l, v, ev]) => `<div><small>${l}</small><div class="stats-valeur">${v}</div>${ev ? `<div class="cle-evol ${ev.cls}">${ev.txt}</div>` : ''}</div>`).join('');
 }
 
@@ -20493,7 +20628,7 @@ function enregistrerProfilMuscu() {
   // Tout ce qui affiche des jauges se redessine avec les nouveaux seuils.
   if (musculationSessionActive) renderSessionModal();
   const ecran = document.getElementById('ecran-stats');
-  if (ecran && ecran.classList.contains('actif')) renderZonesMuscu('muscu-zones-container');
+  if (ecran && ecran.classList.contains('actif')) { renderZonesMuscu('muscu-zones-container'); renderGrilleMuscu('pg-grille-muscu'); }
 }
 function modifierDemandeRir(oui) {
   if (oui) delete userProfile.demanderRir; else userProfile.demanderRir = false;
@@ -21080,7 +21215,7 @@ function verifierTrophees() {
    cardio, séance) ; Profil → une mesure. */
 function categorieStatsActive() {
   const t = document.querySelector('#ecran-stats .stats-tab.stats-tab-actif');
-  return t ? t.dataset.tab : 'poids';
+  return t ? t.dataset.tab : 'resume';
 }
 function actionPlus() {
   const e = ecranActif;
@@ -21105,7 +21240,7 @@ function majBoutonPlus() {
   if (!b) return;
   let l = LIBELLES_PLUS[ecranActif] || LIBELLES_PLUS.repas;
   if (ecranActif === 'seance') l = musculationSessionActive ? 'Ajouter un exercice' : modeSeance === 'cardio' ? 'Noter une séance cardio' : 'Lancer une séance';
-  if (ecranActif === 'stats') l = { poids: 'Noter une pesée', nutrition: 'Ajouter à un repas', activite: 'Noter une séance cardio', muscu: 'Lancer une séance' }[categorieStatsActive()] || 'Ajouter';
+  if (ecranActif === 'stats') l = { resume: 'Ajouter à un repas', poids: 'Noter une mesure', nutrition: 'Ajouter à un repas', activite: 'Noter une séance cardio', muscu: 'Lancer une séance' }[categorieStatsActive()] || 'Ajouter';
   b.setAttribute('aria-label', l);
   b.title = l;
 }
@@ -21138,7 +21273,9 @@ const SAISIES_RAPIDES = {
   pas: { titre: 'Pas du jour', unite: 'pas', pas: 500, dec: 0, note: 'Le nombre affiché par ton téléphone ou ta montre.',
     depart: () => Number(getDay(currentDate).steps) || 0 },
   eau: { titre: 'Eau bue', unite: 'ml', pas: 50, dec: 0, note: 'Ajouté à ce que tu as déjà bu aujourd’hui.',
-    depart: () => 330 }
+    depart: () => 330 },
+  poidsVise: { titre: 'Poids visé', unite: 'kg', pas: 0.5, dec: 1, note: 'Le poids que tu veux atteindre : Progrès te dira quand, à ton rythme. 0 pour l’effacer.',
+    depart: () => poidsVise() || Math.round(dernierPoidsConnu(todayStr()) || 70) }
 };
 let saisieRapide = null;
 function ouvrirSaisieRapide(mode) {
@@ -21171,6 +21308,12 @@ function validerSaisieRapide() {
     renderJaugePas(Math.round(v));
   } else if (saisieRapide === 'eau' && v > 0) {
     ajouterEau(Math.round(v));
+  } else if (saisieRapide === 'poidsVise') {
+    userProfile.poidsVise = v > 0 ? Math.round(v * 10) / 10 : null;
+    saveData();
+    fermerFeuilles();
+    if (ecranActif === 'stats') majToutesStats();
+    return;
   }
   fermerFeuilles();
   renderApp();
@@ -21246,6 +21389,591 @@ function iconeAliment(nom) {
   const t = ICONES_ALIMENTS.find(([re]) => re.test(n));
   return t ? t[1] : null;
 }
+/* =====================================================================
+   PROGRÈS — période en pastille, onglet Résumé, constats, force,
+   maintenance réelle, régularité. Tout se calcule sur ce que l'appli
+   enregistre déjà (pesées, repas, séries, séances cardio, mensurations).
+   ===================================================================== */
+const LIBELLES_PERIODE = { '7': '7 jours', '30': '30 jours', '90': '3 mois', '180': '6 mois', '365': '1 an', tout: 'Tout', perso: 'Perso' };
+function basculerMenuPeriode(ouvrir) {
+  const m = document.getElementById('pg-periode-menu'), b = document.getElementById('pg-periode-btn');
+  if (!m || !b) return;
+  const o = ouvrir === undefined ? m.classList.contains('hidden') : !!ouvrir;
+  m.classList.toggle('hidden', !o);
+  b.setAttribute('aria-expanded', String(o));
+}
+document.addEventListener('click', e => {
+  if (e.target.closest && !e.target.closest('.pg-periode-zone')) basculerMenuPeriode(false);
+});
+
+/* Bulle d'explication au toucher (cases de la grille des muscles, points
+   des mini-graphiques) : le texte vient de l'aria-label ou de data-bulle. */
+function afficherBulleProgres(cible, texte) {
+  if (!texte) return;
+  let b = document.getElementById('pg-bulle');
+  if (!b) { b = document.createElement('div'); b.id = 'pg-bulle'; b.className = 'pg-bulle'; b.setAttribute('role', 'status'); document.body.appendChild(b); }
+  b.textContent = texte;
+  b.classList.add('visible');
+  const r = cible.getBoundingClientRect(), bw = b.offsetWidth, bh = b.offsetHeight;
+  b.style.left = Math.max(8, Math.min(innerWidth - bw - 8, r.left + r.width / 2 - bw / 2)) + 'px';
+  b.style.top = (r.top - bh - 8 < 8 ? r.bottom + 8 : r.top - bh - 8) + 'px';
+  clearTimeout(afficherBulleProgres.minuteur);
+  afficherBulleProgres.minuteur = setTimeout(() => b.classList.remove('visible'), 2800);
+}
+document.addEventListener('click', e => {
+  const c = e.target.closest && e.target.closest('#ecran-stats .zones-case:not(.vide), #ecran-stats [data-bulle]');
+  if (c) afficherBulleProgres(c, c.dataset.bulle || c.getAttribute('aria-label'));
+});
+window.addEventListener('scroll', () => { const b = document.getElementById('pg-bulle'); if (b) b.classList.remove('visible'); }, { passive: true });
+
+/* --- Petits dessins SVG (tuiles, anneaux) --- */
+function pgSpark(vals, coul) {
+  const v = vals.filter(x => x != null && Number.isFinite(x));
+  if (v.length < 2) return '';
+  const w = 150, h = 34, mn = Math.min(...v), mx = Math.max(...v), dx = w / (v.length - 1);
+  const d = v.map((y, i) => (i ? 'L' : 'M') + (i * dx).toFixed(1) + ' ' + (h - 3 - (y - mn) / ((mx - mn) || 1) * (h - 8)).toFixed(1)).join(' ');
+  return `<svg class="pg-mini" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><path d="${d} L${w} ${h} L0 ${h}Z" fill="${coul}" opacity=".13"/><path d="${d}" fill="none" stroke="${coul}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+function pgBarres(vals, coul, objectif) {
+  if (!vals.length) return '';
+  const w = 150, h = 34, mx = Math.max(...vals, objectif || 0, 1), bw = w / vals.length;
+  const barres = vals.map((v, i) => `<rect x="${(i * bw + 2).toFixed(1)}" y="${(h - v / mx * (h - 2)).toFixed(1)}" width="${Math.max(2, bw - 4).toFixed(1)}" height="${(v / mx * (h - 2)).toFixed(1)}" rx="2.5" fill="${coul}" opacity="${i === vals.length - 1 ? 1 : 0.45}"/>`).join('');
+  const ligne = objectif ? `<line x1="0" x2="${w}" y1="${(h - objectif / mx * (h - 2)).toFixed(1)}" y2="${(h - objectif / mx * (h - 2)).toFixed(1)}" stroke="currentColor" stroke-dasharray="3 3" stroke-width="1" vector-effect="non-scaling-stroke" opacity=".55"/>` : '';
+  return `<svg class="pg-mini" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">${barres}${ligne}</svg>`;
+}
+function pgJauge(v, objectif, coul) {
+  const r = objectif > 0 ? Math.max(0, Math.min(1, v / objectif)) : 0;
+  return `<div class="pg-jauge" aria-hidden="true"><i style="width:${(r * 100).toFixed(1)}%;background:${coul}"></i></div>`;
+}
+function pgAnneau(ratio, coul, texte) {
+  const r = 31, c = 2 * Math.PI * r, v = Math.max(0, Math.min(1, ratio || 0));
+  return `<svg class="pg-anneau" viewBox="0 0 74 74" aria-hidden="true"><circle cx="37" cy="37" r="${r}" fill="none" stroke="var(--piste)" stroke-width="8"/><circle cx="37" cy="37" r="${r}" fill="none" stroke="${coul}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${(c * v).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 37 37)"/><text x="37" y="41" text-anchor="middle">${escapeHtml(texte)}</text></svg>`;
+}
+function pgTuile({ titre, valeur, unite, evol, evolCls, dessin, onglet }) {
+  const ouvrir = onglet ? ` role="button" tabindex="0" onclick="choisirOngletStats('${onglet}')" onkeydown="if(event.key==='Enter')this.click()" aria-label="${escapeHtml(titre)} : voir le détail"` : '';
+  return `<div class="pg-tuile${onglet ? ' pg-tuile--lien' : ''}"${ouvrir}>${onglet ? '<span class="pg-chev" aria-hidden="true">›</span>' : ''}<small>${escapeHtml(titre)}</small><b>${valeur}${unite ? `<i>${escapeHtml(unite)}</i>` : ''}</b>${evol ? `<div class="pg-ev ${evolCls || ''}">${evol}</div>` : ''}${dessin || ''}</div>`;
+}
+
+/* --- Calculs de la période --- */
+function dateCourtePg(iso, avecAnnee) {
+  const d = new Date(iso + 'T12:00:00');
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', ...(avecAnnee || d.getFullYear() !== new Date().getFullYear() ? { year: 'numeric' } : {}) });
+}
+/* Séances de musculation de la période, et celles de la période d'avant de
+   même durée (null pour « Tout »). */
+function seancesMuscuPeriode() {
+  const { debut, fin } = bornesMuscuIso();
+  const seances = musculationHistorique.filter(h => h.date >= debut && h.date <= fin);
+  let avant = null;
+  if (debut > '0001') {
+    const jours = Math.round((new Date(fin + 'T12:00:00') - new Date(debut + 'T12:00:00')) / 86400000) + 1;
+    const debutPrec = shiftDate(debut, -jours), finPrec = shiftDate(debut, -1);
+    avant = musculationHistorique.filter(h => h.date >= debutPrec && h.date <= finPrec);
+  }
+  return { debut, fin, seances, avant };
+}
+/* Évolution moyenne du 1RM estimé, exercice par exercice, entre la période
+   d'avant et celle-ci (seuls les exercices faits dans les deux comptent). */
+function evolutionForce(seances, avant) {
+  if (!avant || !avant.length || !seances.length) return null;
+  const ids = [...new Set(seances.flatMap(h => (h.exercices || []).map(e => e.exerciceId)))];
+  const pcts = ids.map(id => {
+    const b = meilleur1RM(id, seances), a = meilleur1RM(id, avant);
+    return b && a && a.valeur > 0 ? (b.valeur - a.valeur) / a.valeur : null;
+  }).filter(v => v != null && Math.abs(v) < 0.5);
+  if (!pcts.length) return null;
+  return { pct: pcts.reduce((x, y) => x + y, 0) / pcts.length, n: pcts.length };
+}
+function texteForce(f) {
+  if (!f) return '—';
+  const p = Math.round(f.pct * 100);
+  return (p > 0 ? '+' : p < 0 ? '−' : '') + Math.abs(p) + ' %';
+}
+/* Records : exercices dont le meilleur 1RM estimé de la période dépasse
+   tout ce qui avait été fait avant. */
+function recordsPeriode(seances, debut) {
+  const avant = musculationHistorique.filter(h => h.date < debut);
+  const ids = [...new Set(seances.flatMap(h => (h.exercices || []).map(e => e.exerciceId)))];
+  return ids.map(id => {
+    const b = meilleur1RM(id, seances), a = meilleur1RM(id, avant);
+    return b && a && b.valeur > a.valeur ? { id, b } : null;
+  }).filter(Boolean).sort((x, y) => y.b.valeur - x.b.valeur);
+}
+/* Lundis couverts par la période (8 au plus, les plus récents). */
+function lundisPeriode(debut, fin, max) {
+  const l = [];
+  let cur = lundiDe(fin);
+  const premier = lundiDe(debut);
+  while (cur >= premier && l.length < (max || 8)) { l.unshift(cur); cur = shiftDate(cur, -7); }
+  return l;
+}
+/* Maintenance réelle : ce que tu manges en moyenne, corrigé de ce que ta
+   tendance de poids a fait pendant ce temps (1 kg ≈ KCAL_PAR_KG kcal). */
+const MAINTENANCE_JOURS_MIN = 14, MAINTENANCE_REPAS_MIN = 10, MAINTENANCE_PESEES_MIN = 4;
+function maintenanceReelle(s, e) {
+  const lisse = moyenneGlissante(globalMasterWeight, 7);
+  let i0 = -1, i1 = -1;
+  for (let i = s; i <= e; i++) if (lisse[i] != null) { if (i0 < 0) i0 = i; i1 = i; }
+  const pesees = globalMasterWeight.slice(s, e + 1).filter(v => v != null).length;
+  const span = i0 >= 0 ? i1 - i0 : 0;
+  const remplis = [];
+  if (i0 >= 0) for (let i = i0; i <= i1; i++) if (globalMasterRempli[i]) remplis.push(i);
+  if (span < MAINTENANCE_JOURS_MIN || remplis.length < MAINTENANCE_REPAS_MIN || pesees < MAINTENANCE_PESEES_MIN) {
+    return { manque: Math.max(MAINTENANCE_JOURS_MIN - span, MAINTENANCE_REPAS_MIN - remplis.length, 0), pesees };
+  }
+  const moyConso = remplis.reduce((t, i) => t + globalMasterConsumed[i], 0) / remplis.length;
+  const kcal = moyConso - (lisse[i1] - lisse[i0]) * KCAL_PAR_KG / span;
+  return { kcal: Math.round(kcal / 10) * 10, moyConso: Math.round(moyConso), jours: span };
+}
+/* Séries de jours : jours consécutifs avec des repas notés, jusqu'à
+   aujourd'hui (ou hier si aujourd'hui n'est pas encore rempli). */
+function serieJoursNotes() {
+  const r = globalMasterRempli, n = r.length;
+  let i = n - 1;
+  if (i >= 0 && !r[i]) i--;
+  let actuelle = 0;
+  while (i >= 0 && r[i]) { actuelle++; i--; }
+  let record = 0, cur = 0;
+  r.forEach(v => { cur = v ? cur + 1 : 0; record = Math.max(record, cur); });
+  return { actuelle, record };
+}
+function joursAvecSeance(debut, fin) {
+  const jours = new Set();
+  musculationHistorique.forEach(h => { if (h.date >= debut && h.date <= fin) jours.add(h.date); });
+  seancesCardio().forEach(({ date }) => { if (date >= debut && date <= fin) jours.add(date); });
+  return jours;
+}
+/* Moyenne des séries par semaine et par muscle sur la période. */
+function seriesMoyennesPeriode(debut, fin) {
+  const lundis = lundisPeriode(debut, fin, 12);
+  const moy = {};
+  if (!lundis.length) return moy;
+  lundis.map(l => seriesSemaine(l, false)).forEach(sem => Object.keys(sem).forEach(g => { moy[g] = (moy[g] || 0) + (sem[g] || 0); }));
+  Object.keys(moy).forEach(g => { moy[g] /= lundis.length; });
+  return moy;
+}
+const GROUPES_PRINCIPAUX = ['pectoraux', 'dos', 'epaules', 'quadriceps', 'ischios', 'fessiers', 'biceps', 'triceps'];
+/* Week-end contre semaine, sur les jours notés de la période. */
+function ecartWeekEnd(s, e) {
+  const we = [], sem = [];
+  let horsCible = 0, horsCibleWe = 0;
+  for (let i = s; i <= e; i++) {
+    if (!globalMasterRempli[i]) continue;
+    const j = new Date(dateIsoPourIndexStats(i) + 'T12:00:00').getDay();
+    const estWe = j === 0 || j === 6;
+    (estWe ? we : sem).push(globalMasterConsumed[i]);
+    const t = globalMasterTarget[i];
+    if (t > 0 && Math.abs(globalMasterConsumed[i] - t) > t * 0.1) { horsCible++; if (estWe) horsCibleWe++; }
+  }
+  if (we.length < 2 || sem.length < 3) return null;
+  const moy = a => a.reduce((x, y) => x + y, 0) / a.length;
+  return { diff: Math.round(moy(we) - moy(sem)), horsCible, horsCibleWe };
+}
+function poidsVise() {
+  const v = Number(userProfile.poidsVise);
+  return v > 0 ? v : null;
+}
+/* Projection de la tendance vers le poids visé : date, ou situation. */
+function projectionPoids(b) {
+  const vise = poidsVise();
+  if (b.poidsFin == null) return null;
+  const r = b.rythmeSemaine;
+  if (!vise) return { vise: null, r };
+  const reste = vise - b.poidsFin;
+  if (Math.abs(reste) < 0.3) return { vise, atteint: true, r };
+  if (r == null || Math.abs(r) < 0.02) return { vise, reste, stable: true, r };
+  if (Math.sign(r) !== Math.sign(reste)) return { vise, reste, eloigne: true, r };
+  const jours = Math.round(reste / r * 7);
+  return { vise, reste, r, jours, date: shiftDate(todayStr(), jours) };
+}
+function texteProjection(pr, html) {
+  if (!pr) return '';
+  const b = t => html ? `<b>${t}</b>` : t;
+  if (!pr.vise) return '';
+  if (pr.atteint) return `Objectif de ${nombreFr(pr.vise)} kg atteint. Bravo !`;
+  if (pr.eloigne) return `Attention : à ce rythme, tu t'éloignes de ton objectif de ${nombreFr(pr.vise)} kg.`;
+  if (pr.stable) return `Objectif ${nombreFr(pr.vise)} kg : il reste ${nombreFr(Math.abs(pr.reste))} kg.`;
+  if (pr.jours > 730) return `À ce rythme, ton objectif de ${nombreFr(pr.vise)} kg est encore loin (plus de 2 ans).`;
+  return `À ce rythme, objectif ${nombreFr(pr.vise)} kg vers le ${b(dateCourtePg(pr.date))}.`;
+}
+function phrasePeriode(b, f, nbSeances) {
+  const r = b.rythmeSemaine;
+  if (r != null && b.pesees >= 2 && b.poidsRef > 0) {
+    const pct = Math.abs(r) / b.poidsRef * 100, x = nombreFr(Math.max(0.1, Math.abs(r)), 1);
+    const forceOk = f && f.pct >= -0.02, forceHausse = f && f.pct >= 0.02;
+    if (pct < 0.15) return forceHausse ? 'Poids stable et force en hausse : tu progresses.' : 'Ton poids est stable sur la période.';
+    if (r < 0) return f ? (forceOk ? `Tu perds ${x} kg par semaine sans perdre de force.` : `Tu perds ${x} kg par semaine, mais ta force baisse un peu.`) : `Tu perds ${x} kg par semaine.`;
+    return forceHausse ? `Tu prends ${x} kg par semaine et ta force monte.` : `Tu prends ${x} kg par semaine.`;
+  }
+  if (nbSeances || b.joursRemplis) return `${nbSeances} séance${nbSeances > 1 ? 's' : ''} de muscu et ${b.dansLaCible} jour${b.dansLaCible > 1 ? 's' : ''} dans ta cible.`;
+  return 'Note tes repas, tes pesées et tes séances : ta période se résumera ici.';
+}
+/* Courbe du héros : pesées en points, tendance en ligne, projection en
+   pointillés jusqu'au poids visé (ou 4 semaines au rythme actuel). */
+function courbePoidsHeros(s, e, pr) {
+  const lisse = moyenneGlissante(globalMasterWeight, 7);
+  const n = e - s + 1;
+  const pes = [], tend = [];
+  for (let i = s; i <= e; i++) { if (globalMasterWeight[i] != null) pes.push([i - s, globalMasterWeight[i]]); if (lisse[i] != null) tend.push([i - s, lisse[i]]); }
+  if (tend.length < 2) return '';
+  const der = tend[tend.length - 1];
+  let horizon = 0, finProj = null;
+  if (pr && pr.r != null && Math.abs(pr.r) >= 0.02) {
+    if (pr.jours > 0 && pr.jours <= Math.max(28, n)) { horizon = pr.jours; finProj = pr.vise; }
+    else { horizon = Math.min(28, Math.max(7, Math.round(n / 2))); finProj = der[1] + pr.r * horizon / 7; }
+  }
+  const total = n - 1 + horizon;
+  const vals = pes.map(p => p[1]).concat(tend.map(t => t[1]), finProj != null ? [finProj] : [], pr && pr.vise && horizon && finProj === pr.vise ? [pr.vise] : []);
+  let mn = Math.min(...vals), mx = Math.max(...vals);
+  if (mx - mn < 1) { mn -= 0.5; mx += 0.5; }
+  const w = 358, h = 132, pg = 4, pd = 60, ph = 10, pb = 18;
+  const x = i => pg + i / Math.max(1, total) * (w - pg - pd);
+  const y = v => ph + (mx - v) / (mx - mn) * (h - ph - pb);
+  const pas = Math.max(1, Math.ceil(pes.length / 90));
+  const points = pes.filter((_, k) => k % pas === 0).map(p => `<circle cx="${x(p[0]).toFixed(1)}" cy="${y(p[1]).toFixed(1)}" r="2.4" class="pg-h-pt"/>`).join('');
+  const d = tend.map((t, k) => (k ? 'L' : 'M') + x(t[0]).toFixed(1) + ' ' + y(t[1]).toFixed(1)).join(' ');
+  let proj = '', libFin = '';
+  if (finProj != null) {
+    proj = `<path d="M${x(der[0]).toFixed(1)} ${y(der[1]).toFixed(1)} L${x(total).toFixed(1)} ${y(finProj).toFixed(1)}" class="pg-h-proj"/><circle cx="${x(total).toFixed(1)}" cy="${y(finProj).toFixed(1)}" r="4" class="pg-h-cible"/>`;
+    libFin = `<text x="${(x(total) + 9).toFixed(1)}" y="${(y(finProj) + 4).toFixed(1)}">${nombreFr(Math.round(finProj * 10) / 10)} kg</text><text x="${(x(total) + 4).toFixed(1)}" y="${h - 3}" text-anchor="middle">${escapeHtml(dateCourtePg(shiftDate(dateIsoPourIndexStats(e), horizon)))}</text>`;
+  }
+  const libDebut = `<text x="${pg}" y="${h - 3}">${escapeHtml(dateCourtePg(dateIsoPourIndexStats(s)))}</text>`;
+  const libAuj = horizon ? `<text x="${x(n - 1).toFixed(1)}" y="${h - 3}" text-anchor="middle">aujourd'hui</text>` : `<text x="${x(n - 1).toFixed(1)}" y="${h - 3}" text-anchor="end">${escapeHtml(dateCourtePg(dateIsoPourIndexStats(e)))}</text>`;
+  return `<svg class="pg-h-courbe" viewBox="0 0 ${w} ${h}" role="img" aria-label="Courbe de poids : pesées et tendance${finProj != null ? ', projection' : ''}">${points}<path d="${d}" class="pg-h-tend"/>${proj}<circle cx="${x(der[0]).toFixed(1)}" cy="${y(der[1]).toFixed(1)}" r="5" class="pg-h-der"/>${libDebut}${libAuj}${libFin}</svg>`;
+}
+
+function renderResumeProgres() {
+  const c = document.getElementById('pg-resume');
+  if (!c || !globalMasterLabels.length || !document.getElementById('slider-start')) return;
+  const { s, e } = bornesPlage();
+  const n = e - s + 1;
+  const b = bilanPeriode(s, e);
+  const bp = (s - n >= 0 && periodeStats !== 'tout') ? bilanPeriode(s - n, s - 1) : null;
+  const m = seancesMuscuPeriode();
+  const f = evolutionForce(m.seances, m.avant);
+  const pr = projectionPoids(b);
+  const objectif = dernierObjectifConnu(todayStr());
+  const vert = 'var(--pg-bon)', rouge = 'var(--pg-mauvais)';
+
+  // Héros
+  const courbe = b.pesees >= 2 ? courbePoidsHeros(s, e, pr) : '';
+  const projTxt = texteProjection(pr, true);
+  const sousTitre = b.pesees >= 2
+    ? (projTxt || `<button type="button" class="pg-lien-clair" onclick="ouvrirSaisieRapide('poidsVise')">Fixe un poids visé</button> pour voir quand tu l'atteins.`)
+    : `<button type="button" class="pg-lien-clair" onclick="ouvrirSaisieRapide('poids')">Pèse-toi</button> au moins deux fois sur la période pour voir ta tendance.`;
+  const heros = `<div class="pg-heros">
+    <small>Ta période en une phrase</small>
+    <h3>${escapeHtml(phrasePeriode(b, f, m.seances.length))}</h3>
+    <p>${sousTitre}</p>
+    ${courbe}
+    <div class="pg-heros-puces">
+      <div><b>${b.deltaPoids == null ? '—' : escapeHtml(fmtSigne(b.deltaPoids, ' kg'))}</b><span>tendance</span></div>
+      <div><b>${escapeHtml(texteForce(f))}</b><span>force (1RM est.)</span></div>
+      <div><b>${b.joursRemplis ? b.dansLaCible + ' / ' + b.joursRemplis : '—'}</b><span>jours dans la cible</span></div>
+    </div>
+  </div>`;
+
+  // Tuiles
+  const lisse = moyenneGlissante(globalMasterWeight, 7).slice(s, e + 1);
+  const bonSens = d => d == null || Math.abs(d) < 0.1 ? '' : (objectif === 'seche' || objectif === 'recomposition') ? (d < 0 ? 'bon' : 'mauvais') : objectif === 'masse' ? (d > 0 ? 'bon' : 'mauvais') : '';
+  const lundis = lundisPeriode(m.debut > '0001' ? m.debut : dateIsoPourIndexStats(s), m.fin, 8);
+  const volSem = lundis.map(l => m.seances.filter(h => lundiDe(h.date) === l).reduce((t, h) => t + volumeSeance(h), 0));
+  const volume = m.seances.reduce((t, h) => t + volumeSeance(h), 0);
+  const volAvant = m.avant ? m.avant.reduce((t, h) => t + volumeSeance(h), 0) : null;
+  const cardioPeriode = seancesCardio().filter(x => x.date >= m.debut && x.date <= m.fin);
+  const cardioSem = lundis.map(l => cardioPeriode.filter(x => lundiDe(x.date) === l).reduce((t, x) => t + minutesEquivCardio(x.w), 0));
+  const cardioMoy = Math.round(cardioPeriode.reduce((t, x) => t + minutesEquivCardio(x.w), 0) / Math.max(1, n / 7));
+  const pctVol = volAvant > 0 ? Math.round((volume - volAvant) / volAvant * 100) : null;
+  const tuiles = [
+    pgTuile({ titre: 'Poids', valeur: b.poidsFin != null ? nombreFr(Math.round(b.poidsFin * 10) / 10) : '—', unite: b.poidsFin != null ? 'kg' : '',
+      evol: b.deltaPoids != null ? (b.deltaPoids < 0 ? '↘ ' : b.deltaPoids > 0 ? '↗ ' : '') + escapeHtml(fmtSigne(b.deltaPoids, ' kg')) : 'pas de tendance', evolCls: bonSens(b.deltaPoids),
+      dessin: pgSpark(lisse, '#0ea5e9'), onglet: 'poids' }),
+    pgTuile({ titre: 'Calories / jour', valeur: b.joursRemplis ? nombreFr(b.moyConso, 0) : '—', unite: b.joursRemplis ? 'kcal' : '',
+      evol: b.joursRemplis ? `objectif ${nombreFr(b.moyCible, 0)}${b.moyCible ? ' · ' + escapeHtml(fmtSigne((b.moyConso - b.moyCible) / b.moyCible * 100, ' %', 0)) : ''}` : 'aucun repas noté',
+      dessin: b.joursRemplis ? pgJauge(b.moyConso, b.moyCible, '#f59e0b') : '', onglet: 'nutrition' }),
+    pgTuile({ titre: 'Volume muscu', valeur: volume >= 1000 ? nombreFr(Math.round(volume / 100) / 10) : nombreFr(Math.round(volume), 0), unite: volume >= 1000 ? 't' : 'kg',
+      evol: pctVol != null ? (pctVol >= 0 ? '↗ +' : '↘ −') + Math.abs(pctVol) + ' %' : `${m.seances.length} séance${m.seances.length > 1 ? 's' : ''}`, evolCls: pctVol == null ? '' : pctVol >= 0 ? 'bon' : 'mauvais',
+      dessin: pgBarres(volSem, '#6366f1'), onglet: 'muscu' }),
+    pgTuile({ titre: 'Cardio / semaine', valeur: nombreFr(cardioMoy, 0), unite: 'min',
+      evol: `objectif ${OBJECTIF_CARDIO.cible} min`, evolCls: cardioMoy >= OBJECTIF_CARDIO.cible ? 'bon' : 'mauvais',
+      dessin: pgBarres(cardioSem, '#ef4444', OBJECTIF_CARDIO.cible), onglet: 'activite' })
+  ].join('');
+
+  // Maintenance réelle
+  const mt = maintenanceReelle(s, e);
+  const maint = mt.kcal
+    ? `<div class="pg-carte pg-maint">${pgAnneau(mt.moyConso / mt.kcal, '#f59e0b', Math.round(mt.moyConso / mt.kcal * 100) + ' %')}<div><small>Ta maintenance réelle</small><b>${nombreFr(mt.kcal, 0)} kcal</b><p>Calculée sur tes pesées et ce que tu as noté, pas sur une formule. Tu manges ${Math.round(mt.moyConso / mt.kcal * 100)} % de ta maintenance${b.rythmeSemaine != null ? ' → ' + escapeHtml(fmtSigne(b.rythmeSemaine, ' kg/sem.', 1)) : ''}.</p></div></div>`
+    : `<div class="pg-carte pg-maint pg-maint--vide">${pgAnneau(0, '#f59e0b', '…')}<div><small>Ta maintenance réelle</small><b>Bientôt</b><p>Encore ${mt.manque || 'quelques'} jour${mt.manque > 1 ? 's' : ''} avec tes repas notés et ${MAINTENANCE_PESEES_MIN} pesées au moins sur la période : on calculera les calories qui te font garder ton poids, d'après ta balance.</p></div></div>`;
+
+  // Ce qui a bougé
+  const faits = [];
+  const recs = recordsPeriode(m.seances, m.debut > '0001' ? m.debut : '9999');
+  if (recs.length) faits.push(['🏆', 'pg-f-or', `<b>${recs.length} record${recs.length > 1 ? 's' : ''}</b> sur la période`, recs.slice(0, 3).map(r => { const ex = trouverExercice(r.id); return escapeHtml((ex ? libelleExercice(ex) : r.id) + ' ' + nombreFr(r.b.poids) + ' kg × ' + r.b.reps); }).join(' · ')]);
+  const we = ecartWeekEnd(s, e);
+  if (we && Math.abs(we.diff) >= 200) faits.push(['🍕', 'pg-f-violet', `<b>Le week-end : ${escapeHtml(fmtSigne(we.diff, ' kcal', 0))}</b> par jour`, we.diff > 0 && we.horsCibleWe ? `C'est ce qui fait sortir ${we.horsCibleWe} de tes ${we.horsCible} jours hors cible.` : 'Par rapport à tes jours de semaine.']);
+  if (m.seances.length >= 2) {
+    const moy = seriesMoyennesPeriode(m.debut > '0001' ? m.debut : dateIsoPourIndexStats(s), m.fin);
+    const faibles = GROUPES_PRINCIPAUX.filter(g => ZONES_VOLUME[g] && (moy[g] || 0) < ZONES_VOLUME[g].mev).sort((a, z) => (moy[a] || 0) / ZONES_VOLUME[a].mev - (moy[z] || 0) / ZONES_VOLUME[z].mev).slice(0, 2);
+    if (faibles.length) {
+      const noms = faibles.map(g => GROUPES_MUSCULAIRES[g]);
+      const v = moy[faibles[0]] || 0;
+      faits.push(['⚠️', 'pg-f-rouge', `<b>${escapeHtml(noms.join(' et '))}</b> en retrait`, `${escapeHtml(formatSeries(v))} série${v >= 2 ? 's' : ''} / semaine en moyenne pour ${escapeHtml(noms[0].toLowerCase())} : vise au moins ${ZONES_VOLUME[faibles[0]].mev}.`]);
+    }
+  }
+  if (b.protParKg != null) {
+    const pk = nombreFr(Math.round(b.protParKg * 10) / 10);
+    faits.push(b.protParKg >= 1.6
+      ? ['🥩', 'pg-f-vert', `<b>Protéines : ${pk} g/kg</b> en moyenne`, `Dans la cible ${b.dansLaCible} jour${b.dansLaCible > 1 ? 's' : ''} sur ${b.joursRemplis}.`]
+      : ['🥩', 'pg-f-orange', `<b>Protéines : ${pk} g/kg</b> en moyenne`, 'Vise au moins 1,6 g/kg pour garder et construire ton muscle.']);
+  }
+  if (bp && bp.joursRemplis && b.joursRemplis && faits.length < 3) {
+    const d = b.dansLaCible - bp.dansLaCible;
+    if (d) faits.push(['🎯', d > 0 ? 'pg-f-vert' : 'pg-f-orange', `<b>${b.dansLaCible} jours dans ta cible</b>`, `${d > 0 ? d + ' de plus' : -d + ' de moins'} que la période d'avant.`]);
+  }
+  const ceQuiABouge = faits.length
+    ? `<h3 class="pg-h">Ce qui a bougé</h3><div class="pg-carte">${faits.slice(0, 3).map(([ic, cls, t, sous]) => `<div class="pg-fait"><span class="pg-fait-ic ${cls}" aria-hidden="true">${ic}</span><div>${t}<span>${sous}</span></div></div>`).join('')}</div>`
+    : '';
+
+  // Régularité
+  const serie = serieJoursNotes();
+  const nbCal = Math.min(n, 35), debCal = e - nbCal + 1;
+  const seancesJours = joursAvecSeance(dateIsoPourIndexStats(debCal), dateIsoPourIndexStats(e));
+  let nbR = 0, nbM = 0;
+  const cases = [];
+  for (let i = debCal; i <= e; i++) {
+    const iso = dateIsoPourIndexStats(i), r = globalMasterRempli[i], sm = seancesJours.has(iso);
+    if (r) nbR++; if (sm) nbM++;
+    const txt = `${dateCourtePg(iso)} : ${r ? 'repas notés' : 'pas de repas noté'}${sm ? ', séance' : ''}`;
+    cases.push(`<i class="${r && sm ? 'rm' : r ? 'r' : sm ? 'm' : ''}" data-bulle="${escapeHtml(txt)}" aria-label="${escapeHtml(txt)}"></i>`);
+  }
+  const regularite = `<h3 class="pg-h">Régularité</h3><div class="pg-carte">
+    ${serie.actuelle ? `<div class="pg-serie"><span class="pg-flamme">🔥 ${serie.actuelle} jour${serie.actuelle > 1 ? 's' : ''}</span><span>de suite avec tes repas notés · record ${serie.record}</span></div>` : `<div class="pg-serie"><span>Note tes repas aujourd'hui pour lancer une série de jours (record : ${serie.record}).</span></div>`}
+    <div class="pg-cal" role="img" aria-label="Régularité des ${nbCal} derniers jours de la période">${cases.join('')}</div>
+    <div class="pg-legende"><span><i class="r"></i>Repas notés · ${nbR} j</span><span><i class="m"></i>Séance · ${nbM}</span><span><i></i>Rien</span></div>
+    ${nbCal < n ? `<p class="pg-legende-note">Les ${nbCal} derniers jours de la période.</p>` : ''}
+  </div>`;
+
+  c.innerHTML = heros + `<div class="pg-grille2">${tuiles}</div>` + maint + ceQuiABouge + regularite;
+}
+
+/* --- Corps : projection, mensurations, pas --- */
+const MENSURATIONS = [['tailleCm', 'mes-taille-cm', 'Tour de taille'], ['hanchesCm', 'mes-hanches-cm', 'Hanches'], ['poitrineCm', 'mes-poitrine-cm', 'Poitrine'], ['brasCm', 'mes-bras-cm', 'Bras'], ['cuisseCm', 'mes-cuisse-cm', 'Cuisse']];
+function remplirChampsMensurations(existante) {
+  MENSURATIONS.forEach(([cle, id]) => { const el = document.getElementById(id); if (el) el.value = existante && existante[cle] != null ? existante[cle] : ''; });
+}
+function renderExtrasCorps(s, e) {
+  const b = bilanPeriode(s, e);
+  const pj = document.getElementById('pg-projection-corps');
+  if (pj) {
+    const pr = projectionPoids(b);
+    const t = b.pesees >= 2 ? texteProjection(pr, true) : '';
+    pj.innerHTML = t
+      ? `${t} <button type="button" class="pg-lien" onclick="ouvrirSaisieRapide('poidsVise')">Modifier</button>`
+      : (b.pesees >= 2 ? `<button type="button" class="pg-lien" onclick="ouvrirSaisieRapide('poidsVise')">Fixer un poids visé</button> pour voir quand tu l'atteins à ce rythme.` : '');
+  }
+  const mc = document.getElementById('pg-mensurations');
+  if (mc) {
+    const debut = dateIsoPourIndexStats(s), fin = dateIsoPourIndexStats(e);
+    const mesures = userProfile.mesures || {};
+    const dates = Object.keys(mesures).filter(d => d <= fin).sort();
+    const lignes = MENSURATIONS.map(([cle, , nom]) => {
+      const avec = dates.filter(d => mesures[d] && Number(mesures[d][cle]) > 0);
+      if (!avec.length) return null;
+      const der = avec[avec.length - 1], v = Number(mesures[der][cle]);
+      const ref = avec.filter(d => d < debut).pop() || avec[0];
+      const ecart = ref !== der ? v - Number(mesures[ref][cle]) : null;
+      const bon = ecart == null || Math.abs(ecart) < 0.1 ? '' : (cle === 'tailleCm' || cle === 'hanchesCm') ? (ecart < 0 ? 'bon' : 'mauvais') : (ecart > 0 ? 'bon' : '');
+      return `<div class="pg-mesure"><b>${escapeHtml(nom)}</b><span>${nombreFr(v)} cm</span><em class="${bon}">${ecart == null ? '' : Math.abs(ecart) < 0.1 ? '=' : escapeHtml(fmtSigne(ecart, ' cm'))}</em></div>`;
+    }).filter(Boolean);
+    mc.innerHTML = lignes.length
+      ? lignes.join('') + '<p class="pg-legende-note">Écart depuis le début de la période (ou ta première mesure).</p>'
+      : `<p class="pg-vide">Aucune mensuration pour l'instant. Le tour de taille dit souvent mieux que la balance si tu perds du gras en gagnant du muscle. <button type="button" class="pg-lien" onclick="ouvrirMesuresModal()">Ajouter</button></p>`;
+  }
+  const pt = document.getElementById('pg-pas-tete');
+  if (pt) {
+    const n = e - s + 1;
+    const bp = (s - n >= 0 && periodeStats !== 'tout') ? bilanPeriode(s - n, s - 1) : null;
+    const d = bp && bp.moyPas && b.moyPas ? b.moyPas - bp.moyPas : null;
+    pt.innerHTML = b.moyPas
+      ? `<b>${nombreFr(b.moyPas, 0)}</b><span>pas / jour</span>${d ? `<em class="${d > 0 ? 'bon' : 'mauvais'}">${d > 0 ? '↗ +' : '↘ −'}${nombreFr(Math.abs(d), 0)}</em>` : ''}`
+      : '<span>Aucun pas noté sur la période.</span>';
+  }
+}
+
+/* --- Repas : constat, série affichée, répartition, aliments --- */
+let serieNutrition = 'kcal';
+function choisirSerieNutrition(cle) {
+  serieNutrition = cle;
+  majSegment('nutri-series-nav', ['kcal', 'p', 'c', 'f', 'eau'], cle);
+  document.querySelectorAll('#ecran-stats .nutri-serie').forEach(d => d.classList.toggle('nutri-serie--active', d.dataset.serie === cle));
+  const inst = cle === 'kcal' ? caloriesChartInstance : cle === 'eau' ? eauChartInstance : macroChartsInstances[cle];
+  if (inst) requestAnimationFrame(() => { try { inst.resize(); } catch (err) {} });
+}
+/* Bandes grisées derrière les samedis et dimanches (périodes de 3 mois au plus). */
+const pluginWeekEnds = {
+  id: 'weekEnds',
+  beforeDatasetsDraw(chart, args, o) {
+    const dates = o && o.dates;
+    if (!dates || !dates.length || dates.length > 95) return;
+    const { ctx, chartArea: a, scales: { x } } = chart;
+    if (!x || !a) return;
+    const pas = dates.length > 1 ? x.getPixelForValue(1) - x.getPixelForValue(0) : a.right - a.left;
+    ctx.save();
+    ctx.fillStyle = o.couleur;
+    dates.forEach((d, i) => {
+      const j = new Date(d + 'T12:00:00').getDay();
+      if (j !== 0 && j !== 6) return;
+      const x0 = Math.max(a.left, x.getPixelForValue(i) - pas / 2), x1 = Math.min(a.right, x.getPixelForValue(i) + pas / 2);
+      if (x1 > x0) ctx.fillRect(x0, a.top, x1 - x0, a.bottom - a.top);
+    });
+    ctx.restore();
+  }
+};
+function avecWeekEnds(opts, s, e) {
+  const dates = [];
+  for (let i = s; i <= e; i++) dates.push(dateIsoPourIndexStats(i));
+  opts.plugins = Object.assign({}, opts.plugins, { weekEnds: { dates, couleur: themeClairActif() ? 'rgba(13,16,32,0.05)' : 'rgba(255,255,255,0.05)' } });
+  return opts;
+}
+function renderExtrasNutrition(s, e) {
+  const b = bilanPeriode(s, e);
+  const cst = document.getElementById('pg-constat-nutrition');
+  if (cst) {
+    const we = ecartWeekEnd(s, e);
+    cst.innerHTML = we && Math.abs(we.diff) >= 200
+      ? `<div class="pg-constat"><span aria-hidden="true">🍕</span><div><b>Week-end : ${escapeHtml(fmtSigne(we.diff, ' kcal', 0))} par jour</b><span>${we.diff > 0 && we.horsCibleWe ? `Samedi et dimanche (bandes grisées) font ${we.horsCibleWe} de tes ${we.horsCible} jours hors cible.` : 'Par rapport à tes jours de semaine (bandes grisées sur la courbe).'}</span></div></div>`
+      : '';
+  }
+  const rp = document.getElementById('pg-repartition');
+  if (rp) {
+    const idx = [];
+    for (let i = s; i <= e; i++) if (globalMasterRempli[i]) idx.push(i);
+    if (!idx.length) rp.innerHTML = '<p class="pg-vide">Aucun repas noté sur la période.</p>';
+    else {
+      const moy = arr => idx.reduce((t, i) => t + (arr[i] || 0), 0) / idx.length;
+      const g = { p: moy(globalMasterProtein), c: moy(globalMasterCarbs), f: moy(globalMasterFat) };
+      const k = { p: g.p * 4, c: g.c * 4, f: g.f * 9 }, tot = k.p + k.c + k.f || 1;
+      const parts = [['p', 'Protéines', 'var(--protein)'], ['c', 'Glucides', 'var(--carbs)'], ['f', 'Lipides', 'var(--fat)']];
+      rp.innerHTML = `<div class="pg-repart" role="img" aria-label="${parts.map(([c, nom]) => `${nom} ${Math.round(k[c] / tot * 100)} %`).join(', ')}">${parts.map(([c, , col]) => `<i style="flex:${k[c].toFixed(1)};background:${col}"></i>`).join('')}</div>
+        <div class="pg-legende">${parts.map(([c, nom, col]) => `<span><i style="background:${col}"></i>${nom} ${Math.round(k[c] / tot * 100)} % · ${Math.round(g[c])} g</span>`).join('')}</div>`;
+    }
+  }
+  const ta = document.getElementById('pg-top-aliments');
+  if (ta) {
+    const compte = {};
+    let totP = 0, totC = 0;
+    for (let i = s; i <= e; i++) {
+      const j = appData[dateIsoPourIndexStats(i)];
+      if (!j || !j.meals) continue;
+      Object.values(j.meals).forEach(items => (items || []).forEach(it => {
+        const nom = String(it.name || '').trim();
+        if (!nom) return;
+        const cle = nom.toLowerCase();
+        const o = compte[cle] || (compte[cle] = { nom, n: 0, p: 0, c: 0 });
+        o.n++; o.p += Number(it.p) || 0; o.c += Number(it.c) || 0;
+        totP += Number(it.p) || 0; totC += Number(it.c) || 0;
+      }));
+    }
+    const top = Object.values(compte).sort((a, z) => z.n - a.n).slice(0, 3);
+    ta.innerHTML = top.length
+      ? top.map(o => {
+          const partP = totP ? o.p / totP : 0, partC = totC ? o.c / totC : 0;
+          const part = partP >= partC ? `${Math.round(partP * 100)} % de tes protéines` : `${Math.round(partC * 100)} % de tes glucides`;
+          return `<div class="pg-fait"><span class="pg-fait-ic pg-f-neutre" aria-hidden="true">${iconeAliment(o.nom)}</span><div><b>${escapeHtml(o.nom)}</b> · ${o.n} fois<span>${part}</span></div></div>`;
+        }).join('')
+      : '<p class="pg-vide">Aucun aliment noté sur la période.</p>';
+  }
+}
+
+/* --- Cardio : la semaine en cours et ce qu'il manque --- */
+function renderExtrasCardio() {
+  const c = document.getElementById('pg-cardio-semaine');
+  const t = document.getElementById('pg-cardio-tuiles');
+  if (!c && !t) return;
+  const sem = bilanSemaineCardio(lundiDe(todayStr()));
+  const obj = OBJECTIF_CARDIO.cible, reste = Math.max(0, Math.round(obj - sem.equiv));
+  const conseil = reste <= 0 ? 'Objectif de la semaine atteint. Tout ce que tu ajoutes est du bonus.'
+    : reste <= 40 ? `Encore ${reste} min : une sortie suffit.`
+    : `Encore ${reste} min : par exemple ${Math.ceil(reste / 40)} sorties de 40 min, ou moitié moins en intense (une minute intense compte double).`;
+  if (c) c.innerHTML = `<div class="pg-maint">${pgAnneau(sem.equiv / obj, '#ef4444', Math.round(sem.equiv / obj * 100) + ' %')}<div><small>Cette semaine</small><b>${nombreFr(Math.round(sem.equiv), 0)} <span class="pg-sur">/ ${obj} min</span></b><p>${escapeHtml(conseil)}</p></div></div>`;
+  if (t) {
+    const { debut, fin } = bornesMuscuIso();
+    const { s, e } = bornesPlage();
+    const n = e - s + 1;
+    const periode = seancesCardio().filter(x => x.date >= debut && x.date <= fin);
+    const total = Math.round(periode.reduce((a, x) => a + minutesEquivCardio(x.w), 0));
+    let evol = '', cls = '';
+    if (debut > '0001') {
+      const avant = seancesCardio().filter(x => x.date >= shiftDate(debut, -n) && x.date < debut);
+      const d = total - Math.round(avant.reduce((a, x) => a + minutesEquivCardio(x.w), 0));
+      if (avant.length || total) { evol = d === 0 ? '= stable' : (d > 0 ? '↗ +' : '↘ −') + Math.abs(d) + ' min'; cls = d > 0 ? 'bon' : d < 0 ? 'mauvais' : ''; }
+    }
+    const moy = Math.round(total / Math.max(1, n / 7));
+    t.innerHTML = pgTuile({ titre: 'Total période', valeur: nombreFr(total, 0), unite: 'min', evol, evolCls: cls })
+      + pgTuile({ titre: 'Moyenne', valeur: nombreFr(moy, 0), unite: 'min / sem', evol: `objectif ${obj}`, evolCls: moy >= obj ? 'bon' : 'mauvais' });
+  }
+}
+
+/* --- Muscu : force exercice par exercice, grille des 8 semaines --- */
+function renderForceProgres(idCible, seances, avant) {
+  const c = document.getElementById(idCible);
+  if (!c) return;
+  const freq = {};
+  seances.forEach(h => new Set((h.exercices || []).filter(e => (e.series || []).some(z => z.fait)).map(e => e.exerciceId)).forEach(id => { freq[id] = (freq[id] || 0) + 1; }));
+  const ids = Object.keys(freq).filter(id => freq[id] >= 1).sort((a, z) => freq[z] - freq[a]).slice(0, 4);
+  if (!ids.length) { c.innerHTML = '<p class="pg-vide">Aucune séance de musculation sur la période. Ta force exercice par exercice apparaîtra ici.</p>'; return; }
+  const chrono = seances.slice().sort((a, z) => a.date < z.date ? -1 : 1);
+  c.innerHTML = ids.map(id => {
+    const ex = trouverExercice(id);
+    const nom = ex ? libelleExercice(ex) : id;
+    const parSeance = chrono.map(h => meilleur1RM(id, [h])).filter(Boolean);
+    const best = meilleur1RM(id, seances);
+    const ref = avant && avant.length ? meilleur1RM(id, avant) : (parSeance.length > 1 ? parSeance[0] : null);
+    const pct = best && ref && ref.valeur > 0 ? Math.round((best.valeur - ref.valeur) / ref.valeur * 100) : null;
+    return `<div class="pg-lift" role="button" tabindex="0" onclick="afficherFicheExerciceBiblio(${argJs(id)})" onkeydown="if(event.key==='Enter')this.click()">
+      <div><b>${escapeHtml(nom)}</b><span>meilleure série ${nombreFr(best.poids)} kg × ${best.reps}</span></div>
+      ${pgSpark(parSeance.map(x => x.valeur), '#6366f1') || '<span class="pg-mini"></span>'}
+      <em>${nombreFr(Math.round(best.valeur))} kg${pct != null ? `<i class="${pct > 0 ? 'bon' : pct < 0 ? 'mauvais' : ''}">${pct > 0 ? '↗ +' : pct < 0 ? '↘ −' : '= '}${Math.abs(pct)} %</i>` : ''}</em>
+    </div>`;
+  }).join('') + '<p class="pg-legende-note">1RM estimé : la charge que tu pourrais soulever une fois, calculée sur tes séries.</p>';
+}
+function renderGrilleMuscu(idCible) {
+  const c = document.getElementById(idCible);
+  if (!c) return;
+  const lundi = lundiDeLaSemaine(todayStr());
+  const fmt = iso => { const d = dateLocale(iso); return d.getDate() + ' ' + d.toLocaleDateString('fr-FR', { month: 'short' }).replace('.', ''); };
+  const semaines = [];
+  for (let i = 0; i < 8; i++) semaines.push(decalerJours(lundi, -7 * i));
+  const parSemaine = semaines.map(l => seriesSemaine(l, false));
+  const groupes = ORDRE_GROUPES.filter(g => ZONES_VOLUME[g]);
+  const lignes = groupes.filter(g => parSemaine.some(s => s[g] > 0));
+  if (!lignes.length) { c.innerHTML = '<p class="pg-vide">Aucune série sur les 8 dernières semaines.</p>'; return; }
+  const chrono = semaines.slice().reverse(), parChrono = parSemaine.slice().reverse();
+  c.innerHTML = `<div class="zones-grille" role="table" aria-label="Zone de chaque muscle sur les 8 dernières semaines">
+      <div class="zones-grille-ligne zones-grille-tete" role="row"><span role="columnheader">Muscle</span>${chrono.map((l, i) => `<span role="columnheader">${i === chrono.length - 1 ? 'Sem.' : fmt(l).split(' ')[0]}</span>`).join('')}</div>
+      ${lignes.map(g => `<div class="zones-grille-ligne" role="row"><span role="rowheader">${escapeHtml(GROUPES_MUSCULAIRES[g])}</span>${parChrono.map((s, i) => {
+        const n = s[g] || 0;
+        const nomSem = i === chrono.length - 1 ? 'cette semaine' : 'semaine du ' + fmt(chrono[i]);
+        if (!n) return `<i class="zones-case vide" role="cell" aria-label="${escapeHtml(GROUPES_MUSCULAIRES[g] + ' · ' + nomSem)} : aucune série"></i>`;
+        const z = cleZoneVolume(g, n), info = ZONES_INFO[z];
+        const conseil = z === 'sous' || z === 'mv' ? ` (vise ${ZONES_VOLUME[g].mev})` : z === 'mrv' ? ' (allège un peu)' : '';
+        return `<i class="zones-case zones-case--${z}" role="cell" style="background:${info.couleur}" aria-label="${escapeHtml(GROUPES_MUSCULAIRES[g] + ' · ' + nomSem)} : ${formatSeries(n)} série${n >= 2 ? 's' : ''} · ${escapeHtml(info.nom.toLowerCase())}${conseil}">${formatSeries(n)}</i>`;
+      }).join('')}</div>`).join('')}
+      <div class="zones-grille-legende">${ORDRE_ZONES.concat('sous').map(k => `<span><i style="background:${ZONES_INFO[k].couleur}"></i>${escapeHtml(ZONES_INFO[k].nom)}</span>`).join('')}</div>
+    </div><p class="pg-legende-note">Touche une case pour son détail.</p>`;
+}
+function ouvrirRepliMuscu(nom) {
+  const d = document.querySelector(`#ecran-stats details.pg-repli[data-repli="${nom}"]`);
+  if (!d) return;
+  d.open = true;
+  setTimeout(() => d.scrollIntoView({ block: 'start', behavior: mouvementReduit() ? 'auto' : 'smooth' }), 60);
+}
+/* Un graphique dessiné replié n'a pas de taille : on le recale à l'ouverture. */
+function replieMuscuBascule(d) {
+  if (!d.open || typeof Chart === 'undefined' || !Chart.getChart) return;
+  d.querySelectorAll('canvas').forEach(cv => { const ch = Chart.getChart(cv); if (ch) requestAnimationFrame(() => { try { ch.resize(); } catch (err) {} }); });
+}
+
 // Les tuiles d'objectif passent par le sélecteur existant (même règles : pas de réécriture du passé).
 function choisirObjectifVitrine(cle) {
   const sel = document.getElementById('objectif-select');

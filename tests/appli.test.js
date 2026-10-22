@@ -533,11 +533,13 @@ test("barre d'onglets : Repas, Activité, +, Progrès, Profil ; plus de bouton f
     r = await page.evaluate(() => [ecranActif, document.querySelector('#onglets .onglet.actif').id]);
     assert.deepEqual(r, [ecran, 'onglet-' + (ecran === 'reglages' ? 'profil' : ecran === 'stats' ? 'progres' : ecran)]);
   }
-  // Progrès montre les quatre catégories ; une carte n'en montre qu'une.
+  // Progrès s'ouvre sur le Résumé ; les cinq onglets restent toujours visibles.
   await page.click('#onglet-progres');
-  assert.equal(await page.evaluate(() => document.getElementById('stats-onglets-nav').classList.contains('hidden')), false);
+  r = await page.evaluate(() => ({ actif: categorieStatsActive(), onglets: [...document.querySelectorAll('#stats-onglets-nav button')].map(b => b.textContent.trim()),
+    titre: document.getElementById('stats-titre').textContent }));
+  assert.deepEqual(r, { actif: 'resume', onglets: ['Résumé', 'Corps', 'Repas', 'Cardio', 'Muscu'], titre: 'Progrès' });
   await page.evaluate(() => ouvrirStats('nutrition'));
-  assert.equal(await page.evaluate(() => document.getElementById('stats-onglets-nav').classList.contains('hidden')), true);
+  assert.equal(await page.evaluate(() => document.getElementById('stats-onglets-nav').offsetHeight > 0), true);
   // « + » : ajouter au repas du moment ; la barre s'efface derrière la feuille.
   await page.evaluate(() => allerA('repas'));
   await page.click('#onglet-plus');
@@ -552,11 +554,13 @@ test('Repas du jour : toucher une macro ouvre sa courbe face à son objectif', (
     allerA('repas'); renderApp();
   });
   await page.click('#ecran-repas .macro-item:nth-child(1)');
-  // La macro vise sa courbe, pas la dépense (en haut du détail Nutrition).
+  // La macro ouvre Progrès › Repas sur sa courbe (sélecteur réglé dessus).
   assert.equal(await page.evaluate(() => document.getElementById('bloc-depense').classList.contains('macro-stat--vise')), false);
+  assert.equal(await page.evaluate(() => serieNutrition + '|' + document.querySelector('#nutri-series-nav [aria-pressed="true"]').textContent), 'p|Prot.');
   await page.waitForFunction(() => Object.keys(macroChartsInstances).length === 3);
   // Défilement doux jusqu'à la courbe (le bilan du jour est au-dessus).
   await page.waitForFunction(() => { const b = document.getElementById('macro-stat-p').getBoundingClientRect(); return b.top >= 0 && b.bottom <= innerHeight; }, null, { timeout: 3000 });
+  await page.waitForFunction(() => document.getElementById('macro-stat-p').classList.contains('macro-stat--vise'), null, { timeout: 2000 });
   const r = await page.evaluate(() => {
     const c = macroChartsInstances.p, b = document.getElementById('macro-stat-p').getBoundingClientRect();
     const cible = computeTargets(getDay(todayStr()), todayStr()).protein;
@@ -565,19 +569,21 @@ test('Repas du jour : toucher une macro ouvre sa courbe face à son objectif', (
       visible: b.top >= 0 && b.bottom <= innerHeight, vise: document.getElementById('macro-stat-p').classList.contains('macro-stat--vise'),
       ancien: !!document.getElementById('macrosChart') };
   });
-  assert.deepEqual(r, { ecran: 'stats', titre: 'Ma nutrition', series: ['Protéines (g)', 'Objectif'], dernier: 120, objectif: true, visible: true, vise: true, ancien: false });
+  assert.deepEqual(r, { ecran: 'stats', titre: 'Progrès', series: ['Protéines (g)', 'Objectif'], dernier: 120, objectif: true, visible: true, vise: true, ancien: false });
   await page.click('#onglet-repas');
-  // Le reste du résumé : plus de fenêtre « dépense », c'est le détail
-  // Nutrition qui s'ouvre, dépense estimée du jour en tête.
+  // Le reste du résumé : la dépense du jour et le bilan de la journée,
+  // dans une fenêtre sur Repas du jour (plus dans Progrès, qui parle de la période).
   await page.click('#ecran-repas .summary-card h1');
-  const dep = await page.evaluate(() => ({ ecran: ecranActif, modale: !!document.getElementById('depense-modal'),
-    dansNutrition: !!document.querySelector('#ecran-stats .stats-tab[data-tab="nutrition"] #bloc-depense'),
+  const dep = await page.evaluate(() => ({ ecran: ecranActif, modale: document.getElementById('depense-modal').classList.contains('show'),
+    dansProgres: !!document.querySelector('#ecran-stats #bloc-depense, #ecran-stats #carte-bilan-jour'),
+    bilanJour: !!document.querySelector('#depense-modal #carte-bilan-jour'),
     lignes: document.querySelectorAll('#detail-depense > div').length, visible: document.getElementById('bloc-depense').getBoundingClientRect().top < innerHeight }));
-  assert.deepEqual(dep, { ecran: 'stats', modale: false, dansNutrition: true, lignes: 7, visible: true });
-  await page.click('#onglet-repas');
+  assert.deepEqual(dep, { ecran: 'repas', modale: true, dansProgres: false, bilanJour: true, lignes: 7, visible: true });
+  await page.evaluate(() => fermerModal('depense-modal'));
   await page.click('#ecran-repas .macro-item:nth-child(3)');
   await page.waitForTimeout(700);
   assert.ok(await page.evaluate(() => document.getElementById('macro-stat-f').classList.contains('macro-stat--vise')));
+  assert.equal(await page.evaluate(() => document.querySelector('#ecran-stats .nutri-serie--active').dataset.serie), 'f');
 }));
 
 test("« Déjà mangé » suit le nouveau nom d'un aliment renommé (même code-barres)", () => avecAppli({}, async ({ page }) => {
@@ -655,23 +661,22 @@ test('cartes de stats : poids et nutrition sur Repas du jour, bandeaux cardio et
   // Les graphiques se dessinent 120 ms après l'ouverture (écran visible).
   await page.waitForFunction(() => compoChartsInstances.length > 0);
   let r = await page.evaluate(() => ({
-    ecran: ecranActif, titre: document.getElementById('stats-titre').textContent,
+    ecran: ecranActif, onglet: categorieStatsActive(),
     cases: document.querySelectorAll('#compo-grille .compo-case').length,
     vides: document.querySelectorAll('#compo-grille .compo-case--vide').length,
     graphiques: compoChartsInstances.length,
-    bilan: !document.querySelector('#ecran-stats .stats-bilan').classList.contains('hidden'),
-    ongletsCaches: document.getElementById('stats-onglets-nav').classList.contains('hidden')
+    bilanDansResume: !!document.querySelector('#ecran-stats .stats-tab[data-tab="resume"] .stats-bilan'),
+    ongletsVisibles: document.getElementById('stats-onglets-nav').offsetHeight > 0
   }));
   assert.equal(r.ecran, 'stats');
-  assert.match(r.titre, /Poids/);
-  assert.deepEqual([r.cases, r.vides, r.graphiques, r.bilan, r.ongletsCaches], [4, 0, 4, false, true]);
+  assert.deepEqual([r.onglet, r.cases, r.vides, r.graphiques, r.bilanDansResume, r.ongletsVisibles], ['poids', 4, 0, 4, true, true]);
   await page.click('#onglet-repas');
   assert.equal(await page.evaluate(() => ecranActif), 'repas');
 
-  // Nutrition : le bilan IA de la période est là, et seulement là.
+  // Nutrition : la carte ouvre Progrès › Repas (le bilan IA de la période est dans le Résumé).
   await page.click('#carte-stats-nutrition');
-  r = await page.evaluate(() => ({ ecran: ecranActif, bilan: !document.querySelector('#ecran-stats .stats-bilan').classList.contains('hidden') }));
-  assert.deepEqual(r, { ecran: 'stats', bilan: true });
+  r = await page.evaluate(() => ({ ecran: ecranActif, onglet: categorieStatsActive(), bilans: document.querySelectorAll('#ecran-stats .stats-bilan').length }));
+  assert.deepEqual(r, { ecran: 'stats', onglet: 'nutrition', bilans: 1 });
   await page.evaluate(() => choisirPeriodeStats('perso'));
   await page.click('#onglet-repas');
 
@@ -687,12 +692,10 @@ test('cartes de stats : poids et nutrition sur Repas du jour, bandeaux cardio et
   assert.equal(await page.$('#carte-stats-muscu-carte'), null);
   assert.match(await page.textContent('#vitrine-muscu .hx-unite'), /1 séance/);
   await page.click('#vitrine-muscu .hx');
-  r = await page.evaluate(() => ({ ecran: ecranActif, titre: document.getElementById('stats-titre').textContent, nav: !!document.getElementById('muscu-soustabs-nav').offsetHeight }));
-  assert.equal(r.ecran, 'stats');
-  assert.match(r.titre, /Muscu/i);
-  assert.ok(r.nav);
-  // Plus de bouton « Retour » : la barre d'onglets suffit.
-  assert.equal(await page.$('#ecran-stats .stats-entete button'), null);
+  r = await page.evaluate(() => ({ ecran: ecranActif, onglet: categorieStatsActive(), grille: !!document.getElementById('pg-grille-muscu').offsetHeight }));
+  assert.deepEqual(r, { ecran: 'stats', onglet: 'muscu', grille: true });
+  // Plus de bouton « Retour » : la barre d'onglets suffit (seule la période est en haut).
+  assert.equal(await page.evaluate(() => [...document.querySelectorAll('#ecran-stats .stats-entete button')].some(b => /retour/i.test(b.textContent))), false);
 }));
 
 test('après le questionnaire : « Par où commencer ? » puis la carte « Premiers pas »', () => avecAppli({}, async ({ page }) => {
@@ -1009,7 +1012,7 @@ test("des données piégées dans ses propres données ne s'exécutent jamais", 
   }
 }));
 
-test("Repas du jour allégé : idées dans « Recette », pas dans Activité, bilan dans Ma nutrition", () => avecAppli({}, async ({ page }) => {
+test("Repas du jour allégé : idées dans « Recette », pas dans Activité, bilan de la journée dans sa fenêtre", () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     const j = getDay(todayStr());
     j.meals[MEALS[0]].push({ name: "Flocons d'avoine", grams: 80, kcal: 300, p: 10, c: 50, f: 6 });
@@ -1019,7 +1022,7 @@ test("Repas du jour allégé : idées dans « Recette », pas dans Activité, bi
     idees: !!document.querySelector('#ecran-repas [onclick*="chercherRecettesMacros"]'),
     ideesDansRecette: !!document.querySelector('#feuille-choix-recette [onclick*="chercherRecettesMacros"]'),
     pasDansActivite: !!document.querySelector('#ecran-seance #carte-pas-seances'),
-    bilanDansNutrition: !!document.querySelector('#ecran-stats .stats-tab[data-tab="nutrition"] #carte-bilan-jour'),
+    bilanDansNutrition: !!document.querySelector('#depense-modal #carte-bilan-jour'),
     bilanDansRepas: !!document.querySelector('#ecran-repas #carte-bilan-jour'),
     vides: document.querySelectorAll('#meals-container .meal-card--vide').length,
     listesVides: document.querySelectorAll('#meals-container .meal-card--vide .food-list').length,
@@ -1328,7 +1331,7 @@ test('bouton + : l\'action utile de chaque écran', () => avecAppli({}, async ({
   await page.evaluate(() => choisirModeSeance('cardio'));
   await page.click('#onglet-plus'); assert.equal(await ouvert(), 'modal-cardio'); await fermer();
   await page.evaluate(() => ouvrirStats('poids'));
-  assert.equal(await page.getAttribute('#onglet-plus', 'aria-label'), 'Noter une pesée');
+  assert.equal(await page.getAttribute('#onglet-plus', 'aria-label'), 'Noter une mesure');
   await page.click('#onglet-plus'); assert.equal(await ouvert(), 'mesures-modal'); await fermer();
   await page.evaluate(() => allerA('reglages'));
   await page.click('#onglet-plus'); assert.equal(await ouvert(), 'mesures-modal'); await fermer();
@@ -1476,4 +1479,85 @@ test('thème « Auto » : suit le réglage clair/sombre du téléphone, même en
   assert.equal(await flou(), 'none');
   // Pas de service worker hors http(s) (fichier ouvert en local, tests).
   assert.equal(await page.evaluate(() => navigator.serviceWorker ? navigator.serviceWorker.controller : null), null);
+}));
+
+test('Progrès : résumé en une phrase, projection, maintenance réelle, constats, période en pastille, mensurations, force', () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => {
+    const t = todayStr();
+    userProfile.mesures = {};
+    for (let k = 0; k <= 34; k++) {
+      const d = shiftDate(t, -k), j = getDay(d), we = [0, 6].includes(new Date(d + 'T12:00:00').getDay());
+      j.weight = Math.round((80 + k * 0.03) * 100) / 100;
+      j.meals[MEALS[0]].push({ name: 'Poulet rôti', grams: 300, kcal: we ? 2500 : 2000, p: 150, c: 200, f: 70 });
+      saveData(d);
+    }
+    userProfile.mesures[shiftDate(t, -25)] = { tailleCm: 86 };
+    userProfile.mesures[shiftDate(t, -2)] = { tailleCm: 84.5 };
+    userProfile.poidsVise = 78;
+    const exo = toutesLesExercices().find(e => e.groupe === 'pectoraux');
+    const seance = (id, date, poids) => ({ id, programmeNom: 'Pecs', date, debut: Date.now(), fin: Date.now(), dureeMin: 50, maj: Date.now(),
+      exercices: [{ exerciceId: exo.id, nom: exo.nom, series: [{ poids, reps: 10, fait: true }, { poids, reps: 10, fait: true }, { poids, reps: 9, fait: true }] }] });
+    musculationHistorique.push(seance('a1', shiftDate(t, -45), 60), seance('a2', shiftDate(t, -38), 60), seance('b1', shiftDate(t, -20), 62.5), seance('b2', shiftDate(t, -6), 65));
+    const j = getDay(t); j.workouts = j.workouts || []; j.workouts.push({ type: 'course', time: 30, distance: 5, intensite: 2, cardio: true }); saveData(t);
+    buildMasterArrays();
+    choisirPeriodeStats('30');
+    ouvrirProgres();
+  });
+  await page.waitForTimeout(300);
+  let r = await page.evaluate(() => ({
+    phrase: document.querySelector('.pg-heros h3').textContent,
+    sous: document.querySelector('.pg-heros p').textContent,
+    courbe: !!document.querySelector('.pg-heros .pg-h-courbe .pg-h-proj'),
+    tuiles: document.querySelectorAll('#pg-resume .pg-tuile--lien').length,
+    maint: Number((document.querySelector('#pg-resume .pg-maint b').textContent.match(/[\d\s ]+/) || [''])[0].replace(/\D/g, '')),
+    faits: [...document.querySelectorAll('#pg-resume .pg-fait')].map(f => f.textContent.replace(/\s+/g, ' ').trim()),
+    serie: document.querySelector('#pg-resume .pg-serie').textContent,
+    cal: document.querySelectorAll('#pg-resume .pg-cal i').length,
+    ligne: document.getElementById('stats-periode-resume').textContent
+  }));
+  assert.match(r.phrase, /^Tu perds 0,2 kg par semaine sans perdre de force\.$/);
+  assert.match(r.sous, /objectif 78 kg vers le/);
+  assert.ok(r.courbe);
+  assert.equal(r.tuiles, 4);
+  assert.ok(r.maint >= 2300 && r.maint <= 2450, 'maintenance ' + r.maint);
+  assert.ok(r.faits.some(f => /1 record/.test(f)), r.faits.join(' | '));
+  assert.ok(r.faits.some(f => /Le week-end : \+500 kcal/.test(f)), r.faits.join(' | '));
+  assert.match(r.serie, /35 jours\s*de suite.*record 35/);
+  assert.equal(r.cal, 30);
+  assert.match(r.ligne, /comparé aux 30 jours d’avant$/);
+  // Une tuile ouvre son onglet.
+  await page.click('#pg-resume .pg-tuile--lien');
+  assert.equal(await page.evaluate(() => categorieStatsActive()), 'poids');
+  // La période : pastille, menu, choix, menu refermé.
+  await page.click('#pg-periode-btn');
+  assert.equal(await page.evaluate(() => document.getElementById('pg-periode-menu').classList.contains('hidden')), false);
+  await page.click('#stats-periode button:nth-child(3)');
+  r = await page.evaluate(() => ({ p: periodeStats, lib: document.getElementById('pg-periode-lib').textContent, ferme: document.getElementById('pg-periode-menu').classList.contains('hidden') }));
+  assert.deepEqual(r, { p: '90', lib: '3 mois', ferme: true });
+  await page.evaluate(() => choisirPeriodeStats('30'));
+  // Corps : mensurations et leur écart, projection.
+  r = await page.evaluate(() => ({ mesures: document.getElementById('pg-mensurations').textContent.replace(/\s+/g, ' '), proj: document.getElementById('pg-projection-corps').textContent }));
+  assert.match(r.mesures, /Tour de taille\s*84,5 cm\s*−1,5 cm/);
+  assert.match(r.proj, /objectif 78 kg vers le/);
+  // Repas : un seul graphique visible, choisi au sélecteur ; week-ends marqués.
+  await page.evaluate(() => choisirOngletStats('nutrition'));
+  await page.waitForFunction(() => caloriesChartInstance && caloriesChartInstance.options.plugins.weekEnds);
+  await page.click('#nutri-series-nav button:nth-child(5)');
+  r = await page.evaluate(() => ({ actives: [...document.querySelectorAll('#ecran-stats .nutri-serie--active')].map(d => d.dataset.serie),
+    weekEnds: caloriesChartInstance.options.plugins.weekEnds.dates.length, top: document.querySelector('#pg-top-aliments b').textContent }));
+  assert.deepEqual(r, { actives: ['eau'], weekEnds: 30, top: 'Poulet rôti' });
+  // Cardio : la semaine en cours et ce qu'il manque.
+  await page.evaluate(() => choisirOngletStats('activite'));
+  assert.match(await page.textContent('#pg-cardio-semaine'), /30 \/ 150 min.*Encore 120 min/s);
+  // Muscu : force exercice par exercice, bulle au toucher d'une case.
+  await page.evaluate(() => choisirOngletStats('muscu'));
+  await page.waitForTimeout(250);
+  assert.match(await page.textContent('#pg-force .pg-lift em'), /↗ \+\d+ %/);
+  await page.click('#pg-grille-muscu .zones-case:not(.vide)');
+  r = await page.evaluate(() => { const b = document.getElementById('pg-bulle'); return { visible: b.classList.contains('visible'), texte: b.textContent }; });
+  assert.ok(r.visible);
+  assert.match(r.texte, /Pectoraux · .* : \d+(,\d)? séries?/);
+  // Poids visé : effacé, la phrase invite à en fixer un.
+  await page.evaluate(() => { userProfile.poidsVise = null; choisirOngletStats('resume'); majToutesStats(); });
+  assert.match(await page.textContent('.pg-heros p'), /Fixe un poids visé/);
 }));
