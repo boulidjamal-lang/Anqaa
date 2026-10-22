@@ -2475,7 +2475,7 @@
     #ecran-repas .heros-droite .macro-lbl { margin: 0; font-size: 0.78rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--text); }
     #ecran-repas .heros-droite .macro-val { margin-left: auto; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
     .macro-val b { color: var(--text); font-weight: 800; }
-    .heros-puces { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--trait); }
+    .heros-puces { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--trait); }
     .heros-puces div { font-size: 0.64rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
     .heros-puces b { display: block; margin-top: 2px; font-size: 1.02rem; letter-spacing: -0.02em; text-transform: none; color: var(--text); }
 
@@ -3714,7 +3714,6 @@
       </div>
       <div class="heros-puces">
         <div>Objectif<b id="target-kcals-display">0</b></div>
-        <div>Dépense<b id="heros-depense">0</b></div>
         <div class="heros-puce-modif" role="button" tabindex="0" onclick="event.stopPropagation(); ouvrirSaisieRapide('pas')" onkeydown="if(event.key==='Enter')this.click()" aria-label="Modifier les pas du jour">Pas<b id="heros-pas">0</b></div>
       </div>
     </div>
@@ -7406,7 +7405,7 @@ function updateSummary(day) {
   const fr = n => Math.round(n).toLocaleString('fr-FR');
   compterVers(document.getElementById('total-kcals'), Math.round(totals.kcal));
   document.getElementById('target-kcals-display').textContent = fr(t.target);
-  const dep = document.getElementById('heros-depense'); if (dep) dep.textContent = fr(t.tdee);
+  // Plus de tuile « Dépense » (même nombre que l'objectif en maintien) : le détail est dans « Ta journée ».
   const pas = document.getElementById('heros-pas'); if (pas) pas.textContent = fr(Number(day.steps) || 0);
 
   /* « 1 840 » tout seul ne dit rien : ce qui interesse, c'est ce qu'il reste. */
