@@ -1474,6 +1474,9 @@ test('thème « Auto » : suit le réglage clair/sombre du téléphone, même en
   assert.equal((await lire()).theme, 'dark');
   // Flou : présent d'ordinaire, coupé avec « réduire la transparence » ou peu de mémoire.
   const flou = () => page.evaluate(() => getComputedStyle(document.getElementById('onglets')).backdropFilter);
+  // Un changement de thème retire le flou une image (deux fois, à 80 ms d'écart) pour forcer le repeint.
+  await page.waitForFunction(() => !document.documentElement.classList.contains('theme-repaint'));
+  await page.waitForTimeout(200);
   assert.notEqual(await flou(), 'none');
   await page.evaluate(() => document.documentElement.classList.add('flou-leger'));
   assert.equal(await flou(), 'none');
