@@ -127,11 +127,16 @@ test("éditeur de programme : glisser pour retirer ou remplacer, toucher le nom 
   await page.evaluate(() => choisirExercicePicker(window.__ids[2]));
   let r = await page.evaluate(() => programmeEnEdition.exercices.map(e => [e.exerciceId, e.series.length, e.tempo, e.plage]));
   assert.deepEqual(r[0], [await page.evaluate(() => window.__ids[2]), 2, '3010', '8-12']);
-  // Glisser à gauche : retirer (avec confirmation)
+  // Glisser à gauche : retirer tout de suite, avec « Annuler » pendant quelques secondes
   await glisser(page, '#programme-exercices-container .exo-swipe:nth-child(2) .exo-en-programme-entete', -160);
   r = await page.evaluate(() => programmeEnEdition.exercices.length);
   assert.equal(r, 1);
-  assert.ok(dialogues.some(d => /Retirer/.test(d)), 'une confirmation est demandée');
+  assert.equal(dialogues.length, 0, 'plus de confirmation');
+  assert.match(await page.textContent('#toast-annuler'), /retiré/);
+  await page.click('#toast-annuler button');
+  assert.equal(await page.evaluate(() => programmeEnEdition.exercices.length), 2, 'Annuler le remet');
+  await glisser(page, '#programme-exercices-container .exo-swipe:nth-child(2) .exo-en-programme-entete', -160);
+  await page.evaluate(() => document.getElementById('toast-annuler').classList.remove('visible'));
   // Toucher le nom : fiche sur le résumé
   await page.click('#programme-exercices-container .exo-en-programme-nom');
   await page.waitForSelector('#fiche-exercice-modal.show');
@@ -1355,7 +1360,8 @@ test('séance : un record est fêté une fois, la série cochée « pop », le r
       pop: !!document.querySelector('.serie-check.pop[data-serie="0_0"]'), anneau: !!document.querySelector('#repos-anneau-0_0') };
     document.getElementById('celebration').textContent = '';
     basculerSerieSession(0, 1); // même charge : pas un nouveau record
-    return { ...premier, deuxieme: document.getElementById('celebration').textContent, records: document.querySelectorAll('.serie-record').length };
+    // L'exercice terminé se replie : les records se comptent dans la séance.
+    return { ...premier, deuxieme: document.getElementById('celebration').textContent, records: musculationSessionActive.exercices[0].series.filter(x => x.record).length };
   });
   assert.match(r.fete, /Nouveau record/);
   assert.deepEqual({ record: r.record, pop: r.pop, anneau: r.anneau, deuxieme: r.deuxieme, records: r.records }, { record: 1, pop: true, anneau: true, deuxieme: '', records: 1 });
@@ -1488,6 +1494,48 @@ test('vidéos HD : préchargées au démarrage de la séance, reprises telles qu
       revenue: document.querySelector('#fiche-exercice-container video.hd') === prechargee, src: fiche && fiche.getAttribute('src') === url };
   });
   assert.deepEqual(r, { prechargee: true, memeFiche: true, memeZoom: true, revenue: true, src: true });
+}));
+
+test("frictions : confirmation de l'appli (plus de fenêtre du navigateur), série supprimée avec Annuler, quantité prête à taper, mot de passe plus gardé", () => avecAppli({}, async ({ page, dialogues }) => {
+  // Vraie fenêtre de l'appli : Abandonner une séance demande confirmation.
+  await page.evaluate(() => {
+    confirmer = window.__confirmerReel; informer = window.__informerReel;
+    const exo = toutesLesExercices()[0];
+    musculationProgrammes.push({ id: 'pf', nom: 'Test', exercices: [{ exerciceId: exo.id, series: [{ poids: 20, reps: 8 }, { poids: 20, reps: 8 }] }], maj: Date.now() });
+    allerA('seance'); demarrerSeance('pf');
+    abandonnerSeance();
+  });
+  await page.waitForSelector('#modal-dialogue.show');
+  assert.match(await page.textContent('#dialogue-texte'), /Abandonner cette séance/);
+  assert.equal(await page.textContent('#dialogue-oui'), 'Abandonner');
+  await page.click('#dialogue-non');
+  assert.ok(await page.evaluate(() => !!musculationSessionActive), 'Annuler garde la séance');
+  // alert() passe aussi par la fenêtre de l'appli.
+  await page.evaluate(() => alert('Bonjour'));
+  await page.waitForSelector('#modal-dialogue.show');
+  assert.equal(await page.isHidden('#dialogue-non'), true);
+  await page.click('#dialogue-oui');
+  // Série supprimée tout de suite, avec Annuler.
+  await page.evaluate(() => retirerSerieSession(0, 1));
+  assert.equal(await page.evaluate(() => musculationSessionActive.exercices[0].series.length), 1);
+  await page.click('#toast-annuler button');
+  assert.equal(await page.evaluate(() => musculationSessionActive.exercices[0].series.length), 2);
+  // Aliment choisi : la quantité est sélectionnée, prête à être remplacée.
+  const q = await page.evaluate(() => {
+    ouvrirManuel('lunch');
+    selectionnerProduitOFF({ name: 'Riz cuit', nutriments: { 'energy-kcal_100g': 130 } });
+    const c = document.activeElement;
+    return { id: c.id, tout: c.selectionStart === 0 && c.selectionEnd === c.value.length };
+  });
+  assert.deepEqual(q, { id: 'man-grams', tout: true });
+  // « Se souvenir de moi » : plus de case, plus de mot de passe gardé.
+  const mdp = await page.evaluate(() => {
+    localStorage.setItem('mc_identifiants_sauvegardes', JSON.stringify({ email: 'a@b.fr', mdp: 'secret' }));
+    tenterConnexionAutomatique();
+    return { reste: localStorage.getItem('mc_identifiants_sauvegardes'), caseSouvenir: !!document.getElementById('compte-souvenir') };
+  });
+  assert.deepEqual(mdp, { reste: null, caseSouvenir: false });
+  assert.equal(dialogues.length, 0, 'aucune fenêtre du navigateur');
 }));
 
 test('séance : pavé de saisie à la salle (− / +, pas selon le matériel, valider)', () => avecAppli({}, async ({ page }) => {

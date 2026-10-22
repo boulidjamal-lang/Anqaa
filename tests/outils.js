@@ -48,6 +48,9 @@ async function ouvrirAppli(navigateur, options = {}) {
   const dialogues = [];
   page.on('pageerror', e => erreurs.push(e.message));
   page.on('dialog', d => { dialogues.push(d.message()); d.accept(); });
+  // Les fenêtres de l'appli (confirmer / informer) remplacent confirm() et
+  // alert() : elles sont notées dans `dialogues` et acceptées d'office.
+  await page.exposeFunction('__noterDialogue', m => { dialogues.push(m); });
   await page.goto(URL_APPLI, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => typeof allerA === 'function' && typeof Chart !== 'undefined');
   await page.waitForTimeout(800);
@@ -58,6 +61,9 @@ async function ouvrirAppli(navigateur, options = {}) {
 async function preparer(page, theme) {
   await page.evaluate(theme => {
     connexionObligatoire = false;
+    window.__confirmerReel = confirmer; window.__informerReel = informer;
+    confirmer = texte => { window.__noterDialogue(String(texte)); return Promise.resolve(true); };
+    informer = texte => { window.__noterDialogue(String(texte)); return Promise.resolve(true); };
     const sp = document.getElementById('splash-screen');
     if (sp) sp.style.display = 'none';
     document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));

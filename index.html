@@ -2587,6 +2587,8 @@
     .sdj-puce { padding: 5px 10px; border-radius: 99px; background: rgba(255,255,255,.2); font-size: .7rem; font-weight: 800; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); white-space: nowrap; }
     .sdj-play { margin-left: auto; width: 52px; height: 52px; flex: none; border-radius: 50%; background: #fff; color: #be185d; display: grid; place-items: center; box-shadow: 0 10px 24px -8px rgba(0,0,0,.4); }
     .sdj-play .icone-ui { width: 22px; height: 22px; margin-left: 3px; }
+    .sdj-play { border: 0; padding: 0; cursor: pointer; font: inherit; transition: transform .15s; }
+    .sdj-play:active { transform: scale(.9); }
 
     /* Programmes illustrés */
     .carrousel { display: flex; gap: 10px; overflow-x: auto; margin: 0 -16px 8px; padding: 2px 16px 14px; scroll-snap-type: x mandatory; scrollbar-width: none; }
@@ -3555,6 +3557,26 @@
     .mc-a { font-size: .68rem; font-weight: 700; color: var(--text-muted); }
     .mc-detail { margin: 8px 2px 0; padding: 10px 12px; border-radius: 14px; background: var(--piste); font-size: .8rem; line-height: 1.45; }
 
+    /* Fenêtre de dialogue de l'appli (confirmer / informer) */
+    #modal-dialogue { z-index: 4000; }
+    html:root .dialogue-carte { max-width: 360px; padding: 22px 20px 18px; text-align: center; }
+    #dialogue-texte { margin: 0 0 18px; font-size: .98rem; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; color: var(--text); }
+    .dialogue-copie { display: flex; gap: 8px; margin: -6px 0 16px; }
+    .dialogue-copie input { flex: 1; min-width: 0; padding: 10px 12px; border: 0; border-radius: 12px; background: var(--piste); color: var(--text); font: 600 .85rem 'Inter', sans-serif; }
+    html:root .dialogue-copie .btn { min-height: 0; width: auto; padding: 0 14px; }
+    .dialogue-boutons { display: flex; gap: 10px; }
+    html:root .dialogue-boutons .btn { flex: 1; min-height: 48px; margin: 0; }
+    html:root .dialogue-boutons .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 12px 26px -12px rgba(220,38,38,.7); border: 0; }
+
+    /* Démarrage court (lancements suivants) : le logo déjà formé, sans animation. */
+    #splash-screen.spl-court, #splash-screen.spl-court * { animation-duration: 1ms !important; animation-delay: 0s !important; }
+    #splash-screen.spl-court * { transition: none !important; }
+    #splash-screen.spl-court .spl-scene { animation: none !important; }
+
+    /* Fenêtres longues (cardio, mesures) : « Enregistrer » reste visible en bas. */
+    html:root .modal-content .fen-enregistrer { position: sticky; bottom: 8px; z-index: 5;
+      box-shadow: 0 -16px 18px 8px var(--carte-plein), 0 12px 26px -12px rgba(6,182,212,.75); }
+
     /* Apparition */
     .vitrine > *, #seance-cardio > * { animation: monte .55s cubic-bezier(.2,.8,.2,1) both; }
     .vitrine > :nth-child(2), #seance-cardio > :nth-child(2) { animation-delay: .05s; }
@@ -3719,6 +3741,9 @@
 
     // Ancien réglage « Couleurs de l'application » (retiré) : son cache local est effacé.
     try { localStorage.removeItem('elite_couleurs_app_v1'); } catch (e) {}
+    // Ancien « Se souvenir de moi » : le mot de passe gardé en clair est effacé
+    // (la session Supabase reste ouverte d'un lancement à l'autre).
+    try { localStorage.removeItem('mc_identifiants_sauvegardes'); } catch (e) {}
 
     var splash = document.getElementById('splash-screen');
     if (!splash) return;
@@ -3729,12 +3754,15 @@
       splash.style.opacity = '0';
       setTimeout(function () { splash.style.display = 'none'; }, 420);
     }
-    /* 3,2 s à l'ouverture (2,8 s d'animation complète + 0,4 s de fondu, cf.
-       fadeOutCinematic) ; une seconde ouverture dans la même session passe
-       directement, et toucher l'écran le fait disparaître. */
-    var dejaVu = false;
+    /* Animation complète (3,2 s : 2,8 s + 0,4 s de fondu, cf.
+       fadeOutCinematic) au tout premier lancement seulement. Ensuite, le
+       logo s'affiche déjà formé ~0,8 s ; une seconde ouverture dans la même
+       session passe directement, et toucher l'écran le fait disparaître. */
+    var dejaVu = false, court = false;
     try { dejaVu = sessionStorage.getItem('elite_splash') === '1'; sessionStorage.setItem('elite_splash', '1'); } catch (e) {}
+    try { court = !dejaVu && localStorage.getItem('anqaa_splash_vu') === '1'; localStorage.setItem('anqaa_splash_vu', '1'); } catch (e) {}
     if (dejaVu) { splash.style.animation = 'none'; hideSplash(); }
+    else if (court) { splash.classList.add('spl-court'); splash.style.animation = 'none'; setTimeout(hideSplash, 450); }
     else { setTimeout(hideSplash, 3200); }
     splash.addEventListener('click', hideSplash);
 
@@ -3749,7 +3777,7 @@
       var sous = splash.querySelector('.spl-sous');
       var encre = getComputedStyle(splash).getPropertyValue('--spl-t').trim() || '#f4f7fb';
       var reduitMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (dejaVu || reduitMotion) {
+      if (dejaVu || court || reduitMotion) {
         for (var li = 0; li < lettres.length; li++) {
           lettres[li].style.fill = encre;
           lettres[li].style.strokeWidth = '2';
@@ -4462,13 +4490,13 @@
       <span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M12 7v5l4 2" /></svg></span>
       <span><span id="opt-hier-titre">Comme hier</span><span class="sous" id="opt-hier-sous"></span></span>
     </button>
+    <button class="feuille-action" id="opt-manuel" onclick="depuisFeuille('manuel')">
+      <span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.528V3a1 1 0 0 1 1-1h0" /><path d="M18.237 21A15 15 0 0 0 22 11a6 6 0 0 0-10-4.472A6 6 0 0 0 2 11a15.1 15.1 0 0 0 3.763 10 3 3 0 0 0 3.648.648 5.5 5.5 0 0 1 5.178 0A3 3 0 0 0 18.237 21" /></svg></span>
+      <span>Rechercher un aliment<span class="sous">Dans la base d'aliments et ce que tu as déjà mangé</span></span>
+    </button>
     <button class="feuille-action" id="opt-recette" onclick="depuisFeuille('recette')">
       <span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h20" /><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8" /><path d="m4 8 16-4" /><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8" /></svg></span>
       <span>Recette<span class="sous">Une de tes recettes enregistrées, en un tap</span></span>
-    </button>
-    <button class="feuille-action" id="opt-manuel" onclick="depuisFeuille('manuel')">
-      <span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.528V3a1 1 0 0 1 1-1h0" /><path d="M18.237 21A15 15 0 0 0 22 11a6 6 0 0 0-10-4.472A6 6 0 0 0 2 11a15.1 15.1 0 0 0 3.763 10 3 3 0 0 0 3.648.648 5.5 5.5 0 0 1 5.178 0A3 3 0 0 0 18.237 21" /></svg></span>
-      <span>Saisie manuelle<span class="sous">Recherche dans la base d'aliments</span></span>
     </button>
     <button class="feuille-action" id="opt-photo" onclick="depuisFeuille('photo')">
       <span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /><circle cx="12" cy="13" r="3" /></svg></span>
@@ -4590,7 +4618,7 @@
 <div id="manual-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-manual">
   <div class="modal-content">
     <div class="modal-entete">
-      <h3 id="titre-manual"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" /><path d="M14 2v5a1 1 0 0 0 1 1h5" /><path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" /></svg> Saisie manuelle</h3>
+      <h3 id="titre-manual"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" /><path d="M14 2v5a1 1 0 0 0 1 1h5" /><path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" /></svg> Ajouter un aliment</h3>
       <button class="close-modal" onclick="fermerModal('manual-modal')" aria-label="Fermer">&times;</button>
     </div>
 
@@ -5241,10 +5269,6 @@
         <input type="text" id="compte-pseudo-input" placeholder="ex : jamal.fit" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20">
         <small class="note" style="display:block; margin-top:6px;">3 à 20 caractères : minuscules, chiffres, point ou tiret bas. Tes gymbros te trouveront avec ce nom.</small>
       </div>
-      <label style="display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; margin:-6px 0 14px; cursor:pointer;">
-        <input type="checkbox" id="compte-souvenir" style="width:auto;">
-        Se souvenir de moi sur cet appareil
-      </label>
       <p class="note" id="note-compte"></p>
       <div style="display:flex; gap:10px;">
         <button class="btn btn-primary" style="flex:1;" onclick="connexionOuCreerCompte()">Se connecter</button>
@@ -5581,7 +5605,7 @@
       <p class="note note-explicative" style="margin:8px 0 0;">Au mètre ruban, le matin, toujours au même endroit (taille : au niveau du nombril). Suivies dans Progrès › Corps.</p>
     </div>
 
-    <button class="btn btn-primary" style="margin-top:6px;" onclick="enregistrerMesures()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /><path d="M7 3v4a1 1 0 0 0 1 1h7" /></svg> Enregistrer</button>
+    <button class="btn btn-primary fen-enregistrer" style="margin-top:6px;" onclick="enregistrerMesures()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /><path d="M7 3v4a1 1 0 0 0 1 1h7" /></svg> Enregistrer</button>
   </div>
 </div>
 
@@ -5902,7 +5926,7 @@
       <div><label class="cardio-champ-l" for="cardio-note">Note</label><input type="text" id="cardio-note" maxlength="80" autocomplete="off" placeholder="Facultatif"></div>
     </div>
     <p class="note" style="margin:10px 2px 14px;">Comptée dans ta dépense du jour, comme les autres séances.</p>
-    <button type="button" class="btn btn-primary" onclick="enregistrerCardio()">Enregistrer</button>
+    <button type="button" class="btn btn-primary fen-enregistrer" onclick="enregistrerCardio()">Enregistrer</button>
     <button type="button" class="btn btn-secondaire hidden" id="btn-suppr-cardio" style="margin-top:10px;" onclick="supprimerCardio()">Supprimer la séance</button>
   </div>
 </div>
@@ -7203,12 +7227,18 @@ function enregistrerCardio() {
 }
 function supprimerCardio() {
   if (!cardioEdition) return;
-  if (!confirm('Supprimer cette séance ?')) return;
-  const day = getDay(cardioEdition.date);
-  day.workouts.splice(cardioEdition.index, 1);
-  saveData(cardioEdition.date);
-  apresModifCardio([cardioEdition.date]);
+  const { date, index } = cardioEdition;
+  const day = getDay(date);
+  const retiree = day.workouts.splice(index, 1)[0];
+  saveData(date);
+  apresModifCardio([date]);
   fermerModal('modal-cardio');
+  if (retiree) afficherAnnulation('Séance cardio supprimée', () => {
+    const d = getDay(date);
+    d.workouts.splice(Math.min(index, d.workouts.length), 0, retiree);
+    saveData(date);
+    apresModifCardio([date]);
+  });
 }
 /* --- Statistiques › Cardio : minutes par semaine, allure, records --- */
 let cardioSemainesChartInstance = null, cardioAllureChartInstance = null;
@@ -8238,6 +8268,10 @@ function afficherSuggestionsOFF(products, probleme) {
 function selectionnerProduitOFF(prod) {
   fillFromOFF(prod);
   cacherSuggestionsOFF();
+  // La quantité est la seule chose qui reste à dire : champ sélectionné,
+  // clavier numérique ouvert, on tape « 150 » directement.
+  const q = document.getElementById('man-grams');
+  if (q) { q.focus(); q.select(); }
 }
 
 function cacherSuggestionsOFF() {
@@ -8518,7 +8552,7 @@ function copierCode(code, el) {
     promptCode(code);
   }
 }
-function promptCode(code) { window.prompt('Code-barres du produit :', code); }
+function promptCode(code) { informer('Code-barres du produit :', { copie: code }); }
 
 /* Sur un input[type=number], saisir « 250,5 » rend le champ invalide et .value
    retourne '' : Number('') || 0 valait 0, et l'aliment était enregistré à
@@ -8542,14 +8576,14 @@ function calculerApercuManuel() {
     `<b>${Math.round(kcal)}<small> kcal</small></b><span><i style="background:var(--protein)"></i>P ${Math.round(p)} g</span><span><i style="background:var(--carbs)"></i>G ${Math.round(c)} g</span><span><i style="background:var(--fat)"></i>L ${Math.round(l)} g</span>`;
 }
 
-function validerAjoutManuel() {
+async function validerAjoutManuel() {
   const name = document.getElementById('man-name').value.trim();
   const g = nombreChamp('man-grams');
   if (!name || g <= 0) { alert('Renseigne un nom et une quantité.'); return; }
 
   const kcal100 = nombreChamp('man-kcal100');
   // Un aliment à 0 kcal est presque toujours une saisie ratée, pas une intention.
-  if (kcal100 <= 0 && !confirm("Aucune calorie renseignée pour cet aliment.\nL'ajouter quand même à 0 kcal ?")) return;
+  if (kcal100 <= 0 && !(await confirmer("Aucune calorie renseignée pour cet aliment. L'ajouter quand même à 0 kcal ?", { ok: 'Ajouter à 0 kcal' }))) return;
 
   const f = g / 100;
   const item = {
@@ -8948,7 +8982,7 @@ async function supprimerRecettePersoEnEdition() {
     if (ok) fermerEditeurRecetteAdmin();
     return;
   }
-  if (!confirm(`Supprimer la recette « ${recettePersoEnEdition.nom} » ?`)) return;
+  if (!(await confirmer(`Supprimer la recette « ${recettePersoEnEdition.nom} » ?`, { ok: 'Supprimer', danger: true }))) return;
   const ok = await supprimerRecettePersoDistant(recettePersoEnEdition.id);
   if (!ok) return;
   recettesPerso = recettesPerso.filter(r => r.id !== recettePersoEnEdition.id);
@@ -9171,9 +9205,9 @@ function uniteProbableParNom(nom) {
    .eq('utilisateur', …) : un select() sans ce filtre renvoie donc déjà
    les journées de tout le monde. */
 async function corrigerUnitesTousComptes() {
-  if (!confirm("Analyser TOUS les repas de TOUS les comptes pour repérer les "
+  if (!(await confirmer("Analyser TOUS les repas de TOUS les comptes pour repérer les "
     + "boissons encore marquées en grammes et les convertir en ml ?\n\n"
-    + "Seuls les aliments actuellement en g sont revérifiés ; le reste ne change pas.")) return;
+    + "Seuls les aliments actuellement en g sont revérifiés ; le reste ne change pas.", { ok: 'Confirmer' }))) return;
 
   const bouton = document.getElementById('btn-corriger-unites-admin');
   const texte = document.getElementById('btn-corriger-unites-admin-texte');
@@ -9345,7 +9379,7 @@ async function chercherProduitOFFParCode(code) {
   }
 
   // 4) Vraiment rien nulle part : jamais de cul-de-sac, on propose la main.
-  if (confirm("Produit introuvable (OpenFoodFacts et tes aliments déjà enregistrés).\n\nSaisir ce produit à la main, avec ce code-barres ?")) {
+  if (await confirmer("Produit introuvable (OpenFoodFacts et tes aliments déjà enregistrés). Le saisir à la main, avec ce code-barres ?", { ok: 'Saisir à la main' })) {
     saisieManuelleAvecCode(code);
   }
 }
@@ -9477,7 +9511,7 @@ async function redemarrerCameraPourMiseAuPoint() {
   }
 }
 
-function ajouterAlimentBarcode() {
+async function ajouterAlimentBarcode() {
   if (!currentScannedFood) return;
   const g = nombreChamp('barcode-grams') || 100;
   /* Certaines fiches OpenFoodFacts n'ont vraiment aucune donnée nutritionnelle :
@@ -9486,9 +9520,7 @@ function ajouterAlimentBarcode() {
      seulement quand la donnee est ABSENTE, pas quand 0 kcal est la vraie
      valeur (une eau minérale scannée affiche alors ce message à tort). */
   if (currentScannedFood.sansDonneesNutrition) {
-    if (!confirm("Cette fiche OpenFoodFacts n'indique aucune calorie.\n\n"
-      + "OK : ouvrir la saisie manuelle pour completer.\n"
-      + "Annuler : revenir au scanner.")) return;
+    if (!(await confirmer("Cette fiche OpenFoodFacts n'indique aucune calorie : complète-la à la main.", { ok: 'Compléter à la main', annuler: 'Revenir au scanner' }))) return;
     fermerModal('barcode-modal');
     stopperScanner();
     ouvrirManuel(activeMealId);
@@ -11091,10 +11123,10 @@ async function importerDonneesUtilisateurAdmin(event) {
         alert(`Fichier invalide : ${jours.length} journées, au-delà de ce qu'un export plausible contient (max ${IMPORT_MAX_JOURS}).`);
         return;
       }
-      const ok = confirm(
+      const ok = (await confirmer(
         `Importer ${jours.length} journée(s) dans le compte ${nom} ?\n\n`
         + `Les journées du fichier REMPLACENT celles déjà enregistrées pour ce compte aux mêmes dates. `
-        + `Les autres jours déjà présents ne sont pas touchés. Action irréversible.`);
+        + `Les autres jours déjà présents ne sont pas touchés. Action irréversible.`, { ok: 'Confirmer' }));
       if (!ok) return;
 
       const maintenant = Date.now();
@@ -11823,19 +11855,11 @@ function verifierConnexionObligatoire() {
   tenterConnexionAutomatique();
 }
 
-/* « Se souvenir de moi » : uniquement local, jamais envoyé nulle part à part
-   à Withings — ici c'est vers Supabase, exactement comme si la personne les
-   retapait à la main. Stocké en clair dans le navigateur de CET appareil :
-   quelqu'un ayant un accès physique au téléphone déverrouillé pourrait le
-   lire, mais rien ne quitte l'appareil. */
+/* L'ancien « Se souvenir de moi » gardait le mot de passe en clair sur
+   l'appareil. Inutile : la session Supabase reste ouverte d'un lancement à
+   l'autre. Ce qui avait été enregistré est effacé. */
 function tenterConnexionAutomatique() {
-  let creds = null;
-  try { creds = JSON.parse(localStorage.getItem(IDENTIFIANTS_LS) || 'null'); } catch (e) {}
-  if (!creds || !creds.email || !creds.mdp) return;
-  document.getElementById('compte-email-input').value = creds.email;
-  document.getElementById('compte-mdp-input').value = creds.mdp;
-  document.getElementById('compte-souvenir').checked = true;
-  connexionCompte();
+  try { localStorage.removeItem(IDENTIFIANTS_LS); } catch (e) {}
 }
 
 /* La connexion étant obligatoire (connexionObligatoire, ci-dessus) et
@@ -12027,7 +12051,6 @@ async function connexionCompte() {
   if (!supa) { alert("Renseigne d'abord l'URL et la clé du projet Supabase (section Synchronisation) : la connexion utilise le même projet."); return; }
   const email = (document.getElementById('compte-email-input').value || '').trim();
   const mdp = document.getElementById('compte-mdp-input').value || '';
-  const seSouvenir = document.getElementById('compte-souvenir').checked;
   const note = document.getElementById('note-compte');
   if (!email || !mdp) { if (note) note.textContent = 'Renseigne une adresse et un mot de passe.'; return; }
   if (note) note.textContent = 'Connexion en cours…';
@@ -12035,13 +12058,6 @@ async function connexionCompte() {
     const { error } = await supa.auth.signInWithPassword({ email, password: mdp });
     if (error) throw error;
     if (note) note.textContent = '';
-    // Coché : les identifiants restent sur CET appareil pour une reconnexion
-    // automatique au prochain lancement. Décoché : on efface ce qui aurait
-    // pu être enregistré avant, pour que "se souvenir" reste réversible.
-    try {
-      if (seSouvenir) localStorage.setItem(IDENTIFIANTS_LS, JSON.stringify({ email, mdp }));
-      else localStorage.removeItem(IDENTIFIANTS_LS);
-    } catch (e) {}
     document.getElementById('compte-mdp-input').value = '';
   } catch (e) { if (note) note.textContent = messageAuth(e); }
 }
@@ -12058,23 +12074,14 @@ async function connexionOuCreerCompte() {
   if (!supa) { alert("Renseigne d'abord l'URL et la clé du projet Supabase (section Synchronisation) : la connexion utilise le même projet."); return; }
   const email = (document.getElementById('compte-email-input').value || '').trim();
   const mdp = document.getElementById('compte-mdp-input').value || '';
-  const seSouvenir = document.getElementById('compte-souvenir').checked;
   const note = document.getElementById('note-compte');
   if (!email || !mdp) { if (note) note.textContent = 'Renseigne une adresse et un mot de passe.'; return; }
-
-  const memoriser = () => {
-    try {
-      if (seSouvenir) localStorage.setItem(IDENTIFIANTS_LS, JSON.stringify({ email, mdp }));
-      else localStorage.removeItem(IDENTIFIANTS_LS);
-    } catch (e) {}
-  };
 
   if (note) note.textContent = 'Connexion en cours…';
   try {
     const { error } = await supa.auth.signInWithPassword({ email, password: mdp });
     if (!error) {
       if (note) note.textContent = '';
-      memoriser();
       document.getElementById('compte-mdp-input').value = '';
       return;
     }
@@ -12149,7 +12156,6 @@ async function connexionOuCreerCompte() {
     // Confirmation par email désactivée côté Supabase : le compte est
     // actif immédiatement, la session est déjà valide.
     if (note) note.textContent = '';
-    memoriser();
     document.getElementById('compte-mdp-input').value = '';
   } else {
     if (note) note.textContent = 'Compte créé : vérifie ta boîte mail pour confirmer ton adresse, puis reviens te connecter avec ce même mot de passe.';
@@ -12885,9 +12891,9 @@ create trigger journal_exercices_perso after insert or update or delete on publi
 
 function copierSqlGymbro() {
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(SQL_GYMBRO_PHOTOS).catch(() => window.prompt('Copie ce SQL :', SQL_GYMBRO_PHOTOS));
+    navigator.clipboard.writeText(SQL_GYMBRO_PHOTOS).catch(() => informer('Copie ce SQL :', { copie: SQL_GYMBRO_PHOTOS }));
   } else {
-    window.prompt('Copie ce SQL :', SQL_GYMBRO_PHOTOS);
+    informer('Copie ce SQL :', { copie: SQL_GYMBRO_PHOTOS });
   }
 }
 /* Table ou fonction absente : le SQL ci-dessus n'a pas encore été exécuté. */
@@ -13116,7 +13122,7 @@ async function partagerLienGymbro() {
     catch (e) { if (e && e.name === 'AbortError') return; }
   }
   try { await navigator.clipboard.writeText(url); afficherInfo("Lien copié : envoie-le à ton ami."); }
-  catch (e) { prompt('Copie ce lien et envoie-le à ton ami :', url); }
+  catch (e) { informer('Copie ce lien et envoie-le à ton ami :', { copie: url }); }
 }
 let invitationGymbro = null;
 function lireInvitationGymbro() {
@@ -13285,8 +13291,8 @@ async function choisirPhotoProfil(input) {
     alert("Cette image n'a pas pu être utilisée (" + e.message + '). Essaie avec une autre photo.');
   }
 }
-function retirerPhotoProfil() {
-  if (confirm('Retirer ta photo de profil ?')) enregistrerProfil({ avatar: null });
+async function retirerPhotoProfil() {
+  if (await confirmer('Retirer ta photo de profil ?', { ok: 'Retirer', danger: true })) enregistrerProfil({ avatar: null });
 }
 /* Semaines d'affilée avec au moins une séance, en comptant la semaine en
    cours seulement si elle en a déjà une (sinon la série n'est pas encore
@@ -13741,7 +13747,7 @@ async function repondreGymbro(pseudo, accepter) {
   else retourRechercheGymbro();
 }
 async function annulerLienGymbro(pseudo, retrait, depuisListe) {
-  if (retrait && !confirm('Retirer @' + pseudo + ' de tes gymbros ? Vous ne verrez plus vos séances l\'un de l\'autre.')) return;
+  if (retrait && !(await confirmer('Retirer @' + pseudo + ' de tes gymbros ? Vous ne verrez plus vos séances l\'un de l\'autre.', { ok: 'Retirer', danger: true }))) return;
   try {
     const { error } = await supa.rpc('gymbro_retirer', { p_pseudo: pseudo });
     if (error) throw error;
@@ -13987,7 +13993,7 @@ async function ajouterPhotosProgression(input) {
 }
 async function supprimerPhotoProgression(i) {
   const p = photosProgression[i];
-  if (!p || !confirm('Supprimer cette photo ?')) return;
+  if (!p || !(await confirmer('Supprimer cette photo ?', { ok: 'Supprimer', danger: true }))) return;
   const { error } = await supa.storage.from(BUCKET_PHOTOS).remove([p.chemin]);
   if (error) { alert('Erreur : ' + (error.message || error)); return; }
   chargerPhotosProgression();
@@ -14034,7 +14040,7 @@ async function chargerAdmin() {
 async function definirBlocage(utilisateur, type, dejaConfirme) {
   if (!dejaConfirme) {
     const libelles = { suspendu: 'suspendre ce compte (il ne pourra plus se connecter jusqu\'à réactivation)', supprime: 'supprimer ce compte (les données restent, rattachables plus tard)', null: 'réactiver ce compte' };
-    if (!confirm('Confirmer : ' + (libelles[type === null ? 'null' : type] || 'modifier ce compte') + ' ?')) return;
+    if (!(await confirmer('Confirmer : ' + (libelles[type === null ? 'null' : type] || 'modifier ce compte') + ' ?', { ok: 'Confirmer' }))) return;
   }
   try {
     const { error } = await supa.rpc('admin_definir_blocage', { p_utilisateur: utilisateur, p_type: type });
@@ -16349,9 +16355,9 @@ function sqlRls() { return SQL_RLS; }
 
 function copierSqlRls() {
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(SQL_RLS).catch(() => window.prompt('Copie ce SQL :', SQL_RLS));
+    navigator.clipboard.writeText(SQL_RLS).catch(() => informer('Copie ce SQL :', { copie: SQL_RLS }));
   } else {
-    window.prompt('Copie ce SQL :', SQL_RLS);
+    informer('Copie ce SQL :', { copie: SQL_RLS });
   }
 }
 
@@ -16407,9 +16413,9 @@ create index if not exists ${table}_code_barre_idx
 function copierSqlAccents() {
   const t = sqlAccents();
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(t).catch(() => window.prompt('Copie ce SQL :', t));
+    navigator.clipboard.writeText(t).catch(() => informer('Copie ce SQL :', { copie: t }));
   } else {
-    window.prompt('Copie ce SQL :', t);
+    informer('Copie ce SQL :', { copie: t });
   }
 }
 
@@ -16417,9 +16423,9 @@ function copierSql() {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(SQL_SUPABASE)
       .then(() => majEtatSync(document.getElementById('puce-sync').getAttribute('data-etat'), 'SQL copié dans le presse-papiers.'))
-      .catch(() => window.prompt('Copie ce SQL :', SQL_SUPABASE));
+      .catch(() => informer('Copie ce SQL :', { copie: SQL_SUPABASE }));
   } else {
-    window.prompt('Copie ce SQL :', SQL_SUPABASE);
+    informer('Copie ce SQL :', { copie: SQL_SUPABASE });
   }
 }
 
@@ -18103,7 +18109,7 @@ function backfillDerniereFoisProgramme(pe) {
    mesure), sinon part des poids/répétitions cibles définis dans le
    programme lui-même, série par série. */
 function construireExercicesSession(programme) {
-  return programme.exercices.map(pe => {
+  const exercices = programme.exercices.map(pe => {
     const exo = trouverExercice(pe.exerciceId);
     const derniere = dernierePerfExercice(pe.exerciceId);
     const cibles = normaliserSeriesProgramme(pe);
@@ -18123,8 +18129,8 @@ function construireExercicesSession(programme) {
     } else {
       series = cibles.map(c => ({ poids: c.poids, reps: c.reps, fait: false, technique: c.technique || null }));
     }
-    // Au lancement, chaque exercice est replié sur une ligne : on déplie
-    // celui qu'on attaque (voir basculerRepliExerciceSession).
+    // Au lancement, les exercices sont repliés sur une ligne, sauf le
+    // premier (ou le premier superset) : on attaque directement.
     return {
       exerciceId: pe.exerciceId, nom: exo ? exo.nom : 'Exercice', series,
       supersetSuivant: !!pe.supersetSuivant, replie: true,
@@ -18133,6 +18139,9 @@ function construireExercicesSession(programme) {
       ...(pe.repos ? { repos: pe.repos } : {})
     };
   });
+  const premier = grouperBlocsExercices(exercices)[0] || [];
+  premier.forEach(ei => { exercices[ei].replie = false; });
+  return exercices;
 }
 
 /* Regroupe une liste d'exercices (d'une séance en cours ou d'un historique)
@@ -19018,9 +19027,9 @@ function voirDetailHistorique(id) {
 function ouvrirHistoriqueExercice(exerciceId) {
   afficherFicheExerciceBiblio(exerciceId, { historique: muscuContexteActuel.historique, onglet: 'resume' });
 }
-function supprimerSeanceHistorique() {
+async function supprimerSeanceHistorique() {
   if (!historiqueDetailCourant || muscuContexteActuel.admin) return;
-  if (!confirm('Supprimer définitivement cette séance de l’historique ?')) return;
+  if (!(await confirmer('Supprimer définitivement cette séance de ton historique ?', { ok: 'Supprimer', danger: true }))) return;
   musculationHistorique = musculationHistorique.filter(h => h.id !== historiqueDetailCourant);
   sauvegarderHistorique();
   ajouterSuppressionMuscu('seances_musculation', historiqueDetailCourant);
@@ -19363,9 +19372,12 @@ function ajouterSerieProgramme(i) {
 function retirerSerieProgramme(i, si) {
   const pe = programmeEnEdition.exercices[i];
   if (!pe || pe.series.length <= 1) return;
-  if (!confirm('Supprimer cette série ?')) return;
-  pe.series.splice(si, 1);
+  const retiree = pe.series.splice(si, 1)[0];
   renderProgrammeExercicesEnEdition();
+  afficherAnnulation('Série supprimée', () => {
+    pe.series.splice(Math.min(si, pe.series.length), 0, retiree);
+    renderProgrammeExercicesEnEdition();
+  });
 }
 /* Un exercice marqué "superset avec le suivant" est exécuté juste après le
    suivant, sans repos entre les deux — deux boutons cochés à la suite
@@ -19381,17 +19393,24 @@ function toggleSupersetProgramme(i) {
 function retirerExerciceProgramme(i) {
   const pe = programmeEnEdition.exercices[i];
   const exo = pe && trouverExercice(pe.exerciceId);
-  if (!confirm(`Retirer ${exo ? libelleExercice(exo) : 'cet exercice'} du programme ?`)) return;
-  programmeEnEdition.exercices.splice(i, 1);
+  const edition = programmeEnEdition;
+  edition.exercices.splice(i, 1);
   // supersetSuivant lie un exercice à celui qui le suit IMMÉDIATEMENT. Après
   // avoir retiré l'exercice à l'index i, c'est donc celui qui le précédait
   // (désormais suivi d'un voisin différent) qui doit perdre son drapeau —
   // pas "le nouveau dernier de la liste" : ça ne couvrait que le cas où
   // l'exercice supprimé était en toute fin de chaîne, pas une suppression
   // en plein milieu d'un superset.
-  const precedent = programmeEnEdition.exercices[i - 1];
+  const precedent = edition.exercices[i - 1];
+  const lienPrecedent = precedent ? precedent.supersetSuivant : false;
   if (precedent) precedent.supersetSuivant = false;
   renderProgrammeExercicesEnEdition();
+  afficherAnnulation((exo ? libelleExercice(exo) : 'Exercice') + ' retiré', () => {
+    if (programmeEnEdition !== edition) return;
+    edition.exercices.splice(Math.min(i, edition.exercices.length), 0, pe);
+    if (precedent) precedent.supersetSuivant = lienPrecedent;
+    renderProgrammeExercicesEnEdition();
+  });
 }
 /* Réorganiser un programme : appui long sur l'en-tête d'un exercice. Tous
    les exercices se replient (nom seul), celui qu'on tient suit le doigt,
@@ -19502,9 +19521,9 @@ function validerProgramme() {
   sauvegarderProgrammeEnEdition();
   renderSeance();
 }
-function supprimerProgrammeDepuisModal() {
+async function supprimerProgrammeDepuisModal() {
   if (!programmeEnEdition || !programmeEnEdition.id) return;
-  if (!confirm('Supprimer ce programme ? Son historique de séances est conservé.')) return;
+  if (!(await confirmer('Supprimer ce programme ? Son historique de séances est conservé.', { ok: 'Supprimer', danger: true }))) return;
   musculationProgrammes = musculationProgrammes.filter(p => p.id !== programmeEnEdition.id);
   sauvegarderProgrammes();
   ajouterSuppressionMuscu('programmes_musculation', programmeEnEdition.id);
@@ -19512,8 +19531,8 @@ function supprimerProgrammeDepuisModal() {
   sauvegarderProgrammeEnEdition();
   renderSeance();
 }
-function supprimerProgramme(id) {
-  if (!confirm('Supprimer ce programme ? Son historique de séances est conservé.')) return;
+async function supprimerProgramme(id) {
+  if (!(await confirmer('Supprimer ce programme ? Son historique de séances est conservé.', { ok: 'Supprimer', danger: true }))) return;
   musculationProgrammes = musculationProgrammes.filter(p => p.id !== id);
   sauvegarderProgrammes();
   ajouterSuppressionMuscu('programmes_musculation', id);
@@ -21290,13 +21309,13 @@ function modifierZonePerso(g, cle, valeur) {
   rendreReglagesZones();
   enregistrerProfilMuscu();
 }
-function reinitialiserZonesPerso(g) {
+async function reinitialiserZonesPerso(g) {
   if (g) {
     if (userProfile.zonesPerso) delete userProfile.zonesPerso[g];
     if (userProfile.zonesPerso && !Object.keys(userProfile.zonesPerso).length) delete userProfile.zonesPerso;
   } else {
     if (!userProfile.zonesPerso) return;
-    if (!confirm('Revenir aux valeurs par défaut pour tous les muscles ?')) return;
+    if (!(await confirmer('Revenir aux valeurs par défaut pour tous les muscles ?', { ok: 'Réinitialiser' }))) return;
     delete userProfile.zonesPerso;
   }
   document.getElementById('zones-reglage-erreur').textContent = '';
@@ -21606,7 +21625,7 @@ function renderVitrineMuscu() {
     sdj = `<div class="sdj" role="button" tabindex="0" onclick="apercuProgramme(${argJs(sug.p.id)})" onkeydown="if(event.key==='Enter')this.click()">
       <div class="sdj-corps">${silhouetteSVG('face', rose, { vb: CADRES_SILHOUETTE.buste, neutre: 'rgba(255,255,255,.12)', contour: 'rgba(255,255,255,.06)' })}</div>
       <small>Séance du jour</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(noms.join(', '))} · ${sug.p.exercices.length} exercice${sug.p.exercices.length > 1 ? 's' : ''}</p>
-      <div class="sdj-bas"><span class="sdj-puce">${nbSeries} séries</span><span class="sdj-puce">${sug.d ? escapeHtml(formatDateDisplay(sug.d)) : 'Jamais faite'}</span><span class="sdj-play">${svgV('play')}</span></div></div>`;
+      <div class="sdj-bas"><span class="sdj-puce">${nbSeries} séries</span><span class="sdj-puce">${sug.d ? escapeHtml(formatDateDisplay(sug.d)) : 'Jamais faite'}</span><button type="button" class="sdj-play" onclick="event.stopPropagation(); demarrerSeance(${argJs(sug.p.id)})" aria-label="Commencer ${escapeHtml(sug.p.nom)} maintenant">${svgV('play')}</button></div></div>`;
   } else {
     sdj = `<div class="sdj" role="button" tabindex="0" onclick="demarrerSeanceLibre()" onkeydown="if(event.key==='Enter')this.click()">
       <small>Première séance</small><h4>C'est parti</h4><p>Lance une séance vide, ou crée ton premier programme plus bas.</p>
@@ -21866,7 +21885,7 @@ function ouvrirFeuilleActivite() {
       btn.setAttribute('aria-label', 'Séance du jour : ' + sug.p.nom);
       btn.innerHTML = `<span class="sdj-corps" aria-hidden="true">${silhouetteSVG('face', rose, { vb: CADRES_SILHOUETTE.buste, neutre: 'rgba(255,255,255,.12)', contour: 'rgba(255,255,255,.06)' })}</span>
         <small>Séance du jour</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(cles.slice(0, 3).map(k => GROUPES_MUSCULAIRES[k] || k).join(', '))}</p>
-        <span class="sdj-bas"><span class="sdj-puce">${nbSeries} séries</span><span class="sdj-puce">${sug.d ? escapeHtml(formatDateDisplay(sug.d)) : 'Jamais faite'}</span><span class="sdj-play">${svgV('play')}</span></span>`;
+        <span class="sdj-bas"><span class="sdj-puce">${nbSeries} séries</span><span class="sdj-puce">${sug.d ? escapeHtml(formatDateDisplay(sug.d)) : 'Jamais faite'}</span><span class="sdj-play" role="button" aria-label="Commencer maintenant" onclick="event.stopPropagation(); fermerFeuilles(); demarrerSeance(${argJs(sug.p.id)})">${svgV('play')}</span></span>`;
     }
   }
   if (ouvrirFeuille('feuille-activite')) {
@@ -22821,9 +22840,9 @@ function musclesExerciceTexte(exo) {
 /* =====================================================================
    Séance en cours
    ===================================================================== */
-function demarrerSeance(programmeId) {
+async function demarrerSeance(programmeId) {
   if (musculationSessionActive &&
-      !confirm('Une séance (' + (musculationSessionActive.programmeNom || 'séance libre') + ') est déjà en cours. L’abandonner pour démarrer celle-ci ?')) return;
+      !(await confirmer('Une séance (' + (musculationSessionActive.programmeNom || 'séance libre') + ') est déjà en cours. L’abandonner pour démarrer celle-ci ?', { ok: 'Démarrer la nouvelle', danger: true }))) return;
   const programme = musculationProgrammes.find(p => p.id === programmeId);
   if (!programme) return;
   musculationSessionActive = {
@@ -22836,9 +22855,9 @@ function demarrerSeance(programmeId) {
   renderSeance();
   ouvrirSessionModal();
 }
-function demarrerSeanceLibre() {
+async function demarrerSeanceLibre() {
   if (musculationSessionActive &&
-      !confirm('Une séance (' + (musculationSessionActive.programmeNom || 'séance libre') + ') est déjà en cours. L’abandonner pour démarrer celle-ci ?')) return;
+      !(await confirmer('Une séance (' + (musculationSessionActive.programmeNom || 'séance libre') + ') est déjà en cours. L’abandonner pour démarrer celle-ci ?', { ok: 'Démarrer la nouvelle', danger: true }))) return;
   musculationSessionActive = { programmeId: null, programmeNom: null, debut: Date.now(), notes: '', exercices: [] };
   reposActifs = {};
   palierOuvert = {};
@@ -23698,10 +23717,30 @@ function basculerSerieSession(ei, si) {
   } else {
     delete reposActifs[clef];
   }
+  const suivant = set.fait ? enchainerExerciceSession(ei) : null;
   sauvegarderSessionActive();
   renderSessionModal();
   majBandeauSeanceFlottant();
   if (set.fait) { const b = document.querySelector(`.serie-check[data-serie="${clef}"]`); if (b) b.classList.add('pop'); }
+  if (suivant != null) setTimeout(() => {
+    const bloc = document.querySelector(`#session-exercices-container .exo-swipe[data-ei="${suivant}"]`);
+    if (bloc) bloc.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, 350);
+}
+/* Le bloc (exercice seul ou superset) de l'exercice ei vient d'être
+   terminé : il se replie et le prochain bloc pas encore fini s'ouvre.
+   Renvoie l'indice du premier exercice ouvert, ou null. */
+function enchainerExerciceSession(ei) {
+  const exos = musculationSessionActive.exercices;
+  const blocs = grouperBlocsExercices(exos);
+  const k = blocs.findIndex(b => b.includes(ei));
+  const fini = b => b.every(i => exos[i].series.length && exos[i].series.every(x => x.fait));
+  if (k < 0 || !fini(blocs[k])) return null;
+  blocs[k].forEach(i => { exos[i].replie = true; });
+  const suite = blocs.slice(k + 1).concat(blocs.slice(0, k)).find(b => !fini(b));
+  if (!suite) return null;
+  suite.forEach(i => { exos[i].replie = false; });
+  return suite[0];
 }
 function arreterRepos(ei, si) {
   delete reposActifs[ei + '_' + si];
@@ -23818,16 +23857,22 @@ function retirerSerieSession(ei, si) {
   rirDemande = null;
   const exo = musculationSessionActive.exercices[ei];
   if (!exo || exo.series.length <= 1) return;
-  if (!confirm('Supprimer cette série ?')) return;
-  exo.series.splice(si, 1);
+  const seance = musculationSessionActive;
+  const retiree = exo.series.splice(si, 1)[0];
   reindexerReposApresSuppressionSerie(ei, si);
   sauvegarderSessionActive();
   renderSessionModal();
+  afficherAnnulation('Série supprimée', () => {
+    if (musculationSessionActive !== seance) return;
+    exo.series.splice(Math.min(si, exo.series.length), 0, retiree);
+    sauvegarderSessionActive();
+    renderSessionModal();
+  });
 }
 function retirerExerciceSession(ei) {
   const exo = musculationSessionActive.exercices[ei];
   const nom = exo && (trouverExercice(exo.exerciceId) ? libelleExercice(trouverExercice(exo.exerciceId)) : exo.nom);
-  if (!confirm(`Retirer ${nom || 'cet exercice'} de la séance ?`)) return;
+  const seance = musculationSessionActive;
   rirDemande = null;
   musculationSessionActive.exercices.splice(ei, 1);
   reindexerReposApresSuppressionExercice(ei);
@@ -23835,20 +23880,28 @@ function retirerExerciceSession(ei) {
   // qui précédait celui qu'on retire qui perd son lien de superset, pas
   // "le nouveau dernier de la liste".
   const precedent = musculationSessionActive.exercices[ei - 1];
+  const lienPrecedent = precedent ? precedent.supersetSuivant : false;
   if (precedent) precedent.supersetSuivant = false;
   sauvegarderSessionActive();
   renderSessionModal();
+  afficherAnnulation((nom || 'Exercice') + ' retiré de la séance', () => {
+    if (musculationSessionActive !== seance) return;
+    seance.exercices.splice(Math.min(ei, seance.exercices.length), 0, exo);
+    if (precedent) precedent.supersetSuivant = lienPrecedent;
+    sauvegarderSessionActive();
+    renderSessionModal();
+  });
 }
 function modifierNotesSession(v) {
   if (!musculationSessionActive) return;
   musculationSessionActive.notes = v;
   sauvegarderSessionActive();
 }
-function terminerSeance() {
+async function terminerSeance() {
   const s = musculationSessionActive;
   if (!s) return;
   const seriesFaites = s.exercices.reduce((n, e) => n + e.series.filter(x => x.fait).length, 0);
-  if (!seriesFaites && !confirm("Aucune série n'est cochée comme faite. Terminer quand même la séance ?")) return;
+  if (!seriesFaites && !(await confirmer("Aucune série n'est cochée comme faite. Terminer quand même la séance ?", { ok: 'Terminer' }))) return;
   const fin = Date.now();
   const dureeMin = Math.max(1, Math.round((fin - s.debut) / 60000));
   const entree = {
@@ -23929,12 +23982,12 @@ function recapSeanceHTML(entree, dureeMin) {
 // Referme le bilan puis, pour une séance libre, enchaîne sur la proposition
 // « en faire un programme » — reportée ici plutôt que posée en même temps
 // que le bilan (voir terminerSeance).
-function fermerBilanSeance() {
+async function fermerBilanSeance() {
   fermerModal('bilan-seance-modal');
   if (!seanceLibreAProposer) return;
   const entree = seanceLibreAProposer;
   seanceLibreAProposer = null;
-  if (!confirm('Enregistrer cette séance comme nouveau programme réutilisable ?')) return;
+  if (!(await confirmer('En faire un programme réutilisable, avec ces exercices et ces charges ?', { ok: 'Créer le programme', annuler: 'Non merci' }))) return;
   programmeEnEdition = {
     id: null,
     // Reprend le poids et les répétitions réels de chaque série de la
@@ -23952,8 +24005,8 @@ function fermerBilanSeance() {
   afficherFormulaireProgramme();
   afficherVueProgramme();
 }
-function abandonnerSeance() {
-  if (!confirm('Abandonner cette séance ? Rien ne sera enregistré dans ton historique.')) return;
+async function abandonnerSeance() {
+  if (!(await confirmer('Abandonner cette séance ? Rien ne sera enregistré dans ton historique.', { ok: 'Abandonner', danger: true }))) return;
   musculationSessionActive = null;
   reposActifs = {};
   palierOuvert = {};
@@ -23982,6 +24035,7 @@ function fermerBackdropSiCible(target) {
     // ci-dessous : un tap sur le fond ne doit pas faire sauter la
     // proposition « en faire un programme » qui peut suivre le bilan.
     if (target.id === 'bilan-seance-modal') { fermerBilanSeance(); return true; }
+    if (target.id === 'modal-dialogue') { if (dialogueFin) dialogueFin(false); return true; }
     target.classList.remove('show');
     majCoucheOuverte();
     return true;
@@ -24031,6 +24085,7 @@ window.addEventListener('keydown', (e) => {
     if (dessus.id === 'barcode-modal') stopperScanner();
     if (dessus.id === 'fiche-exercice-modal') arreterAnimationFiche();
     if (dessus.id === 'modal-creer-compte' && confirmCompteResolve) { confirmCompteResolve(false); confirmCompteResolve = null; }
+    if (dessus.id === 'modal-dialogue' && dialogueFin) { dialogueFin(false); return; }
     dessus.classList.remove('show');
     majCoucheOuverte();
     return;
@@ -24755,7 +24810,7 @@ async function nettoyerDoublonsAlimentsPartages() {
     }
     const copies = partages.filter(a => nomsCiqual.has(normaliserRecherche(a.nom || '')));
     if (!copies.length) { dire("Aucune copie d'un aliment de la base trouvée dans les aliments partagés."); return; }
-    if (!confirm(`${copies.length} aliment(s) partagé(s) sont des copies exactes d'aliments de la base d'aliments (ex. « ${copies.slice(0, 3).map(a => a.nom).join(' », « ')} »).\n\nLes retirer des aliments partagés ? Ils restent trouvables dans la base d'aliments, et les repas déjà notés ne changent pas.`)) { dire(''); return; }
+    if (!(await confirmer(`${copies.length} aliment(s) partagé(s) sont des copies exactes d'aliments de la base d'aliments (ex. « ${copies.slice(0, 3).map(a => a.nom).join(' », « ')} »).\n\nLes retirer des aliments partagés ? Ils restent trouvables dans la base d'aliments, et les repas déjà notés ne changent pas.`, { ok: 'Confirmer' }))) { dire(''); return; }
     const ids = copies.map(a => a.id);
     for (let i = 0; i < ids.length; i += 200) {
       const { error } = await supa.from('aliments_partages')
@@ -24874,7 +24929,7 @@ function editerAlimentBase(a) {
 }
 async function supprimerAlimentBase(a) {
   if (!supa) return;
-  if (!confirm(`Supprimer « ${a.nom} » de la base d'aliments ?\n\nIl disparaît de la recherche pour tous. Les repas déjà notés ne changent pas.`)) return;
+  if (!(await confirmer(`Supprimer « ${a.nom} » de la base d'aliments ?\n\nIl disparaît de la recherche pour tous. Les repas déjà notés ne changent pas.`, { ok: 'Confirmer' }))) return;
   try {
     const s = await detecterSchemaAliments();
     const { error } = await supa.from(confSupabase().table).delete().eq(s.cle, a.cle);
@@ -24944,7 +24999,7 @@ async function retirerAlimentPartageTransfere(a) {
 }
 async function validerAlimentPartage(a) {
   if (!supa) return;
-  if (!confirm(`Valider « ${a.nom} » ?\n\nIl rejoint la base d'aliments commune, visible par tous les utilisateurs.`)) return;
+  if (!(await confirmer(`Valider « ${a.nom} » ?\n\nIl rejoint la base d'aliments commune, visible par tous les utilisateurs.`, { ok: 'Confirmer' }))) return;
   try {
     const resultat = await insererDansBaseAliments(a);
     await retirerAlimentPartageTransfere(a);
@@ -24980,7 +25035,7 @@ async function compterAnciensValides() {
   }
 }
 async function transfererAnciensValides(anciens, bouton) {
-  if (!confirm(`Transférer ${anciens.length} aliment(s) déjà validés dans la base d'aliments commune ?\n\nIls y restent visibles par tous et disparaissent des aliments partagés.`)) return;
+  if (!(await confirmer(`Transférer ${anciens.length} aliment(s) déjà validés dans la base d'aliments commune ?\n\nIls y restent visibles par tous et disparaissent des aliments partagés.`, { ok: 'Confirmer' }))) return;
   let faits = 0, echecs = 0;
   for (const a of anciens) {
     try {
@@ -25213,7 +25268,7 @@ async function sauvegarderAlimentBase(modal) {
 /* Suppression douce : la ligne reste en base, traçable. */
 async function supprimerAlimentPartage(aliment) {
   if (!supa) return;
-  if (!confirm('Supprimer « ' + (aliment.nom || 'cet aliment') + ' » ?\n\nIl disparaîtra de la recherche pour tous les utilisateurs.')) return;
+  if (!(await confirmer('Supprimer « ' + (aliment.nom || 'cet aliment') + ' » ?\n\nIl disparaîtra de la recherche pour tous les utilisateurs.', { ok: 'Confirmer' }))) return;
 
   try {
     const { error } = await supa
@@ -25596,7 +25651,7 @@ async function sauvegarderEditionExerciceAdmin() {
 async function supprimerExerciceAdmin(exo) {
   if (!supa || exo.estRetire) return;
   const avertUsage = exo.usages ? `\n\n⚠️ Il est utilisé ${exo.usages} fois dans tes programmes/séances : mieux vaut le FUSIONNER vers un autre exercice.` : '';
-  if (!confirm('Supprimer « ' + (exo.nom || 'cet exercice') + ' » de la bibliothèque ?\n\nIl disparaîtra pour tous les utilisateurs. Les séances déjà enregistrées qui l\'utilisent restent intactes et continuent de s\'afficher.' + avertUsage)) return;
+  if (!(await confirmer('Supprimer « ' + (exo.nom || 'cet exercice') + ' » de la bibliothèque ?\n\nIl disparaîtra pour tous les utilisateurs. Les séances déjà enregistrées qui l\'utilisent restent intactes et continuent de s\'afficher.' + avertUsage, { ok: 'Confirmer' }))) return;
   try {
     if (exo.estBase) {
       // La base vit dans le code : la suppression est une correction
@@ -25689,7 +25744,7 @@ function rendreCiblesFusion() {
 }
 async function fusionnerExerciceAdmin(source, cible) {
   if (!supa || !source || !cible) return;
-  if (!confirm('Fusionner « ' + source.nom + ' » vers « ' + cible.nom + ' » ?\n\nTous les programmes, séances passées et records (de tous les utilisateurs) passent sur « ' + cible.nom + ' ». Séries, charges et dates sont conservées. « ' + source.nom + ' » disparaît de la bibliothèque.')) return;
+  if (!(await confirmer('Fusionner « ' + source.nom + ' » vers « ' + cible.nom + ' » ?\n\nTous les programmes, séances passées et records (de tous les utilisateurs) passent sur « ' + cible.nom + ' ». Séries, charges et dates sont conservées. « ' + source.nom + ' » disparaît de la bibliothèque.', { ok: 'Confirmer' }))) return;
   try {
     const donnees = { fusionneVers: cible.id };
     const { error } = await supa.from('exercices_base_overrides')
@@ -25857,7 +25912,7 @@ async function supprimerRecetteAdmin(utilisateur, id) {
   if (!supa) return false;
   const r = recetteAdminTrouvee(utilisateur, id);
   const nom = (r && r.nom) || 'cette recette';
-  if (!confirm(`Supprimer « ${nom} »${r && r.email ? ' (' + r.email + ')' : ''} ?\n\nElle disparaît pour son créateur et pour tous ceux qui la voyaient. Les repas déjà notés ne changent pas.`)) return false;
+  if (!(await confirmer(`Supprimer « ${nom} »${r && r.email ? ' (' + r.email + ')' : ''} ?\n\nElle disparaît pour son créateur et pour tous ceux qui la voyaient. Les repas déjà notés ne changent pas.`, { ok: 'Confirmer' }))) return false;
   try {
     const { error } = await supa.from('recettes_perso').delete().eq('utilisateur', utilisateur).eq('id', id);
     if (error) throw error;
@@ -25882,7 +25937,7 @@ async function basculerPartageRecetteAdmin(utilisateur, id) {
   const question = nouveauPartage
     ? `Rendre « ${r.nom} » visible et utilisable par tous les comptes ?`
     : `Retirer « ${r.nom} » du partage ? Elle redeviendra privée à ${r.email}.`;
-  if (!confirm(question)) return;
+  if (!(await confirmer(question, { ok: 'Confirmer' }))) return;
   try {
     const donnees = Object.assign({}, r, { partagee: nouveauPartage, maj: Date.now() });
     delete donnees.utilisateur; delete donnees.email; delete donnees.partageePar;
@@ -25898,6 +25953,60 @@ async function basculerPartageRecetteAdmin(utilisateur, id) {
   }
 }
 
+
+/* --- Dialogues de l'appli ---------------------------------------------
+   confirmer() et informer() remplacent confirm() et alert() : les fenêtres
+   natives affichent l'adresse du site (« …github.io indique »), bloquent
+   tout l'écran sur iPhone et ne ressemblent pas à l'appli. Les messages
+   s'enchaînent s'il y en a plusieurs. */
+let dialogueFile = Promise.resolve();
+let dialogueFin = null;
+function ouvrirDialogue(o) {
+  const tour = dialogueFile.then(() => new Promise(resolve => {
+    const m = document.getElementById('modal-dialogue');
+    if (!m) { resolve(o.annuler === null); return; }
+    document.getElementById('dialogue-texte').textContent = o.texte;
+    const oui = document.getElementById('dialogue-oui'), non = document.getElementById('dialogue-non');
+    oui.textContent = o.ok || 'OK';
+    oui.className = 'btn ' + (o.danger ? 'btn-danger' : 'btn-primary');
+    non.textContent = o.annuler || 'Annuler';
+    non.classList.toggle('hidden', o.annuler === null);
+    const copie = document.getElementById('dialogue-copie'), champ = document.getElementById('dialogue-copie-champ');
+    copie.classList.toggle('hidden', o.copie == null);
+    if (o.copie != null) {
+      champ.value = o.copie;
+      document.getElementById('dialogue-copier').onclick = () => {
+        champ.select();
+        const fini = () => { document.getElementById('dialogue-copier').textContent = 'Copié'; };
+        if (navigator.clipboard) navigator.clipboard.writeText(o.copie).then(fini).catch(() => { try { document.execCommand('copy'); fini(); } catch (e) {} });
+        else { try { document.execCommand('copy'); fini(); } catch (e) {} }
+      };
+      document.getElementById('dialogue-copier').textContent = 'Copier';
+    }
+    dialogueFin = valeur => {
+      dialogueFin = null;
+      m.classList.remove('show');
+      majCoucheOuverte();
+      resolve(valeur);
+    };
+    oui.onclick = () => dialogueFin && dialogueFin(true);
+    non.onclick = () => dialogueFin && dialogueFin(false);
+    m.classList.add('show');
+    document.body.classList.add('couche-ouverte');
+    setTimeout(() => (o.copie != null ? champ : oui).focus(), 60);
+  }));
+  dialogueFile = tour.catch(() => {});
+  return tour;
+}
+function confirmer(texte, opts) {
+  opts = opts || {};
+  return ouvrirDialogue({ texte: String(texte), ok: opts.ok || 'Confirmer', annuler: opts.annuler || 'Annuler', danger: !!opts.danger });
+}
+function informer(texte, opts) {
+  return ouvrirDialogue({ texte: String(texte == null ? '' : texte), ok: 'OK', annuler: null, copie: opts && opts.copie != null ? String(opts.copie) : null });
+}
+// Tous les messages de l'appli passent par la fenêtre de l'appli.
+window.alert = message => { informer(message); };
 
 /* --- Fermeture de toutes les feuilles ------------------------------- */
 function fermerFeuilles() {
@@ -25952,5 +26061,20 @@ function fermerFeuilles() {
      demande pas cette permission). */
 })();
 </script>
+<!-- Fenêtre de dialogue de l'appli : remplace alert(), confirm() et prompt(),
+     qui affichent l'adresse du site et bloquent tout sur iPhone. -->
+<div id="modal-dialogue" class="modal" role="alertdialog" aria-modal="true" aria-labelledby="dialogue-texte">
+  <div class="modal-content dialogue-carte">
+    <p id="dialogue-texte"></p>
+    <div id="dialogue-copie" class="dialogue-copie hidden">
+      <input type="text" id="dialogue-copie-champ" readonly aria-label="Texte à copier">
+      <button type="button" class="btn btn-secondaire" id="dialogue-copier">Copier</button>
+    </div>
+    <div class="dialogue-boutons">
+      <button type="button" class="btn btn-secondaire" id="dialogue-non">Annuler</button>
+      <button type="button" class="btn btn-primary" id="dialogue-oui">OK</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
