@@ -6678,7 +6678,7 @@ const ICONES_TUILE = {
   nutrition: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />'
 };
 function tuileStatsHTML(o) {
-  const titre = { poids: 'Poids', nutrition: 'Nutrition · 14 j' }[o.onglet] || o.titre;
+  const titre = { poids: 'Poids · 30 j', nutrition: 'Nutrition · 30 j' }[o.onglet] || o.titre;
   return `<div class="carte-stats carte-stats--compacte carte-stats--tuile fitness-card" id="${o.id}" role="button" tabindex="0" aria-label="${escapeHtml(o.titre)} : ouvrir le détail"
       onclick="ouvrirStats('${o.onglet}')" onkeydown="if(event.key==='Enter')ouvrirStats('${o.onglet}')">
     <div class="tuile-tete"><span class="tuile-icone tuile-icone--${o.onglet}" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONES_TUILE[o.onglet] || ''}</svg></span><span class="carte-stats-titre">${escapeHtml(titre)}</span></div>
@@ -6730,20 +6730,34 @@ function tendancePoidsAu(pesees, d) {
   const f = pesees.filter(([x]) => x <= d && x > decalerJours(d, -7));
   return f.length ? f.reduce((t, [, v]) => t + v, 0) / f.length : null;
 }
+/* Rythme du poids, en kg par semaine, sur les nbJours derniers jours —
+   calculé exactement comme le bilan de Progrès (tendance lissée sur 7 jours,
+   de la première à la dernière connue de la période, rapportée à sa durée).
+   La carte Poids et Progrès sur 30 jours donnent ainsi le même chiffre,
+   au lieu d'un rythme sur une semaine d'un côté et sur 30 jours de l'autre. */
+function rythmePoidsJours(nbJours) {
+  const fin = todayStr(), debut = decalerJours(fin, -(nbJours - 1));
+  const poids = [];
+  for (let d = decalerJours(debut, -6); d <= fin; d = decalerJours(d, 1)) {
+    const w = Number(appData[d] && appData[d].weight);
+    poids.push(Number.isFinite(w) && w > 0 ? w : null);
+  }
+  const tendance = moyenneGlissante(poids, 7).slice(6).filter(v => v != null);
+  return tendance.length ? (tendance[tendance.length - 1] - tendance[0]) / (nbJours / 7) : null;
+}
 function carteStatsPoidsHTML() {
   const auj = todayStr();
   const pesees = Object.keys(appData).filter(d => d <= auj && Number(appData[d] && appData[d].weight) > 0).sort().map(d => [d, Number(appData[d].weight)]);
   if (!pesees.length) {
     return carteStatsHTML({ id: 'carte-stats-poids', onglet: 'poids', compacte: true, titre: 'Poids et composition', valeur: '—', unite: '',
-      ligne: 'Ajoute ta première pesée dans Profil › Mesures corporelles pour suivre ta tendance.' });
+      ligne: 'Touche + pour noter ta première pesée et suivre ta tendance.' });
   }
   const dernier = pesees[pesees.length - 1][1];
   const serie = []; for (let i = 20; i >= 0; i--) serie.push(tendancePoidsAu(pesees, decalerJours(auj, -i)));
-  const t0 = tendancePoidsAu(pesees, auj), t7 = tendancePoidsAu(pesees, decalerJours(auj, -7));
   const recentes = pesees.filter(([d]) => d > decalerJours(auj, -14)).length;
-  const pente = t0 != null && t7 != null && recentes >= 2 ? t0 - t7 : null;
+  const pente = recentes >= 2 ? rythmePoidsJours(30) : null;
   const ligne = pente == null ? 'Pèse-toi au moins deux fois en deux semaines pour voir ta tendance.'
-    : (Math.abs(pente) < 0.05 ? '→ stable' : (pente < 0 ? '↘ ' : '↗ ') + fmtSigne(pente, ' kg') + ' / sem.');
+    : (Math.abs(pente) < 0.05 ? '→ stable' : (pente < 0 ? '↘ ' : '↗ ') + fmtSigne(pente, ' kg/sem.'));
   // Dernière composition connue (Mesures corporelles ou balance Withings).
   const mesures = userProfile.mesures || {};
   const dm = Object.keys(mesures).filter(d => d <= auj && mesures[d] && (mesures[d].grassePct > 0 || mesures[d].muscleKg > 0 || mesures[d].eauPct > 0)).sort().pop();
@@ -6761,7 +6775,7 @@ function carteStatsPoidsHTML() {
 function carteStatsNutritionHTML() {
   const auj = todayStr();
   const kcal = [], cibles = [], prot = [], eau = [];
-  for (let i = 14; i >= 1; i--) {
+  for (let i = 29; i >= 1; i--) {
     const d = decalerJours(auj, -i);
     const jour = appData[d];
     const t = jour ? sumMeals(jour) : null;
@@ -6772,7 +6786,7 @@ function carteStatsNutritionHTML() {
   }
   const remplis = kcal.filter(v => v > 0);
   if (!remplis.length) {
-    return carteStatsHTML({ id: 'carte-stats-nutrition', onglet: 'nutrition', compacte: true, titre: 'Ma nutrition · 14 jours', valeur: '—', unite: '',
+    return carteStatsHTML({ id: 'carte-stats-nutrition', onglet: 'nutrition', compacte: true, titre: 'Ma nutrition · 30 jours', valeur: '—', unite: '',
       ligne: 'Note tes repas quelques jours pour voir tes moyennes ici.' });
   }
   const moy = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
@@ -6781,7 +6795,7 @@ function carteStatsNutritionHTML() {
   kcal.forEach(v => { if (v > 0) { if (Math.abs(v - cibles[k]) <= cibles[k] * 0.1) dansCible++; k++; } });
   const cases = [['Objectif moyen', cibleMoy.toLocaleString('fr-FR') + ' kcal'], ['Protéines', fmtUneDecimale(moy(prot) / dernierPoidsConnu(auj)) + ' g/kg']];
   if (eau.length) cases.push(['Eau / jour', fmtUneDecimale(moy(eau) / 1000) + ' L']);
-  return carteStatsHTML({ id: 'carte-stats-nutrition', onglet: 'nutrition', compacte: true, titre: 'Ma nutrition · 14 jours', valeur: Math.round(moy(remplis)).toLocaleString('fr-FR'), unite: 'kcal / jour',
+  return carteStatsHTML({ id: 'carte-stats-nutrition', onglet: 'nutrition', compacte: true, titre: 'Ma nutrition · 30 jours', valeur: Math.round(moy(remplis)).toLocaleString('fr-FR'), unite: 'kcal / jour',
     ligne: dansCible + ' j / ' + remplis.length + ' dans la cible', graphique: barresTuileSVG(kcal, cibleMoy), cases });
 }
 function renderCartesStatsRepas() {
@@ -6797,6 +6811,7 @@ function renderApp() {
 
   document.getElementById('objectif-select').value = dernierObjectifConnu(todayStr());
   majNoteRecomposition();
+  remplirInfosPersonnelles();
   document.getElementById('daily-steps').value = day.steps || '';
   renderJaugePas(day.steps);
   renderPremiersPas();
@@ -7508,9 +7523,12 @@ function validerPoidsAliment() {
   const item = day.meals[poidsEdition.mealId] && day.meals[poidsEdition.mealId][poidsEdition.index];
   if (item) {
     const b = poidsEdition.base;
+    const eauAvant = eauDeLaBoisson(item);
     item.grams = g;
     item.kcal = b.kcal * g; item.p = b.p * g; item.c = b.c * g; item.f = b.f * g;
+    if (eauAvant) item.eauMl = Math.round(g);
     saveData(currentDate);
+    if (eauAvant) ajusterEauJour(currentDate, item.eauMl - eauAvant);
     invaliderHistorique();
     renderMeals(day); updateSummary(day);
   }
@@ -7713,6 +7731,26 @@ function ajouterEau(ml) {
   animerGourde(ml);
 }
 
+/* Une boisson notée en ml compte aussi pour l'hydratation du jour, sauf
+   l'alcool (bière, vin…), qui déshydrate plus qu'il n'hydrate. La part
+   comptée est retenue sur l'aliment (eauMl) : supprimer la boisson, changer
+   sa quantité ou la recopier un autre jour corrige l'hydratation d'autant,
+   au lieu de la laisser gonflée. Une boisson notée avant ce suivi (sans
+   eauMl) ne retire rien : on ne sait pas ce qu'elle avait ajouté. */
+function estAlcool(nom) {
+  const n = String(nom || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (/sans alcool|0[.,]0 ?%/.test(n)) return false;
+  return /\b(bieres?|vins?|rose|champagne|cidre|whiske?y|vodka|rhum|gin|tequila|pastis|aperitif|liqueur|cocktail|spritz|mojito|sangria|porto|martini|cognac|calvados|kir|panache)\b/.test(n);
+}
+function eauDeLaBoisson(item) { return Number(item && item.eauMl) || 0; }
+function ajusterEauJour(date, ml) {
+  if (!ml) return;
+  const d = getDay(date);
+  d.eauMl = Math.max(0, (Number(d.eauMl) || 0) + ml);
+  saveData(date);
+  if (date === currentDate) majJaugeEau(d);
+}
+
 // Un seul pas de retrait (250 ml) : assez pour corriger un tap de trop,
 // pas besoin d'un clavier pour une correction aussi mineure.
 function retirerEau() {
@@ -7809,7 +7847,7 @@ function majDetailDepense(day, t) {
   const note = document.getElementById('note-poids');
   if (note) {
     note.textContent = t.poidsEstime
-      ? `Aucun poids saisi pour ce jour : calcul basé sur ${Math.round(t.poids * 10) / 10} kg (dernier poids connu).`
+      ? `Aucun poids saisi pour ce jour : calcul basé sur ${nombreFr(t.poids)} kg (dernier poids connu).`
       : '';
   }
 }
@@ -7892,9 +7930,9 @@ function afficherResumeMesures() {
   if (!derniere) { n.textContent = 'Aucune mesure enregistrée pour l\'instant.'; return; }
   const dateAff = new Date(derniere.date + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
   let texte = `Dernière mesure le ${dateAff}`;
-  if (derniere.poids) texte += ` · ${derniere.poids} kg`;
-  if (derniere.grassePct != null) texte += ` · ${derniere.grassePct} % de masse grasse`;
-  if (derniere.muscleKg != null) texte += ` · ${derniere.muscleKg} kg de muscle`;
+  if (derniere.poids) texte += ` · ${nombreFr(derniere.poids)} kg`;
+  if (derniere.grassePct != null) texte += ` · ${nombreFr(derniere.grassePct)} % de masse grasse`;
+  if (derniere.muscleKg != null) texte += ` · ${nombreFr(derniere.muscleKg)} kg de muscle`;
   n.textContent = texte;
 }
 
@@ -7960,11 +7998,27 @@ function sauvegarderParametresGlobaux() {
   userProfile.geminiKey = saisie;
   appliquerGeminiKeyEffective();
   userProfile.gender = document.getElementById('base-gender').value;
-  userProfile.age = Number(document.getElementById('base-age').value) || 25;
-  userProfile.height = Number(document.getElementById('base-height').value) || 175;
+  // Une saisie vide ou absurde ne remplace plus la vraie valeur par 25 ans / 175 cm.
+  const age = Number(document.getElementById('base-age').value);
+  const taille = Number(document.getElementById('base-height').value);
+  if (age >= 10 && age <= 110) userProfile.age = age;
+  if (taille >= 100 && taille <= 250) userProfile.height = taille;
+  remplirInfosPersonnelles();
   saveData();
   updateSummary(getDay(currentDate));
   majJaugeEau();
+}
+
+/* Infos personnelles : le formulaire reflète toujours le profil enregistré
+   (questionnaire de départ, synchro depuis un autre appareil, remise à zéro).
+   Rempli une seule fois au démarrage, il gardait les valeurs par défaut
+   (Homme, 25 ans, 175 cm) : toucher un seul champ les enregistrait alors
+   par-dessus le vrai profil. Un champ en cours de saisie n'est pas touché. */
+function remplirInfosPersonnelles() {
+  [['base-gender', userProfile.gender], ['base-age', userProfile.age], ['base-height', userProfile.height]].forEach(([id, v]) => {
+    const champ = document.getElementById(id);
+    if (champ && champ !== document.activeElement && v != null && v !== '') champ.value = v;
+  });
 }
 
 function changerDate(delta) {
@@ -8672,9 +8726,10 @@ async function validerAjoutManuel() {
   // Le code-barres suit l'aliment quand il vient d'OpenFoodFacts ou de
   // l'historique : c'est ce qui permet de retrouver le produit exact plus tard.
   if (codeCourant) item.code = codeCourant;
+  if (item.unite === 'ml' && !estAlcool(name)) item.eauMl = Math.round(g);
   const dejaEnBase = ['base', 'perso', 'partage'].includes(sourceCourante) && normaliserRecherche(name) === normaliserRecherche(nomSourceCourant);
   addItemToMeal(activeMealId, item, { partager: !dejaEnBase, source: sourceCourante === 'usda' ? 'usda' : sourceCourante === 'historique' ? 'historique' : 'manuel' });
-  if (item.unite === 'ml') ajouterEau(Math.round(g));
+  if (item.eauMl) ajouterEau(item.eauMl);
   fermerModal('manual-modal');
 }
 
@@ -9072,6 +9127,8 @@ function supprimerAliment(mealId, index) {
   const date = currentDate, day = getDay(date);
   const retire = day.meals[mealId].splice(index, 1)[0];
   saveData(date);
+  const eau = eauDeLaBoisson(retire);
+  ajusterEauJour(date, -eau);
   renderMeals(day);
   updateSummary(day);
   if (retire) afficherAnnulation('« ' + (retire.name || 'Aliment') + ' » retiré', () => {
@@ -9079,6 +9136,7 @@ function supprimerAliment(mealId, index) {
     d.meals[mealId].splice(Math.min(index, d.meals[mealId].length), 0, retire);
     invaliderHistorique();
     saveData(date);
+    ajusterEauJour(date, eau);
     if (currentDate === date) { renderMeals(d); updateSummary(d); }
   });
 }
@@ -9608,18 +9666,19 @@ async function ajouterAlimentBarcode() {
     return;
   }
   const f = g / 100;
-  addItemToMeal(activeMealId, {
+  const boisson = {
     name: currentScannedFood.name, grams: g,
     unite: currentScannedFood.unite || 'g',
     code: currentScannedFood.code || undefined,
     kcal: currentScannedFood.kcal100 * f, p: currentScannedFood.p100 * f,
     c: currentScannedFood.c100 * f, f: currentScannedFood.f100 * f
-  }, { partager: !currentScannedFood.dansNotreBase, source: 'scan' });
+  };
   // Un produit détecté en ml est une boisson : sa quantité compte aussi
-  // pour l'hydratation du jour, sans geste en plus. Compte toute boisson
-  // (pas seulement l'eau littérale) — soda, jus, lait apportent aussi de
-  // l'eau, même si l'alcool ou la caféine en atténuent un peu l'effet.
-  if (currentScannedFood.unite === 'ml') ajouterEau(Math.round(g));
+  // pour l'hydratation du jour, sans geste en plus (soda, jus, lait…), sauf
+  // l'alcool. Voir estAlcool / eauDeLaBoisson.
+  if (boisson.unite === 'ml' && !estAlcool(boisson.name)) boisson.eauMl = Math.round(g);
+  addItemToMeal(activeMealId, boisson, { partager: !currentScannedFood.dansNotreBase, source: 'scan' });
+  if (boisson.eauMl) ajouterEau(boisson.eauMl);
   // Sans cet arrêt, la caméra restait allumée tant que l'onglet vivait :
   // batterie vidée, voyant allumé, décodage à 10 images/seconde en fond.
   stopperScanner();
@@ -10229,10 +10288,18 @@ function moyenneGlissante(valeurs, fenetre) {
    ===================================================================== */
 const KCAL_PAR_KG = 7700; // équivalent énergétique approximatif d'1 kg de masse
 
+/* Journée comptée dans les moyennes : des repas notés, et terminée.
+   Aujourd'hui, encore en cours, tirait les moyennes vers le bas (un
+   déjeuner noté à midi passait pour une journée à 600 kcal) et comptait
+   comme « hors cible ». La carte « Ma nutrition » de Repas du jour suit la
+   même règle sur les mêmes 30 jours : les deux écrans donnent les mêmes
+   chiffres. */
+function jourComptable(i) { return !!globalMasterRempli[i] && i < globalMasterLabels.length - 1; }
+
 function bilanPeriode(s, e) {
   const idx = [];
   for (let i = s; i <= e; i++) idx.push(i);
-  const remplis = idx.filter(i => globalMasterRempli[i]);
+  const remplis = idx.filter(jourComptable);
 
   const conso = remplis.map(i => globalMasterConsumed[i]);
   const cible = remplis.map(i => globalMasterTarget[i]);
@@ -10278,9 +10345,9 @@ function bilanPeriode(s, e) {
     rythmeSemaine: (deltaPoids != null && semaines >= 1) ? deltaPoids / semaines : null,
     poidsDebut, poidsFin, poidsRef,
     protParKg: (poidsRef > 0 && prot.length) ? avg(prot) / poidsRef : null,
-    moyPas: Math.round(avg(idx.filter(i => globalMasterRempli[i]).map(i => globalMasterSteps[i]))),
-    moyEau: Math.round(avg(idx.filter(i => globalMasterRempli[i]).map(i => globalMasterEauBue[i]))),
-    moyEauObjectif: Math.round(avg(idx.filter(i => globalMasterRempli[i]).map(i => globalMasterEauObjectif[i]))),
+    moyPas: Math.round(avg(idx.filter(jourComptable).map(i => globalMasterSteps[i]))),
+    moyEau: Math.round(avg(idx.filter(jourComptable).map(i => globalMasterEauBue[i]))),
+    moyEauObjectif: Math.round(avg(idx.filter(jourComptable).map(i => globalMasterEauObjectif[i]))),
     dansLaCible,
     partCible: remplis.length ? Math.round(dansLaCible / remplis.length * 100) : 0,
     minutesSport, joursSport,
@@ -10323,7 +10390,7 @@ function afficherChiffresClesPoids(s, e) {
   const cartes = [
     { lbl: 'Tendance', val: b.poidsFin != null ? nombreFr(Math.round(b.poidsFin * 10) / 10) + ' kg' : '—',
       sous: b.deltaPoids != null ? fmtSigne(b.deltaPoids, ' kg') + ' sur la période' : 'Il faut au moins deux pesées.' },
-    { lbl: 'Rythme', val: b.rythmeSemaine == null ? '—' : fmtSigne(b.rythmeSemaine, ' kg/sem.', 2),
+    { lbl: 'Rythme', val: b.rythmeSemaine == null ? '—' : fmtSigne(b.rythmeSemaine, ' kg/sem.', 1),
       cls: classeRythme, sous: b.pesees < 2 ? 'Il faut au moins deux pesées.' : avisRythme },
     { lbl: 'Pesées', val: b.pesees + ' / ' + b.jours, large: true,
       sous: b.pesees < 2 ? 'Il faut au moins deux pesées pour une tendance.' : b.pesees >= b.jours / 4 ? 'Suivi régulier : tendance fiable.' : 'Pèse-toi plus souvent pour une tendance plus sûre.' }
@@ -10398,7 +10465,7 @@ function afficherChiffresClesNutrition(s, e) {
   const prec = bp && bp.joursRemplis ? bp : null;
   const cartes = [
     { lbl: 'Moyenne / jour', val: nombreFr(b.moyConso, 0) + ' kcal',
-      sous: 'Objectif ' + nombreFr(b.moyCible, 0) + ' · ' + (b.ecartMoyen < 0 ? 'déficit ' : b.ecartMoyen > 0 ? 'surplus ' : 'équilibre ') + fmtSigne(b.ecartMoyen, ' kcal', 0), evol: prec && variationPeriode(b.moyConso, prec.moyConso) },
+      sous: 'Objectif moyen ' + nombreFr(b.moyCible, 0) + ' · ' + (b.ecartMoyen < 0 ? 'déficit de ' + nombreFr(-b.ecartMoyen, 0) + ' kcal' : b.ecartMoyen > 0 ? 'surplus de ' + nombreFr(b.ecartMoyen, 0) + ' kcal' : 'à l’équilibre'), evol: prec && variationPeriode(b.moyConso, prec.moyConso) },
     { lbl: 'Dans la cible', val: b.dansLaCible + ' / ' + b.joursRemplis + ' j',
       cls: b.partCible >= 70 ? 'pos' : b.partCible >= 40 ? 'att' : 'neg',
       sous: 'à ± 10 % de l’objectif', evol: prec && variationPeriode(b.partCible, prec.partCible, true) },
@@ -10701,6 +10768,9 @@ function installerStyleGraphiques() {
   if (styleNeonInstalle || typeof Chart === 'undefined') return;
   styleNeonInstalle = true;
   const d = Chart.defaults;
+  // Nombres des axes et des bulles à la française (« 15 000 », « 81,5 »),
+  // même sur un téléphone réglé dans une autre langue.
+  d.locale = 'fr-FR';
   d.font.family = (document.body && getComputedStyle(document.body).fontFamily) || d.font.family;
   d.animation = Object.assign({}, d.animation, { duration: 650, easing: 'easeOutQuart' });
   Object.assign(d.elements.line, { tension: 0.4, borderWidth: 2.5, borderCapStyle: 'round', borderJoinStyle: 'round' });
@@ -10944,6 +11014,8 @@ function renderChartsPoids(s, e) {
       val.innerHTML = `<b>${String(Math.round(derniere * 10) / 10).replace('.', ',')} %</b>`
         + (connues.length > 1 ? ` <small>${escapeHtml(fmtSigne(ecart, ' pt' + (Math.abs(ecart) >= 2 ? 's' : '')))}</small>` : '');
       const opts = optionsGraphiqueBase(p, { avecLegende: false, beginAtZero: false });
+      // Petites cartes : 4 dates au plus sur l'axe, sinon elles se chevauchent.
+      if (opts.scales && opts.scales.x) opts.scales.x = Object.assign({}, opts.scales.x, { ticks: Object.assign({}, opts.scales.x.ticks, { autoSkip: true, maxTicksLimit: 4, maxRotation: 0 }) });
       compoChartsInstances.push(new Chart(document.getElementById('compo-chart-' + k), {
         type: 'line',
         data: { labels, datasets: [{ label: nom + ' (%)', data: valeurs, borderColor: couleur, backgroundColor: couleur, tension: 0.3, pointRadius: 2.5, pointHoverRadius: 5, borderWidth: 2, spanGaps: true }] },
@@ -11177,7 +11249,7 @@ async function importerDonneesUtilisateurAdmin(event) {
   const champ = event.target;
   if (!file || !adminUserCourant) { champ.value = ''; return; }
   if (file.size > IMPORT_MAX_OCTETS) {
-    alert(`Fichier trop volumineux (${(file.size / 1024 / 1024).toFixed(1)} Mo, max ${IMPORT_MAX_OCTETS / 1024 / 1024} Mo) — ce n'est pas un export Askēsis plausible.`);
+    alert(`Fichier trop volumineux (${nombreFr(file.size / 1024 / 1024)} Mo, max ${IMPORT_MAX_OCTETS / 1024 / 1024} Mo) — ce n'est pas un export Askēsis plausible.`);
     champ.value = '';
     return;
   }
@@ -13957,8 +14029,8 @@ async function comparerGymbro(pseudo) {
     html += `<div class="gb-carte"><div class="gduel-leg"><span><i class="g1"></i>Toi</span><span><i class="g2"></i>${escapeHtml(lui)}</span></div>` + lignes.map(o => {
       const x = Math.round(o.moi.valeur), y = Math.round(o.lui.valeur), part = Math.round(100 * x / ((x + y) || 1));
       return `<div class="gexo"><b>${escapeHtml(nomExo(o.id, siennes))}</b>
-        <div class="gduel" role="img" aria-label="Toi ${x} kg, ${escapeHtml(lui)} ${y} kg"><span class="g1" style="width:${part}%"></span><span class="g2" style="width:${100 - part}%"></span></div>
-        <div class="gduel-l"><span class="${x > y ? 'gagne' : ''}">${x} kg</span><span class="${y > x ? 'gagne' : ''}">${y} kg</span></div></div>`;
+        <div class="gduel" role="img" aria-label="Toi ${nombreFr(x)} kg, ${escapeHtml(lui)} ${nombreFr(y)} kg"><span class="g1" style="width:${part}%"></span><span class="g2" style="width:${100 - part}%"></span></div>
+        <div class="gduel-l"><span class="${x > y ? 'gagne' : ''}">${nombreFr(x)} kg</span><span class="${y > x ? 'gagne' : ''}">${nombreFr(y)} kg</span></div></div>`;
     }).join('') + '</div>';
   } else {
     html += '<p class="note gb-vide-note">Aucun exercice en commun sur les 90 derniers jours.</p>';
@@ -18566,7 +18638,7 @@ function renderForceMuscu(idCible) {
     .filter(id => STANDARD_PAR_EXERCICE[id]);
   const pc = dernierPoidsConnu(todayStr());
   let html = `<div class="titre-section">Niveau de force</div>
-    <p class="note" style="margin:0 0 12px;">Ton meilleur 1RM estimé (formule d'Epley) rapporté à ton poids de corps (${pc} kg, ${userProfile.gender === 'f' ? 'repères femmes' : 'repères hommes'}), comparé à des standards de force publiés. Pour les haltères, le poids compté est celui d'un seul haltère.</p>`;
+    <p class="note" style="margin:0 0 12px;">Ton meilleur 1RM estimé (formule d'Epley) rapporté à ton poids de corps (${nombreFr(pc)} kg, ${userProfile.gender === 'f' ? 'repères femmes' : 'repères hommes'}), comparé à des standards de force publiés. Pour les haltères, le poids compté est celui d'un seul haltère.</p>`;
   if (!ids.length) {
     c.innerHTML = html + '<p class="note">Aucun grand mouvement noté pour l\'instant (développé couché, squat, soulevé de terre, rowing, développé militaire, curl…). Fais-en au moins une série pour te situer.</p>';
     return;
@@ -18885,7 +18957,7 @@ function renderListeExercicesDetail(liste) {
       const exoRef = trouverExercice(e.exerciceId);
       const label = exoRef ? libelleExercice(exoRef) : e.nom;
       const series = e.series.map((s, si) => `<div style="display:flex; align-items:center; gap:8px; justify-content:space-between; font-size:0.82rem; padding:4px 0; border-bottom:1px solid var(--verre-brd);">
-        <span style="display:flex; align-items:center; gap:8px;">${boutonNumeroSerie(si, s.technique)}</span><span>${escapeHtml(s.poids ?? '—')} kg × ${escapeHtml(s.reps ?? '—')}${s.fait ? ' <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="m16 9-5.5 5.5L8 12" /></svg>' : ''}</span></div>`).join('');
+        <span style="display:flex; align-items:center; gap:8px;">${boutonNumeroSerie(si, s.technique)}</span><span>${s.poids != null && s.poids !== '' ? nombreFr(s.poids) : '—'} kg × ${escapeHtml(s.reps ?? '—')}${s.fait ? ' <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="m16 9-5.5 5.5L8 12" /></svg>' : ''}</span></div>`).join('');
       const note = e.notes ? `<p class="note" style="margin:6px 0 0; font-style:italic;">Note : ${escapeHtml(e.notes)}</p>` : '';
       // Toucher l'exercice ouvre sa fiche sur le résumé : courbe de progression
       // et historique de toutes ses séances.
@@ -18920,7 +18992,7 @@ function renderStatsRecordsMuscu(historique, idCible) {
       const nom = exo ? libelleExercice(exo) : 'Exercice supprimé';
       return `<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--verre-brd); font-size:0.85rem;">
         <span>${escapeHtml(nom)}</span>
-        <strong style="color:var(--primary); white-space:nowrap;">${v.record.poids} kg × ${v.record.reps}</strong>
+        <strong style="color:var(--primary); white-space:nowrap;">${nombreFr(v.record.poids)} kg × ${v.record.reps}</strong>
       </div>`;
     }).join('');
   c.innerHTML = lignes || '<div class="vide">Pas encore de record enregistré.</div>';
@@ -19845,7 +19917,7 @@ function rendreRecapIAProgramme() {
   const noms = gs => gs.map(g => GROUPES_MUSCULAIRES[g]).join(', ');
   const blocs = [
     [1, 'Objectif', [r.objectifLibelle || '—', r.echeance ? 'dans ' + r.echeance : '', r.phrase ? '« ' + r.phrase + ' »' : ''].filter(Boolean).join(' · ')],
-    [2, 'Expérience', [IA_PROG_NIVEAUX[r.niveau] || '—', ...r.charges.map(c => `${c.nom} ${c.kg} kg × ${c.reps}`)].join(' · ')],
+    [2, 'Expérience', [IA_PROG_NIVEAUX[r.niveau] || '—', ...r.charges.map(c => `${c.nom} ${nombreFr(c.kg)} kg × ${c.reps}`)].join(' · ')],
     [3, 'Rythme', `${r.jours.map(j => j[1]).join(', ') || '—'} (${r.seances} séance${r.seances > 1 ? 's' : ''}) · ${r.duree ? r.duree + ' min' : '—'} · ${r.split.nom}`],
     [4, 'Matériel', r.materiels.length && r.materiels.length < ORDRE_MATERIELS.length ? r.materiels.map(m => MATERIELS[m].label).join(', ') : 'Salle complète'],
     [5, 'Priorités', [r.priorites.length ? 'Priorité : ' + noms(r.priorites) : 'Aucune priorité', r.maintenir.length ? 'Maintenir : ' + noms(r.maintenir) : ''].filter(Boolean).join(' · ')],
@@ -19873,7 +19945,7 @@ function historiqueRecentPourIA() {
   }));
   return Object.entries(parExo).sort((a, b) => b[1].n - a[1].n).slice(0, 12).map(([id, o]) => {
     const exo = trouverExercice(id);
-    return exo ? `${libelleExercice(exo)} : ${o.best.poids} kg × ${o.best.reps}` : null;
+    return exo ? `${libelleExercice(exo)} : ${nombreFr(o.best.poids)} kg × ${o.best.reps}` : null;
   }).filter(Boolean);
 }
 
@@ -22070,6 +22142,7 @@ function copierRepasPrecedent() {
   day.meals[repasFeuille].push(...prec.items.map(it => JSON.parse(JSON.stringify(it))));
   invaliderHistorique();
   saveData(currentDate);
+  ajusterEauJour(currentDate, prec.items.reduce((t, it) => t + eauDeLaBoisson(it), 0));
   fermerFeuilleRepas();
   renderMeals(day); updateSummary(day); renderSemaine();
 }
@@ -22243,7 +22316,7 @@ function maintenanceReelle(s, e) {
   const pesees = globalMasterWeight.slice(s, e + 1).filter(v => v != null).length;
   const span = i0 >= 0 ? i1 - i0 : 0;
   const remplis = [];
-  if (i0 >= 0) for (let i = i0; i <= i1; i++) if (globalMasterRempli[i]) remplis.push(i);
+  if (i0 >= 0) for (let i = i0; i <= i1; i++) if (jourComptable(i)) remplis.push(i);
   if (span < MAINTENANCE_JOURS_MIN || remplis.length < MAINTENANCE_REPAS_MIN || pesees < MAINTENANCE_PESEES_MIN) {
     return { manque: Math.max(MAINTENANCE_JOURS_MIN - span, MAINTENANCE_REPAS_MIN - remplis.length, 0), pesees };
   }
@@ -22284,7 +22357,7 @@ function ecartWeekEnd(s, e) {
   const we = [], sem = [];
   let horsCible = 0, horsCibleWe = 0;
   for (let i = s; i <= e; i++) {
-    if (!globalMasterRempli[i]) continue;
+    if (!jourComptable(i)) continue;
     const j = new Date(dateIsoPourIndexStats(i) + 'T12:00:00').getDay();
     const estWe = j === 0 || j === 6;
     (estWe ? we : sem).push(globalMasterConsumed[i]);
@@ -22415,7 +22488,7 @@ function renderResumeProgres() {
       evol: b.deltaPoids != null ? (b.deltaPoids < 0 ? '↘ ' : b.deltaPoids > 0 ? '↗ ' : '') + escapeHtml(fmtSigne(b.deltaPoids, ' kg')) : 'pas de tendance', evolCls: bonSens(b.deltaPoids),
       dessin: pgSpark(lisse, '#0ea5e9'), onglet: 'poids' }),
     pgTuile({ titre: 'Calories / jour', valeur: b.joursRemplis ? nombreFr(b.moyConso, 0) : '—', unite: b.joursRemplis ? 'kcal' : '',
-      evol: b.joursRemplis ? `objectif ${nombreFr(b.moyCible, 0)}${b.moyCible ? ' · ' + escapeHtml(fmtSigne((b.moyConso - b.moyCible) / b.moyCible * 100, ' %', 0)) : ''}` : 'aucun repas noté',
+      evol: b.joursRemplis ? `objectif moyen ${nombreFr(b.moyCible, 0)}${b.moyCible ? ' · ' + escapeHtml(fmtSigne((b.moyConso - b.moyCible) / b.moyCible * 100, ' %', 0)) : ''}` : 'aucun repas noté',
       dessin: b.joursRemplis ? pgJauge(b.moyConso, b.moyCible, '#f59e0b') : '', onglet: 'nutrition' }),
     pgTuile({ titre: 'Volume muscu', valeur: volume >= 1000 ? nombreFr(Math.round(volume / 100) / 10) : nombreFr(Math.round(volume), 0), unite: volume >= 1000 ? 't' : 'kg',
       evol: pctVol != null ? (pctVol >= 0 ? '↗ +' : '↘ −') + Math.abs(pctVol) + ' %' : `${m.seances.length} séance${m.seances.length > 1 ? 's' : ''}`, evolCls: pctVol == null ? '' : pctVol >= 0 ? 'bon' : 'mauvais',
@@ -22428,7 +22501,7 @@ function renderResumeProgres() {
   // Maintenance réelle
   const mt = maintenanceReelle(s, e);
   const maint = mt.kcal
-    ? `<div class="pg-carte pg-maint">${pgAnneau(mt.moyConso / mt.kcal, '#f59e0b', Math.round(mt.moyConso / mt.kcal * 100) + ' %')}<div><small>Ta maintenance réelle</small><b>${nombreFr(mt.kcal, 0)} kcal</b><p>Calculée sur tes pesées et ce que tu as noté, pas sur une formule. Tu manges ${Math.round(mt.moyConso / mt.kcal * 100)} % de ta maintenance${b.rythmeSemaine != null ? ' → ' + escapeHtml(fmtSigne(b.rythmeSemaine, ' kg/sem.', 1)) : ''}.</p></div></div>`
+    ? `<div class="pg-carte pg-maint">${pgAnneau(mt.moyConso / mt.kcal, '#f59e0b', Math.round(mt.moyConso / mt.kcal * 100) + ' %')}<div><small>Ta maintenance réelle</small><b>${nombreFr(mt.kcal, 0)} kcal</b><p>Calculée sur tes pesées et ce que tu as noté, pas sur une formule. Tu manges ${Math.round(mt.moyConso / mt.kcal * 100)} % de ta maintenance${b.rythmeSemaine != null ? ' → ' + escapeHtml(fmtSigne(b.rythmeSemaine, ' kg par semaine', 1)) : ''}.</p></div></div>`
     : `<div class="pg-carte pg-maint pg-maint--vide">${pgAnneau(0, '#f59e0b', '…')}<div><small>Ta maintenance réelle</small><b>Bientôt</b><p>Encore ${mt.manque || 'quelques'} jour${mt.manque > 1 ? 's' : ''} avec tes repas notés et ${MAINTENANCE_PESEES_MIN} pesées au moins sur la période : on calculera les calories qui te font garder ton poids, d'après ta balance.</p></div></div>`;
 
   // Ce qui a bougé
@@ -22573,7 +22646,7 @@ function renderExtrasNutrition(s, e) {
   const rp = document.getElementById('pg-repartition');
   if (rp) {
     const idx = [];
-    for (let i = s; i <= e; i++) if (globalMasterRempli[i]) idx.push(i);
+    for (let i = s; i <= e; i++) if (jourComptable(i)) idx.push(i);
     if (!idx.length) rp.innerHTML = '<p class="pg-vide">Aucun repas noté sur la période.</p>';
     else {
       const moy = arr => idx.reduce((t, i) => t + (arr[i] || 0), 0) / idx.length;
@@ -22912,11 +22985,11 @@ function jaugeForceHTML(n) {
   if (!n) return '<p class="note">Pas de standard de force fiable pour cet exercice : la jauge existe pour les grands mouvements (développé couché, squat, soulevé de terre, rowing, développé militaire, curl…).</p>';
   const segs = COULEURS_NIVEAUX.map(c => `<span style="background:${c};"></span>`).join('');
   const marqueur = n.best ? `<i class="jauge-force-marqueur" style="left:${n.position.toFixed(1)}%;"></i>` : '';
-  const legende = NIVEAUX_FORCE.map((nom, i) => `<div><b>${nom}</b><small>${n.seuilsKg[i]} kg</small></div>`).join('');
+  const legende = NIVEAUX_FORCE.map((nom, i) => `<div><b>${nom}</b><small>${nombreFr(n.seuilsKg[i])} kg</small></div>`).join('');
   const texte = n.best
     ? `<p class="jauge-force-texte"><b>${n.niveau}</b> · plus fort que ~${n.centile} % des pratiquants</p>
-       <p class="note" style="margin:0;">1RM estimé ${Math.round(n.best.valeur)} kg (${n.best.poids} kg × ${n.best.reps} le ${formatDateDisplay(n.best.date)}) · ${n.ratio.toFixed(2).replace('.', ',')} × ton poids de corps (${n.poidsCorps} kg)</p>`
-    : `<p class="note" style="margin:0;">Fais au moins une série de cet exercice pour te situer. Repères pour ton poids (${n.poidsCorps} kg), en charge maximale sur 1 répétition :</p>`;
+       <p class="note" style="margin:0;">1RM estimé ${Math.round(n.best.valeur)} kg (${nombreFr(n.best.poids)} kg × ${n.best.reps} le ${formatDateDisplay(n.best.date)}) · ${n.ratio.toFixed(2).replace('.', ',')} × ton poids de corps (${nombreFr(n.poidsCorps)} kg)</p>`
+    : `<p class="note" style="margin:0;">Fais au moins une série de cet exercice pour te situer. Repères pour ton poids (${nombreFr(n.poidsCorps)} kg), en charge maximale sur 1 répétition :</p>`;
   return `<div class="jauge-force"><div class="jauge-force-barre">${segs}${marqueur}</div><div class="jauge-force-legende">${legende}</div>${texte}</div>`;
 }
 function badgeNiveauHTML(exerciceId) {
@@ -24068,7 +24141,7 @@ function recapSeanceHTML(entree, dureeMin) {
       <div class="bilan-geant"><b data-compte="${t.v}"${t.dec ? ' data-dec="1"' : ''}>${nombreFr(t.v, t.dec)}</b><span>${t.u} soulevés</span></div>
       ${ecart != null ? `<span class="bilan-ecart ${ecart >= 0 ? 'hausse' : 'baisse'}">${ecart >= 0 ? '▲' : '▼'} ${Math.abs(ecart)} % vs la dernière fois</span>` : ''}
     </div>
-    <div class="bilan-tuiles">${(entree.fin - entree.debut) < 60000 ? `<div class="bilan-tuile"><b>&lt; 1</b><small>min</small><span>Durée</span></div>` : tuile('Durée', dureeMin, 'min')}${tuile('Séries', nbSeries, 'faites')}${tuile('Records', records.length, records.length > 1 ? 'battus' : 'battu')}</div>
+    <div class="bilan-tuiles">${(entree.fin - entree.debut) < 60000 ? `<div class="bilan-tuile"><b>&lt; 1</b><small>min</small><span>Durée</span></div>` : tuile('Durée', dureeMin, 'min')}${tuile('Faites', nbSeries, nbSeries > 1 ? 'séries' : 'série')}${tuile(records.length > 1 ? 'Battus' : 'Battu', records.length, records.length > 1 ? 'records' : 'record')}</div>
     ${records.length ? `<div class="bilan-records">${records.map(x => `<div><span class="bilan-trophee">${svgV('trophee', 2)}</span><b>${escapeHtml(x.nom)}</b><em>${nombreFr(Number(x.s.poids))} kg × ${x.s.reps}</em></div>`).join('')}</div>` : ''}`;
 }
 // Referme le bilan puis, pour une séance libre, enchaîne sur la proposition
@@ -24225,9 +24298,7 @@ window.addEventListener('load', () => {
   // défaut, plutôt que de laisser croire qu'une valeur a été saisie ici.
   // (La clé Gemini est déjà remplie par appliquerGeminiKeyEffective(), appelée
   // depuis loadData() ci-dessus — elle reflète le profil du compte connecté.)
-  document.getElementById('base-gender').value = userProfile.gender;
-  document.getElementById('base-age').value = userProfile.age;
-  document.getElementById('base-height').value = userProfile.height;
+  remplirInfosPersonnelles();
 
   const cs = confSupabase();
   document.getElementById('supa-url').value = localStorage.getItem(SUPA_URL_LS) || '';

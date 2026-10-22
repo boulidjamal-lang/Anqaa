@@ -1761,3 +1761,75 @@ test('Progrès : résumé en une phrase, projection, maintenance réelle, consta
   await page.evaluate(() => { userProfile.poidsVise = null; choisirOngletStats('resume'); majToutesStats(); });
   assert.match(await page.textContent('.pg-heros p'), /Fixe un poids visé/);
 }));
+
+test('profil : le formulaire suit le profil enregistré et une saisie vide ne remplace rien', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    onbReponses.gender = 'f'; onbReponses.goal = 'seche'; onbReponses.pasHabituels = 6000;
+    document.getElementById('onb-age').value = '41'; document.getElementById('onb-taille').value = '163'; document.getElementById('onb-poids').value = '68';
+    await onbTerminer();
+    document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+    allerA('reglages');
+    const formulaire = ['base-gender', 'base-age', 'base-height'].map(id => document.getElementById(id).value);
+    // Corriger un seul champ ne réécrit pas les autres avec des valeurs par défaut.
+    const sel = document.getElementById('base-gender'); sel.value = 'm'; sel.dispatchEvent(new Event('change'));
+    const apresSexe = [userProfile.gender, userProfile.age, userProfile.height];
+    // Un âge effacé garde l'ancien, et le champ le réaffiche.
+    const age = document.getElementById('base-age'); age.value = ''; age.dispatchEvent(new Event('change'));
+    const ageGarde = age.value;
+    // Profil arrivé d'un autre appareil : le formulaire se met à jour.
+    Object.assign(userProfile, { age: 52, height: 181 }); renderApp();
+    return { formulaire, apresSexe, ageGarde, synchro: ['base-age', 'base-height'].map(id => document.getElementById(id).value) };
+  });
+  assert.deepEqual(r.formulaire, ['f', '41', '163']);
+  assert.deepEqual(r.apresSexe, ['m', 41, 163]);
+  assert.equal(r.ageGarde, '41');
+  assert.deepEqual(r.synchro, ['52', '181']);
+}));
+
+test("boissons : l'hydratation suit la boisson (ajout, suppression, annulation, quantité), pas l'alcool", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const eau = () => Number(getDay(currentDate).eauMl) || 0;
+    const ajouter = async (nom, ml) => { ouvrirManuel('breakfast'); uniteCourante = 'ml'; activeMealId = 'breakfast';
+      document.getElementById('man-name').value = nom; document.getElementById('man-grams').value = ml; document.getElementById('man-kcal100').value = 45; await validerAjoutManuel(); };
+    const e = {};
+    await ajouter('Lait demi-écrémé', 250); e.lait = eau();
+    await ajouter('Bière blonde', 500); e.biere = eau();
+    await ajouter('Bière sans alcool', 330); e.sansAlcool = eau();
+    supprimerAliment('breakfast', getDay(currentDate).meals.breakfast.findIndex(i => /Lait/.test(i.name))); e.suppression = eau();
+    document.querySelector('#toast-annuler button').click(); e.annulation = eau();
+    ouvrirPoidsAliment(document.querySelector('#meals-container .food-info[data-nom^="Lait"]'));
+    document.getElementById('macros-popup-poids').value = 400; validerPoidsAliment(); e.quantite = eau();
+    return e;
+  });
+  assert.deepEqual(r, { lait: 250, biere: 250, sansAlcool: 580, suppression: 330, annulation: 580, quantite: 730 });
+}));
+
+test('chiffres : même tendance du poids et même moyenne de calories sur Repas du jour et Progrès, nombres à la française', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const t = todayStr();
+    userProfile.mesures = {};
+    for (let k = 35; k >= 0; k--) {
+      const d = shiftDate(t, -k), jour = getDay(d);
+      jour.weight = Math.round((80 + k * 0.06 + (k % 3) * 0.2) * 10) / 10;
+      jour.meals[MEALS[0]].push({ name: 'Test', kcal: k === 0 ? 400 : 1800 + (k % 5) * 40, p: 140, c: 200, f: 60 });
+      saveData(d);
+    }
+    userProfile.mesures[t] = { poids: 80.3, grassePct: 17.5, muscleKg: 36.4 };
+    allerA('repas'); renderApp();
+    const poids = document.querySelector('#carte-stats-poids').textContent.match(/−[0-9,]+ kg\/sem\./)[0];
+    const nutri = document.querySelector('#carte-stats-nutrition .carte-stats-valeur b').textContent;
+    const mesure = document.getElementById('resume-mesures').textContent;
+    choisirPeriodeStats('30'); allerA('stats');
+    await new Promise(res => setTimeout(res, 400));
+    const phrase = document.querySelector('.pg-heros').textContent;
+    choisirOngletStats('nutrition');
+    await new Promise(res => setTimeout(res, 300));
+    return { poids, phrase, nutri, moyRepas: document.querySelector('#ecran-stats').textContent.replace(/\s+/g, ' '), mesure };
+  });
+  const rythme = r.poids.replace('−', '').replace(' kg/sem.', '');
+  assert.match(r.phrase, new RegExp('Tu perds ' + rythme + ' kg par semaine'));
+  assert.match(r.moyRepas, new RegExp(r.nutri.replace(/\s/g, '\\s') + '\\s*kcal'));
+  // 29 journées terminées (aujourd'hui, entamé, n'entre pas dans la moyenne).
+  assert.equal(r.nutri.replace(/\s/g, ''), '1883');
+  assert.match(r.mesure, /80,3 kg · 17,5 % de masse grasse · 36,4 kg de muscle/);
+}));
