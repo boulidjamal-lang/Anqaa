@@ -1803,18 +1803,7 @@
     .zones-legende-item small { display: block; color: var(--text-muted); font-size: 0.7rem; margin-top: 2px; }    /* Carte du corps */    /* Haut de la séance en cours : petite silhouette sans fond à gauche,
        jauges de volume de la semaine à droite. Un appui sur la silhouette
        l'agrandit (et repasse les jauges en dessous). */
-    .session-haut { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
-    .session-corps-mini { flex: 0 0 92px; background: transparent; border: 0; padding: 0; cursor: zoom-in; color: inherit; font-family: inherit; transition: flex-basis 0.25s ease; }
-    .session-corps-mini .corps-svg { margin: 0; max-width: none; width: 100%; }
-    .session-corps-mini .corps-puces, .session-corps-mini .note { display: none; }
-    .session-zones { flex: 1; min-width: 0; }
-    .session-zones .zone-ligne { margin: 0 0 9px; }
-    .session-zones .zone-ligne:last-child { margin-bottom: 0; }
-    .session-haut.agrandi { flex-direction: column; align-items: stretch; }
-    .session-haut.agrandi .session-corps-mini { flex-basis: auto; cursor: zoom-out; }
-    .session-haut.agrandi .session-corps-mini .corps-svg { max-width: 380px; margin: 0 auto; }
-    .session-haut.agrandi .session-corps-mini .corps-puces { display: flex; }
-    .session-haut.agrandi .session-corps-mini .note { display: block; }    .corps-svg { display: block; width: 100%; max-width: 380px; height: auto; margin: 8px auto 0; }
+    .corps-svg { display: block; width: 100%; max-width: 380px; height: auto; margin: 8px auto 0; }
     .corps-puces { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-top: 6px; }
     .corps-puces span { font-size: 0.68rem; background: var(--verre-fort); border-radius: 999px; padding: 2px 8px; }
     .corps-puces b { color: var(--primary); }
@@ -3518,6 +3507,54 @@
     .gdem b { display: block; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; }
     .gdem small { font-size: .78rem; color: var(--text-muted); }
 
+    /* =====================================================================
+       SÉANCE EN COURS — en-tête (chrono, avancée, corps) et mini-cadrans
+       ===================================================================== */
+    .seance-heros { position: relative; overflow: hidden; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr) 176px; align-items: center; gap: 4px;
+      margin: 0 0 16px; padding: 16px 8px 14px 16px; border-radius: 26px; color: #fff;
+      background: radial-gradient(70% 80% at 90% 10%, rgba(244,114,182,.45), transparent 70%), linear-gradient(140deg, #1e1b4b, #4c1d95 50%, #be185d);
+      box-shadow: 0 22px 40px -22px rgba(190,24,93,.8); }
+    .sh-g { min-width: 0; }
+    .sh-etat { display: flex; align-items: center; gap: 7px; font-size: .7rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; opacity: .9; }
+    .sh-etat i { width: 7px; height: 7px; border-radius: 50%; background: #f87171; box-shadow: 0 0 0 3px rgba(248,113,113,.3); animation: pulseBandeauFlottant 1.6s ease-in-out infinite; }
+    html:root #titre-session-modal { margin: 4px 0 0; font: 800 1.65rem/1.05 'Manrope', 'Inter', sans-serif !important; letter-spacing: -.04em; color: #fff; overflow-wrap: anywhere; }
+    .sh-chrono { margin: 6px 0 0; font: 800 2.6rem/1 'Manrope', 'Inter', sans-serif; letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+    .sh-prog { margin-top: 12px; }
+    .sh-prog-t { display: block; font-size: .78rem; font-weight: 700; opacity: .92; }
+    .sh-prog-t b { font: 800 .95rem 'Manrope', 'Inter', sans-serif; }
+    .sh-prog-b { display: block; height: 7px; margin-top: 6px; border-radius: 99px; background: rgba(255,255,255,.22); overflow: hidden; max-width: 170px; }
+    .sh-prog-b i { display: block; height: 100%; border-radius: 99px; background: #fff; transition: width .4s ease; }
+    .sh-corps { align-self: stretch; display: block; margin: -8px -4px -8px 0; padding: 0; border: 0; background: none; color: #fff; cursor: zoom-in; font: inherit; }
+    .sh-corps .corps-svg { width: 100%; height: 100%; max-width: none; margin: 0; filter: drop-shadow(0 0 10px rgba(16,185,129,.3)); }
+    .sh-corps .corps-svg text { display: none; fill: rgba(255,255,255,.7); }
+    .sh-corps .corps-puces, .sh-corps-note { display: none; }
+    .seance-heros.agrandi { grid-template-columns: 1fr; }
+    .seance-heros.agrandi .sh-corps { margin: 8px 0 0; cursor: zoom-out; }
+    .seance-heros.agrandi .sh-corps .corps-svg { height: auto; max-width: 360px; margin: 0 auto; }
+    .seance-heros.agrandi .sh-corps .corps-svg text { display: inline; }
+    .seance-heros.agrandi .sh-corps .corps-puces { display: flex; }
+    .seance-heros.agrandi .corps-puces span { background: rgba(255,255,255,.18); color: #fff; }
+    .seance-heros.agrandi .corps-puces b { color: #fff; }
+    .seance-heros.agrandi .sh-corps-note { display: block; margin: 6px 0 0; text-align: center; font-size: .78rem; opacity: .85; }
+    .session-haut { margin: 0 0 14px; }
+    .session-zones:empty { display: none; }
+    .session-zones .alerte-volume-seance { margin: 0 0 10px; }
+    .sh-sec { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 0 2px 8px; }
+    .sh-sec b { font: 800 .98rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; }
+    .sh-sec small { font-size: .72rem; font-weight: 700; color: var(--text-muted); text-align: right; }
+    .mc-rangee { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 12px 8px 10px; border-radius: 22px; background: var(--carte-plein); box-shadow: var(--ombre); }
+    .mc-rangee::-webkit-scrollbar { display: none; }
+    .mc { flex: 1 0 76px; min-width: 76px; display: grid; justify-items: center; align-content: start; gap: 1px; padding: 0 2px; border: 0; border-radius: 14px; background: none; color: var(--text); font: inherit; text-align: center; cursor: pointer; }
+    .mc[aria-expanded="true"] { background: var(--piste); }
+    .mc--sec { opacity: .78; }
+    .mc-r { position: relative; width: 62px; height: 62px; margin-bottom: 3px; }
+    .mc-r svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .mc-r b { position: absolute; inset: 0; display: grid; place-items: center; font: 800 1.1rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.03em; }
+    .mc-n { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .74rem; font-weight: 800; }
+    .mc-z { font-size: .68rem; font-weight: 800; white-space: nowrap; }
+    .mc-a { font-size: .68rem; font-weight: 700; color: var(--text-muted); }
+    .mc-detail { margin: 8px 2px 0; padding: 10px 12px; border-radius: 14px; background: var(--piste); font-size: .8rem; line-height: 1.45; }
+
     /* Apparition */
     .vitrine > *, #seance-cardio > * { animation: monte .55s cubic-bezier(.2,.8,.2,1) both; }
     .vitrine > :nth-child(2), #seance-cardio > :nth-child(2) { animation-delay: .05s; }
@@ -3599,15 +3636,6 @@
     html:root :is(.modal-content, .feuille-contenu) { background-image: radial-gradient(80% 120px at 50% 0, color-mix(in srgb, #22d3ee 16%, transparent), transparent); }
     html:root .modal-entete h3 { font-weight: 800; letter-spacing: -.035em; }
 
-    /* Séance en cours : en-tête et silhouette sur un même héros sombre */
-    html:root #session-entete { margin: -4px -16px 0; padding: 18px 16px 4px;
-      background: radial-gradient(70% 120% at 90% 0, rgba(244,114,182,.30), transparent 70%), linear-gradient(180deg, #0b1020, #0b1020); }
-    html:root #session-entete + .session-haut { margin: 0 -16px 14px; padding: 4px 16px 18px; border-radius: 0 0 30px 30px; box-shadow: 0 30px 50px -36px rgba(167,139,250,.7);
-      background: radial-gradient(60% 80% at 10% 100%, rgba(167,139,250,.28), transparent 70%), linear-gradient(180deg, #0b1020, #070a14); }
-    html:root[data-theme="light"] #session-entete { background: radial-gradient(70% 120% at 90% 0, rgba(244,114,182,.22), transparent 70%), linear-gradient(180deg, #f1f0ff, #f1f0ff); }
-    html:root[data-theme="light"] #session-entete + .session-haut { background: radial-gradient(60% 80% at 10% 100%, rgba(167,139,250,.24), transparent 70%), linear-gradient(180deg, #f1f0ff, #eef6ff); }
-    html:root #titre-session-modal { font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.7rem !important; letter-spacing: -.045em; }
-    html:root #session-chrono { font-size: .86rem; font-variant-numeric: tabular-nums; }
 
     /* Apparition douce des blocs de Repas du jour */
     html:root body.sur-repas #ecran-repas > :is(.summary-card, .coach-carte, #cartes-stats-repas, #bloc-eau, #meals-container) { animation: monte .6s cubic-bezier(.2,.8,.2,1) both; }
@@ -3918,15 +3946,18 @@
     </div>
 
     <div id="seance-vue-active" class="hidden">
-      <div id="session-entete">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:2px;">
-        <h3 id="titre-session-modal" style="margin:0; font-size:1.05rem; font-weight:800;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Séance</h3>
-        <span style="font-size:0.78rem; font-weight:700; color:var(--danger); display:flex; align-items:center; gap:5px; white-space:nowrap;"><span class="bandeau-seance-flottant-pastille" aria-hidden="true"><svg class="icone-ui icone-pleine" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg></span> En cours</span>
-      </div>
-      <p class="note" id="session-chrono" style="margin:2px 0 14px; font-weight:700;"></p>
+      <!-- En-tête de séance : chrono, avancée, et le corps coloré par zone de
+           la semaine (un appui l'agrandit). Dessous, un mini-cadran par muscle. -->
+      <div id="session-entete" class="seance-heros">
+        <div class="sh-g">
+          <small class="sh-etat"><i aria-hidden="true"></i>En cours</small>
+          <h3 id="titre-session-modal">Séance</h3>
+          <p id="session-chrono" class="sh-chrono"></p>
+          <div class="sh-prog" id="session-progression"></div>
+        </div>
+        <button type="button" class="sh-corps" id="session-corps" onclick="basculerCorpsSession()" aria-label="Agrandir la silhouette des muscles travaillés" aria-expanded="false"></button>
       </div>
       <div class="session-haut" id="session-haut">
-        <button type="button" class="session-corps-mini" id="session-corps" onclick="basculerCorpsSession()" aria-label="Agrandir la silhouette des muscles travaillés" aria-expanded="false"></button>
         <div class="session-zones" id="session-zones"></div>
       </div>
       <div class="session-repli-barre hidden" id="session-repli-barre">
@@ -11355,9 +11386,9 @@ const TOUR_MUSCU = [
       : "Touche un programme, ou « Séance vide » pour choisir tes exercices au fil de l'eau. Suivant : on lance une séance de démonstration.") },
   // B. Pendant la séance (démonstration si aucune séance n'est en cours)
   { ecran: 'seance', siSession: true, cible: '#session-entete', titre: 'En-tête de la séance',
-    texte: () => "Le nom de la séance et le chrono, qui tourne depuis le début."
+    texte: () => "Le nom de la séance, le chrono, tes séries faites sur le total, et ton corps coloré selon le volume de ta semaine : touche-le pour l'agrandir."
       + (musculationSessionActive && musculationSessionActive.demo ? " Ceci est une séance de démonstration : rien n'y est enregistré." : '') },
-  { ecran: 'seance', siSession: true, cible: '#session-haut', titre: 'Le volume de ta semaine', texte: "Une jauge par muscle : tes séries de la semaine, de « trop peu » à « trop », en passant par l'entretien, la progression et la zone idéale. Le curseur montre où tu en es ; barre épaisse pour les muscles principaux de la séance, fine pour les secondaires. Le corps se colore pareil ; touche-le pour l'agrandir." },
+  { ecran: 'seance', siSession: true, cible: '#session-haut', titre: 'Le volume de ta semaine', texte: "Un cadran par muscle travaillé : tes séries de la semaine, de « trop peu » à « trop », en passant par l'entretien, la progression et la zone idéale. La part plus claire, c'est aujourd'hui. Touche un muscle pour savoir combien il t'en reste." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-prec', titre: 'Ta séance précédente', texte: "La colonne « Préc. » rappelle ce que tu as fait la dernière fois sur cette série. Touche-la pour reprendre ces valeurs, puis essaie de faire un peu mieux." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .serie-num-btn', titre: 'Le type de série', texte: "Touche le numéro d'une série pour la marquer : Échauffement (W, jamais comptée dans les jauges), Dégressif, Pyramidal ou Échec." },
   { ecran: 'seance', siSession: true, cible: '#session-exercices-container .tempo-ligne', titre: 'Tempo et objectif', texte: "Le tempo : quatre chiffres pour la vitesse de chaque phase (descente, pause en bas, montée, pause en haut ; X = explosif). À côté, la cible : l'objectif de répétitions (par exemple 8 à 12) : quand tu atteins le haut, l'appli te propose de monter la charge. Touche le métronome ou la cible pour une explication avec des exemples." },
@@ -22748,8 +22779,9 @@ function majChronoSession() {
   const el = document.getElementById('session-chrono');
   if (!el || !musculationSessionActive) return;
   const sec = Math.max(0, Math.floor((Date.now() - musculationSessionActive.debut) / 1000));
-  const m = Math.floor(sec / 60), s = sec % 60;
-  el.innerHTML = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2" /><line x1="12" x2="15" y1="14" y2="11" /><circle cx="12" cy="14" r="8" /></svg> Depuis ' + m + ' min ' + String(s).padStart(2, '0') + ' s';
+  const h = Math.floor(sec / 3600), m = Math.floor(sec / 60) % 60, s = sec % 60, deux = n => String(n).padStart(2, '0');
+  el.textContent = h ? h + ':' + deux(m) + ':' + deux(s) : m + ':' + deux(s);
+  el.setAttribute('aria-label', 'Depuis ' + (h ? h + ' h ' : '') + m + ' min ' + s + ' s');
 }
 function ajouterExerciceASession(id) {
   if (!musculationSessionActive) return;
@@ -22813,7 +22845,7 @@ function remplacerExerciceSessionConfirme(id) {
 function renderSessionModal() {
   const s = musculationSessionActive;
   if (!s) return;
-  document.getElementById('titre-session-modal').innerHTML = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> ' + (s.programmeNom ? escapeHtml(s.programmeNom) : 'Séance libre');
+  document.getElementById('titre-session-modal').textContent = s.programmeNom || 'Séance libre';
   zonesSemaineSession = seriesSemaine(lundiDeLaSemaine(todayStr()), true);
   renderCorpsSession();
   const c = document.getElementById('session-exercices-container');
@@ -22850,10 +22882,11 @@ function renderSessionModal() {
    muscle travaillé (plein pour le groupe principal, à moitié pour les
    secondaires), de plus en plus intensément au fil des séries. */
 let zonesSemaineSession = {};
+let muscleDetailSession = null;   // muscle dont le détail est ouvert sous les cadrans
 function renderCorpsSession() {
   const cible = document.getElementById('session-corps');
   if (!cible || !musculationSessionActive) return;
-  // Même source que les jauges à côté : les séries de travail de toute la
+  // Même source que les cadrans dessous : les séries de travail de toute la
   // semaine (séance en cours comprise), chaque muscle dans la couleur de sa
   // zone. Un muscle déjà travaillé cette semaine est donc coloré dès le
   // début de la séance, pas seulement après la première série cochée.
@@ -22862,46 +22895,89 @@ function renderCorpsSession() {
   cible.innerHTML = corpsSVG(couleursZones(semaine), 'Zone atteinte cette semaine par chaque muscle') +
     (groupes.length
       ? `<div class="corps-puces">${groupes.map(g => `<span>${escapeHtml(GROUPES_MUSCULAIRES[g])} <b>${formatSeries(semaine[g])}</b></span>`).join('')}</div>`
-      : '<p class="note" style="margin:6px 0 0; text-align:center;">Coche une série : le muscle travaillé se colore.</p>');
-  // Jauges de volume de la semaine, une par muscle principal de la séance
-  // (au lieu d'une sous chaque exercice), dans l'ordre des exercices.
+      : '<p class="sh-corps-note">Coche une série : le muscle travaillé se colore.</p>');
+  majProgressionSession();
   const zones = document.getElementById('session-zones');
-  if (zones) {
-    // Muscles principaux des exercices (barre épaisse), puis leurs
-    // muscles secondaires qui ne sont le principal d'aucun exercice de la
-    // séance (barre fine).
-    const principaux = [], secondaires = [];
-    musculationSessionActive.exercices.forEach(e => {
-      const exo = trouverExercice(e.exerciceId);
-      if (exo && ZONES_VOLUME[exo.groupe] && !principaux.includes(exo.groupe)) principaux.push(exo.groupe);
+  if (!zones) return;
+  // Muscles principaux des exercices, puis leurs muscles secondaires qui ne
+  // sont le principal d'aucun exercice de la séance (cadran plus discret).
+  const principaux = [], secondaires = [];
+  musculationSessionActive.exercices.forEach(e => {
+    const exo = trouverExercice(e.exerciceId);
+    if (exo && ZONES_VOLUME[exo.groupe] && !principaux.includes(exo.groupe)) principaux.push(exo.groupe);
+  });
+  musculationSessionActive.exercices.forEach(e => {
+    const exo = trouverExercice(e.exerciceId);
+    (exo && exo.secondaires || []).forEach(g => {
+      if (ZONES_VOLUME[g] && !principaux.includes(g) && !secondaires.includes(g)) secondaires.push(g);
     });
-    musculationSessionActive.exercices.forEach(e => {
-      const exo = trouverExercice(e.exerciceId);
-      (exo && exo.secondaires || []).forEach(g => {
-        if (ZONES_VOLUME[g] && !principaux.includes(g) && !secondaires.includes(g)) secondaires.push(g);
-      });
-    });
-    // Chaque groupe trié par séries de la semaine, du plus au moins travaillé
-    // (à égalité, l'ordre des exercices de la séance est gardé).
-    const parSeries = (a, b) => (zonesSemaineSession[b] || 0) - (zonesSemaineSession[a] || 0);
-    principaux.sort(parSeries);
-    secondaires.sort(parSeries);
-    // Volume de CETTE séance par muscle (séries de travail, mêmes règles) :
-    // au-delà d'une dizaine de séries pour un muscle dans une même séance,
-    // chaque série en plus rapporte de moins en moins.
-    const seance = {};
-    ajouterSeriesParGroupe(seance, musculationSessionActive.exercices, { date: todayStr(), historique: musculationHistorique, cache: new Map() });
-    const tropCharges = Object.keys(seance).filter(g => seance[g] > SERIES_MAX_SEANCE).sort((a, b) => seance[b] - seance[a]);
-    const alerte = tropCharges.length ? `<div class="alerte-volume-seance" role="note">
-        <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
-        <span><b>${tropCharges.map(g => `${escapeHtml(GROUPES_MUSCULAIRES[g])} (${formatSeries(seance[g])})`).join(', ')}</b> : plus de ${SERIES_MAX_SEANCE} séries dans cette séance. Au-delà, chaque série rapporte peu : répartis-les sur la semaine.</span>
-      </div>` : '';
-    zones.innerHTML = alerte + principaux.map(g => ligneZoneHTML(g, zonesSemaineSession[g] || 0, true)).join('')
-      + secondaires.map(g => ligneZoneHTML(g, zonesSemaineSession[g] || 0, true, true)).join('');
-  }
+  });
+  // Chaque groupe trié par séries de la semaine, du plus au moins travaillé
+  // (à égalité, l'ordre des exercices de la séance est gardé).
+  const parSeries = (a, b) => (semaine[b] || 0) - (semaine[a] || 0);
+  principaux.sort(parSeries);
+  secondaires.sort(parSeries);
+  // Volume de CETTE séance par muscle (séries de travail, mêmes règles) :
+  // la part d'aujourd'hui, et au-delà d'une dizaine de séries pour un
+  // muscle dans une même séance, chaque série en plus rapporte peu.
+  const seance = {};
+  ajouterSeriesParGroupe(seance, musculationSessionActive.exercices, { date: todayStr(), historique: musculationHistorique, cache: new Map() });
+  const tropCharges = Object.keys(seance).filter(g => seance[g] > SERIES_MAX_SEANCE).sort((a, b) => seance[b] - seance[a]);
+  const alerte = tropCharges.length ? `<div class="alerte-volume-seance" role="note">
+      <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
+      <span><b>${tropCharges.map(g => `${escapeHtml(GROUPES_MUSCULAIRES[g])} (${formatSeries(seance[g])})`).join(', ')}</b> : plus de ${SERIES_MAX_SEANCE} séries dans cette séance. Au-delà, chaque série rapporte peu : répartis-les sur la semaine.</span>
+    </div>` : '';
+  const tous = principaux.concat(secondaires);
+  if (!tous.includes(muscleDetailSession)) muscleDetailSession = null;
+  if (!tous.length) { zones.innerHTML = alerte; return; }
+  const detail = muscleDetailSession ? (() => {
+    const g = muscleDetailSession, v = semaine[g] || 0, cle = cleZoneVolume(g, v), auj = seance[g] || 0;
+    return `<p class="mc-detail"><b>${escapeHtml(GROUPES_MUSCULAIRES[g])}</b> · <span style="color:${couleurTexteZone(cle)}">${ZONES_INFO[cle].court}</span> · ${formatSeries(v)} série${v >= 2 ? 's' : ''} cette semaine${auj ? ` dont ${formatSeries(auj)} aujourd'hui` : ''}. ${escapeHtml(phraseProchaineZone(g, v))}.</p>`;
+  })() : '';
+  zones.innerHTML = alerte + `<div class="sh-sec"><b>Ta semaine par muscle</b><small>Touche un muscle pour le détail</small></div>
+    <div class="mc-rangee">${tous.map(g => cadranZoneHTML(g, semaine[g] || 0, seance[g] || 0, secondaires.includes(g))).join('')}</div>${detail}`;
+}
+/* Mini-cadran d'un muscle : l'anneau des 5 zones (de « trop peu » à
+   « trop »), rempli jusqu'aux séries de la semaine ; la part d'aujourd'hui
+   en plus clair. Total au centre, zone dessous. */
+function cadranZoneHTML(g, v, auj, secondaire) {
+  const z = ZONES_VOLUME[g], fin = z.mrv + 4, cle = cleZoneVolume(g, v);
+  const R = 27, C = 2 * Math.PI * R, f = x => Math.max(0, Math.min(x, fin)) / fin;
+  const bornes = [0, z.mv, z.mev, z.mav, z.mrv, fin], cles = ['sous', 'mv', 'mev', 'mav', 'mrv'];
+  const arc = (de, a, couleur, extra) => `<circle cx="33" cy="33" r="${R}" fill="none" stroke="${couleur}" stroke-width="7" stroke-dasharray="${Math.max(0, C * (a - de)).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-C * de).toFixed(2)}"${extra || ''}/>`;
+  const fonds = cles.map((k, i) => arc(f(bornes[i]) + 0.008, f(bornes[i + 1]) - 0.008, ZONES_INFO[k].couleur, ' stroke-opacity=".22"')).join('');
+  const couleur = ZONES_INFO[cle].couleur;
+  const avant = Math.max(0, v - auj);
+  const plein = avant > 0 ? arc(0, f(avant), couleur) : '';
+  const ajout = auj > 0 ? arc(f(avant), f(v), couleur, ' stroke-opacity=".5"') : '';
+  const ouvert = muscleDetailSession === g;
+  return `<button type="button" class="mc${secondaire ? ' mc--sec' : ''}" onclick="detailMuscleSession(${argJs(g)})" aria-expanded="${ouvert}"
+      aria-label="${escapeHtml(GROUPES_MUSCULAIRES[g])} : ${formatSeries(v)} séries cette semaine, ${ZONES_INFO[cle].court}${auj ? `, dont ${formatSeries(auj)} aujourd'hui` : ''}">
+    <span class="mc-r"><svg viewBox="0 0 66 66" aria-hidden="true">${fonds}${plein}${ajout}</svg><b>${formatSeries(v)}</b></span>
+    <span class="mc-n">${escapeHtml(GROUPES_MUSCULAIRES[g])}</span>
+    <span class="mc-z" style="color:${couleurTexteZone(cle)}">${ZONES_INFO[cle].court}</span>
+    ${auj ? `<span class="mc-a">+${formatSeries(auj)} auj.</span>` : ''}
+  </button>`;
+}
+function detailMuscleSession(g) {
+  muscleDetailSession = muscleDetailSession === g ? null : g;
+  renderCorpsSession();
+}
+/* Avancée de la séance : séries cochées sur le total, exercice en cours. */
+function majProgressionSession() {
+  const el = document.getElementById('session-progression');
+  const s = musculationSessionActive;
+  if (!el || !s) return;
+  const total = s.exercices.reduce((n, e) => n + e.series.length, 0);
+  const faites = s.exercices.reduce((n, e) => n + e.series.filter(x => x.fait).length, 0);
+  if (!total) { el.innerHTML = ''; return; }
+  const enCours = s.exercices.findIndex(e => e.series.some(x => !x.fait));
+  const exo = enCours < 0 ? s.exercices.length : enCours + 1;
+  el.innerHTML = `<span class="sh-prog-t"><b>${faites}/${total}</b> série${total > 1 ? 's' : ''} · exo ${exo}/${s.exercices.length}</span>
+    <span class="sh-prog-b" role="progressbar" aria-label="Séries faites" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${faites}"><i style="width:${(100 * faites / total).toFixed(1)}%"></i></span>`;
 }
 function basculerCorpsSession() {
-  const haut = document.getElementById('session-haut');
+  const haut = document.getElementById('session-entete');
   if (!haut) return;
   const agrandi = haut.classList.toggle('agrandi');
   const btn = document.getElementById('session-corps');

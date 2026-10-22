@@ -1441,6 +1441,37 @@ test('bouton + : l\'action utile de chaque écran', () => avecAppli({}, async ({
   await page.click('#onglet-plus'); assert.equal(await ouvert(), 'picker-exercices-modal');
 }));
 
+test("séance en cours : en-tête (chrono, avancée, corps) et un mini-cadran par muscle", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const exo = toutesLesExercices().find(e => e.nom === 'Développé couché avec barre');
+    musculationProgrammes.push({ id: 'pc', nom: 'Push', exercices: [{ exerciceId: exo.id, series: [{ poids: 60, reps: 8 }, { poids: 60, reps: 8 }, { poids: 60, reps: 8 }] }], maj: Date.now() });
+    allerA('seance'); demarrerSeance('pc');
+    basculerSerieSession(0, 0);
+    const res = {};
+    res.titre = document.getElementById('titre-session-modal').textContent;
+    res.chrono = /^\d+:\d{2}$/.test(document.getElementById('session-chrono').textContent);
+    res.avancee = document.querySelector('#session-progression .sh-prog-t').textContent.replace(/\s+/g, ' ').trim();
+    res.corps = !!document.querySelector('#session-corps svg.corps-svg');
+    const c = document.querySelector('#session-zones .mc');
+    res.cadran = [c.querySelector('.mc-n').textContent, c.querySelector('.mc-a').textContent];
+    c.click();
+    res.detail = document.querySelector('#session-zones .mc-detail').textContent;
+    document.querySelector('#session-zones .mc').click();
+    res.ferme = !document.querySelector('#session-zones .mc-detail');
+    basculerCorpsSession();
+    res.agrandi = document.getElementById('session-entete').classList.contains('agrandi');
+    return res;
+  });
+  assert.equal(r.titre, 'Push');
+  assert.ok(r.chrono, 'chrono en minutes:secondes');
+  assert.equal(r.avancee, '1/3 séries · exo 1/1');
+  assert.ok(r.corps);
+  assert.deepEqual(r.cadran, ['Pectoraux', '+1 auj.']);
+  assert.match(r.detail, /^Pectoraux · .* dont 1 aujourd'hui\./);
+  assert.ok(r.ferme);
+  assert.ok(r.agrandi);
+}));
+
 test('séance : pavé de saisie à la salle (− / +, pas selon le matériel, valider)', () => avecAppli({}, async ({ page }) => {
   const r0 = await page.evaluate(() => {
     const exo = toutesLesExercices().find(e => e.materiel === 'barre');
