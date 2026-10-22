@@ -27,7 +27,8 @@ async function avecAppli(options, corps) {
 
 test('les versions des bibliothèques sont figées', () => {
   const html = fs.readFileSync(path.join(RACINE, 'index.html'), 'utf8');
-  const scripts = [...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m => m[1]);
+  // Seuls les scripts venus d'un CDN ont une version à figer (assets/donnees.js est à nous).
+  const scripts = [...html.matchAll(/<script[^>]*src="(https?:[^"]+)"/g)].map(m => m[1]);
   for (const src of scripts) assert.match(src, /@\d+\.\d+\.\d+/, `version exacte manquante : ${src}`);
   const versionChart = JSON.parse(fs.readFileSync(path.join(RACINE, 'node_modules/chart.js/package.json'), 'utf8')).version;
   assert.ok(html.includes(`chart.js@${versionChart}/`), `les tests utilisent Chart.js ${versionChart}, l'appli une autre version`);
@@ -523,9 +524,9 @@ test("barre d'onglets : Repas, Activité, +, Progrès, Profil ; plus de bouton f
   let r = await page.evaluate(() => {
     const n = document.getElementById('onglets'), b = n.getBoundingClientRect();
     return { pos: getComputedStyle(n).position, dansEcran: b.top >= 0 && b.bottom <= innerHeight, boutons: n.querySelectorAll('button').length,
-      actif: document.querySelector('#onglets .onglet.actif').id, fab: getComputedStyle(document.getElementById('fab-zone')).display, ajout: getComputedStyle(document.getElementById('ajout-rapide')).display };
+      actif: document.querySelector('#onglets .onglet.actif').id, fab: document.getElementById('fab-zone'), ajout: document.getElementById('ajout-rapide') };
   });
-  assert.deepEqual(r, { pos: 'fixed', dansEcran: true, boutons: 5, actif: 'onglet-repas', fab: 'none', ajout: 'none' });
+  assert.deepEqual(r, { pos: 'fixed', dansEcran: true, boutons: 5, actif: 'onglet-repas', fab: null, ajout: null });
   // Chaque onglet mène à son écran et devient l'onglet actif.
   for (const [id, ecran] of [['onglet-seance', 'seance'], ['onglet-profil', 'reglages'], ['onglet-progres', 'stats'], ['onglet-repas', 'repas']]) {
     await page.click('#' + id);
@@ -781,7 +782,7 @@ test('Gymbro : demande, pastille, acceptation, comparaison réservée aux gymbro
     sessionUtilisateur = { id: 'moi', email: 'moi@x.fr' };
     const res = {};
     await chargerLiensGymbro();
-    res.pastille = document.querySelector('#nav-seance .pastille-gymbro')?.textContent;
+    res.pastille = document.querySelector('#onglet-seance .pastille-gymbro')?.textContent;
     ouvrirGymbro();
     await new Promise(ok => setTimeout(ok, 50));
     res.sections = [...document.querySelectorAll('#gymbro-favoris > p')].map(p => p.textContent);
@@ -839,7 +840,7 @@ test("fil des gymbros dans l'onglet Activité : cartes, respect, respects reçus
     userProfile.respectsVus = 0;
     const res = {};
     await chargerFilGymbros(true);
-    res.pastille = document.querySelector('#nav-seance .pastille-gymbro')?.textContent;
+    res.pastille = document.querySelector('#onglet-seance .pastille-gymbro')?.textContent;
     allerA('seance');
     await new Promise(ok => setTimeout(ok, 50));
     renderFilGymbros();
@@ -848,7 +849,7 @@ test("fil des gymbros dans l'onglet Activité : cartes, respect, respects reçus
     res.stats = [...cartes[0].querySelector('.fil-stats').children].map(x => x.textContent.replace(/\s+/g, ' ').trim()).join(' | ');
     res.meilleure = cartes[0].textContent.includes('100 kg × 5');
     res.respects = document.querySelector('#fil-gymbros .fil-respects').textContent;
-    res.pastilleApres = document.querySelectorAll('#nav-seance .pastille-gymbro').length;
+    res.pastilleApres = document.querySelectorAll('#onglet-seance .pastille-gymbro').length;
     cartes[0].querySelector('.fil-respect').click();
     await new Promise(ok => setTimeout(ok, 50));
     res.appelRespect = appels.find(a => a[0] === 'gymbro_respect');
@@ -928,7 +929,7 @@ test('Administration : pastilles quand des aliments sont à valider (admin seule
       return o;
     };
     supa = { from: table => { requetes.push(table); return chaine(); }, rpc: () => ({ then: ok => Promise.resolve({ data: [], error: null }).then(ok) }) };
-    const lire = () => ['nav-admin', 'fab'].map(id => document.querySelector('#' + id + ' > .pastille-gymbro')?.textContent || null)
+    const lire = () => ['nav-admin', 'onglet-profil'].map(id => document.querySelector('#' + id + ' > .pastille-gymbro')?.textContent || null)
       .concat(document.querySelector('[onclick="afficherFeuillAlimentsPersonalises()"] > .pastille-gymbro')?.textContent || null);
     const res = {};
     // Compte ordinaire : rien n'est demandé, aucune pastille admin.
@@ -939,7 +940,6 @@ test('Administration : pastilles quand des aliments sont à valider (admin seule
     sessionUtilisateur = { id: 'admin', email: ADMIN_EMAIL };
     await compterAValiderAdmin();
     res.admin = lire();
-    ouvrirFab(); res.fabOuvert = lire()[1]; fermerFab(); res.fabFerme = lire()[1];
     res.requete = requetes.slice(-2);
     // Tout est validé : les pastilles disparaissent.
     restants = 0;
@@ -949,8 +949,6 @@ test('Administration : pastilles quand des aliments sont à valider (admin seule
   });
   assert.deepEqual(r.nonAdmin, { requetes: 0, pastilles: [null, null, null] });
   assert.deepEqual(r.admin, ['3', '3', '3']);
-  assert.equal(r.fabOuvert, null, 'menu ouvert : chaque entrée a sa pastille');
-  assert.equal(r.fabFerme, '3', 'la pastille revient sur le bouton une fois le menu refermé');
   assert.equal(r.requete[0], 'aliments_partages');
   assert.deepEqual(r.requete[1].filtres, [['eq', 'valide', false], ['or', 'supprime.is.null,supprime.eq.false']]);
   assert.deepEqual(r.requete[1].select[1], { count: 'exact', head: true });
@@ -1391,5 +1389,91 @@ test('bilan de fin de séance : récapitulatif (tonnage, séries, records, écar
       tuiles: [...z.querySelectorAll('.bilan-tuile b')].map(b => b.textContent), records: z.querySelectorAll('.bilan-records > div').length,
       ecart: z.querySelector('.bilan-ecart').textContent.trim(), ia: !!document.getElementById('bilan-seance-container') || /coach/i.test(document.getElementById('bilan-seance-modal').textContent) };
   });
-  assert.deepEqual(r, { titre: 'Pecs', tonnage: '1120', tuiles: ['1', '2', '1'], records: 1, ecart: '▲ 17 % vs la dernière fois', ia: false });
+  assert.deepEqual(r, { titre: 'Pecs', tonnage: '1120', tuiles: ['< 1', '2', '1'], records: 1, ecart: '▲ 17 % vs la dernière fois', ia: false });
+}));
+
+test('séance : repos à rebours réglable (retenu dans le programme), disques à la barre', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const exo = toutesLesExercices().find(e => e.materiel === 'barre');
+    musculationProgrammes.push({ id: 'pr', nom: 'Force', exercices: [{ exerciceId: exo.id, nom: exo.nom, series: [{ poids: 100, reps: 5 }, { poids: 100, reps: 5 }, { poids: 100, reps: 5 }] }], maj: Date.now() });
+    allerA('seance'); demarrerSeance('pr'); replierTousExercicesSession(false);
+    const res = { disques: document.getElementById('pave-disques-0_0').textContent.replace(/\s+/g, ' ').trim() };
+    basculerSerieSession(0, 0);
+    res.chrono = document.getElementById('repos-chrono-0_0').textContent;
+    ajusterReposExo(0, 15);
+    res.apres = document.getElementById('repos-chrono-0_0').textContent;
+    res.retenu = musculationProgrammes.find(p => p.id === 'pr').exercices[0].repos;
+    // Fin du repos : la barre passe à « Go ! »
+    reposActifs['0_0'] = Date.now() - 106 * 1000; majReposActifs();
+    res.fini = document.getElementById('repos-barre-0_0').classList.contains('fini');
+    res.go = document.getElementById('repos-libelle-0_0').textContent;
+    res.plus = document.getElementById('repos-chrono-0_0').textContent;
+    return res;
+  });
+  assert.deepEqual(r, { disques: 'Par côté :2515', // 100 kg : 40 kg par côté = 25 + 15
+    chrono: '1:30', apres: '1:45', retenu: 105, fini: true, go: 'Go !', plus: '+0:01' });
+}));
+
+test('repas : annuler une suppression, « Comme hier », favoris, pesée et pas rapides, eau libre, icônes', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const hier = shiftDate(todayStr(), -1), jh = getDay(hier);
+    jh.meals[MEALS[0]].push({ name: "Flocons d'avoine", grams: 80, kcal: 300, p: 10, c: 50, f: 6 }, { name: 'Lait demi-écrémé', grams: 200, kcal: 92, p: 6, c: 10, f: 3 });
+    saveData(hier);
+    allerA('repas'); currentDate = todayStr(); renderApp();
+    const res = {};
+    // « Comme hier »
+    ouvrirFeuilleRepas(MEALS[0]);
+    res.hier = !document.getElementById('opt-hier').classList.contains('hidden') && document.getElementById('opt-hier-titre').textContent;
+    copierRepasPrecedent();
+    res.copies = getDay(todayStr()).meals[MEALS[0]].map(x => x.name);
+    res.icones = [...document.querySelectorAll('#meals-container .food-initiale')].slice(0, 2).map(x => x.textContent);
+    // Suppression puis annulation
+    supprimerAliment(MEALS[0], 0);
+    res.apresSuppr = getDay(todayStr()).meals[MEALS[0]].length;
+    document.querySelector('#toast-annuler button').click();
+    res.apresAnnul = getDay(todayStr()).meals[MEALS[0]].map(x => x.name);
+    // Pesée rapide
+    ouvrirSaisieRapide('poids'); document.getElementById('saisie-rapide-champ').value = 81.4; validerSaisieRapide();
+    res.poids = [getDay(todayStr()).weight, userProfile.mesures[todayStr()].poids];
+    // Pas : la pastille du résumé ouvre la saisie
+    document.querySelector('.heros-puce-modif').click();
+    res.feuillePas = document.getElementById('feuille-saisie-rapide').classList.contains('show');
+    document.getElementById('saisie-rapide-plus').click(); document.getElementById('saisie-rapide-plus').click(); validerSaisieRapide();
+    res.pas = getDay(todayStr()).steps;
+    // Eau libre
+    const avant = Number(getDay(todayStr()).eauMl) || 0;
+    ouvrirSaisieRapide('eau'); document.getElementById('saisie-rapide-champ').value = 330; validerSaisieRapide();
+    res.eau = (Number(getDay(todayStr()).eauMl) || 0) - avant;
+    // Favori : en tête de « Déjà mangé »
+    const cle = historique().find(e => /lait/i.test(e.nom)).cle;
+    basculerAlimentFavori(cle);
+    res.favoriEnTete = chercherDansHistorique('')[0].name;
+    return res;
+  });
+  assert.deepEqual(r, { hier: 'Comme hier', copies: ["Flocons d'avoine", 'Lait demi-écrémé'], icones: ['🥣', '🥛'], apresSuppr: 1, apresAnnul: ["Flocons d'avoine", 'Lait demi-écrémé'],
+    poids: [81.4, 81.4], feuillePas: true, pas: 1000, eau: 330, favoriEnTete: 'Lait demi-écrémé' });
+}));
+
+test('thème « Auto » : suit le réglage clair/sombre du téléphone, même en cours de route ; flou coupé si moins de transparence', () => avecAppli({}, async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.evaluate(() => choisirTheme('auto'));
+  const lire = () => page.evaluate(() => ({ theme: document.documentElement.dataset.theme, pref: localStorage.getItem('elite_theme'),
+    actif: document.querySelector('#segment-theme [aria-pressed="true"], #segment-theme .actif')?.textContent.trim() || null }));
+  const sombre = await lire();
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.waitForTimeout(50);
+  const clair = await lire();
+  assert.deepEqual([sombre.theme, sombre.pref, clair.theme, clair.pref], ['dark', 'auto', 'light', 'auto']);
+  assert.equal(clair.actif, 'Auto');
+  // Un choix explicite ne bouge plus avec le système.
+  await page.evaluate(() => choisirTheme('dark'));
+  await page.emulateMedia({ colorScheme: 'light' });
+  assert.equal((await lire()).theme, 'dark');
+  // Flou : présent d'ordinaire, coupé avec « réduire la transparence » ou peu de mémoire.
+  const flou = () => page.evaluate(() => getComputedStyle(document.getElementById('onglets')).backdropFilter);
+  assert.notEqual(await flou(), 'none');
+  await page.evaluate(() => document.documentElement.classList.add('flou-leger'));
+  assert.equal(await flou(), 'none');
+  // Pas de service worker hors http(s) (fichier ouvert en local, tests).
+  assert.equal(await page.evaluate(() => navigator.serviceWorker ? navigator.serviceWorker.controller : null), null);
 }));
