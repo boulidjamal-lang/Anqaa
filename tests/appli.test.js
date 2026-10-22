@@ -1247,7 +1247,7 @@ test('vitrines : Activité (corps, séance du jour, programmes), Cardio (arc, tr
   await page.evaluate(() => { programmeEnEdition = null; renderSeance(); });
   await page.click('#vitrine-muscu .sdj');
   await page.waitForSelector('#apercu-programme-modal.show');
-  assert.match(await page.textContent('#titre-apercu-programme'), /Bas/);
+  assert.match(await page.textContent('#apercu-programme-heros'), /Bas/);
   await page.evaluate(() => { fermerModal('apercu-programme-modal'); choisirModeSeance('cardio'); });
   const c = await page.evaluate(() => ({
     arc: !!document.querySelector('#seance-cardio .hx--cardio .arc-val'),
@@ -1334,7 +1334,7 @@ test('bouton + : l\'action utile de chaque écran', () => avecAppli({}, async ({
   await page.evaluate(() => { allerA('seance'); choisirModeSeance('muscu'); });
   assert.equal(await page.getAttribute('#onglet-plus', 'aria-label'), 'Lancer une séance');
   await page.click('#onglet-plus'); assert.equal(await ouvert(), 'feuille-activite');
-  assert.match(await page.textContent('#opt-seance-jour'), /Séance du jour : Jambes/);
+  assert.match(await page.textContent('#opt-seance-jour'), /Séance du jour\s*Jambes/);
   await page.click('#opt-seance-jour'); assert.equal(await ouvert(), 'apercu-programme-modal'); await fermer();
   await page.evaluate(() => choisirModeSeance('cardio'));
   await page.click('#onglet-plus'); assert.equal(await ouvert(), 'modal-cardio'); await fermer();

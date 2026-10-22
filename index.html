@@ -3371,6 +3371,51 @@
     html:root #ecran-stats .chart-container.pg-replie { height: 0; padding: 0; margin: 0; box-shadow: none; }
     html:root #ecran-stats .titre-section { margin: 20px 2px 10px; font: 800 1.02rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; }
     html:root #ecran-stats .pg-repli .titre-section { margin-top: 14px; font-size: .92rem; }
+    /* --- Fenêtres d'Activité : un en-tête coloré (même langage que
+       l'éditeur de programme et la « Séance du jour »), des lignes riches. */
+    .fen-heros { margin: 0 0 14px; min-height: 150px; }
+    .fen-heros-ill { pointer-events: none; }
+    .fen-heros-ic { position: absolute; right: 14px; top: 14px; width: 92px; height: 92px; z-index: -1; display: grid; place-items: center; border-radius: 28px;
+      background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); color: #fff; }
+    .fen-heros-ic .icone-ui { width: 48px; height: 48px; stroke-width: 1.8; }
+    .fen-heros .fen-geant { display: block; margin: 8px 0 2px; font: 800 2.3rem/1 'Manrope', 'Inter', sans-serif; letter-spacing: -.05em; }
+    .fen-heros .fen-geant i { font-style: normal; font-size: .9rem; letter-spacing: 0; opacity: .85; margin-left: 4px; }
+    .fen-barre { height: 6px; margin-top: 16px; border-radius: 99px; background: rgba(255,255,255,.22); overflow: hidden; }
+    .fen-barre i { display: block; height: 100%; border-radius: 99px; background: #fff; transition: width .35s cubic-bezier(.3,.9,.2,1); }
+    .apx-ligne { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; margin-bottom: 8px; padding: 10px 12px 10px 10px;
+      border: 0; border-radius: 18px; background: var(--verre); box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+    .apx-ligne:active { transform: scale(.985); }
+    .apx-txt b { display: block; font-size: .9rem; font-weight: 800; line-height: 1.25; }
+    .apx-txt > span { display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: .76rem; font-weight: 600; color: var(--text-muted); }
+    .apx-txt > span i { width: 8px; height: 8px; flex: none; border-radius: 50%; }
+    .apx-chev { font-size: 1.3rem; font-weight: 700; color: var(--text-muted); }
+    .fen-section { margin: 4px 2px 10px; font: 800 .98rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; }
+    /* Lancer une activité : la séance du jour en carte (comme dans Activité). */
+    #feuille-activite .sdj { display: block; width: 100%; margin: 4px 0 10px; min-height: 0; border: 0; font: inherit; cursor: pointer; text-align: left; }
+    #feuille-activite .sdj > * { display: block; }
+    #feuille-activite .sdj > .sdj-bas { display: flex; }
+    #feuille-activite .sdj:focus:not(:focus-visible) { outline: none; }
+    #feuille-activite .sdj h4 { font-size: 1.7rem; }
+    #feuille-activite .sdj-bas { margin-top: 16px; }
+    /* Séance cardio : activité en tuiles, chiffres en direct dans l'en-tête. */
+    html:root #modal-cardio .cardio-chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+    html:root #modal-cardio .cardio-chip { flex-direction: column; justify-content: center; gap: 5px; min-height: 66px; padding: 8px 4px; border-radius: 16px; font-size: .72rem; text-align: center; line-height: 1.15; }
+    html:root #modal-cardio .cardio-chip .icone-ui { width: 22px; height: 22px; }
+    html:root #modal-cardio .cardio-chip[aria-pressed="true"] { background: var(--cardio-fond, var(--primary)); color: #fff; box-shadow: 0 10px 20px -10px rgba(0,0,0,.5); }
+    #modal-cardio .fen-heros p b { font-weight: 800; }
+    /* Programme par IA : l'étape dans l'en-tête, objectifs avec icône. */
+    #ia-programme-modal .ia-prog-tete, #ia-programme-modal .onb-progres { display: none; }
+    #ia-prog-objectif .onb-option { display: flex; align-items: center; gap: 10px; text-align: left; }
+    #ia-prog-objectif .onb-ic { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 11px; color: #fff; }
+    #ia-prog-objectif .onb-ic .icone-ui { width: 18px; height: 18px; }
+    /* Exercice personnalisé : aperçu en direct. */
+    #exercice-perso-modal .fen-heros b { max-width: 62%; font-size: 1.6rem; }
+    /* Fiche d'un exercice : titre sur deux lignes au plus, démonstration plus grande. */
+    html:root #titre-fiche-exercice { display: -webkit-box; overflow: hidden; font-size: 1.12rem; line-height: 1.25; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    html:root #fiche-exercice-modal .fiche-exo-video--mini { aspect-ratio: 4 / 3; max-height: 320px; }
+    html:root #fiche-exercice-modal .fiche-exo-video--mini video.mini { filter: none; }
+    /* Bilan : le nom de l'exercice battu tient sur deux lignes. */
+    html:root .bilan-records b { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.25; }
     /* Apparition */
     .vitrine > *, #seance-cardio > * { animation: monte .55s cubic-bezier(.2,.8,.2,1) both; }
     .vitrine > :nth-child(2), #seance-cardio > :nth-child(2) { animation-delay: .05s; }
@@ -5602,8 +5647,8 @@
       <h3 id="titre-programme-detail"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg> Programme</h3>
       <button class="close-modal" onclick="fermerModal('programme-detail-modal')" aria-label="Fermer">&times;</button>
     </div>
-    <div id="programme-detail-resume" class="stats-grille" style="margin-bottom:16px;"></div>
-    <p class="note" id="programme-detail-note" style="margin:0 0 10px;">Exercices de la dernière séance effectuée sous ce programme :</p>
+    <div id="programme-detail-resume"></div>
+    <div class="fen-section" id="programme-detail-note">Dernière séance</div>
     <div id="programme-detail-container"></div>
   </div>
 </div>
@@ -5615,7 +5660,7 @@
       <h3 id="titre-apercu-programme"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg> Programme</h3>
       <button class="close-modal" onclick="fermerModal('apercu-programme-modal')" aria-label="Fermer">&times;</button>
     </div>
-    <p class="note" id="apercu-programme-sous-titre" style="margin:-8px 0 14px;"></p>
+    <div id="apercu-programme-heros"></div>
     <div id="apercu-programme-container"></div>
     <button class="btn btn-primary" style="margin-top:10px;" id="apercu-programme-btn-demarrer"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z" /></svg> Début entraînement</button>
   </div>
@@ -5643,7 +5688,7 @@
     <div class="segment" id="picker-onglets" role="group" aria-label="Liste affichée" style="margin-bottom:12px;">
       <button type="button" onclick="choisirOngletPicker('tous')" aria-pressed="true">Tous</button>
       <button type="button" onclick="choisirOngletPicker('pratiques')" aria-pressed="false">Déjà pratiqués</button>
-      <button type="button" onclick="choisirOngletPicker('niveau')" aria-pressed="false">Niveau de force</button>
+      <button type="button" onclick="choisirOngletPicker('niveau')" aria-pressed="false">Niveau</button>
     </div>
     <div class="input-group" style="margin-bottom:12px;">
       <label for="picker-recherche" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Rechercher un exercice</label>
@@ -5669,17 +5714,18 @@
       <h3 id="titre-exercice-perso"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg> Exercice personnalisé</h3>
       <button class="close-modal" onclick="fermerModal('exercice-perso-modal')" aria-label="Fermer">&times;</button>
     </div>
+    <div id="perso-heros"></div>
     <div class="input-group">
       <label for="perso-nom">Nom de l'exercice</label>
-      <input type="text" id="perso-nom" autocomplete="off">
+      <input type="text" id="perso-nom" autocomplete="off" oninput="majHerosExercicePerso()">
     </div>
     <div class="input-group">
       <label for="perso-groupe">Groupe musculaire principal</label>
-      <select id="perso-groupe"></select>
+      <select id="perso-groupe" onchange="majHerosExercicePerso()"></select>
     </div>
     <div class="input-group">
       <label for="perso-materiel">Matériel</label>
-      <select id="perso-materiel"></select>
+      <select id="perso-materiel" onchange="majHerosExercicePerso()"></select>
     </div>
     <div class="input-group" style="margin-bottom:0;">
       <label for="perso-image">Lien d'une photo (facultatif)</label>
@@ -5765,6 +5811,7 @@
       <h3 id="titre-cardio">Séance cardio</h3>
       <button class="close-modal" onclick="fermerModal('modal-cardio')" aria-label="Fermer">&times;</button>
     </div>
+    <div id="cardio-heros"></div>
     <div class="cardio-champ-l">Activité</div>
     <div class="cardio-chips" id="cardio-activites" role="group" aria-label="Activité"></div>
     <div class="cardio-grille">
@@ -5773,15 +5820,13 @@
       <div id="cardio-distance-groupe"><label class="cardio-champ-l" for="cardio-distance">Distance (facultatif)</label>
         <div class="cardio-unite"><input type="text" id="cardio-distance" inputmode="decimal" autocomplete="off" placeholder="—" oninput="majCalculsCardio()"><span id="cardio-distance-unite">km</span></div></div>
     </div>
-    <div class="cardio-calc hidden" id="cardio-allure"></div>
     <div class="cardio-champ-l">Intensité</div>
     <div class="cardio-ints" id="cardio-intensites" role="group" aria-label="Intensité"></div>
     <div class="cardio-grille">
       <div><label class="cardio-champ-l" for="cardio-date">Date</label><input type="date" id="cardio-date" onchange="majCalculsCardio()"></div>
       <div><label class="cardio-champ-l" for="cardio-note">Note</label><input type="text" id="cardio-note" maxlength="80" autocomplete="off" placeholder="Facultatif"></div>
     </div>
-    <div class="cardio-calc" id="cardio-kcal"></div>
-    <p class="note" style="margin:6px 2px 14px;">Comptée dans ta dépense du jour, comme les autres séances.</p>
+    <p class="note" style="margin:10px 2px 14px;">Comptée dans ta dépense du jour, comme les autres séances.</p>
     <button type="button" class="btn btn-primary" onclick="enregistrerCardio()">Enregistrer</button>
     <button type="button" class="btn btn-secondaire hidden" id="btn-suppr-cardio" style="margin-top:10px;" onclick="supprimerCardio()">Supprimer la séance</button>
   </div>
@@ -5828,6 +5873,13 @@
     </div>
 
     <div id="ia-programme-formulaire">
+      <div class="prog-heros fen-heros" id="ia-prog-heros" style="background:linear-gradient(150deg,#6d28d9,#4f46e5 55%,#0891b2)">
+        <span class="fen-heros-ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /></svg></span>
+        <small id="ia-prog-heros-compteur">Étape 1 / 7</small>
+        <b id="ia-prog-heros-section">Objectif</b>
+        <p>Ton programme sur mesure, en 3 minutes.</p>
+        <div class="fen-barre"><i id="ia-prog-heros-barre" style="width:14%"></i></div>
+      </div>
       <div class="ia-prog-tete"><span id="ia-prog-compteur">Étape 1 / 7</span><span id="ia-prog-section">Objectif</span></div>
       <div class="onb-progres"><div class="onb-barre" id="ia-prog-barre"></div></div>
 
@@ -5838,12 +5890,12 @@
         <div class="input-group">
           <label>Objectif principal</label>
           <div class="onb-choix" id="ia-prog-objectif">
-            <button type="button" class="onb-option" data-valeur="muscle">Prise de muscle</button>
-            <button type="button" class="onb-option" data-valeur="force">Force</button>
-            <button type="button" class="onb-option" data-valeur="perte_gras">Perte de gras</button>
-            <button type="button" class="onb-option" data-valeur="endurance">Endurance musculaire</button>
-            <button type="button" class="onb-option" data-valeur="recomposition">Recomposition</button>
-            <button type="button" class="onb-option" data-valeur="forme">Remise en forme générale</button>
+            <button type="button" class="onb-option" data-valeur="muscle"><span class="onb-ic" data-ico="haut" style="background:linear-gradient(135deg,#f472b6,#a855f7)"></span>Prise de muscle</button>
+            <button type="button" class="onb-option" data-valeur="force"><span class="onb-ic" data-ico="poids" style="background:linear-gradient(135deg,#f97316,#ef4444)"></span>Force</button>
+            <button type="button" class="onb-option" data-valeur="perte_gras"><span class="onb-ic" data-ico="flamme" style="background:linear-gradient(135deg,#fb923c,#f43f5e)"></span>Perte de gras</button>
+            <button type="button" class="onb-option" data-valeur="endurance"><span class="onb-ic" data-ico="chrono" style="background:linear-gradient(135deg,#22d3ee,#3b82f6)"></span>Endurance musculaire</button>
+            <button type="button" class="onb-option" data-valeur="recomposition"><span class="onb-ic" data-ico="recomp" style="background:linear-gradient(135deg,#34d399,#0ea5e9)"></span>Recomposition</button>
+            <button type="button" class="onb-option" data-valeur="forme"><span class="onb-ic" data-ico="cible" style="background:linear-gradient(135deg,#a3e635,#10b981)"></span>Remise en forme générale</button>
           </div>
         </div>
         <div class="input-group">
@@ -7039,13 +7091,10 @@ function majCalculsCardio() {
   const minutes = Number(document.getElementById('cardio-duree').value) || 0;
   const km = lireDistanceCardio();
   const a = allureCardio(br.type, minutes, km);
-  const el = document.getElementById('cardio-allure');
-  el.classList.toggle('hidden', !a);
-  if (a) el.innerHTML = `<span>${br.type === 'cyclisme' ? 'Vitesse' : 'Allure'}</span><b>${a.texte}</b>`;
   const date = document.getElementById('cardio-date').value || todayStr();
   const poids = Number(getDay(date).weight) || dernierPoidsConnu(date);
   const kcal = br.type && minutes > 0 ? Math.round(kcalSeance(br.type, minutes, poids, 0, br.intensite, { distance: km, bmr: metabolismeDeBase(poids, date) })) : 0;
-  document.getElementById('cardio-kcal').innerHTML = `<span>Dépense estimée</span><b>${kcal ? '≈ ' + kcal + ' kcal' : '—'}</b>`;
+  majHerosCardio(kcal, a, minutes, km);
 }
 function enregistrerCardio() {
   const br = cardioBrouillon;
@@ -18406,16 +18455,32 @@ function voirDetailProgramme(cle) {
   const n = g.seances.length;
   const volMoyen = g.seances.reduce((s, h) => s + volumeSeance(h), 0) / n;
   const dureeMoyenne = g.seances.reduce((s, h) => s + (h.dureeMin || 0), 0) / n;
-  document.getElementById('titre-programme-detail').innerHTML = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg> ' + escapeHtml(g.nom);
-  document.getElementById('programme-detail-resume').innerHTML = [
-    ['Fois effectué', String(n)],
-    ['Dernière fois', formatDateDisplay(derniere.date)],
-    ['Volume moyen', Math.round(volMoyen).toLocaleString('fr-FR') + ' kg'],
-    ['Durée moyenne', Math.round(dureeMoyenne) + ' min']
-  ].map(([l, v]) => `<div><small>${l}</small><div class="stats-valeur">${v}</div></div>`).join('');
-  document.getElementById('programme-detail-note').textContent =
-    'Exercices de la dernière séance effectuée sous ce programme (' + formatDateDisplay(derniere.date) + ') :';
-  document.getElementById('programme-detail-container').innerHTML = renderListeExercicesDetail(derniere.exercices);
+  const prog = musculationProgrammes.find(p => p.id === derniere.programmeId);
+  const groupes = Object.keys(ajouterSeriesParGroupe({}, derniere.exercices, { date: derniere.date, historique: muscuContexteActuel.historique }));
+  document.getElementById('titre-programme-detail').textContent = 'Programme';
+  document.getElementById('programme-detail-resume').innerHTML = herosFenetreHTML({
+    fond: prog ? teinteProgramme(prog.id) : TEINTES_PROGRAMMES[5],
+    illustration: silhouetteGroupesBlanche(groupes),
+    surtitre: `Fait ${n} fois`,
+    titre: derniere.programmeNom || cle,
+    sous: 'Dernière fois ' + escapeHtml(formatDateDisplay(derniere.date).toLowerCase()),
+    puces: [`≈ ${nombreFr(Math.round(volMoyen), 0)} kg / séance`, `${Math.round(dureeMoyenne)} min en moyenne`]
+  });
+  document.getElementById('programme-detail-note').textContent = 'Dernière séance · ' + formatDateDisplay(derniere.date);
+  document.getElementById('programme-detail-container').innerHTML = grouperBlocsExercices(derniere.exercices).map(indices => {
+    const cartes = indices.map(i => {
+      const e = derniere.exercices[i];
+      return `<div class="hd-exo">
+        <div class="hd-exo-entete">
+          <button type="button" class="hd-exo-nom detail-exo-titre" onclick="ouvrirHistoriqueExercice(${argJs(e.exerciceId)})">${escapeHtml(libelleExerciceHistorique(e))}</button>
+          <button type="button" class="hd-exo-courbe" onclick="ouvrirHistoriqueExercice(${argJs(e.exerciceId)})" aria-label="Historique et courbe de l'exercice">${ICONE_COURBE}</button>
+        </div>
+        ${tableSeriesHTML(e)}
+        ${e.notes ? `<p class="hd-note">Note : ${escapeHtml(e.notes)}</p>` : ''}
+      </div>`;
+    }).join('');
+    return indices.length > 1 ? `<div class="hd-superset">SUPERSET</div>${cartes}` : cartes;
+  }).join('');
   ouvrirModal('programme-detail-modal');
 }
 
@@ -19200,6 +19265,10 @@ function iaProgAller(n) {
   if (barre) barre.style.width = (Math.min(n, IA_PROG_NB_ETAPES) / IA_PROG_NB_ETAPES * 100) + '%';
   document.getElementById('ia-prog-compteur').textContent = n > IA_PROG_NB_ETAPES ? 'Avant de lancer' : `Étape ${n} / ${IA_PROG_NB_ETAPES}`;
   document.getElementById('ia-prog-section').textContent = IA_PROG_SECTIONS[n - 1] || '';
+  const hc = document.getElementById('ia-prog-heros-compteur'), hs = document.getElementById('ia-prog-heros-section'), hb = document.getElementById('ia-prog-heros-barre');
+  if (hc) hc.textContent = n > IA_PROG_NB_ETAPES ? 'Avant de lancer' : `Étape ${n} / ${IA_PROG_NB_ETAPES}`;
+  if (hs) hs.textContent = IA_PROG_SECTIONS[n - 1] || '';
+  if (hb) hb.style.width = (Math.min(n, IA_PROG_NB_ETAPES) / IA_PROG_NB_ETAPES * 100) + '%';
   if (n === 8) rendreRecapIAProgramme();
   const modale = document.querySelector('#ia-programme-modal .modal-content');
   if (modale) modale.scrollTop = 0;
@@ -19321,6 +19390,7 @@ function preremplirChargesIAProgramme() {
   document.getElementById('ia-prog-charges-auto').textContent = auto ? 'Pré-rempli d\'après tes séances des 8 dernières semaines : corrige si besoin.' : '';
 }
 function ouvrirAssistantProgrammeIA() {
+  document.querySelectorAll('#ia-prog-objectif .onb-ic[data-ico]').forEach(x => { if (!x.innerHTML) x.innerHTML = svgV(x.dataset.ico); });
   if (!geminiKey) { alert('Ajoute ta clé API Gemini dans Profil.'); return; }
   rebasculerFormulaireIAProgramme();
   // Construit à l'ouverture : ZONES_VOLUME est déclaré plus bas dans le script.
@@ -20181,6 +20251,7 @@ function ouvrirCreationExercicePerso() {
   preparerSelectsExercicePerso();
   document.getElementById('perso-groupe').value = ORDRE_GROUPES[0];
   document.getElementById('perso-materiel').value = ORDRE_MATERIELS[0];
+  majHerosExercicePerso();
   ouvrirModal('exercice-perso-modal');
 }
 /* Édition d'un exercice personnalisé déjà créé (nom, groupe, matériel,
@@ -20198,6 +20269,7 @@ function ouvrirEditionExercicePerso(id) {
   document.getElementById('perso-materiel').value = e.materiel;
   document.getElementById('perso-image').value = (e.img && e.img[0]) || '';
   fermerModal('fiche-exercice-modal');
+  majHerosExercicePerso();
   ouvrirModal('exercice-perso-modal');
 }
 function validerExercicePerso() {
@@ -20242,24 +20314,34 @@ function validerExercicePerso() {
 function apercuProgramme(programmeId) {
   const programme = musculationProgrammes.find(p => p.id === programmeId);
   if (!programme) return;
-  document.getElementById('titre-apercu-programme').innerHTML = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg> ' + escapeHtml(programme.nom);
+  document.getElementById('titre-apercu-programme').textContent = 'Ta séance';
   const derniere = dernierePerfProgramme(programme.id);
-  document.getElementById('apercu-programme-sous-titre').textContent =
-    derniere ? 'Dernière fois : ' + formatDateDisplay(derniere.date) : 'Jamais effectué sous ce nom.';
+  const g = groupesProgramme(programme), cles = Object.keys(g).sort((a, b) => g[b] - g[a]);
+  const series = programme.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
+  document.getElementById('apercu-programme-heros').innerHTML = herosFenetreHTML({
+    fond: teinteProgramme(programme.id),
+    illustration: silhouetteGroupesBlanche(cles),
+    surtitre: derniere ? 'Dernière fois ' + formatDateDisplay(derniere.date).toLowerCase() : 'Première fois',
+    titre: programme.nom,
+    sous: escapeHtml(cles.slice(0, 4).map(k => GROUPES_MUSCULAIRES[k] || k).join(', ')),
+    puces: [`${programme.exercices.length} exercice${programme.exercices.length > 1 ? 's' : ''}`, `${series} série${series > 1 ? 's' : ''}`, `≈ ${Math.round(series * 2.5)} min`]
+  });
   document.getElementById('apercu-programme-container').innerHTML = programme.exercices.map(pe => {
     const exo = trouverExercice(pe.exerciceId);
     if (!exo) return '';
-    const nbSeries = normaliserSeriesProgramme(pe).length;
-    return `<div class="exo-ligne" style="cursor:default;">
+    const lignes = normaliserSeriesProgramme(pe);
+    const reps = textePlage(pe.plage) || (lignes[0] && lignes[0].reps) || '';
+    const charges = lignes.map(x => Number(x.poids)).filter(v => v > 0);
+    const meta = [lignes.length + ' × ' + (reps || '—'), charges.length ? nombreFr(Math.max(...charges)) + ' kg' : ''].filter(Boolean).join(' · ');
+    return `<button type="button" class="apx-ligne" onclick="afficherFicheExerciceBiblio(${argJs(exo.id)})" aria-label="${escapeHtml(libelleExercice(exo))} : voir la fiche">
       <span class="exo-ligne-vignette" aria-hidden="true">${medaillonExercice(exo, true)}</span>
-      <span style="flex:1; min-width:0;">
-        <span class="exo-ligne-nom">${nbSeries} × ${escapeHtml(libelleExercice(exo))}</span>
-        <span class="exo-ligne-meta">${escapeHtml(GROUPES_MUSCULAIRES[exo.groupe] || '')}</span>
-      </span>
-      <button type="button" class="btn-icone" style="flex:none;" onclick="afficherFicheExerciceBiblio(${argJs(exo.id)})" aria-label="Détails de l'exercice"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg></button>
-    </div>`;
+      <span class="apx-txt"><b>${escapeHtml(libelleExercice(exo))}</b><span><i style="background:${couleurGroupe(exo.groupe)}"></i>${escapeHtml(GROUPES_MUSCULAIRES[exo.groupe] || '')} · ${escapeHtml(meta)}</span></span>
+      <span class="apx-chev" aria-hidden="true">›</span>
+    </button>`;
   }).join('');
-  document.getElementById('apercu-programme-btn-demarrer').onclick = () => {
+  const btn = document.getElementById('apercu-programme-btn-demarrer');
+  btn.innerHTML = svgV('play') + ' Commencer la séance';
+  btn.onclick = () => {
     fermerModal('apercu-programme-modal');
     demarrerSeance(programmeId);
   };
@@ -21388,12 +21470,19 @@ function ouvrirFeuilleActivite() {
   if (btn) {
     btn.classList.toggle('hidden', !sug);
     if (sug) {
-      document.getElementById('opt-seance-jour-nom').textContent = 'Séance du jour : ' + sug.p.nom;
-      document.getElementById('opt-seance-jour-sous').textContent = sug.d ? 'Dernière fois ' + formatDateDisplay(sug.d).toLowerCase() : 'Jamais faite';
+      const g = groupesProgramme(sug.p), cles = Object.keys(g).sort((a, b) => g[b] - g[a]);
+      const rose = {}; cles.forEach(k => { rose[k] = '#f9a8d4'; });
+      const nbSeries = sug.p.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
+      btn.className = 'sdj';
+      btn.style.background = teinteProgramme(sug.p.id);
+      btn.setAttribute('aria-label', 'Séance du jour : ' + sug.p.nom);
+      btn.innerHTML = `<span class="sdj-corps" aria-hidden="true">${silhouetteSVG('face', rose, { vb: CADRES_SILHOUETTE.buste, neutre: 'rgba(255,255,255,.12)', contour: 'rgba(255,255,255,.06)' })}</span>
+        <small>Séance du jour</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(cles.slice(0, 3).map(k => GROUPES_MUSCULAIRES[k] || k).join(', '))}</p>
+        <span class="sdj-bas"><span class="sdj-puce">${nbSeries} séries</span><span class="sdj-puce">${sug.d ? escapeHtml(formatDateDisplay(sug.d)) : 'Jamais faite'}</span><span class="sdj-play">${svgV('play')}</span></span>`;
     }
   }
   if (ouvrirFeuille('feuille-activite')) {
-    const b = document.querySelector('#feuille-activite .feuille-action:not(.hidden)');
+    const b = document.querySelector('#feuille-activite :is(.sdj, .feuille-action):not(.hidden)');
     if (b) setTimeout(() => b.focus(), 60);
   }
 }
@@ -22110,6 +22199,74 @@ function ouvrirRepliMuscu(nom) {
 function replieMuscuBascule(d) {
   if (!d.open || typeof Chart === 'undefined' || !Chart.getChart) return;
   d.querySelectorAll('canvas').forEach(cv => { const ch = Chart.getChart(cv); if (ch) requestAnimationFrame(() => { try { ch.resize(); } catch (err) {} }); });
+}
+
+/* =====================================================================
+   FENÊTRES D'ACTIVITÉ — en-tête coloré commun (même langage que l'éditeur
+   de programme et la carte « Séance du jour »).
+   ===================================================================== */
+function herosFenetreHTML(o) {
+  return `<div class="prog-heros fen-heros"${o.id ? ` id="${o.id}"` : ''} style="background:${o.fond}">
+    ${o.illustration || ''}
+    ${o.surtitre ? `<small>${escapeHtml(o.surtitre)}</small>` : ''}
+    <b>${escapeHtml(o.titre)}</b>
+    ${o.geant ? `<span class="fen-geant">${o.geant}</span>` : ''}
+    ${o.sous ? `<p>${o.sous}</p>` : ''}
+    ${o.puces && o.puces.length ? `<div class="prog-heros-puces">${o.puces.map(x => `<span>${escapeHtml(x)}</span>`).join('')}</div>` : ''}
+  </div>`;
+}
+function teinteProgramme(id) {
+  const i = Math.max(0, musculationProgrammes.findIndex(p => p.id === id));
+  return TEINTES_PROGRAMMES[i % TEINTES_PROGRAMMES.length];
+}
+function silhouetteGroupesBlanche(groupes) {
+  const blanc = {};
+  groupes.forEach(k => { blanc[k] = 'rgba(255,255,255,.95)'; });
+  return `<span class="prog-heros-corps fen-heros-ill" aria-hidden="true">${silhouetteSVG('face', blanc, { vb: CADRES_SILHOUETTE.buste, neutre: 'rgba(255,255,255,.13)', contour: 'rgba(255,255,255,.06)' })}</span>`;
+}
+const TEINTES_CARDIO = {
+  course: 'linear-gradient(150deg,#ea580c,#db2777)', cyclisme: 'linear-gradient(150deg,#2563eb,#0891b2)', natation: 'linear-gradient(150deg,#0e7490,#2563eb)',
+  marche_rapide: 'linear-gradient(150deg,#047857,#65a30d)', rameur: 'linear-gradient(150deg,#4338ca,#0e7490)', hiit: 'linear-gradient(150deg,#dc2626,#c026d3)',
+  foot: 'linear-gradient(150deg,#7c3aed,#2563eb)'
+};
+/* En-tête de la séance cardio : activité, dépense estimée et allure en direct. */
+function majHerosCardio(kcal, allure, minutes, km) {
+  const c = document.getElementById('cardio-heros');
+  if (!c) return;
+  const t = cardioBrouillon && cardioBrouillon.type;
+  const fond = TEINTES_CARDIO[t] || 'linear-gradient(150deg,#0f766e,#1e3a8a)';
+  const fenetre = document.querySelector('#modal-cardio .modal-content');
+  if (fenetre) fenetre.style.setProperty('--cardio-fond', fond);
+  const morceaux = [];
+  if (minutes > 0) morceaux.push(minutes + ' min');
+  if (km) morceaux.push(nombreFr(km, 2) + ' km');
+  const sous = (morceaux.length ? escapeHtml(morceaux.join(' · ')) : 'Indique la durée') +
+    (allure ? ` · <span id="cardio-allure">${escapeHtml(allure.texte)}</span>` : '<span id="cardio-allure" class="hidden"></span>');
+  c.innerHTML = herosFenetreHTML({
+    fond, surtitre: cardioEdition ? 'Modifier la séance' : 'Nouvelle séance',
+    titre: t ? SPORT_LABELS[t] : 'Choisis l\'activité',
+    geant: kcal ? `≈ ${nombreFr(kcal, 0)}<i>kcal</i>` : '— <i>kcal</i>',
+    sous,
+    illustration: `<span class="fen-heros-ic" aria-hidden="true">${t ? ICONES_CARDIO[t] : ICONE_CARDIO}</span>`,
+    puces: [NOMS_INTENSITE[cardioBrouillon.intensite] || ''].filter(Boolean)
+  });
+}
+/* Exercice personnalisé : l'en-tête montre l'exercice tel qu'il sera rangé. */
+function majHerosExercicePerso() {
+  const c = document.getElementById('perso-heros');
+  if (!c) return;
+  const nom = (document.getElementById('perso-nom').value || '').trim();
+  const g = document.getElementById('perso-groupe').value;
+  const m = document.getElementById('perso-materiel').value;
+  const coul = {}; if (g) coul[g] = 'rgba(255,255,255,.95)';
+  c.innerHTML = herosFenetreHTML({
+    fond: 'linear-gradient(150deg,#0f766e,#2563eb 60%,#7c3aed)',
+    surtitre: 'Nouvel exercice', titre: nom || 'Sans nom',
+    sous: escapeHtml([GROUPES_MUSCULAIRES[g], MATERIELS[m] && MATERIELS[m].label].filter(Boolean).join(' · ')),
+    // Muscle du dos (dos, trapèzes, lombaires, ischios, fessiers…) : silhouette vue de dos.
+    illustration: `<span class="prog-heros-corps fen-heros-ill" aria-hidden="true">${silhouetteSVG(['dos', 'trapezes', 'lombaires', 'ischios', 'fessiers', 'triceps', 'mollets'].includes(g) ? 'dos' : 'face', coul, { neutre: 'rgba(255,255,255,.13)', contour: 'rgba(255,255,255,.06)' })}</span>`,
+    puces: ['Visible dans ta bibliothèque']
+  });
 }
 
 // Les tuiles d'objectif passent par le sélecteur existant (même règles : pas de réécriture du passé).
