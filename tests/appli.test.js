@@ -1,4 +1,4 @@
-/* Tests de bout en bout d'Anqā : l'appli réelle (index.html) dans Chromium,
+/* Tests de bout en bout d'Askēsis : l'appli réelle (index.html) dans Chromium,
    pilotée comme un utilisateur ou par ses propres fonctions quand l'écran
    n'apporte rien (ex. : choisir un exercice dans la liste). Chaque test part
    d'une appli vierge (stockage local vide) et échoue si la page lève la
@@ -499,7 +499,7 @@ test('en-tête : ma photo et mon nom d\'utilisateur ouvrent le profil, plus de b
   assert.equal(r.compte, 'Synchronisation : Envoi…');
   assert.equal(r.sansSynchro, null, 'pas de halo sans synchronisation configurée');
   assert.ok(r.aDroite, 'photo et nom calés à droite');
-  assert.ok(r.logoAGauche, 'logo Anqā visible à gauche');
+  assert.ok(r.logoAGauche, 'logo Askēsis (colonne) visible à gauche');
   assert.equal(r.enteteSurProfil, 'none');
   assert.ok(r.margeHaut >= 11, 'place pour le halo au-dessus de la photo : ' + r.margeHaut + ' px');
 }));

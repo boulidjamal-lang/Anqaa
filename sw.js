@@ -1,4 +1,4 @@
-/* Anqā hors ligne (service worker).
+/* Askēsis hors ligne (service worker).
    - La page (index.html) : réseau d'abord, pour toujours avoir la dernière
      version ; la copie en cache ne sert que sans connexion.
    - Nos fichiers (assets/) : la copie en cache tout de suite, mise à jour en
