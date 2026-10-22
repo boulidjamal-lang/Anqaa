@@ -6524,10 +6524,30 @@ function getDay(dateStr) {
 /* Dernier poids connu : sans cela, chaque nouvelle journée repartait à 70 kg
    (userProfile.weight n'est réassigné nulle part) et l'objectif d'un utilisateur
    de 95 kg était sous-estimé d'environ 250 kcal. */
+/* Dates triées d'un objet { date: … } (journées, mesures), gardées en
+   mémoire tant que l'objet et son nombre de dates ne changent pas.
+   dernierPoidsConnu & co sont appelées des centaines de fois par affichage
+   de Progrès : elles retriaient tout l'historique à chaque appel, de plus
+   en plus lentement avec les mois. */
+const cacheDatesTriees = new WeakMap();
+function datesTriees(obj) {
+  const cles = Object.keys(obj);
+  const c = cacheDatesTriees.get(obj);
+  if (c && c.n === cles.length) return c.dates;
+  const dates = cles.sort();
+  cacheDatesTriees.set(obj, { n: cles.length, dates });
+  return dates;
+}
+/* Indice de la dernière date ≤ avant (recherche dichotomique), -1 sinon. */
+function dernierIndexAvant(dates, avant) {
+  let bas = 0, haut = dates.length - 1, res = -1;
+  while (bas <= haut) { const m = (bas + haut) >> 1; if (dates[m] <= avant) { res = m; bas = m + 1; } else haut = m - 1; }
+  return res;
+}
 function dernierPoidsConnu(avant) {
-  const jours = Object.keys(appData).filter(d => d <= avant).sort().reverse();
-  for (const j of jours) {
-    const w = Number(appData[j] && appData[j].weight);
+  const jours = datesTriees(appData);
+  for (let i = dernierIndexAvant(jours, avant); i >= 0; i--) {
+    const w = Number(appData[jours[i]] && appData[jours[i]].weight);
     if (Number.isFinite(w) && w > 0) return w;
   }
   return Number(userProfile.weight) || 70;
@@ -6539,9 +6559,9 @@ function dernierPoidsConnu(avant) {
    composition corporelle ne se mesure pas tous les jours. */
 function derniereGrassePctConnue(avant) {
   const mesures = userProfile.mesures || {};
-  const dates = Object.keys(mesures).filter(d => d <= avant).sort().reverse();
-  for (const d of dates) {
-    const g = Number(mesures[d] && mesures[d].grassePct);
+  const dates = datesTriees(mesures);
+  for (let i = dernierIndexAvant(dates, avant); i >= 0; i--) {
+    const g = Number(mesures[dates[i]] && mesures[dates[i]].grassePct);
     if (Number.isFinite(g) && g > 0) return g;
   }
   return null;
@@ -6552,9 +6572,9 @@ function derniereGrassePctConnue(avant) {
    aujourd'hui n'affecte donc jamais le calcul des journées passées — elles
    gardent celui qui était actif au moment où elles ont eu lieu. */
 function dernierObjectifConnu(avant) {
-  const jours = Object.keys(appData).filter(d => d <= avant).sort().reverse();
-  for (const j of jours) {
-    if (appData[j] && appData[j].goal) return appData[j].goal;
+  const jours = datesTriees(appData);
+  for (let i = dernierIndexAvant(jours, avant); i >= 0; i--) {
+    if (appData[jours[i]] && appData[jours[i]].goal) return appData[jours[i]].goal;
   }
   return 'maintien';
 }
@@ -10187,7 +10207,7 @@ function buildMasterArrays() {
   for (let i = DAYS - 1; i >= 0; i--) {
     const ds = shiftDate(todayStr(), -i);
     const d = appData[ds];
-    globalMasterLabels.push(new Date(ds + 'T12:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }));
+    globalMasterLabels.push(ds.slice(8, 10) + '/' + ds.slice(5, 7));
     // Contrairement à l'objectif calorique, celui-ci ne dépend pas d'avoir
     // mangé ce jour-là — juste du poids connu à cette date, de l'âge/sexe
     // du profil et du sport loggé ce jour : calculable même sans repas saisi.
@@ -10566,13 +10586,24 @@ function choisirPeriodeStats(cle) {
   appliquerPeriodeStats();
   majToutesStats();
 }
+/* Progrès ne calcule et ne dessine que l'onglet affiché ; les autres sont
+   marqués « à refaire » et rendus à leur ouverture. Avant, les cinq
+   onglets et leurs graphiques étaient refaits à chaque ouverture de
+   l'écran (environ 2 s sur un téléphone moyen). */
+const ongletsStatsARefaire = new Set();
+function rendreOngletStats(nom) {
+  if (!ongletsStatsARefaire.has(nom)) return;
+  ongletsStatsARefaire.delete(nom);
+  if (nom === 'resume') renderResumeProgres();
+  else if (nom === 'poids') mettreAJourStats();
+  else if (nom === 'nutrition') mettreAJourStatsNutrition();
+  else if (nom === 'activite') { renderStatsCardio(); renderExtrasCardio(); }
+  else if (nom === 'muscu') mettreAJourStatsMuscu();
+}
 function majToutesStats() {
-  mettreAJourStats();
-  mettreAJourStatsNutrition();
-  mettreAJourStatsMuscu();
-  renderStatsCardio();
-  renderExtrasCardio();
-  renderResumeProgres();
+  majPeriodeAffichee();
+  ONGLETS_STATS.forEach(o => ongletsStatsARefaire.add(o));
+  rendreOngletStats(categorieStatsActive());
 }
 /* Dates de la période pour la musculation (ISO). */
 function bornesMuscuIso() {
@@ -10593,6 +10624,7 @@ function choisirOngletStats(nom) {
   document.querySelectorAll('#ecran-stats .stats-tab').forEach(t => {
     t.classList.toggle('stats-tab-actif', t.dataset.tab === nom);
   });
+  rendreOngletStats(nom);
   majSegment('stats-onglets-nav', ONGLETS_STATS, nom);
   majBoutonPlus();
   // Les graphiques d'un onglet masqué n'ont pas de taille : recalés à l'arrivée.
@@ -10605,6 +10637,8 @@ function choisirOngletStats(nom) {
 }
 /* Ouvre Progrès sur une catégorie (depuis sa carte ou l'onglet). */
 function ouvrirStats(onglet) {
+  // L'onglet visé est marqué avant d'arriver sur l'écran : seul lui est calculé.
+  if (ONGLETS_STATS.includes(onglet)) document.querySelectorAll('#ecran-stats .stats-tab').forEach(t => t.classList.toggle('stats-tab-actif', t.dataset.tab === onglet));
   allerA('stats');
   choisirOngletStats(onglet);
 }
@@ -10653,7 +10687,8 @@ function bornesPlage() {
   return { s, e, max: Number(a.max) || 1 };
 }
 
-function mettreAJourStats() {
+/* Libellés de la période, communs à tous les onglets. */
+function majPeriodeAffichee() {
   const { s, e, max } = bornesPlage();
   document.getElementById('start-date-label').textContent = globalMasterLabels[s] || '-';
   document.getElementById('end-date-label').textContent = globalMasterLabels[e] || '-';
@@ -10679,7 +10714,10 @@ function mettreAJourStats() {
     resume.textContent = `${jour(s)} → ${jour(e)} · `
       + (periodeStats === 'tout' ? 'tout l’historique' : n === 1 ? 'comparé à la veille' : `comparé aux ${n} jours d’avant`);
   }
-
+}
+function mettreAJourStats() {
+  majPeriodeAffichee();
+  const { s, e } = bornesPlage();
   // Les chiffres clés ne coûtent rien à recalculer : pas besoin d'attendre
   // le rendu des graphiques, ni que l'écran soit visible.
   afficherChiffresClesPoids(s, e);
