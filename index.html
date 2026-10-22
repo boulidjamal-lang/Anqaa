@@ -505,11 +505,10 @@
        habituel, éclaircissait visiblement un noir aussi profond — l'en-tête
        ne suivait plus le fond en thème sombre. Rien à faire en thème clair :
        var(--barre) y est déjà clair. */
-    :root[data-theme="dark"] .app-bar {
-      background: var(--bg);
-      -webkit-backdrop-filter: blur(var(--verre-flou));
-      backdrop-filter: blur(var(--verre-flou));
-    }
+    /* La barre ne reste pas collée en haut au défilement : ni fond ni flou.
+       En sombre, l'ancien fond plein formait une bande noire, et son flou
+       débordait sur iPhone jusque sur le mois de la semaine. */
+    :root[data-theme] .app-bar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
     .app-bar-inner {
       max-width: 560px; margin: 0 auto;
       display: flex; justify-content: space-between; align-items: center; gap: 10px;
@@ -2702,7 +2701,23 @@
     .profil-entete { position: relative; z-index: 2; }
     #vitrine-profil:not(:empty) { margin-top: -58px; }
     /* Sans en-tête au-dessus, la couverture monte jusqu'en haut de l'écran. */
-    body.sur-reglages #vitrine-profil .couv { margin-top: calc(-18px - env(safe-area-inset-top, 0px)); height: calc(196px + env(safe-area-inset-top, 0px)); }
+    /* Haut du Profil : la couverture (ta photo, très floutée) va du haut de
+       l'écran jusque sous « Modifier le profil » ; texte en blanc dessus. */
+    .pf-haut { position: relative; isolation: isolate; padding: 104px 0 24px; }
+    html:root .pf-haut .couv { position: absolute; z-index: -1; top: calc(-18px - env(safe-area-inset-top, 0px)); left: -16px; right: -16px; bottom: 0; height: auto; margin: 0;
+      border-radius: 0 0 30px 30px; overflow: hidden; background: linear-gradient(135deg, #0f766e, #1d4ed8); }
+    .pf-haut .couv::before { content: ''; position: absolute; inset: -48px; background: var(--couv-photo, linear-gradient(135deg, #0f766e, #1d4ed8 60%, #7c3aed)) center 35% / cover;
+      filter: blur(28px) saturate(1.35); transform: scale(1.1); }
+    html:root .pf-haut .couv::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.32) 0, rgba(0,0,0,.18) 40%, rgba(0,0,0,.46) 100%); }
+    .pf-haut .pf { margin-top: 0; color: #fff; }
+    .pf-haut .pf h3 { color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.35); }
+    .pf-haut .pf p { color: rgba(255,255,255,.88); }
+    .pf-haut .pf-modif { background: rgba(255,255,255,.2); color: #fff; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
+    .pf-haut + .niveau { margin-top: 14px; }
+    /* Titre et boutons du Profil posés sur la photo */
+    body.sur-reglages .profil-entete .titre-ecran { color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.3); }
+    html:root body.sur-reglages .profil-entete .btn-icone { background: rgba(255,255,255,.2); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+    html:root body.sur-reglages .profil-entete .btn-icone .icone-ui { color: #fff; }
 
 
     /* Actions en tuiles (Activité, Mesures) et lignes de réglage (Profil) */
@@ -21818,12 +21833,15 @@ function renderVitrineProfil() {
   const t = computeTargets(getDay(todayStr()), todayStr());
   const tuile = (cle, nomO, ic, g) => `<button type="button" class="obj-tuile${obj === cle ? ' on' : ''}" onclick="choisirObjectifVitrine('${cle}')" aria-pressed="${obj === cle}"><span class="obj-ic" style="background:${g}">${svgV(ic)}</span>${nomO}</button>`;
   const badges = badgesUtilisateur();
+  const photo = sessionUtilisateur && typeof monProfil !== 'undefined' && monProfil && estAvatarValide(monProfil.avatar) ? monProfil.avatar : null;
   c.innerHTML = `
-    <div class="couv" aria-hidden="true"><svg viewBox="0 0 400 180" preserveAspectRatio="none"><path d="M0,120 C80,60 160,170 240,100 S360,40 400,80" fill="none" stroke="#fff" stroke-width="40" opacity=".5"/><path d="M0,60 C100,10 200,120 300,50 S380,10 400,20" fill="none" stroke="#fff" stroke-width="18" opacity=".4"/></svg></div>
+    <div class="pf-haut">
+    <div class="couv${photo ? ' couv--photo' : ''}" aria-hidden="true"${photo ? ` style="--couv-photo:url('${photo}')"` : ''}></div>
     <div class="pf"><div class="pf-av">${av}</div><h3>${escapeHtml(nom)}</h3>${bio ? `<p>${escapeHtml(bio)}</p>` : ''}
-      <button type="button" class="pf-modif" onclick="document.getElementById('carte-compte').scrollIntoView({behavior:'smooth',block:'center'})">Modifier le profil</button>
+      <button type="button" class="pf-modif" onclick="document.getElementById('carte-compte').scrollIntoView({behavior:'smooth',block:'center'})">Modifier le profil</button></div>
+    </div>
       <div class="niveau"><div class="niveau-t"><b>Niveau ${niv.n} · ${niv.titre}</b><span>${nombreFr(niv.xp)} / ${nombreFr(niv.haut)} XP</span></div><div class="xp"><i style="width:${pct}%"></i></div>
-        <div class="niveau-s">+40 XP par séance de muscu · +25 par séance cardio · +10 par journée notée</div></div></div>
+        <div class="niveau-s">+40 XP par séance de muscu · +25 par séance cardio · +10 par journée notée</div></div>
     <div class="chiffres-geants"><div class="cg"><b data-compte="${musculationHistorique.length}">${musculationHistorique.length}</b><small>séances</small></div><div class="cg"><b data-compte="${niv.joursNotes}">${niv.joursNotes}</b><small>jours suivis</small></div><div class="cg"><b data-compte="${joursDAffilee()}">${joursDAffilee()}</b><small>d'affilée</small></div></div>
     <div class="vitrine-sec"><h3>Badges</h3><span>${badges.filter(b => b.ok).length} / ${badges.length}</span></div>
     <div class="carte-badges"><div class="badges">${badges.map(b => `<div class="badge${b.ok ? '' : ' verrou'}" title="${escapeHtml(b.detail)}"><span class="med" style="${b.ok ? `background:${b.g};--l:${b.l}` : ''}">${svgV(b.ic)}${b.ok && b.valeur ? `<em>${b.valeur}</em>` : ''}</span><b>${escapeHtml(b.nom)}</b>${escapeHtml(b.detail)}</div>`).join('')}</div></div>
