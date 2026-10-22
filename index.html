@@ -1374,22 +1374,6 @@
     .off-suggestion:hover, .off-suggestion:focus-visible { background: color-mix(in srgb, var(--primary) 14%, transparent); }
     .off-vide { padding: 13px 14px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.45; }
 
-    .gymbro-puces { display: flex; flex-wrap: wrap; gap: 6px; }
-    .gymbro-puces button { border: 0; border-radius: 999px; padding: 6px 12px; background: var(--verre-fort); color: var(--primary); font-weight: 700; font-family: inherit; cursor: pointer; }
-    .gymbro-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-bottom: 8px; }
-    .gymbro-table th, .gymbro-table td { padding: 6px 4px; text-align: right; border-bottom: 1px solid var(--verre-brd); }
-    .gymbro-table th:first-child, .gymbro-table td:first-child { text-align: left; color: var(--text-muted); }
-    .gymbro-gagne { color: var(--primary); font-weight: 800; }
-    .gymbro-exo { background: var(--verre-creux); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
-    .gymbro-exo-nom { font-weight: 800; font-size: 0.84rem; margin-bottom: 6px; }
-    .gymbro-barre { display: grid; grid-template-columns: 74px 1fr 54px; align-items: center; gap: 6px; font-size: 0.72rem; margin-bottom: 3px; }
-    .gymbro-barre-lib { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); }
-    .gymbro-barre-piste { height: 8px; border-radius: 4px; background: var(--verre-fort); overflow: hidden; }
-    .gymbro-barre-piste i { display: block; height: 100%; background: var(--primary); border-radius: 4px; }
-    .gymbro-barre--lui .gymbro-barre-piste i { background: var(--accent); }
-    .gymbro-barre b { text-align: right; }
-    .gymbro-seance { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--verre-brd); font-size: 0.8rem; }
-    .gymbro-seance small { display: block; color: var(--text-muted); font-size: 0.7rem; }
     .photos-grille { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .photos-grille figure, .photos-avant-apres figure { position: relative; margin: 0; }
     .photos-grille img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 10px; cursor: zoom-in; background: var(--verre-fort); }
@@ -2211,17 +2195,10 @@
       background: color-mix(in srgb, #ff9f0a 16%, transparent); font-size: 0.76rem; line-height: 1.4; }
     .pastille-gymbro { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
       background: var(--danger); color: #fff; font-size: 0.66rem; font-weight: 800; line-height: 18px; text-align: center; pointer-events: none; z-index: 2; }
-    .gymbro-demande { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
-      padding: 9px 11px; border-radius: 12px; background: var(--verre-creux); margin-bottom: 6px; font-size: 0.82rem; }
-    .gymbro-demande-actions { display: flex; gap: 6px; }
-    .gymbro-accepter { background: var(--primary); color: var(--primary-txt); border-color: var(--primary); }
-    .gymbro-puces small { font-weight: 600; opacity: 0.7; }
     .avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 34px; height: 34px; border-radius: 50%;
       background: color-mix(in srgb, var(--primary) 20%, transparent); color: var(--primary); font-weight: 800; object-fit: cover; overflow: hidden; }
     .avatar--mini { width: 22px; height: 22px; font-size: 0.66rem; margin-right: 6px; vertical-align: middle; }
     .avatar--grand { width: 64px; height: 64px; font-size: 1.5rem; }
-    .gymbro-puces button { display: inline-flex; align-items: center; }
-    .gymbro-demande-qui { display: flex; align-items: center; min-width: 0; }
     .profil-perso { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 8px; }
     .profil-avatar-btn { position: relative; border: 0; padding: 0; background: none; border-radius: 50%; cursor: pointer; flex: none; }
     .profil-avatar-crayon { position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -2231,14 +2208,6 @@
     .profil-perso textarea { width: 100%; resize: none; font-family: inherit; font-size: 0.84rem; padding: 8px 10px; min-height: 0; }
     .profil-bio-pied { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
     .profil-bio-pied small { color: var(--text-muted); font-size: 0.68rem; }
-    .profil-gymbro { display: flex; gap: 14px; align-items: center; margin: 4px 0 10px; }
-    .profil-gymbro-texte { min-width: 0; }
-    .profil-gymbro-texte b { display: block; font-size: 1rem; }
-    .profil-gymbro-texte p { margin: 3px 0; font-size: 0.82rem; overflow-wrap: anywhere; }
-    .profil-gymbro-texte small { color: var(--text-muted); font-size: 0.72rem; }
-    .profil-gymbro-chiffres { display: flex; gap: 8px; }
-    .profil-gymbro-chiffres span { flex: 1; background: var(--verre-creux); border-radius: 12px; padding: 8px 10px; font-size: 0.74rem; color: var(--text-muted); }
-    .profil-gymbro-chiffres b { display: block; font-size: 1.05rem; color: var(--text); }
     /* Cartes de statistiques (Repas du jour, Activité) et fenêtre de détail. */
     .carte-stats { cursor: pointer; padding: 14px 16px; }
     .carte-stats-haut { display: flex; align-items: center; gap: 14px; }
@@ -2325,26 +2294,6 @@
     .compo-tete b { color: var(--text); font-size: 0.9rem; }
     .compo-tete small { font-size: 0.66rem; }
     .compo-graph { height: 96px; margin-top: 4px; }
-    .fil-respects { display: flex; gap: 8px; align-items: center; padding: 9px 12px; border-radius: 12px; background: var(--verre-creux); font-size: 0.78rem; margin: 0 0 10px; }
-    .fil-respects--nouveau { background: color-mix(in srgb, var(--primary) 16%, transparent); }
-    .fil-carte { background: var(--verre); border: 1px solid var(--verre-brd); border-radius: 16px; padding: 12px 14px; margin: 0 0 10px; }
-    .fil-tete { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .fil-avatar { width: 34px; height: 34px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      background: color-mix(in srgb, var(--primary) 20%, transparent); color: var(--primary); font-weight: 800; }
-    .fil-qui { min-width: 0; }
-    .fil-qui b { display: block; font-size: 0.86rem; }
-    .fil-qui small { display: block; font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .fil-stats { display: flex; gap: 14px; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 4px; }
-    .fil-stats b { color: var(--text); font-size: 0.92rem; }
-    .fil-ligne { font-size: 0.74rem; color: var(--text-muted); margin-top: 3px; }
-    .fil-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-    .fil-respect { font: inherit; font-size: 0.78rem; font-weight: 700; border-radius: 999px; padding: 6px 12px; cursor: pointer;
-      border: 1.5px solid var(--verre-brd-vive); background: transparent; color: var(--text); }
-    .fil-respect[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-txt); }
-    .fil-vide { margin: 0 0 10px; }
-    .fil-plus { width: 100%; min-height: auto; padding: 9px; font-size: 0.78rem; }
-    .gymbro-invitation { background: var(--verre-creux); border-radius: 14px; padding: 12px 14px; font-size: 0.86rem; }
-    .gymbro-invitation p { margin: 0 0 12px; }
     .alerte-volume-seance svg { width: 17px; height: 17px; flex: none; color: #ff9f0a; margin-top: 1px; }
     .btn-partage-stats { margin: 4px 0 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .partage-apercu { background: var(--verre-creux); border-radius: 16px; padding: 10px; display: flex; justify-content: center; margin-bottom: 10px; }
@@ -3416,6 +3365,159 @@
     html:root #fiche-exercice-modal .fiche-exo-video--mini video.mini { filter: none; }
     /* Bilan : le nom de l'exercice battu tient sur deux lignes. */
     html:root .bilan-records b { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.25; }
+    /* =====================================================================
+       GYMBROS — rangée d'Activité et du Profil, espace Fil · Classement ·
+       Mes gymbros, fiche face-à-face
+       ===================================================================== */
+    .gav { position: relative; box-sizing: border-box; width: var(--t); height: var(--t); flex: none; display: inline-grid; place-items: center; border-radius: 50%; }
+    html:root .gav > :is(.avatar, i) { width: 100%; height: 100%; margin: 0; border-radius: 50%; display: grid; place-items: center; color: #fff; object-fit: cover;
+      background: var(--av, linear-gradient(135deg, #22d3ee, #2563eb)); font: 800 calc(var(--t) * .42) / 1 'Manrope', 'Inter', sans-serif; font-style: normal; }
+    .gav--actif { padding: 3px; background: conic-gradient(#10b981, #22d3ee, #8b5cf6, #ec4899, #10b981); }
+    html:root .gav--actif > .avatar { box-sizing: border-box; border: 2.5px solid var(--gav-fond, var(--bg)); }
+    html:root .gav.gav--inviter > i { box-sizing: border-box; background: var(--piste); color: var(--text); font-size: calc(var(--t) * .5); font-weight: 600; border: 2px dashed color-mix(in srgb, var(--text-muted) 65%, transparent); }
+    .gstrip-zone:empty { display: none; }
+    .gstrip { margin: 4px 0 16px; }
+    .gstrip-tete { display: flex; justify-content: space-between; align-items: center; margin: 0 2px 10px; }
+    .gstrip-tete b { font: 800 1.02rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; }
+    .gstrip-tout { border: 0; background: none; padding: 6px 0 6px 10px; font: 700 .8rem 'Inter', sans-serif; color: var(--primary); cursor: pointer; }
+    .gstrip-ligne { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px 4px; }
+    .gstrip-ligne::-webkit-scrollbar { display: none; }
+    .gst { display: grid; justify-items: center; align-content: start; gap: 4px; width: 66px; flex: none; padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: center; cursor: pointer; }
+    .gst > :is(small, em) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .gst small { font-size: .74rem; font-weight: 800; }
+    .gst em { font-style: normal; font-size: .7rem; color: var(--text-muted); }
+    .gst em.nouv { color: #fff; background: #dc2626; padding: 1px 7px; border-radius: 99px; font-weight: 800; }
+    .gstrip-vide { align-self: center; margin: 0; min-width: 210px; font-size: .8rem; line-height: 1.4; color: var(--text-muted); }
+    #gymbro-modal { --gav-fond: var(--carte-plein); }
+    html:root .gb-onglets { margin: -4px 0 16px; }
+    html:root .gb-onglets button { white-space: nowrap; padding: 0 6px; }
+    .gbadge { display: inline-grid; place-items: center; min-width: 17px; height: 17px; padding: 0 4px; margin-left: 5px; border-radius: 99px; background: #dc2626; color: #fff;
+      font: 800 .66rem/1 'Inter', sans-serif; font-style: normal; vertical-align: 1px; }
+    .gb-sec { margin: 18px 2px 10px; font: 800 .98rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; color: var(--text); }
+    #gymbro-modal :is(.fil-carte, .gb-carte) { background: var(--carte-plein); border-radius: 22px; padding: 14px; margin: 0 0 12px;
+      box-shadow: 0 0 0 1px var(--trait), 0 14px 28px -22px rgba(0, 0, 0, .55); }
+    #gymbro-modal .gb-carte.gliste { padding: 4px 14px; }
+    .gvide { display: grid; justify-items: center; gap: 6px; padding: 24px 18px; border-radius: 22px; background: var(--piste); text-align: center; }
+    .gvide b { font: 800 1.05rem 'Manrope', 'Inter', sans-serif; }
+    .gvide p { margin: 0 0 8px; font-size: .84rem; line-height: 1.45; color: var(--text-muted); }
+    .gb-vide-note, .gb-astuce { margin: 0 0 12px; }
+    .gb-astuce .btn-icone { margin-left: 6px; font-size: .75rem; }
+    /* Fil */
+    .fil-respects { display: flex; gap: 10px; align-items: center; padding: 11px 13px; margin: 0 0 12px; border-radius: 16px; font-size: .82rem; line-height: 1.4;
+      background: linear-gradient(135deg, rgba(249, 115, 22, .15), rgba(244, 114, 182, .13)); }
+    .fil-respects > span:first-child { font-size: 1.15rem; }
+    .fil-respects--nouveau { box-shadow: inset 0 0 0 1.5px rgba(249, 115, 22, .5); }
+    .gcarte-tete { display: flex; align-items: center; gap: 10px; }
+    .fil-qui { flex: 1; min-width: 0; }
+    .fil-qui b { display: block; font-size: .92rem; }
+    .fil-qui small { display: block; font-size: .78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .grec { flex: none; padding: 4px 9px; border-radius: 99px; font-size: .72rem; font-weight: 800; background: rgba(245, 158, 11, .18); color: #92400e; }
+    :root[data-theme="dark"] .grec { color: #fcd34d; }
+    .gcarte-corps { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center; margin: 12px 0 10px; }
+    .gsil { display: block; width: 64px; height: 96px; }
+    .gsil svg { display: block; width: 100%; height: 100%; }
+    .fil-stats { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
+    .fil-stats > div { min-width: 0; padding: 10px 8px; border-radius: 14px; background: var(--piste); }
+    .fil-stats b { display: block; font: 800 1.15rem/1.1 'Manrope', 'Inter', sans-serif; letter-spacing: -.03em; white-space: nowrap; }
+    .fil-stats span { font-size: .72rem; font-weight: 700; color: var(--text-muted); }
+    .gcarte-rec { margin: 0 0 10px; padding: 9px 11px; border-radius: 12px; font-size: .8rem; background: linear-gradient(90deg, rgba(251, 191, 36, .24), transparent); }
+    .fil-ligne { margin: 0 0 10px; font-size: .78rem; color: var(--text-muted); }
+    .gcarte-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .fil-respect, .gcomp { display: flex; align-items: center; justify-content: center; gap: 6px; height: 44px; border: 0; border-radius: 14px; cursor: pointer;
+      background: var(--piste); color: var(--text); font: 800 .84rem 'Inter', sans-serif; }
+    .fil-respect[aria-pressed="true"] { background: linear-gradient(135deg, #ea580c, #db2777); color: #fff; }
+    .fil-vide { margin: 0 0 10px; }
+    .fil-plus { width: 100%; }
+    /* Classement */
+    html:root .gb-mesure { margin: 0 0 8px; }
+    .gpodium { display: grid; grid-template-columns: 1fr 1.15fr 1fr; align-items: end; gap: 8px; margin: 22px 0 14px; }
+    .gpod { position: relative; min-width: 0; display: grid; justify-items: center; gap: 4px; padding: 12px 6px 10px; border-radius: 20px 20px 14px 14px; background: var(--piste); text-align: center; }
+    .gpod b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .8rem; }
+    .gpod-v { font: 800 1rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; }
+    .gpod .gr { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; color: #fff; font: 800 .8rem 'Inter', sans-serif; }
+    .gpod.p1 { padding-top: 24px; background: linear-gradient(180deg, rgba(251, 191, 36, .3), var(--piste) 75%); }
+    .gpod.p1 .gr { background: #b45309; } .gpod.p2 .gr { background: #64748b; } .gpod.p3 .gr { background: #9a3412; }
+    .gcouronne { position: absolute; top: -16px; font-size: 1.4rem; font-style: normal; }
+    .gpod.moi { box-shadow: inset 0 0 0 2px color-mix(in srgb, #6366f1 45%, transparent); }
+    .gcl { display: grid; grid-template-columns: 22px auto 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--trait); }
+    .gcl:first-child { border-top: 0; }
+    .gcl.moi { margin: 0 -8px; padding: 9px 8px; border-radius: 12px; border-top-color: transparent; background: color-mix(in srgb, #6366f1 11%, transparent); }
+    .gcl.moi + .gcl { border-top-color: transparent; }
+    .grang { text-align: center; font-weight: 800; color: var(--text-muted); }
+    .gcl-t { min-width: 0; }
+    .gcl-t b { display: block; margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .84rem; }
+    .gcl-barre { display: block; height: 6px; border-radius: 99px; background: var(--piste); overflow: hidden; }
+    .gcl-barre i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #6366f1, #22d3ee); }
+    .gcl em { font: 800 .98rem 'Manrope', 'Inter', sans-serif; font-style: normal; white-space: nowrap; }
+    .gcl em small { margin-left: 3px; font-size: .72rem; color: var(--text-muted); }
+    .gdefi { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; font-size: .84rem; line-height: 1.4;
+      background: linear-gradient(135deg, rgba(99, 102, 241, .15), rgba(34, 211, 238, .13)); }
+    .gdefi > span { font-size: 1.3rem; }
+    .gdefi small { display: block; margin-top: 2px; font-size: .74rem; color: var(--text-muted); }
+    /* Fiche d'un gymbro : face-à-face */
+    .gb-barre-retour { display: flex; align-items: center; gap: 10px; margin: -6px 0 14px; }
+    .gb-barre-retour h4 { min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 800 1.25rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.03em; }
+    .gretour { width: 38px; height: 38px; flex: none; display: grid; place-items: center; padding: 0 0 3px; border: 0; border-radius: 50%; background: var(--piste); color: var(--text);
+      font: 700 1.5rem/1 'Inter', sans-serif; cursor: pointer; }
+    .gface { --gav-fond: #3b1f7a; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; margin: 0 0 4px; padding: 20px 14px 16px; border-radius: 26px; color: #fff; text-align: center;
+      background: radial-gradient(60% 70% at 85% 10%, rgba(244, 114, 182, .5), transparent 70%), linear-gradient(150deg, #1e3a8a, #4c1d95 60%, #be185d); box-shadow: 0 22px 40px -22px rgba(76, 29, 149, .8); }
+    .gface-p { min-width: 0; display: grid; justify-items: center; gap: 6px; }
+    .gface-p b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .9rem; }
+    .gface-vs { font: 900 1.45rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; opacity: .92; }
+    .gface > p { grid-column: 1 / -1; margin: 10px 0 0; font-size: .82rem; font-style: italic; line-height: 1.4; opacity: .95; overflow-wrap: anywhere; }
+    .gface > p::before { content: '« '; } .gface > p::after { content: ' »'; }
+    .gface-chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 10px; }
+    .gface-chips > * { padding: 5px 10px; border-radius: 99px; background: rgba(255, 255, 255, .2); font-size: .74rem; font-weight: 700; }
+    .gface--seul { grid-template-columns: 1fr; margin-bottom: 12px; }
+    .gvs-tete, .gvs-l { display: grid; grid-template-columns: 1fr 84px 1fr; align-items: center; text-align: center; }
+    .gvs-tete { margin-bottom: 4px; font-size: .74rem; font-weight: 800; color: var(--text-muted); }
+    .gvs-tete span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .gvs-l { padding: 9px 0; border-top: 1px solid var(--trait); }
+    .gvs-l span { font-size: .76rem; font-weight: 700; color: var(--text-muted); }
+    .gvs-l b { font: 700 1.15rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.03em; color: var(--text-muted); }
+    .gvs-l b.gagne { font-weight: 800; color: var(--text); }
+    .gvs-l b small { margin-left: 2px; font-size: .72rem; }
+    .gduel-leg { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: .74rem; font-weight: 800; color: var(--text-muted); }
+    .gduel-leg span { display: inline-flex; align-items: center; gap: 6px; }
+    .gduel-leg i { width: 10px; height: 10px; border-radius: 50%; }
+    .gexo { padding: 10px 0; border-top: 1px solid var(--trait); }
+    .gexo:first-of-type { border-top: 0; padding-top: 0; }
+    .gexo > b { display: block; margin-bottom: 8px; font-size: .84rem; }
+    .gduel { display: flex; gap: 3px; height: 12px; }
+    .gduel span { min-width: 8px; border-radius: 99px; }
+    .g1 { background: linear-gradient(90deg, #0f766e, #22d3ee); } .g2 { background: linear-gradient(90deg, #f472b6, #7c3aed); }
+    .gduel-l { display: flex; justify-content: space-between; margin-top: 5px; font-size: .82rem; color: var(--text-muted); }
+    .gduel-l .gagne { font-weight: 800; color: var(--text); }
+    .gli { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 0; border: 0; border-top: 1px solid var(--trait); background: none; color: var(--text); font: inherit; text-align: left; }
+    button.gli { cursor: pointer; }
+    .gli:first-child { border-top: 0; }
+    .gli > div { flex: 1; min-width: 0; }
+    .gli b { display: block; font-size: .9rem; }
+    .gli small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; color: var(--text-muted); }
+    .gli-top { max-width: 45%; text-align: right; font-size: .72rem; color: var(--text-muted); }
+    .gli-top b { font-size: .84rem; color: var(--text); }
+    .gchev { font-size: 1.3rem; font-weight: 700; color: var(--text-muted); }
+    html:root .gb-retirer { width: 100%; margin-top: 8px; color: var(--danger, #dc2626); }
+    .gymbro-invitation { padding: 14px; border-radius: 18px; background: var(--piste); font-size: .88rem; line-height: 1.45; }
+    .gymbro-invitation p { margin: 0 0 12px; }
+    .gymbro-invitation .btn { width: 100%; }
+    .gb-boutons { display: flex; gap: 8px; }
+    /* Mes gymbros */
+    .ginvite { display: flex; align-items: center; gap: 12px; margin: 0 0 12px; padding: 16px 14px; border-radius: 22px; color: #fff;
+      background: linear-gradient(150deg, #0f766e, #2563eb 60%, #7c3aed); box-shadow: 0 18px 34px -20px rgba(37, 99, 235, .85); }
+    .ginvite > div { flex: 1; min-width: 0; }
+    .ginvite b { display: block; font: 800 1.08rem 'Manrope', 'Inter', sans-serif; }
+    .ginvite small { display: block; margin-top: 3px; font-size: .78rem; line-height: 1.35; opacity: .92; }
+    .gbtn { display: inline-grid; place-items: center; flex: none; height: 40px; padding: 0 14px; border: 0; border-radius: 13px; cursor: pointer; white-space: nowrap;
+      background: #fff; color: #1e3a8a; font: 800 .82rem 'Inter', sans-serif; }
+    .gbtn--ok { background: linear-gradient(135deg, #059669, #0891b2); color: #fff; }
+    .gbtn--non { padding: 0 13px; background: var(--piste); color: var(--text); }
+    html:root .grech { margin: 0 0 8px; }
+    .gdem { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; padding: 10px 12px; border-radius: 18px; background: var(--carte-plein); box-shadow: 0 0 0 1px var(--trait); }
+    .gdem > div { flex: 1; min-width: 0; }
+    .gdem b { display: block; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; }
+    .gdem small { font-size: .78rem; color: var(--text-muted); }
+
     /* Apparition */
     .vitrine > *, #seance-cardio > * { animation: monte .55s cubic-bezier(.2,.8,.2,1) both; }
     .vitrine > :nth-child(2), #seance-cardio > :nth-child(2) { animation-delay: .05s; }
@@ -3804,6 +3906,7 @@
         <button type="button" onclick="choisirModeSeance('muscu')" aria-pressed="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Musculation</button>
         <button type="button" onclick="choisirModeSeance('cardio')" aria-pressed="false"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.2 12h3.3l1.5-3 3 6 1.5-3h8.3" /></svg> Cardio</button>
       </div>
+      <div id="gymbros-rangee" class="gstrip-zone"></div>
       <div id="seance-mode-muscu">
       <div id="vitrine-muscu" class="vitrine"></div>
       <div id="seance-lancer">
@@ -3829,7 +3932,6 @@
         </div>
       </div>
       <p class="note note-repliee" id="note-poids" style="margin: -4px 2px 14px;"></p>
-      <div id="fil-gymbros"></div>
     </div>
 
     <div id="seance-vue-active" class="hidden">
@@ -4177,6 +4279,7 @@
     </div>
 
     <div id="vitrine-profil" class="vitrine"></div>
+    <div id="gymbros-rangee-profil" class="gstrip-zone"></div>
 
     <div class="vitrine-sec"><h3>Mon compte</h3></div>
     <div class="carte-liste" id="carte-compte">
@@ -4212,11 +4315,6 @@
         <input type="checkbox" id="profil-partage" style="width:auto;" onchange="basculerPartageSeances(this.checked)">
         Partager mes séances avec mes gymbros
       </label>
-      <button type="button" class="ligne-reglage ligne-reglage--bouton" onclick="ouvrirGymbro()">
-        <span class="action-ic" style="background:linear-gradient(135deg,#34d399,#06b6d4)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
-        <span class="ligne-txt"><small>Gymbros</small><b>Comparer mes séances avec un ami</b></span>
-        <span class="ligne-chevron"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></span>
-      </button>
     </div>
 
     <div class="fitness-card" id="carte-objectif">
@@ -5359,17 +5457,29 @@
 <div id="gymbro-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-gymbro">
   <div class="modal-content" style="max-width:520px;">
     <div class="modal-entete">
-      <h3 id="titre-gymbro"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> Gymbro</h3>
+      <h3 id="titre-gymbro"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> Gymbros</h3>
       <button class="close-modal" onclick="fermerModal('gymbro-modal')" aria-label="Fermer">&times;</button>
     </div>
-    <div id="gymbro-vue-recherche">
-      <p class="note" style="margin:0 0 10px;">Cherche un ami par son nom d'utilisateur pour comparer vos séances et vos charges.</p>
-      <div class="input-group">
-        <label for="gymbro-recherche" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Nom d'utilisateur</label>
-        <input type="text" id="gymbro-recherche" placeholder="@nom d'utilisateur" autocapitalize="none" spellcheck="false" autocomplete="off" oninput="rechercherGymbro(this.value)">
+    <div id="gymbro-espace">
+      <div class="segment gb-onglets" id="gymbro-onglets" role="group" aria-label="Espace Gymbros">
+        <button type="button" onclick="choisirOngletGymbro('fil')" aria-pressed="true">Fil</button>
+        <button type="button" onclick="choisirOngletGymbro('classement')" aria-pressed="false">Classement</button>
+        <button type="button" onclick="choisirOngletGymbro('mes')" aria-pressed="false">Mes gymbros<i class="gbadge hidden" id="gymbro-badge-mes"></i></button>
       </div>
-      <div id="gymbro-favoris" style="margin-bottom:10px;"></div>
-      <div id="gymbro-resultats"></div>
+      <div id="gymbro-vue-fil"><div id="fil-gymbros"></div></div>
+      <div id="gymbro-vue-classement" class="hidden"></div>
+      <div id="gymbro-vue-recherche" class="hidden">
+        <div class="ginvite">
+          <div><b>Invite un ami</b><small>Il ouvre ton lien, ta fiche s'affiche : un geste et vous êtes gymbros.</small></div>
+          <button type="button" class="gbtn" onclick="partagerLienGymbro()">Partager le lien</button>
+        </div>
+        <div class="input-group grech">
+          <label for="gymbro-recherche" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Nom d'utilisateur</label>
+          <input type="search" id="gymbro-recherche" placeholder="@ Chercher un nom d'utilisateur…" autocapitalize="none" spellcheck="false" autocomplete="off" oninput="rechercherGymbro(this.value)">
+        </div>
+        <div id="gymbro-resultats"></div>
+        <div id="gymbro-favoris"></div>
+      </div>
     </div>
     <div id="gymbro-comparaison"></div>
   </div>
@@ -11092,9 +11202,9 @@ function allerA(nom) {
   window.scrollTo({ top: 0, behavior: 'auto' });
   reduireAppBar(false);
   if (nom === 'stats') { prepareStats(); }
-  if (nom === 'seance') { renderSeance(); choisirModeSeance(modeSeance, true); chargerFilGymbros(); }
+  if (nom === 'seance') { renderSeance(); choisirModeSeance(modeSeance, true); renderRangeesGymbros(); chargerFilGymbros(); }
   if (nom === 'repas') { majNoteCleIA(); renderPremiersPas(); }
-  if (nom === 'reglages') renderVitrineProfil();
+  if (nom === 'reglages') { renderVitrineProfil(); renderRangeesGymbros(); chargerFilGymbros(); }
   majBoutonPlus();
   // Les aliments ne sont chargés qu'à l'ouverture de leur feuille :
   // inutile d'interroger Supabase tant que personne ne les regarde.
@@ -11377,7 +11487,7 @@ const TOUR_MUSCU = [
   { ecran: 'seance', cible: '[onclick="ouvrirCreationProgramme()"]', titre: 'Créer un programme', texte: "Ajoute tes exercices, règle les séries, les techniques (dégressif, pyramidal…), les supersets, le tempo et l'objectif de chaque exercice. Comme en séance, glisse un exercice vers la gauche pour le retirer, vers la droite pour le remplacer ; garde le doigt appuyé dessus pour le déplacer dans la liste ; touche son nom pour voir ta courbe de progression." },
   { ecran: 'seance', cible: '[onclick="ouvrirAssistantProgrammeIA()"]', titre: "Programme par l'IA", texte: "Donne ton objectif, tes jours disponibles et ton matériel : l'IA te propose un programme complet, que tu peux ensuite modifier." },
   { ecran: 'seance', cible: '[onclick="ouvrirBibliotheque()"]', titre: "Bibliothèque d'exercices", texte: "Plus de 800 exercices, filtrés par muscle et par matériel. Chaque fiche a trois onglets : Instructions (vidéo, muscles, étapes), Résumé (tes records et ta courbe) et Historique." },
-  { ecran: 'seance', cible: '[onclick="ouvrirGymbro()"]', titre: 'Gymbro', texte: "Compare tes séances avec celles d'un ami grâce à son nom d'utilisateur." },
+  { ecran: 'seance', cible: '#gymbros-rangee .gstrip', titre: 'Tes gymbros', texte: "Tes amis en un coup d'œil (anneau = entraîné aujourd'hui). « Tout voir » ouvre leur fil, le classement de la semaine et vos face-à-face ; « + » partage ton lien d'invitation." },
   { ecran: 'seance', cible: '#seance-lancer', titre: 'Lancer une séance',
     texte: () => (musculationSessionActive && !musculationSessionActive.demo
       ? "Touche un programme, ou « Séance vide » pour choisir tes exercices au fil de l'eau. Suivant : on passe à ta séance en cours."
@@ -11911,7 +12021,7 @@ function definirSessionUtilisateur(user) {
     verifierStatutCompte();
     chargerMonPseudo();
     chargerMonProfil();
-    chargerLiensGymbro();
+    chargerLiensGymbro().then(ouvrirInvitationGymbro);
     compterAValiderAdmin();
     chargerFilGymbros(true);
     chargerRecettesPartagees();
@@ -13008,18 +13118,149 @@ function majUIPseudo() {
 
 /* --------------------------------- Gymbro ---------------------------------- */
 let gymbroRechercheTimer = null;
-function ouvrirGymbro() {
+/* Espace Gymbros : Fil, Classement, Mes gymbros. Sans précision, il
+   s'ouvre sur le fil, ou sur Mes gymbros quand une demande attend. Avec
+   un nom d'utilisateur, la fiche de cette personne s'ouvre directement. */
+let gymbroOnglet = 'fil';
+function ouvrirGymbro(onglet, pseudo) {
   document.getElementById('gymbro-recherche').value = '';
   document.getElementById('gymbro-resultats').innerHTML = '';
   document.getElementById('gymbro-comparaison').innerHTML = '';
-  document.getElementById('gymbro-vue-recherche').classList.remove('hidden');
-  renderGymbrosFavoris();
+  document.getElementById('gymbro-espace').classList.remove('hidden');
   ouvrirModal('gymbro-modal');
-  // Liste à jour à chaque ouverture (une demande a pu arriver entre-temps).
-  chargerLiensGymbro().then(() => { if (!document.getElementById('gymbro-vue-recherche').classList.contains('hidden')) renderGymbrosFavoris(); });
-  if (sessionUtilisateur && !monPseudo && !monPseudoIndispo) {
-    document.getElementById('gymbro-resultats').innerHTML = `<p class="note">Astuce : choisis aussi ton propre nom d'utilisateur pour que tes gymbros te trouvent. <button type="button" class="btn-icone" style="font-size:0.75rem;" onclick="ouvrirPseudoModal()">Choisir</button></p>`;
+  choisirOngletGymbro(['fil', 'classement', 'mes'].includes(onglet) ? onglet : (demandesGymbroRecues().length ? 'mes' : 'fil'));
+  if (pseudo) comparerGymbro(pseudo);
+  // Listes à jour à chaque ouverture (une demande a pu arriver entre-temps).
+  chargerLiensGymbro().then(() => {
+    if (!document.getElementById('gymbro-espace').classList.contains('hidden')) choisirOngletGymbro(gymbroOnglet);
+    chargerSeancesGymbros();
+  });
+  chargerFilGymbros();
+}
+function gymbroModalOuvert() {
+  const m = document.getElementById('gymbro-modal');
+  return !!(m && m.classList.contains('show'));
+}
+function choisirOngletGymbro(onglet) {
+  gymbroOnglet = onglet;
+  majSegment('gymbro-onglets', ['fil', 'classement', 'mes'], onglet);
+  [['fil', 'gymbro-vue-fil'], ['classement', 'gymbro-vue-classement'], ['mes', 'gymbro-vue-recherche']].forEach(([k, id]) =>
+    document.getElementById(id).classList.toggle('hidden', k !== onglet));
+  if (onglet === 'fil') renderFilGymbros();
+  else if (onglet === 'classement') renderClassementGymbros();
+  else renderGymbrosFavoris();
+}
+/* Pastille ronde d'un gymbro : sa photo ou son initiale sur une teinte qui
+   lui est propre ; un anneau dégradé s'il s'est entraîné aujourd'hui. */
+const TEINTES_AVATAR = ['linear-gradient(135deg,#f472b6,#7c3aed)', 'linear-gradient(135deg,#22d3ee,#2563eb)', 'linear-gradient(135deg,#fbbf24,#f97316)',
+  'linear-gradient(135deg,#34d399,#0d9488)', 'linear-gradient(135deg,#a3e635,#16a34a)', 'linear-gradient(135deg,#fb7185,#e11d48)', 'linear-gradient(135deg,#818cf8,#4f46e5)'];
+function teinteAvatar(pseudo) {
+  let h = 0;
+  for (const ch of String(pseudo || '').toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return TEINTES_AVATAR[h % TEINTES_AVATAR.length];
+}
+function bulleGymbro(pseudo, taille, anneau, moi) {
+  const av = moi ? avatarHTML(pseudo, monProfil && monProfil.avatar) : avatarGymbro(pseudo);
+  return `<span class="gav${anneau ? ' gav--actif' : ''}" style="--t:${taille}px;--av:${teinteAvatar(pseudo)}">${av}</span>`;
+}
+/* Dernière séance connue d'un gymbro (fil des 14 jours, ou ses 90 jours
+   partagés s'ils sont déjà chargés). */
+function derniereSeanceGymbro(pseudo) {
+  const p = String(pseudo).toLowerCase();
+  let d = null;
+  (filGymbros || []).forEach(f => { if (f.pseudo.toLowerCase() === p && (!d || f.donnees.date > d.date)) d = f.donnees; });
+  const c = seancesGymbros[p];
+  if (c) c.seances.forEach(h => { if (!d || h.date > d.date) d = h; });
+  return d;
+}
+/* « 1 h », « hier », « 3 j » : la fin de séance donne l'heure quand elle existe. */
+function quandGymbro(d, court) {
+  const n = Math.round((dateLocale(todayStr()) - dateLocale(d.date)) / 86400000);
+  if (n <= 0) {
+    const fin = Number(d.fin);
+    const h = fin > 0 && fin <= Date.now() ? Math.floor((Date.now() - fin) / 3600000) : -1;
+    if (h < 0) return court ? 'auj.' : "aujourd'hui";
+    if (h < 1) return court ? 'à l’instant' : "à l'instant";
+    return court ? h + ' h' : 'il y a ' + h + ' h';
   }
+  if (n === 1) return 'hier';
+  return court && n < 7 ? n + ' j' : 'il y a ' + n + ' j';
+}
+function sousTitreGymbro(d, court) {
+  if (!d) return court ? '—' : 'Aucune séance partagée ces derniers jours';
+  const recent = d.date >= decalerJours(todayStr(), -1);
+  return (recent || !court ? resumeSeanceFil(d).titre + ' · ' : '') + quandGymbro(d, court && recent);
+}
+/* Rangée « Tes gymbros » en haut d'Activité et du Profil. */
+function rangeeGymbrosHTML() {
+  if (!sessionUtilisateur || !gymbroLiensActifs) return '';
+  const auj = todayStr();
+  const recues = demandesGymbroRecues();
+  const acceptes = gymbroLiens.filter(l => l.statut === 'acceptee').map(l => ({ pseudo: l.pseudo, d: derniereSeanceGymbro(l.pseudo) }))
+    .sort((a, b) => (b.d ? b.d.date : '').localeCompare(a.d ? a.d.date : '') || a.pseudo.localeCompare(b.pseudo));
+  const bulles = [`<button type="button" class="gst" onclick="partagerLienGymbro()"><span class="gav gav--inviter" style="--t:56px"><i aria-hidden="true">+</i></span><small>Inviter</small></button>`]
+    .concat(recues.map(l => `<button type="button" class="gst" onclick="ouvrirGymbro('mes')" aria-label="@${escapeHtml(l.pseudo)} veut être ton gymbro">${bulleGymbro(l.pseudo, 56)}<small>@${escapeHtml(l.pseudo)}</small><em class="nouv">Nouveau</em></button>`))
+    .concat(acceptes.map(({ pseudo, d }) => `<button type="button" class="gst" onclick="ouvrirGymbro('fil', ${argJs(pseudo)})">${bulleGymbro(pseudo, 56, !!d && d.date === auj)}<small>@${escapeHtml(pseudo)}</small><em>${escapeHtml(sousTitreGymbro(d, true))}</em></button>`));
+  const vide = acceptes.length || recues.length ? '' : '<p class="gstrip-vide">Invite tes amis : vous verrez vos séances et pourrez vous encourager.</p>';
+  return `<div class="gstrip"><div class="gstrip-tete"><b>Tes gymbros</b><button type="button" class="gstrip-tout" onclick="ouvrirGymbro()">Tout voir ›</button></div>
+    <div class="gstrip-ligne">${bulles.join('')}${vide}</div></div>`;
+}
+function renderRangeesGymbros() {
+  const html = rangeeGymbrosHTML();
+  ['gymbros-rangee', 'gymbros-rangee-profil'].forEach(id => { const z = document.getElementById(id); if (z && z.innerHTML !== html) z.innerHTML = html; });
+}
+/* Lien d'invitation : https://…/?gymbro=pseudo. Celui qui l'ouvre arrive
+   sur ta fiche, avec le bouton pour devenir gymbros. */
+async function partagerLienGymbro() {
+  if (!sessionUtilisateur) { alert('Connecte-toi pour inviter un ami.'); return; }
+  if (!monPseudo) {
+    if (monPseudoIndispo) { alert(MESSAGE_SQL_MANQUANT); return; }
+    alert("Choisis d'abord ton nom d'utilisateur : c'est lui que ton lien d'invitation ouvrira.");
+    ouvrirPseudoModal();
+    return;
+  }
+  const url = location.origin + location.pathname + '?gymbro=' + encodeURIComponent(monPseudo.pseudo);
+  if (navigator.share) {
+    try { await navigator.share({ title: 'Deviens mon gymbro', text: 'Rejoins-moi sur Anqā : on compare nos séances et on se motive 💪', url }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  try { await navigator.clipboard.writeText(url); afficherInfo("Lien copié : envoie-le à ton ami."); }
+  catch (e) { prompt('Copie ce lien et envoie-le à ton ami :', url); }
+}
+let invitationGymbro = null;
+function lireInvitationGymbro() {
+  const params = new URLSearchParams(location.search);
+  if (!params.has('gymbro')) return;
+  const p = normaliserPseudo(params.get('gymbro'));
+  params.delete('gymbro');
+  history.replaceState({}, '', location.pathname + (params.toString() ? '?' + params : '') + location.hash);
+  if (!PSEUDO_REGEX.test(p)) return;
+  invitationGymbro = p;
+  try { sessionStorage.setItem('mc_invitation_gymbro', p); } catch (e) {}
+}
+/* Appelée une fois les liens chargés après la connexion : l'invitation
+   attend jusque-là (même si la personne doit d'abord créer son compte). */
+function ouvrirInvitationGymbro() {
+  let p = invitationGymbro;
+  try { p = p || sessionStorage.getItem('mc_invitation_gymbro'); } catch (e) {}
+  if (!p || !sessionUtilisateur || !gymbroLiensActifs) return;
+  invitationGymbro = null;
+  try { sessionStorage.removeItem('mc_invitation_gymbro'); } catch (e) {}
+  if (monPseudo && monPseudo.pseudo.toLowerCase() === p) return;
+  ouvrirGymbro('mes', p);
+}
+/* Message bref en bas de l'écran (même habillage que « Annuler »). */
+function afficherInfo(texte) {
+  let t = document.getElementById('toast-info');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-info'; t.className = 'toast-annuler'; t.setAttribute('role', 'status'); t.setAttribute('aria-live', 'polite');
+    document.body.appendChild(t);
+  }
+  t.textContent = texte;
+  t.classList.add('visible');
+  clearTimeout(afficherInfo.minuteur);
+  afficherInfo.minuteur = setTimeout(() => t.classList.remove('visible'), 3000);
 }
 /* --- Profil : photo et bio (table profils, voir SQL_GYMBRO_PHOTOS) ---
    Visibles seulement par soi et ses gymbros acceptés (vérifié par le
@@ -13167,21 +13408,25 @@ function semainesDAffilee(historique) {
   while (semaines.has(lundi)) { n++; lundi = decalerJours(lundi, -7); }
   return n;
 }
+/* En-tête face-à-face de la fiche d'un gymbro : toi contre lui, sa bio
+   et ses chiffres en puces. */
 function profilGymbroHTML(pseudo, siennes) {
   const prof = profilsGymbros[String(pseudo).toLowerCase()] || {};
   const debutMois = todayStr().slice(0, 8) + '01';
   const ceMois = siennes.filter(h => h && typeof h.date === 'string' && h.date >= debutMois).length;
   const serie = semainesDAffilee(siennes);
   const depuis = prof.membreDepuis ? new Date(prof.membreDepuis).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '';
-  return `<div class="profil-gymbro">
-    ${avatarGymbro(pseudo, 'avatar--grand')}
-    <div class="profil-gymbro-texte"><b>@${escapeHtml(pseudo)}</b>
-      ${prof.bio ? `<p>${escapeHtml(prof.bio)}</p>` : ''}
-      ${depuis ? `<small>Membre depuis ${escapeHtml(depuis)}</small>` : ''}</div>
-  </div>
-  <div class="profil-gymbro-chiffres">
-    <span><b>${ceMois}</b> séance${ceMois > 1 ? 's' : ''} ce mois-ci</span>
-    <span><b>${serie}</b> semaine${serie > 1 ? 's' : ''} d'affilée</span>
+  const moi = monPseudo ? monPseudo.pseudo : ((sessionUtilisateur && sessionUtilisateur.email) || 'Toi');
+  return `<div class="profil-gymbro gface">
+    <div class="gface-p">${bulleGymbro(moi, 64, false, true)}<b>Toi</b></div>
+    <div class="gface-vs" aria-hidden="true">VS</div>
+    <div class="gface-p">${bulleGymbro(pseudo, 64, siennes.some(h => h && h.date === todayStr()))}<b>@${escapeHtml(pseudo)}</b></div>
+    ${prof.bio ? `<p>${escapeHtml(prof.bio)}</p>` : ''}
+    <div class="gface-chips profil-gymbro-chiffres">
+      ${depuis ? `<small>Membre depuis ${escapeHtml(depuis)}</small>` : ''}
+      <span><b>${ceMois}</b> séance${ceMois > 1 ? 's' : ''} ce mois-ci</span>
+      <span><span aria-hidden="true">🔥</span> <b>${serie}</b> semaine${serie > 1 ? 's' : ''} d'affilée</span>
+    </div>
   </div>`;
 }
 
@@ -13224,14 +13469,17 @@ function demandesGymbroRecues() { return gymbroLiens.filter(l => l.sens === 'rec
    - Gymbro : demandes reçues ; onglet Activité : demandes + nouveaux respects ;
    - Administration (admin seulement) : aliments partagés à valider ;
    - bouton principal de navigation : le total. */
+/* Pastilles de la navigation et des boutons concernés :
+   - onglet Mes gymbros : demandes reçues ; onglet Activité : demandes + nouveaux respects ;
+   - Administration (admin seulement) : aliments partagés à valider ;
+   - bouton principal de navigation : le total. */
 function majPastilleGymbro() {
   const demandes = demandesGymbroRecues().length;
   const activite = demandes + nouveauxRespects().length;
   const admin = estCompteAdmin() ? adminAValider.aliments : 0;
   const parId = id => document.getElementById(id);
-  const cibles = [...document.querySelectorAll('[onclick="ouvrirGymbro()"]').values()].map(b => [b, demandes])
-    .concat([[parId('nav-admin'), admin], [parId('onglet-seance'), activite], [parId('onglet-profil'), admin],
-      [document.querySelector('[onclick="afficherFeuillAlimentsPersonalises()"]'), admin]].filter(([b]) => b));
+  const cibles = [[parId('nav-admin'), admin], [parId('onglet-seance'), activite], [parId('onglet-profil'), admin],
+    [document.querySelector('[onclick="afficherFeuillAlimentsPersonalises()"]'), admin]].filter(([b]) => b);
   cibles.forEach(([b, n]) => {
     let pastille = b.querySelector(':scope > .pastille-gymbro');
     if (!n) { if (pastille) pastille.remove(); return; }
@@ -13244,14 +13492,28 @@ function majPastilleGymbro() {
     pastille.textContent = n > 9 ? '9+' : String(n);
     pastille.setAttribute('aria-label', n + ' élément' + (n > 1 ? 's' : '') + ' en attente');
   });
+  const badge = parId('gymbro-badge-mes');
+  if (badge) {
+    badge.textContent = demandes > 9 ? '9+' : String(demandes);
+    badge.classList.toggle('hidden', !demandes);
+    badge.setAttribute('aria-label', demandes + ' demande' + (demandes > 1 ? 's' : '') + ' reçue' + (demandes > 1 ? 's' : ''));
+  }
+  renderRangeesGymbros();
 }
+/* Onglet Mes gymbros : demandes reçues, gymbros (avec leur dernière
+   séance), demandes envoyées. */
 function renderGymbrosFavoris() {
   const c = document.getElementById('gymbro-favoris');
-  const puces = (liste, extra) => `<div class="gymbro-puces">${liste.map(p => `<button type="button" onclick="comparerGymbro(${argJs(p)})">${avatarGymbro(p, 'avatar--mini')}@${escapeHtml(p)}${extra ? ` <small>${escapeHtml(extra)}</small>` : ''}</button>`).join('')}</div>`;
-  const titre = t => `<p class="note" style="margin:10px 0 6px; font-weight:700;">${t}</p>`;
+  const titre = t => `<p class="gb-sec">${t}</p>`;
+  const auj = todayStr();
+  const ligne = (p, sous, anneau) => `<button type="button" class="gli" onclick="comparerGymbro(${argJs(p)})">${bulleGymbro(p, 42, anneau)}
+    <div><b>@${escapeHtml(p)}</b><small>${escapeHtml(sous)}</small></div><span class="gchev" aria-hidden="true">›</span></button>`;
+  let html = sessionUtilisateur && !monPseudo && !monPseudoIndispo
+    ? `<div class="note gb-astuce">Choisis aussi ton nom d'utilisateur pour que tes amis te trouvent. <button type="button" class="btn-icone" onclick="ouvrirPseudoModal()">Choisir</button></div>` : '';
   if (!gymbroLiensActifs) {
     const liste = (userProfile.gymbros || []);
-    c.innerHTML = liste.length ? titre('Mes gymbros') + puces(liste) : '';
+    if (liste.length) html += titre('Mes gymbros') + `<div class="gb-carte gliste">${liste.map(p => ligne(p, 'Comparer nos séances')).join('')}</div>`;
+    c.innerHTML = html;
     return;
   }
   const recues = demandesGymbroRecues();
@@ -13259,18 +13521,25 @@ function renderGymbrosFavoris() {
   const envoyees = gymbroLiens.filter(l => l.sens === 'envoyee' && l.statut === 'attente').map(l => l.pseudo);
   // Anciens favoris (avant les demandes) : à inviter, rien n'est envoyé sans toi.
   const aInviter = (userProfile.gymbros || []).filter(p => !lienGymbro(p));
-  let html = '';
   if (recues.length) {
-    html += titre('Demandes reçues') + recues.map(l => `<div class="gymbro-demande">
-      <span class="gymbro-demande-qui">${avatarGymbro(l.pseudo, 'avatar--mini')}<span><b>@${escapeHtml(l.pseudo)}</b> veut être ton gymbro</span></span>
-      <span class="gymbro-demande-actions">
-        <button type="button" class="btn-icone gymbro-accepter" onclick="repondreGymbro(${argJs(l.pseudo)}, true)">Accepter</button>
-        <button type="button" class="btn-icone" onclick="repondreGymbro(${argJs(l.pseudo)}, false)">Refuser</button>
-      </span></div>`).join('');
+    html += titre(recues.length > 1 ? 'Demandes reçues' : 'Demande reçue') + recues.map(l => `<div class="gdem">${bulleGymbro(l.pseudo, 44)}
+      <div><b>@${escapeHtml(l.pseudo)}</b><small>veut être ton gymbro</small></div>
+      <button type="button" class="gbtn gbtn--ok gymbro-accepter" onclick="repondreGymbro(${argJs(l.pseudo)}, true)">Accepter</button>
+      <button type="button" class="gbtn gbtn--non" onclick="repondreGymbro(${argJs(l.pseudo)}, false)" aria-label="Refuser la demande de @${escapeHtml(l.pseudo)}">✕</button></div>`).join('');
   }
-  if (acceptes.length) html += titre('Mes gymbros') + puces(acceptes);
-  if (envoyees.length) html += titre('Demandes envoyées') + puces(envoyees, 'en attente');
-  if (aInviter.length) html += titre('À inviter') + puces(aInviter);
+  if (acceptes.length) {
+    const tries = acceptes.map(p => ({ p, d: derniereSeanceGymbro(p) })).sort((a, b) => (b.d ? b.d.date : '').localeCompare(a.d ? a.d.date : ''));
+    html += titre('Tes gymbros · ' + acceptes.length) + `<div class="gb-carte gliste">${tries.map(({ p, d }) => ligne(p, sousTitreGymbro(d), !!d && d.date === auj)).join('')}</div>`;
+  }
+  if (envoyees.length) {
+    html += titre(envoyees.length > 1 ? 'Demandes envoyées' : 'Demande envoyée') + envoyees.map(p => `<div class="gdem">${bulleGymbro(p, 40)}
+      <div><b>@${escapeHtml(p)}</b><small>en attente</small></div>
+      <button type="button" class="gbtn gbtn--non" onclick="annulerLienGymbro(${argJs(p)}, false, true)">Annuler</button></div>`).join('');
+  }
+  if (aInviter.length) html += titre('À inviter') + `<div class="gb-carte gliste">${aInviter.map(p => ligne(p, 'Envoyer une demande')).join('')}</div>`;
+  if (!recues.length && !acceptes.length && !envoyees.length && !aInviter.length) {
+    html += `<p class="note gb-vide-note">Pas encore de gymbro : partage ton lien ou cherche un ami par son nom d'utilisateur.</p>`;
+  }
   c.innerHTML = html;
 }
 /* --- Fil des gymbros (onglet Activité) ---
@@ -13342,35 +13611,106 @@ function dateRelativeFil(iso) {
   if (n < 7) return 'Il y a ' + n + ' jours';
   return dateLocale(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
+/* Séances partagées de chaque gymbro accepté (90 jours, gymbro_seances) :
+   records du fil et régularité du classement. Gardées 10 minutes. */
+let seancesGymbros = {};   // pseudo en minuscules -> { quand, seances }
+function nettoyerSeancesGymbro(data) {
+  return (data || []).map(r => r && r.donnees).filter(d => d && estDateIsoFil(d.date) && Array.isArray(d.exercices));
+}
+async function chargerSeancesGymbros(force) {
+  if (!supa || !sessionUtilisateur || !gymbroLiensActifs) return;
+  const aCharger = gymbroLiens.filter(l => l.statut === 'acceptee').map(l => l.pseudo).slice(0, 20).filter(p => {
+    const c = seancesGymbros[p.toLowerCase()];
+    return force || !c || Date.now() - c.quand > 600000;
+  });
+  if (!aCharger.length) return;
+  await Promise.all(aCharger.map(async p => {
+    try {
+      const { data, error } = await supa.rpc('gymbro_seances', { p_pseudo: p });
+      if (error) throw error;
+      seancesGymbros[p.toLowerCase()] = { quand: Date.now(), seances: nettoyerSeancesGymbro(data) };
+    } catch (e) { /* séances non partagées ou hors ligne : pas de record ni de régularité, le reste s'affiche */ }
+  }));
+  if (gymbroModalOuvert() && !document.getElementById('gymbro-espace').classList.contains('hidden')) choisirOngletGymbro(gymbroOnglet);
+  else renderRangeesGymbros();
+}
+/* Record battu pendant cette séance : meilleur 1RM estimé d'un exercice
+   au-dessus de tout ce que la personne avait fait avant (sur ses 90 jours
+   partagés). Un exercice fait pour la première fois n'en est pas un. */
+function recordSeanceGymbro(pseudo, d) {
+  const c = seancesGymbros[String(pseudo).toLowerCase()];
+  if (!c) return null;
+  const avant = c.seances.filter(h => h.date < d.date);
+  let mieux = null;
+  d.exercices.forEach(e => {
+    if (!e || !Array.isArray(e.series)) return;
+    const ici = meilleur1RM(e.exerciceId, [d]);
+    const prec = ici && meilleur1RM(e.exerciceId, avant);
+    const p = ici && Number(ici.poids), r = ici && Number(ici.reps);
+    if (!prec || !(p > 0 && p < 1000 && r > 0 && r < 1000) || ici.valeur <= prec.valeur * 1.001) return;
+    const gain = ici.valeur / prec.valeur;
+    if (mieux && gain <= mieux.gain) return;
+    const exo = trouverExercice(e.exerciceId);
+    mieux = { gain, poids: p, reps: Math.round(r), nom: exo ? libelleExercice(exo) : (typeof e.nom === 'string' && e.nom ? e.nom.slice(0, 60) : 'Exercice') };
+  });
+  return mieux;
+}
+/* Mini silhouette des muscles travaillés, vue de dos si la séance a
+   surtout fait travailler l'arrière du corps. */
+const GROUPES_VUE_DOS = ['dos', 'trapezes', 'lombaires', 'ischios', 'fessiers', 'triceps', 'mollets'];
+function silhouetteSeanceFil(d) {
+  const series = {};
+  d.exercices.forEach(e => {
+    if (!e || !Array.isArray(e.series)) return;
+    const exo = trouverExercice(e.exerciceId);
+    const n = e.series.filter(x => x && x.fait).length;
+    if (exo && GROUPES_MUSCULAIRES[exo.groupe] && n) series[exo.groupe] = (series[exo.groupe] || 0) + n;
+  });
+  let dos = 0, face = 0;
+  const couleurs = {};
+  const rose = themeClairActif() ? '#db2777' : '#f472b6';
+  Object.keys(series).forEach(g => { couleurs[g] = rose; if (GROUPES_VUE_DOS.includes(g)) dos += series[g]; else face += series[g]; });
+  return silhouetteSVG(dos > face ? 'dos' : 'face', couleurs);
+}
+function poidsFr(p) { return String(Math.round(p * 10) / 10).replace('.', ','); }
 function renderFilGymbros() {
+  renderRangeesGymbros();
   const zone = document.getElementById('fil-gymbros');
   if (!zone) return;
-  if (filGymbros === null) { zone.innerHTML = ''; return; }
+  if (filGymbros === null) {
+    zone.innerHTML = `<p class="note fil-vide">${sessionUtilisateur ? "Le fil de tes gymbros n'est pas disponible pour l'instant." : 'Connecte-toi pour suivre les séances de tes gymbros.'}</p>`;
+    return;
+  }
   const nouveaux = nouveauxRespects();
-  let html = '<div class="titre-section">Fil de tes gymbros</div>';
+  let html = '';
   if (respectsRecus.length) {
     const noms = [...new Set(respectsRecus.map(r => r.pseudo))];
     const qui = noms.slice(0, 2).map(p => '@' + p).join(', ') + (noms.length > 2 ? ' et ' + (noms.length - 2) + ' autre' + (noms.length > 3 ? 's' : '') : '');
-    html += `<div class="fil-respects${nouveaux.length ? ' fil-respects--nouveau' : ''}"><span aria-hidden="true">💪</span><span><b>${respectsRecus.length} respect${respectsRecus.length > 1 ? 's' : ''}</b> reçu${respectsRecus.length > 1 ? 's' : ''} ces 14 derniers jours (${escapeHtml(qui)})</span></div>`;
+    html += `<div class="fil-respects${nouveaux.length ? ' fil-respects--nouveau' : ''}"><span aria-hidden="true">💪</span><span><b>${respectsRecus.length} respect${respectsRecus.length > 1 ? 's' : ''}</b> reçu${respectsRecus.length > 1 ? 's' : ''} ces 14 derniers jours · ${escapeHtml(qui)}</span></div>`;
   }
   if (!filGymbros.length) {
     const acceptes = gymbroLiens.filter(l => l.statut === 'acceptee').length;
-    html += `<p class="note fil-vide">${acceptes ? 'Aucune séance partagée par tes gymbros ces 14 derniers jours.' : 'Ajoute des gymbros pour voir leurs séances ici et les encourager.'}
-      <button type="button" class="btn-icone" onclick="ouvrirGymbro()">${acceptes ? 'Mes gymbros' : 'Trouver un gymbro'}</button></p>`;
+    html += `<div class="gvide"><b>${acceptes ? 'Rien de neuf pour l’instant' : 'Ton fil est vide'}</b>
+      <p>${acceptes ? 'Aucune séance partagée par tes gymbros ces 14 derniers jours.' : 'Ajoute des gymbros pour voir leurs séances ici et les encourager.'}</p>
+      <button type="button" class="gbtn gbtn--ok" onclick="choisirOngletGymbro('mes')">${acceptes ? 'Mes gymbros' : 'Inviter un ami'}</button></div>`;
   } else {
+    const auj = todayStr();
     html += filGymbros.slice(0, filGymbrosVisibles).map((f, i) => {
       const r = resumeSeanceFil(f.donnees);
-      const stats = [r.duree ? `<span><b>${r.duree}</b> min</span>` : '', `<span><b>${r.series}</b> série${r.series > 1 ? 's' : ''}</span>`,
-        r.volume ? `<span><b>${r.volume.toLocaleString('fr-FR')}</b> kg</span>` : ''].join('');
+      const record = recordSeanceGymbro(f.pseudo, f.donnees);
+      const tuile = (v, u) => `<div><b>${v}</b> <span>${u}</span></div>`;
+      const stats = [r.duree ? tuile(r.duree, 'min') : '', tuile(r.series, 'série' + (r.series > 1 ? 's' : '')), r.volume ? tuile(r.volume.toLocaleString('fr-FR'), 'kg') : ''].join('');
       return `<div class="fil-carte">
-        <div class="fil-tete">${avatarGymbro(f.pseudo, 'fil-avatar')}
-          <div class="fil-qui"><b>@${escapeHtml(f.pseudo)}</b><small>${escapeHtml(dateRelativeFil(f.donnees.date))} · ${escapeHtml(r.titre)}</small></div></div>
-        <div class="fil-stats">${stats}</div>
-        ${r.muscles.length ? `<div class="fil-ligne">${escapeHtml(r.muscles.join(' · '))}</div>` : ''}
-        ${r.meilleure ? `<div class="fil-ligne">Meilleure série : ${escapeHtml(r.meilleure.nom)} · ${escapeHtml(String(r.meilleure.poids).replace('.', ','))} kg × ${r.meilleure.reps}</div>` : ''}
-        <div class="fil-actions">
+        <div class="gcarte-tete">${bulleGymbro(f.pseudo, 40, f.donnees.date === auj)}
+          <div class="fil-qui"><b>@${escapeHtml(f.pseudo)}</b><small>${escapeHtml(dateRelativeFil(f.donnees.date))} · ${escapeHtml(r.titre)}</small></div>
+          ${record ? '<span class="grec">🏆 Record</span>' : ''}</div>
+        <div class="gcarte-corps"><span class="gsil" role="img" aria-label="${escapeHtml(r.muscles.length ? 'Muscles travaillés : ' + r.muscles.join(', ') : 'Muscles travaillés')}">${silhouetteSeanceFil(f.donnees)}</span>
+          <div class="fil-stats">${stats}</div></div>
+        ${record ? `<div class="gcarte-rec">A battu son record : <b>${escapeHtml(record.nom)} · ${poidsFr(record.poids)} kg × ${record.reps}</b></div>`
+          : r.meilleure ? `<div class="fil-ligne">Meilleure série : ${escapeHtml(r.meilleure.nom)} · ${escapeHtml(poidsFr(r.meilleure.poids))} kg × ${r.meilleure.reps}</div>` : ''}
+        <div class="gcarte-actions">
           <button type="button" class="fil-respect" aria-pressed="${f.monRespect}" onclick="basculerRespectFil(${i})"><span aria-hidden="true">💪</span> Respect${f.respects ? ' · ' + f.respects : ''}</button>
-          <button type="button" class="btn-icone" onclick="comparerDepuisFil(${argJs(f.pseudo)})">Comparer</button>
+          <button type="button" class="gcomp" onclick="comparerDepuisFil(${argJs(f.pseudo)})">Comparer</button>
         </div>
       </div>`;
     }).join('');
@@ -13378,11 +13718,83 @@ function renderFilGymbros() {
   }
   zone.innerHTML = html;
   // Le fil est affiché : les respects reçus sont vus.
-  if (nouveaux.length && document.getElementById('ecran-seance')?.classList.contains('actif')) {
+  if (nouveaux.length && gymbroModalOuvert() && gymbroOnglet === 'fil' && !document.getElementById('gymbro-espace').classList.contains('hidden')) {
     userProfile.respectsVus = Math.max(...nouveaux.map(r => r.quand));
     saveData();
     majPastilleGymbro();
   }
+}
+/* Classement de la semaine (lundi → aujourd'hui) entre toi et tes gymbros :
+   volume soulevé, nombre de séances, ou régularité (semaines d'affilée). */
+let gymbroMesure = 'volume';
+function choisirMesureGymbro(m) { gymbroMesure = m; renderClassementGymbros(); }
+function valeurClassement(v) {
+  if (gymbroMesure === 'volume') return v >= 1000 ? [(v / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 }), 't'] : [String(v), 'kg'];
+  if (gymbroMesure === 'seances') return [String(v), v > 1 ? 'séances' : 'séance'];
+  return [String(v), 'sem.'];
+}
+function participantsClassement() {
+  const lundi = lundiDeLaSemaine(todayStr());
+  const mesure = hist => {
+    const sem = hist.filter(h => h && h.date >= lundi);
+    if (gymbroMesure === 'volume') return sem.reduce((n, h) => n + resumeSeanceFil(h).volume, 0);
+    if (gymbroMesure === 'seances') return sem.length;
+    return semainesDAffilee(hist);
+  };
+  const liste = [{ pseudo: monPseudo ? monPseudo.pseudo : 'toi', moi: true, v: mesure(musculationHistorique) }];
+  gymbroLiens.filter(l => l.statut === 'acceptee').forEach(l => {
+    const c = seancesGymbros[l.pseudo.toLowerCase()];
+    const hist = c ? c.seances : (filGymbros || []).filter(f => f.pseudo.toLowerCase() === l.pseudo.toLowerCase()).map(f => f.donnees);
+    liste.push({ pseudo: l.pseudo, moi: false, v: mesure(hist) });
+  });
+  return liste.sort((a, b) => b.v - a.v || (a.moi ? -1 : b.moi ? 1 : a.pseudo.localeCompare(b.pseudo)));
+}
+function renderClassementGymbros() {
+  const zone = document.getElementById('gymbro-vue-classement');
+  if (!zone) return;
+  const mesures = [['volume', 'Volume'], ['seances', 'Séances'], ['regularite', 'Régularité']];
+  let html = `<div class="segment gb-mesure" id="gymbro-mesure" role="group" aria-label="Classer par">${mesures.map(([k, l]) =>
+    `<button type="button" onclick="choisirMesureGymbro('${k}')" aria-pressed="${k === gymbroMesure}">${l}</button>`).join('')}</div>`;
+  const liste = participantsClassement();
+  if (liste.length < 2) {
+    zone.innerHTML = html + `<div class="gvide"><b>Le classement t'attend</b><p>Invite des amis : chaque semaine, vous verrez qui a soulevé le plus, qui s'est entraîné le plus souvent et qui ne lâche rien.</p>
+      <button type="button" class="gbtn gbtn--ok" onclick="choisirOngletGymbro('mes')">Inviter un ami</button></div>`;
+    return;
+  }
+  const nom = p => p.moi ? 'Toi' : '@' + escapeHtml(p.pseudo);
+  const bulle = (p, t, anneau) => bulleGymbro(p.pseudo, t, anneau, p.moi);
+  const val = p => { const [v, u] = valeurClassement(p.v); return { v, u }; };
+  // Podium : 2e, 1er, 3e.
+  const podium = [[liste[1], 'p2', 2, 52], [liste[0], 'p1', 1, 62], [liste[2], 'p3', 3, 52]].map(([p, cls, rang, t]) => {
+    if (!p) return '<div></div>';
+    const { v, u } = val(p);
+    return `<div class="gpod ${cls}${p.moi ? ' moi' : ''}">${rang === 1 ? '<em class="gcouronne" aria-hidden="true">👑</em>' : ''}${bulle(p, t)}<b>${nom(p)}</b><span class="gpod-v">${v} ${u}</span><span class="gr" aria-label="${rang}e">${rang}</span></div>`;
+  }).join('');
+  const max = Math.max(1, ...liste.map(p => p.v));
+  const lignes = liste.map((p, i) => {
+    const { v, u } = val(p);
+    return `<div class="gcl${p.moi ? ' moi' : ''}"><span class="grang">${i + 1}</span>${bulle(p, 36)}
+      <div class="gcl-t"><b>${nom(p)}</b><span class="gcl-barre"><i style="width:${Math.round(100 * p.v / max)}%"></i></span></div><em>${v}<small>${u}</small></em></div>`;
+  }).join('');
+  // Défi : ce qu'il manque pour gagner une place (ou l'avance si tu mènes).
+  const i = liste.findIndex(p => p.moi);
+  const ecart = (a, b) => { const e = a.v - b.v; return gymbroMesure === 'volume' ? (e >= 1000 ? valeurClassement(e).join(' ') : e + ' kg') : e + (gymbroMesure === 'seances' ? ' séance' + (e > 1 ? 's' : '') : ' semaine' + (e > 1 ? 's' : '')); };
+  let defi;
+  if (i > 0) {
+    const devant = liste[i - 1];
+    defi = devant.v === liste[i].v ? `<b>À égalité</b> avec @${escapeHtml(devant.pseudo)} : encore un effort pour passer devant`
+      : gymbroMesure === 'regularite' ? `@${escapeHtml(devant.pseudo)} a <b>${ecart(devant, liste[i])} d'affilée</b> d'avance sur toi`
+      : `<b>Plus que ${ecart(devant, liste[i])}</b> pour passer devant @${escapeHtml(devant.pseudo)}`;
+  } else {
+    defi = liste[1].v === liste[0].v ? `<b>À égalité en tête</b> avec @${escapeHtml(liste[1].pseudo)}`
+      : `<b>Tu mènes</b> avec ${ecart(liste[0], liste[1])} d'avance sur @${escapeHtml(liste[1].pseudo)}`;
+  }
+  const lundi = dateLocale(lundiDeLaSemaine(todayStr())), dimanche = dateLocale(decalerJours(lundiDeLaSemaine(todayStr()), 6));
+  const periode = gymbroMesure === 'regularite' ? "Semaines d'affilée avec au moins une séance"
+    : `Semaine du lundi ${lundi.getDate()} au dimanche ${dimanche.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`;
+  html += `<div class="gpodium">${podium}</div><div class="gb-carte gb-classement">${lignes}</div>
+    <div class="gdefi"><span aria-hidden="true">🎯</span><div>${defi}<small>${escapeHtml(periode)}</small></div></div>`;
+  zone.innerHTML = html;
 }
 async function basculerRespectFil(i) {
   const f = filGymbros && filGymbros[i];
@@ -13401,7 +13813,7 @@ async function basculerRespectFil(i) {
   renderFilGymbros();
 }
 function comparerDepuisFil(pseudo) {
-  ouvrirGymbro();
+  if (!gymbroModalOuvert()) ouvrirGymbro('fil');
   comparerGymbro(pseudo);
 }
 const ERREURS_GYMBRO = {
@@ -13437,7 +13849,7 @@ async function repondreGymbro(pseudo, accepter) {
   if (accepter) comparerGymbro(pseudo);
   else retourRechercheGymbro();
 }
-async function annulerLienGymbro(pseudo, retrait) {
+async function annulerLienGymbro(pseudo, retrait, depuisListe) {
   if (retrait && !confirm('Retirer @' + pseudo + ' de tes gymbros ? Vous ne verrez plus vos séances l\'un de l\'autre.')) return;
   try {
     const { error } = await supa.rpc('gymbro_retirer', { p_pseudo: pseudo });
@@ -13446,7 +13858,8 @@ async function annulerLienGymbro(pseudo, retrait) {
     saveData();
   } catch (e) { alert(messageErreurGymbro(e)); }
   await chargerLiensGymbro();
-  comparerGymbro(pseudo);
+  if (retrait || depuisListe) retourRechercheGymbro();
+  else comparerGymbro(pseudo);
 }
 function rechercherGymbro(v) {
   clearTimeout(gymbroRechercheTimer);
@@ -13503,96 +13916,97 @@ function statsPeriodeMuscu(historique, jours) {
 }
 async function comparerGymbro(pseudo) {
   const c = document.getElementById('gymbro-comparaison');
-  document.getElementById('gymbro-vue-recherche').classList.add('hidden');
+  document.getElementById('gymbro-espace').classList.add('hidden');
+  const fenetre = document.querySelector('#gymbro-modal .modal-content');
+  if (fenetre) fenetre.scrollTop = 0;
   const lien = gymbroLiensActifs ? lienGymbro(pseudo) : null;
+  const qui = '@' + escapeHtml(pseudo);
+  const barre = `<div class="gb-barre-retour"><button type="button" class="gretour" onclick="retourRechercheGymbro()" aria-label="Retour">‹</button><h4>${qui}</h4></div>`;
   if (gymbroLiensActifs && !(lien && lien.statut === 'acceptee')) {
-    const qui = '@' + escapeHtml(pseudo);
     let corps;
     if (!lien) {
       corps = `<p>Pour comparer vos séances, ${qui} doit accepter ta demande. Il la verra la prochaine fois qu'il ouvrira l'appli.</p>
         <button type="button" class="btn btn-primary" onclick="demanderGymbro(${argJs(pseudo)})">Envoyer une demande</button>`;
     } else if (lien.sens === 'recue') {
       corps = `<p>${qui} veut être ton gymbro : vous pourrez comparer vos séances et vos charges.</p>
-        <div style="display:flex; gap:8px;"><button type="button" class="btn btn-primary" onclick="repondreGymbro(${argJs(pseudo)}, true)">Accepter</button>
+        <div class="gb-boutons"><button type="button" class="btn btn-primary" onclick="repondreGymbro(${argJs(pseudo)}, true)">Accepter</button>
         <button type="button" class="btn btn-secondaire" onclick="repondreGymbro(${argJs(pseudo)}, false)">Refuser</button></div>`;
     } else {
       corps = `<p>Demande envoyée. Dès que ${qui} l'aura acceptée, vous pourrez comparer vos séances.</p>
         <button type="button" class="btn btn-secondaire" onclick="annulerLienGymbro(${argJs(pseudo)}, false)">Annuler la demande</button>`;
     }
-    c.innerHTML = `<button type="button" class="btn-icone" onclick="retourRechercheGymbro()">‹ Retour</button>
-      <h4 style="margin:12px 0 8px;">${qui}</h4><div class="gymbro-invitation">${corps}</div>`;
+    c.innerHTML = `${barre}<div class="gface gface--seul"><div class="gface-p">${bulleGymbro(pseudo, 76)}<b>${qui}</b></div></div>
+      <div class="gymbro-invitation">${corps}</div>`;
     return;
   }
-  c.innerHTML = '<div class="loader">Chargement des séances de @' + escapeHtml(pseudo) + '…</div>';
+  c.innerHTML = barre + '<div class="loader">Chargement des séances de @' + escapeHtml(pseudo) + '…</div>';
   let siennes = [];
   try {
     const { data, error } = await supa.rpc('gymbro_seances', { p_pseudo: pseudo });
     if (error) throw error;
-    siennes = (data || []).map(r => r.donnees).filter(d => d && Array.isArray(d.exercices));
+    siennes = nettoyerSeancesGymbro(data);
+    if (gymbroLiensActifs) seancesGymbros[pseudo.toLowerCase()] = { quand: Date.now(), seances: siennes };
   } catch (e) {
-    c.innerHTML = `<button type="button" class="btn-icone" onclick="retourRechercheGymbro()">‹ Retour</button>
-      <div class="error-box" style="margin-top:10px;">${escapeHtml(estErreurSqlManquant(e) ? MESSAGE_SQL_MANQUANT : 'Erreur : ' + (e.message || e))}</div>`;
+    c.innerHTML = `${barre}<div class="error-box">${escapeHtml(estErreurSqlManquant(e) ? MESSAGE_SQL_MANQUANT : 'Erreur : ' + (e.message || e))}</div>`;
     return;
   }
   const depuis90 = decalerJours(todayStr(), -90);
   const miennes = musculationHistorique.filter(h => h.date >= depuis90);
   const favori = gymbroLiensActifs || (userProfile.gymbros || []).includes(pseudo);
-  const nomMoi = monPseudo ? '@' + monPseudo.pseudo : 'Moi';
   const lui = '@' + pseudo;
+  const actionLien = `<button type="button" class="btn btn-secondaire gb-retirer" onclick="${gymbroLiensActifs ? 'annulerLienGymbro' : favori ? 'retirerGymbroFavori' : 'ajouterGymbroFavori'}(${argJs(pseudo)}${gymbroLiensActifs ? ', true' : ''})">${favori ? 'Retirer de mes gymbros' : '+ Ajouter à mes gymbros'}</button>`;
 
-  let html = `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:12px;">
-    <button type="button" class="btn-icone" onclick="retourRechercheGymbro()">‹ Retour</button>
-    <button type="button" class="btn-icone" onclick="${gymbroLiensActifs ? 'annulerLienGymbro' : favori ? 'retirerGymbroFavori' : 'ajouterGymbroFavori'}(${argJs(pseudo)}${gymbroLiensActifs ? ', true' : ''})">${favori ? 'Retirer de mes gymbros' : '+ Ajouter à mes gymbros'}</button>
-  </div>
-  ${profilGymbroHTML(pseudo, siennes)}
-  <h4 style="margin:14px 0 10px;">${escapeHtml(nomMoi)} vs ${escapeHtml(lui)}</h4>`;
-
+  let html = barre + profilGymbroHTML(pseudo, siennes);
   if (!siennes.length) {
-    html += `<p class="note">@${escapeHtml(pseudo)} n'a aucune séance partagée sur les 90 derniers jours (ou a désactivé le partage).</p>`;
-    c.innerHTML = html;
+    c.innerHTML = html + `<p class="note gb-vide-note">${qui} n'a aucune séance partagée sur les 90 derniers jours (ou a désactivé le partage).</p>` + actionLien;
     return;
   }
+  // 30 derniers jours, colonne par colonne : le meilleur des deux en gras.
   const a = statsPeriodeMuscu(miennes, 30), b = statsPeriodeMuscu(siennes, 30);
-  const ligneStat = (lib, x, y, unite) => `<tr><td>${lib}</td><td class="${x > y ? 'gymbro-gagne' : ''}">${x.toLocaleString('fr-FR')}${unite || ''}</td><td class="${y > x ? 'gymbro-gagne' : ''}">${y.toLocaleString('fr-FR')}${unite || ''}</td></tr>`;
-  html += `<div class="titre-section">30 derniers jours</div>
-    <table class="gymbro-table"><thead><tr><th></th><th>${escapeHtml(nomMoi)}</th><th>${escapeHtml(lui)}</th></tr></thead><tbody>
-    ${ligneStat('Séances', a.seances, b.seances)}${ligneStat('Séries faites', a.series, b.series)}${ligneStat('Volume soulevé', a.volume, b.volume, ' kg')}
-    </tbody></table>`;
+  const tonnes = v => v >= 1000 ? [(v / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 }), 't'] : [v.toLocaleString('fr-FR'), 'kg'];
+  const vs = (lib, x, y, fmt) => {
+    const [vx, ux] = fmt ? fmt(x) : [x.toLocaleString('fr-FR'), ''], [vy, uy] = fmt ? fmt(y) : [y.toLocaleString('fr-FR'), ''];
+    return `<div class="gvs-l"><b class="${x > y ? 'gagne' : ''}">${vx}${ux ? `<small>${ux}</small>` : ''}</b><span>${lib}</span><b class="${y > x ? 'gagne' : ''}">${vy}${uy ? `<small>${uy}</small>` : ''}</b></div>`;
+  };
+  html += `<p class="gb-sec">30 derniers jours</p><div class="gb-carte">
+    <div class="gvs-tete"><span>Toi</span><span></span><span>${escapeHtml(lui)}</span></div>
+    ${vs('Séances', a.seances, b.seances)}${vs('Séries', a.series, b.series)}${vs('Volume', a.volume, b.volume, tonnes)}</div>`;
 
-  // Exercices en commun : meilleur 1RM estimé de chacun sur 90 jours.
+  // Exercices en commun : meilleur 1RM estimé de chacun sur 90 jours, en duel.
   const idsMoi = new Set(miennes.flatMap(h => h.exercices.filter(e => e.series.some(s => s.fait)).map(e => e.exerciceId)));
-  const idsLui = new Set(siennes.flatMap(h => h.exercices.filter(e => e.series.some(s => s.fait)).map(e => e.exerciceId)));
+  const idsLui = new Set(siennes.flatMap(h => h.exercices.filter(e => Array.isArray(e.series) && e.series.some(s => s && s.fait)).map(e => e.exerciceId)));
   const communs = [...idsMoi].filter(id => idsLui.has(id));
-  const nomExo = (id, hist) => { const exo = trouverExercice(id); if (exo) return libelleExercice(exo); for (const h of hist) { const e = h.exercices.find(x => x.exerciceId === id); if (e && e.nom) return e.nom; } return 'Exercice'; };
-  if (communs.length) {
-    const lignes = communs.map(id => ({ id, moi: meilleur1RM(id, miennes), lui: meilleur1RM(id, siennes) }))
-      .filter(o => o.moi && o.lui)
-      .sort((x, y) => (y.moi.valeur + y.lui.valeur) - (x.moi.valeur + x.lui.valeur));
-    html += `<div class="titre-section">Exercices en commun (1RM estimé, 90 j)</div>` + lignes.map(o => {
-      const max = Math.max(o.moi.valeur, o.lui.valeur) || 1;
-      return `<div class="gymbro-exo">
-        <div class="gymbro-exo-nom">${escapeHtml(nomExo(o.id, siennes))}</div>
-        <div class="gymbro-barre"><span class="gymbro-barre-lib">${escapeHtml(nomMoi)}</span><span class="gymbro-barre-piste"><i style="width:${(100 * o.moi.valeur / max).toFixed(0)}%;"></i></span><b>${Math.round(o.moi.valeur)} kg</b></div>
-        <div class="gymbro-barre gymbro-barre--lui"><span class="gymbro-barre-lib">${escapeHtml(lui)}</span><span class="gymbro-barre-piste"><i style="width:${(100 * o.lui.valeur / max).toFixed(0)}%;"></i></span><b>${Math.round(o.lui.valeur)} kg</b></div>
-        <div class="note" style="margin:2px 0 0; font-size:0.68rem;">Meilleures séries : ${o.moi.poids} kg × ${o.moi.reps} vs ${o.lui.poids} kg × ${o.lui.reps}</div>
-      </div>`;
-    }).join('');
+  const nomExo = (id, hist) => { const exo = trouverExercice(id); if (exo) return libelleExercice(exo); for (const h of hist) { const e = h.exercices.find(x => x.exerciceId === id); if (e && e.nom) return String(e.nom).slice(0, 60); } return 'Exercice'; };
+  const lignes = communs.map(id => ({ id, moi: meilleur1RM(id, miennes), lui: meilleur1RM(id, siennes) }))
+    .filter(o => o.moi && o.lui && o.lui.valeur < 2000)
+    .sort((x, y) => (y.moi.valeur + y.lui.valeur) - (x.moi.valeur + x.lui.valeur)).slice(0, 8);
+  html += `<p class="gb-sec">Exercices en commun · 1RM estimé</p>`;
+  if (lignes.length) {
+    html += `<div class="gb-carte"><div class="gduel-leg"><span><i class="g1"></i>Toi</span><span><i class="g2"></i>${escapeHtml(lui)}</span></div>` + lignes.map(o => {
+      const x = Math.round(o.moi.valeur), y = Math.round(o.lui.valeur), part = Math.round(100 * x / ((x + y) || 1));
+      return `<div class="gexo"><b>${escapeHtml(nomExo(o.id, siennes))}</b>
+        <div class="gduel" role="img" aria-label="Toi ${x} kg, ${escapeHtml(lui)} ${y} kg"><span class="g1" style="width:${part}%"></span><span class="g2" style="width:${100 - part}%"></span></div>
+        <div class="gduel-l"><span class="${x > y ? 'gagne' : ''}">${x} kg</span><span class="${y > x ? 'gagne' : ''}">${y} kg</span></div></div>`;
+    }).join('') + '</div>';
   } else {
-    html += '<p class="note">Aucun exercice en commun sur les 90 derniers jours.</p>';
+    html += '<p class="note gb-vide-note">Aucun exercice en commun sur les 90 derniers jours.</p>';
   }
 
-  html += `<div class="titre-section">Dernières séances de ${escapeHtml(lui)}</div>` + siennes.slice(0, 8).map(h => {
-    const faites = h.exercices.reduce((n, e) => n + e.series.filter(s => s.fait).length, 0);
-    const top = h.exercices.map(e => ({ e, b: meilleur1RM(e.exerciceId, [h]) })).filter(o => o.b).sort((x, y) => y.b.valeur - x.b.valeur)[0];
-    return `<div class="gymbro-seance"><div><b>${escapeHtml(h.programmeNom || 'Séance')}</b><small>${formatDateDisplay(h.date)} · ${h.exercices.length} exercice${h.exercices.length > 1 ? 's' : ''} · ${faites} séries</small></div>
-      ${top ? `<span class="note" style="margin:0; text-align:right;">${escapeHtml(nomExo(top.e.exerciceId, [h]))}<br>${top.b.poids} kg × ${top.b.reps}</span>` : ''}</div>`;
-  }).join('');
+  html += `<p class="gb-sec">Dernières séances de ${escapeHtml(lui)}</p><div class="gb-carte gliste">` + siennes.slice(0, 8).map(h => {
+    const r = resumeSeanceFil(h);
+    const top = h.exercices.map(e => ({ e, b: meilleur1RM(e.exerciceId, [h]) })).filter(o => o.b && Number(o.b.poids) > 0 && Number(o.b.poids) < 1000).sort((x, y) => y.b.valeur - x.b.valeur)[0];
+    const [v, u] = tonnes(r.volume);
+    return `<div class="gli"><div><b>${escapeHtml(r.titre)}</b><small>${escapeHtml(dateRelativeFil(h.date))} · ${r.series} série${r.series > 1 ? 's' : ''}${r.volume ? ' · ' + v + ' ' + u : ''}</small></div>
+      ${top ? `<span class="gli-top">${escapeHtml(nomExo(top.e.exerciceId, [h]))}<b>${poidsFr(Number(top.b.poids))} kg × ${Math.round(Number(top.b.reps))}</b></span>` : ''}</div>`;
+  }).join('') + '</div>' + actionLien;
   c.innerHTML = html;
 }
 function retourRechercheGymbro() {
   document.getElementById('gymbro-comparaison').innerHTML = '';
-  document.getElementById('gymbro-vue-recherche').classList.remove('hidden');
-  renderGymbrosFavoris();
+  const fenetre = document.querySelector('#gymbro-modal .modal-content');
+  if (fenetre) fenetre.scrollTop = 0;
+  document.getElementById('gymbro-espace').classList.remove('hidden');
+  choisirOngletGymbro(gymbroOnglet);
 }
 
 /* -------------------------- Photos de progression -------------------------- */
@@ -23719,6 +24133,7 @@ window.addEventListener('load', () => {
   majNoteCleIA();
   majUIWithings();
   brancherLiensWithings();
+  lireInvitationGymbro();
   traiterRetourWithings();
   let ecran = 'repas';
   try { ecran = localStorage.getItem('elite_ecran') || 'repas'; } catch (e) {}

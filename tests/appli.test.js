@@ -806,7 +806,7 @@ test('Gymbro : demande, pastille, acceptation, comparaison réservée aux gymbro
     return res;
   });
   assert.equal(r.pastille, '1');
-  assert.deepEqual(r.sections, ['Demandes reçues', 'Mes gymbros', 'Demandes envoyées']);
+  assert.deepEqual(r.sections, ['Demande reçue', 'Tes gymbros · 1', 'Demande envoyée']);
   assert.deepEqual(r.reponse, ['gymbro_repondre', { p_pseudo: 'alice', p_accepter: true }]);
   assert.equal(r.pastilleApres, 0);
   assert.ok(r.seancesAlice, 'une fois acceptée, la comparaison charge les séances');
@@ -816,7 +816,7 @@ test('Gymbro : demande, pastille, acceptation, comparaison réservée aux gymbro
   assert.ok(r.apresDemande);
 }));
 
-test("fil des gymbros dans l'onglet Activité : cartes, respect, respects reçus", () => avecAppli({}, async ({ page }) => {
+test("fil de l'espace Gymbros : cartes, respect, respects reçus", () => avecAppli({}, async ({ page }) => {
   const r = await page.evaluate(async () => {
     const appels = [];
     const jour = todayStr();
@@ -844,9 +844,8 @@ test("fil des gymbros dans l'onglet Activité : cartes, respect, respects reçus
     const res = {};
     await chargerFilGymbros(true);
     res.pastille = document.querySelector('#onglet-seance .pastille-gymbro')?.textContent;
-    allerA('seance');
+    ouvrirGymbro('fil');
     await new Promise(ok => setTimeout(ok, 50));
-    renderFilGymbros();
     const cartes = [...document.querySelectorAll('#fil-gymbros .fil-carte')];
     res.cartes = cartes.map(c => [...c.querySelector('.fil-qui').children].map(x => x.textContent.trim()).join(' '));
     res.stats = [...cartes[0].querySelector('.fil-stats').children].map(x => x.textContent.replace(/\s+/g, ' ').trim()).join(' | ');
@@ -869,6 +868,77 @@ test("fil des gymbros dans l'onglet Activité : cartes, respect, respects reçus
   assert.deepEqual(r.appelRespect, ['gymbro_respect', { p_pseudo: 'carl', p_seance: 's1', p_actif: true }]);
   assert.equal(r.bouton, '💪 Respect · 3');
   assert.equal(r.presse, 'true');
+}));
+
+test("Gymbros : rangée d'Activité, record du fil, classement de la semaine, lien d'invitation", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const jour = todayStr();
+    const exo = toutesLesExercices().find(e => e.nom === 'Développé couché avec barre');
+    const seance = (id, date, poids, nom) => ({ id, date, programmeNom: nom || 'Push', dureeMin: 50, exercices: [{ exerciceId: exo.id, series: [
+      { poids, reps: 5, fait: true }, { poids, reps: 5, fait: true }] }] });
+    const reponse = data => ({ then: ok => Promise.resolve({ data, error: null }).then(ok) });
+    supa = {
+      rpc: (nom, args) => {
+        if (nom === 'gymbro_mes_liens') return reponse([{ pseudo: 'carl', sens: 'envoyee', statut: 'acceptee' }, { pseudo: 'alice', sens: 'recue', statut: 'acceptee' }, { pseudo: 'lea', sens: 'recue', statut: 'attente' }]);
+        if (nom === 'gymbro_fil') return reponse([
+          { pseudo: 'carl', seance_id: 'c1', donnees: seance('c1', jour, 100), respects: 0, mon_respect: false },
+          { pseudo: 'alice', seance_id: 'a1', donnees: seance('a1', decalerJours(jour, -10), 60, 'Jambes'), respects: 0, mon_respect: false }]);
+        if (nom === 'gymbro_seances' && args.p_pseudo === 'carl') return reponse([seance('c1', jour, 100), seance('c0', decalerJours(jour, -7), 90)].map(d => ({ donnees: d })));
+        return reponse([]);
+      },
+      from: () => ({ select: () => reponse(null) })
+    };
+    sessionUtilisateur = { id: 'moi', email: 'moi@x.fr' };
+    monPseudo = { pseudo: 'jamal' };
+    musculationHistorique.push(seance('m1', jour, 80));
+    await chargerLiensGymbro();
+    await chargerFilGymbros(true);
+    allerA('seance');
+    const res = {};
+    const textes = sel => [...document.querySelectorAll(sel)].map(x => x.textContent.trim());
+    res.noms = textes('#gymbros-rangee .gst small');
+    res.sous = textes('#gymbros-rangee .gst em');
+    res.anneaux = document.querySelectorAll('#gymbros-rangee .gav--actif').length;
+    res.profil = !!document.querySelector('#gymbros-rangee-profil .gstrip');
+    ouvrirGymbro('fil');
+    await new Promise(ok => setTimeout(ok, 80));
+    res.record = document.querySelector('#fil-gymbros .fil-carte .gcarte-rec')?.textContent;
+    res.badge = document.getElementById('gymbro-badge-mes').textContent;
+    choisirOngletGymbro('classement');
+    res.classement = textes('#gymbro-vue-classement .gcl-t b');
+    res.valeurs = textes('#gymbro-vue-classement .gcl em');
+    res.defi = document.querySelector('#gymbro-vue-classement .gdefi b').textContent;
+    choisirMesureGymbro('seances');
+    res.parSeances = textes('#gymbro-vue-classement .gcl-t b');
+    // Lien d'invitation : partagé avec mon nom, lu à l'ouverture puis retiré de l'adresse.
+    Object.defineProperty(navigator, 'share', { configurable: true, value: async o => { res.partage = o.url; } });
+    await partagerLienGymbro();
+    history.replaceState({}, '', location.pathname + '?gymbro=Carl');
+    lireInvitationGymbro();
+    res.adresse = location.search;
+    fermerModal('gymbro-modal');
+    ouvrirInvitationGymbro();
+    await new Promise(ok => setTimeout(ok, 80));
+    res.ouvert = gymbroModalOuvert();
+    res.fiche = document.querySelector('#gymbro-comparaison .gb-barre-retour h4')?.textContent;
+    res.face = !!document.querySelector('#gymbro-comparaison .gface .gface-vs');
+    return res;
+  });
+  assert.deepEqual(r.noms, ['Inviter', '@lea', '@carl', '@alice']);
+  assert.deepEqual(r.sous, ['Nouveau', 'Push · auj.', 'il y a 10 j']);
+  assert.equal(r.anneaux, 1, "anneau pour qui s'est entraîné aujourd'hui");
+  assert.ok(r.profil, 'la rangée est aussi dans le Profil');
+  assert.match(r.record, /A battu son record : .*100 kg × 5/);
+  assert.equal(r.badge, '1');
+  assert.deepEqual(r.classement, ['@carl', 'Toi', '@alice']);
+  assert.deepEqual(r.valeurs, ['1t', '800kg', '0kg']);
+  assert.equal(r.defi, 'Plus que 200 kg');
+  assert.deepEqual(r.parSeances, ['Toi', '@carl', '@alice']);
+  assert.match(r.partage, /\?gymbro=jamal$/);
+  assert.equal(r.adresse, '');
+  assert.ok(r.ouvert);
+  assert.equal(r.fiche, '@carl');
+  assert.ok(r.face);
 }));
 
 test('profil : photo et bio, page profil d\'un gymbro, contenus piégés refusés', () => avecAppli({}, async ({ page, dialogues }) => {
@@ -975,8 +1045,10 @@ test("des données piégées venant d'autres comptes ne s'exécutent jamais (Adm
     () => comparerGymbro('abc'),
     () => chargerLiensGymbro().then(() => ouvrirGymbro()),
     () => { const P = __seancePiegee(1).notes; filGymbrosDernier = Date.now(); filGymbros = [nettoyerSeanceFil({ pseudo: P, seance_id: 'x' + P, donnees: Object.assign(__seancePiegee(1), { programmeNom: P }), respects: 2 })]; respectsRecus = [{ pseudo: P, quand: 1 }]; renderFilGymbros(); },
-    () => comparerGymbro(document.querySelector('#gymbro-favoris .gymbro-puces button').textContent.replace(/^.?@/, '').replace(/ en attente$/, '')),
+    () => { allerA('seance'); renderRangeesGymbros(); },
+    () => { ouvrirGymbro('mes'); return comparerGymbro(document.querySelector('#gymbro-favoris :is(.gli, .gdem) b').textContent.replace(/^@/, '')); },
     () => { const P = __seancePiegee(1).notes; gymbroLiens = [{ pseudo: P, sens: 'envoyee', statut: 'acceptee' }]; profilsGymbros[P.toLowerCase()] = { bio: P, avatar: P, membreDepuis: Date.now() }; return comparerGymbro(P); },
+    () => { renderRangeesGymbros(); ouvrirGymbro('fil'); choisirOngletGymbro('classement'); choisirOngletGymbro('mes'); },
     () => { const P = __seancePiegee(1).notes; monProfil = { bio: P, avatar: 'data:image/jpeg;base64,AA" onerror="window.__xss=1' }; majUIProfilPerso(); }
   ];
   for (const etape of etapes) {
