@@ -1410,9 +1410,12 @@ test('bouton + : l\'action utile de chaque écran', () => avecAppli({}, async ({
   await page.click('#opt-seance-jour'); assert.equal(await ouvert(), 'apercu-programme-modal'); await fermer();
   await page.evaluate(() => choisirModeSeance('cardio'));
   await page.click('#onglet-plus'); assert.equal(await ouvert(), 'modal-cardio'); await fermer();
-  await page.evaluate(() => ouvrirStats('poids'));
-  assert.equal(await page.getAttribute('#onglet-plus', 'aria-label'), 'Noter une mesure');
-  await page.click('#onglet-plus'); assert.equal(await ouvert(), 'mesures-modal'); await fermer();
+  // Progrès : pas de + (grisé, rien ne s'ouvre), sur tous les onglets.
+  for (const o of ['resume', 'poids', 'muscu']) {
+    await page.evaluate(o => ouvrirStats(o), o);
+    assert.equal(await page.isDisabled('#onglet-plus'), true);
+    await page.evaluate(() => actionPlus()); assert.equal(await ouvert(), '');
+  }
   await page.evaluate(() => allerA('reglages'));
   await page.click('#onglet-plus'); assert.equal(await ouvert(), 'mesures-modal'); await fermer();
   // Séance en cours : le + ajoute un exercice.

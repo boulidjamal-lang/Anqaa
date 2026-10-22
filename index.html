@@ -796,7 +796,8 @@
       backdrop-filter: blur(14px) saturate(140%);
       align-items: center; justify-content: center;
       animation: fadeInModal 0.25s ease;
-      padding: 16px;
+      /* Jamais sous la barre d'état ni sous la barre d'accueil de l'iPhone. */
+      padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
     }
     :root[data-theme="light"] .modal { background-color: rgba(180, 195, 220, 0.42); }
     @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
@@ -807,7 +808,7 @@
       backdrop-filter: blur(var(--verre-flou)) saturate(var(--verre-sat));
       border: 0;
       border-radius: 26px; padding: 22px; max-width: 520px; width: 100%;
-      max-height: min(88dvh, 88vh); overflow-y: auto;
+      max-height: min(88dvh, 88vh, calc(100dvh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))); overflow-y: auto;
       /* Le geste tactile doit fonctionner ici malgré le touch-action:none
          posé sur le body, et rester confiné à la modale. */
       touch-action: pan-y;
@@ -845,11 +846,19 @@
        centrée — la recherche (voir .off-liste plus bas) a besoin de place
        pour être parcourue confortablement, pas juste 232px coincés par-dessus
        le formulaire. */
-    #manual-modal { padding: 0; align-items: stretch; }
+    #manual-modal { padding: var(--vvt, 0px) 0 0; align-items: flex-start; }
     #manual-modal .modal-content {
       max-width: none; width: 100%; height: var(--vvh, 100dvh); max-height: var(--vvh, 100dvh);
       border-radius: 0; margin: 0;
     }
+    /* L'appli s'étend sous la barre d'état (viewport-fit=cover) : sans
+       marge, la croix passait sous l'heure et l'encoche, impossible à
+       toucher. L'en-tête reste collé en haut quand on fait défiler, et la
+       fenêtre suit la zone visible quand le clavier la fait remonter
+       (--vvt, voir visualViewport). */
+    html:root #manual-modal .modal-content { padding-top: 0; }
+    html:root #manual-modal .modal-entete { position: sticky; top: 0; z-index: 40; margin: 0 -18px 14px; padding: calc(12px + env(safe-area-inset-top, 0px)) 18px 10px;
+      background: var(--carte-plein); box-shadow: 0 1px 0 var(--trait); }
 
     /* --- FEUILLE D'ACTION (bottom sheet) --- */
     .feuille {
@@ -2513,6 +2522,9 @@
     .onglet-plus { position: relative; width: 54px; height: 54px; margin: auto; border: 0; border-radius: 19px; display: grid; place-items: center; cursor: pointer; color: #fff; isolation: isolate;
       background: linear-gradient(135deg, #34d399, #06b6d4); box-shadow: 0 12px 26px -8px rgba(6,182,212,.7), inset 0 1px 0 rgba(255,255,255,.4); transition: transform .15s; }
     .onglet-plus:active { transform: scale(.92); }
+    .onglet-plus:disabled { cursor: default; color: var(--text-muted); background: var(--piste); box-shadow: none; transform: none; }
+    .onglet-plus:disabled::before { display: none; }
+    .onglet-plus:disabled .icone-ui { opacity: .45; }
     .onglet-plus::before { content: ''; position: absolute; inset: -4px; z-index: -1; border-radius: 23px; background: conic-gradient(from 0deg, #34d399, #22d3ee, #a78bfa, #34d399); filter: blur(8px); opacity: .55; animation: coach-tour 6s linear infinite; }
     .onglet-plus .icone-ui { width: 26px; height: 26px; stroke-width: 2.6; }
     .profil-entete-boutons { display: flex; gap: 8px; align-items: center; }
@@ -11457,7 +11469,7 @@ const TOUR_ETAPES = [
   { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: "L'anneau extérieur, ce sont tes calories ; les trois intérieurs, protéines, glucides et lipides. Touche une macro pour sa courbe face à l'objectif, ou le reste de la carte pour ta dépense du jour et ta nutrition." },
   { ecran: 'repas', cible: '#coach-jour', titre: 'Le coach du jour', texte: "Un conseil qui change avec ta journée : ce qui te manque, avec des aliments que tu manges déjà, ou un rappel pour boire. Calculé sur ton téléphone, sans IA." },
   { ecran: 'repas', cible: '#cartes-stats-repas', titre: 'Poids et nutrition', texte: "Ton poids et ta nutrition des 14 derniers jours, d'un coup d'œil. Touche une carte pour le détail : courbe de poids et composition corporelle, ou calories et macros." },
-  { ecran: 'repas', cible: '#onglet-plus', titre: 'Le bouton +', texte: "Il fait l'action utile de l'écran : ici, une recette, un aliment, une photo ou un code-barres pour le repas du moment. Sur Activité, il lance une séance ; sur Progrès, il note une pesée, un repas ou du cardio ; sur Profil, une mesure." },
+  { ecran: 'repas', cible: '#onglet-plus', titre: 'Le bouton +', texte: "Il fait l'action utile de l'écran : ici, une recette, un aliment, une photo ou un code-barres pour le repas du moment. Sur Activité, il lance une séance ; sur Profil, une mesure. Dans Progrès, il est grisé." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-recette', titre: 'Recette', texte: "Tes recettes enregistrées, et celles partagées par l'équipe : une portion s'ajoute en un toucher, macros déjà calculées. Tu y trouves aussi des idées de l'IA qui complètent tes macros du jour." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-manuel', titre: 'Aliment', texte: "Recherche dans la base d'aliments, avec en premier ce que tu manges souvent. Un aliment introuvable ? Saisis-le : il reste à toi, et rejoint la base commune une fois validé." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-photo', titre: 'Photo ou description', texte: "Prends en photo ou décris ton assiette : l'IA estime les aliments, les quantités et les macros." },
@@ -21845,8 +21857,8 @@ function verifierTrophees() {
 /* Le bouton + de la barre d'onglets fait l'action utile de l'écran affiché :
    Repas → ajouter au repas du moment ; Activité → ajouter un exercice à la
    séance en cours, sinon lancer une séance (feuille) ou, en mode cardio,
-   noter une séance cardio ; Progrès → selon la catégorie (pesée, repas,
-   cardio, séance) ; Profil → une mesure. */
+   noter une séance cardio ; Progrès → rien (bouton grisé) ; Profil → une
+   mesure. */
 function categorieStatsActive() {
   const t = document.querySelector('#ecran-stats .stats-tab.stats-tab-actif');
   return t ? t.dataset.tab : 'resume';
@@ -21858,13 +21870,8 @@ function actionPlus() {
     if (modeSeance === 'cardio') return ouvrirCardio();
     return ouvrirFeuilleActivite();
   }
-  if (e === 'stats') {
-    const c = categorieStatsActive();
-    if (c === 'poids') return ouvrirMesuresModal();
-    if (c === 'activite') return ouvrirCardio();
-    if (c === 'muscu') return ouvrirFeuilleActivite();
-    return ouvrirFeuilleRepas(repasDuMoment());
-  }
+  // Progrès sert à regarder, pas à noter : le + y est grisé.
+  if (e === 'stats') return;
   if (e === 'reglages') return ouvrirMesuresModal();
   ouvrirFeuilleRepas(repasDuMoment());
 }
@@ -21874,7 +21881,7 @@ function majBoutonPlus() {
   if (!b) return;
   let l = LIBELLES_PLUS[ecranActif] || LIBELLES_PLUS.repas;
   if (ecranActif === 'seance') l = musculationSessionActive ? 'Ajouter un exercice' : modeSeance === 'cardio' ? 'Noter une séance cardio' : 'Lancer une séance';
-  if (ecranActif === 'stats') l = { resume: 'Ajouter à un repas', poids: 'Noter une mesure', nutrition: 'Ajouter à un repas', activite: 'Noter une séance cardio', muscu: 'Lancer une séance' }[categorieStatsActive()] || 'Ajouter';
+  b.disabled = ecranActif === 'stats';
   b.setAttribute('aria-label', l);
   b.title = l;
 }
@@ -24029,6 +24036,7 @@ window.addEventListener('keydown', (e) => {
 if (window.visualViewport) {
   const majHauteurVisible = () => {
     document.documentElement.style.setProperty('--vvh', window.visualViewport.height + 'px');
+    document.documentElement.style.setProperty('--vvt', Math.max(0, window.visualViewport.offsetTop) + 'px');
   };
   window.visualViewport.addEventListener('resize', majHauteurVisible);
   window.visualViewport.addEventListener('scroll', majHauteurVisible);
