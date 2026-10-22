@@ -1180,7 +1180,7 @@
     :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
     /* --- TRIO DE CHAMPS CÔTE À CÔTE (ex : composition corporelle) --- */
-    .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: end; }
     .trio > div label {
       display: block; font-size: 0.62rem; color: var(--text-muted); margin-bottom: 4px;
       text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;
@@ -3318,6 +3318,27 @@
       box-shadow: 0 10px 24px -8px rgba(0,0,0,.45); opacity: 0; pointer-events: none; transform: translateY(4px); transition: opacity .15s, transform .15s; }
     .pg-bulle.visible { opacity: 1; transform: none; }
     html:root #ecran-stats .titre-section > .icone-ui { display: none; }
+    /* Mêmes tuiles partout dans Progrès (celles du Résumé). */
+    html:root #ecran-stats .grille-cles { gap: 10px; margin-bottom: 12px; }
+    html:root #ecran-stats .cle { padding: 12px 12px 10px; border-radius: 20px !important; background: var(--verre) !important; box-shadow: var(--ombre), inset 0 0 0 1px var(--trait) !important; }
+    html:root #ecran-stats .cle::after { display: none; }
+    html:root #ecran-stats .cle-lbl, html:root #muscu-stats-totaux small { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+    html:root #ecran-stats .cle-val { margin-top: 6px; font: 800 1.45rem/1.1 'Manrope', 'Inter', sans-serif; letter-spacing: -.03em; }
+    html:root #ecran-stats .cle-val.pos { color: var(--pg-bon); }
+    html:root #ecran-stats .cle-val.att { color: var(--pg-mauvais); }
+    html:root #ecran-stats :is(.cle-sous, .cle-evol) { margin-top: 3px; font-size: .74rem; line-height: 1.35; }
+    html:root #ecran-stats .cle-evol { font-weight: 700; color: var(--text-muted); }
+    html:root #ecran-stats .cle-evol.hausse { color: var(--pg-bon); }
+    html:root #ecran-stats .cle-evol.baisse { color: var(--pg-mauvais); }
+    html:root #muscu-stats-totaux { margin-bottom: 4px; }
+    html:root #muscu-stats-totaux > div { padding: 12px 12px 10px; border-radius: 20px; background: var(--verre); box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); }
+    html:root #muscu-stats-totaux .stats-valeur { margin-top: 6px; font-size: 1.3rem; line-height: 1.1; }
+    /* Graphiques posés dans une carte, comme ceux du Résumé. */
+    html:root #ecran-stats .chart-container { height: 190px; padding: 12px; border-radius: 22px; background: var(--verre); box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); }
+    html:root #ecran-stats :is(.pg-carte, .pg-repli) .chart-container { height: 170px; padding: 0; border-radius: 0; background: none; box-shadow: none; }
+    html:root #ecran-stats .pg-carte .chart-container--bas { height: 150px; }
+    html:root #ecran-stats .chart-container.graph-vide { background: none; box-shadow: none; }
+    html:root #ecran-stats .chart-container.pg-replie { height: 0; padding: 0; margin: 0; box-shadow: none; }
     html:root #ecran-stats .titre-section { margin: 20px 2px 10px; font: 800 1.02rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; }
     html:root #ecran-stats .pg-repli .titre-section { margin-top: 14px; font-size: .92rem; }
     /* Apparition */
@@ -3817,15 +3838,14 @@
     </div>
 
     <div class="stats-tab" data-tab="poids">
-      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg> Chiffres clés</div>
       <div class="grille-cles" id="grille-cles"></div>
 
-      <div class="titre-depliant titre-section" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-tendance')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-tendance')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></svg> Poids &amp; tendance</div>
+      <div class="titre-depliant titre-section" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-tendance')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-tendance')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></svg> Ta courbe de poids</div>
       <div class="chart-container"><canvas id="poidsChart"></canvas></div>
       <p class="note note-repliee" id="note-tendance" style="margin: -6px 2px 4px;"></p>
       <p class="pg-projection" id="pg-projection-corps"></p>
 
-      <div class="titre-depliant titre-section" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-compo')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-compo')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z" /><path d="m14.5 12.5 2-2" /><path d="m11.5 9.5 2-2" /><path d="m8.5 6.5 2-2" /><path d="m17.5 15.5 2-2" /></svg> Composition corporelle (balance à impédancemétrie)</div>
+      <div class="titre-depliant titre-section" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-compo')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-compo')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z" /><path d="m14.5 12.5 2-2" /><path d="m11.5 9.5 2-2" /><path d="m8.5 6.5 2-2" /><path d="m17.5 15.5 2-2" /></svg> Composition corporelle</div>
       <div class="compo-grille" id="compo-grille"></div>
       <p class="note note-repliee" id="note-compo" style="margin: -6px 2px 4px;"></p>
       <h3 class="pg-h">Mensurations <button type="button" class="pg-lien" onclick="ouvrirMesuresModal()">+ Ajouter</button></h3>
@@ -3869,7 +3889,7 @@
     <div class="stats-tab" data-tab="activite">
       <div class="pg-carte" id="pg-cardio-semaine"></div>
       <div class="grille-cles" id="pg-cardio-tuiles"></div>
-      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.2 12h3.3l1.5-3 3 6 1.5-3h8.3" /></svg> Minutes de cardio par semaine</div>
+      <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /><path d="M3.2 12h3.3l1.5-3 3 6 1.5-3h8.3" /></svg> Minutes par semaine</div>
       <div class="chart-container"><canvas id="cardioSemainesChart"></canvas></div>
       <p class="note" id="note-cardio-semaines" style="margin:-6px 2px 4px;"></p>
 
@@ -3894,7 +3914,6 @@
       </details>
       <details class="pg-repli" data-repli="progression" ontoggle="replieMuscuBascule(this)">
         <summary>Progression par exercice</summary>
-        <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6" /><path d="m22 7-8.5 8.5-5-5L2 17" /></svg> Progression par exercice</div>
         <div class="input-group" style="margin-bottom:12px;">
           <label for="muscu-exo-select">Exercice (tous ceux déjà pratiqués, ne serait-ce qu'une fois)</label>
           <select id="muscu-exo-select" onchange="afficherProgressionExercice(this.value)"></select>
@@ -10471,8 +10490,8 @@ function optionsGraphiqueBase(p, opts) {
     interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: {
-        display: !!opts.avecLegende, position: 'top', align: 'center',
-        labels: { color: p.texte, font: { size: 10.5, weight: '600' }, usePointStyle: true, pointStyle: 'circle', boxWidth: 7, boxHeight: 7, padding: 14 }
+        display: !!opts.avecLegende, position: 'bottom', align: 'start',
+        labels: { color: p.texte, font: { size: 11, weight: '600' }, usePointStyle: true, pointStyle: 'circle', boxWidth: 6, boxHeight: 6, padding: 12 }
       },
       tooltip: {
         backgroundColor: p.fond, titleColor: p.texteFort, bodyColor: p.texte,
@@ -10482,8 +10501,8 @@ function optionsGraphiqueBase(p, opts) {
       }
     },
     scales: {
-      x: { ticks: { color: p.texte, maxTicksLimit: 8, font: { size: 9.5 } }, grid: { color: p.grille, drawTicks: false }, border: { display: false } },
-      y: { ticks: { color: p.texte, font: { size: 9.5 } }, grid: { color: p.grille, drawTicks: false }, border: { display: false }, beginAtZero: opts.beginAtZero !== false }
+      x: { ticks: { color: p.texte, maxTicksLimit: 6, maxRotation: 0, font: { size: 10.5 } }, grid: { display: false }, border: { display: false } },
+      y: { ticks: { color: p.texte, maxTicksLimit: 5, padding: 6, font: { size: 10.5 } }, grid: { color: p.grille, drawTicks: false }, border: { display: false }, beginAtZero: opts.beginAtZero !== false }
     }
   };
 }
