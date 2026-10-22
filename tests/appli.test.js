@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const { lancerNavigateur, ouvrirAppli, RACINE } = require('./outils');
 const { P, installerFauxSupabase, injectionsTrouvees } = require('./injection');
+const { creerServeur, brancherServeur } = require('./serveur');
 
 let navigateur;
 before(async () => { navigateur = await lancerNavigateur(); });
@@ -1832,4 +1833,66 @@ test('chiffres : même tendance du poids et même moyenne de calories sur Repas 
   // 29 journées terminées (aujourd'hui, entamé, n'entre pas dans la moyenne).
   assert.equal(r.nutri.replace(/\s/g, ''), '1883');
   assert.match(r.mesure, /80,3 kg · 17,5 % de masse grasse · 36,4 kg de muscle/);
+}));
+
+/* Deux appareils d'un même compte (téléphone et tablette) sur un faux serveur. */
+async function deuxAppareils(corps) {
+  const serveur = creerServeur();
+  const tel = await ouvrirAppli(navigateur, {}), tab = await ouvrirAppli(navigateur, {});
+  try {
+    await brancherServeur(tel.page, serveur, 'u1');
+    await brancherServeur(tab.page, serveur, 'u1');
+    await corps(tel.page, tab.page, serveur);
+    assert.deepEqual(tel.erreurs, [], 'erreurs JavaScript (téléphone)');
+    assert.deepEqual(tab.erreurs, [], 'erreurs JavaScript (tablette)');
+  } finally { await tel.ctx.close(); await tab.ctx.close(); }
+}
+const noterAliment = (page, repas, nom) => page.evaluate(([r, n]) => {
+  const j = todayStr(); getDay(j).meals[r].push({ name: n, grams: 100, unite: 'g', kcal: 100, p: 5, c: 15, f: 2 }); saveData(j);
+}, [repas, nom]);
+const retirerAliment = (page, repas, nom) => page.evaluate(([r, n]) => {
+  const j = todayStr(), l = getDay(j).meals[r]; l.splice(l.findIndex(i => i.name === n), 1); saveData(j);
+}, [repas, nom]);
+const journee = page => page.evaluate(() => { const d = getDay(todayStr()); return { matin: d.meals.breakfast.map(i => i.name), midi: d.meals.lunch.map(i => i.name), eau: Number(d.eauMl) || 0 }; });
+const synchro = (page, raison = 'auto') => page.evaluate(r => synchroniser(r), raison);
+
+test('synchro : une journée modifiée sur deux appareils est fusionnée, rien ne se perd', () => deuxAppareils(async (tel, tab) => {
+  await noterAliment(tel, 'breakfast', 'Flocons');
+  await synchro(tel); await synchro(tab);
+  assert.deepEqual((await journee(tab)).matin, ['Flocons']);
+  // Le téléphone, hors ligne : une banane, deux bananes identiques, 500 ml d'eau, et il retire les flocons.
+  await noterAliment(tel, 'breakfast', 'Banane'); await noterAliment(tel, 'breakfast', 'Banane');
+  await tel.evaluate(() => ajouterEau(500));
+  await retirerAliment(tel, 'breakfast', 'Flocons');
+  // Pendant ce temps, la tablette note son déjeuner et 250 ml, et l'envoie.
+  await noterAliment(tab, 'lunch', 'Poulet');
+  await tab.evaluate(() => ajouterEau(250));
+  await synchro(tab);
+  // Le téléphone revient en ligne : fusion, puis la tablette la récupère.
+  await synchro(tel); await synchro(tab);
+  const attendu = { matin: ['Banane', 'Banane'], midi: ['Poulet'], eau: 750 };
+  assert.deepEqual(await journee(tel), attendu);
+  assert.deepEqual(await journee(tab), attendu);
+  // Plus rien en attente d'envoi.
+  assert.deepEqual(await tel.evaluate(() => joursModifies()), {});
+}));
+
+test("synchro : après la première, seules les nouveautés sont téléchargées, et un appareil à l'heure décalée est vu", () => deuxAppareils(async (tel, tab, serveur) => {
+  await noterAliment(tel, 'breakfast', 'Pain');
+  await synchro(tel); await synchro(tab);
+  const lectures = () => serveur.journal.filter(q => q.table === 'journees' && q.op === 'select');
+  const avant = lectures().length;
+  // L'horloge de la tablette retarde de 3 heures.
+  await tab.evaluate(() => { const vrai = Date.now; Date.now = () => vrai() - 3 * 3600e3; });
+  await noterAliment(tab, 'lunch', 'Riz');
+  await synchro(tab); await synchro(tel);
+  const suivantes = lectures().slice(avant);
+  assert.ok(suivantes.length >= 2 && suivantes.every(q => q.filtres.some(f => f[0] === 'gt')), 'lecture incrémentale : ' + JSON.stringify(suivantes.map(q => q.filtres)));
+  assert.deepEqual((await journee(tel)).midi, ['Riz']);
+  // Recettes et exercices des autres : relus seulement lors d'une synchro complète.
+  const recettes = serveur.journal.filter(q => q.table === 'recettes_perso').length;
+  await synchro(tel);
+  assert.equal(serveur.journal.filter(q => q.table === 'recettes_perso').length, recettes);
+  await synchro(tel, 'manuel');
+  assert.ok(serveur.journal.filter(q => q.table === 'recettes_perso').length > recettes);
 }));

@@ -6487,7 +6487,7 @@ function loadData() {
    la version la plus récente gagne, journée par journée. Sans elle, il faudrait
    comparer le contenu de chaque repas pour savoir qui a la bonne version. */
 function saveData(jourModifie) {
-  if (jourModifie && appData[jourModifie]) appData[jourModifie].maj = Date.now();
+  if (jourModifie && appData[jourModifie]) { appData[jourModifie].maj = Date.now(); marquerJourModifie(jourModifie); }
   if (!jourModifie) userProfile.maj = Date.now();
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
@@ -12121,7 +12121,9 @@ function viderDonneesLocales() {
     localStorage.removeItem(MUSCU_HISTORIQUE_KEY);
     localStorage.removeItem(MUSCU_EXOS_PERSO_KEY);
     localStorage.removeItem(MUSCU_COMPTE_LOCAL_LS);
+    localStorage.removeItem(JOURS_MODIFIES_LS);
   } catch (e) {}
+  syncCompleteFaite = false;
   invaliderHistorique();
   renderApp();
   if (ecranActif === 'stats') prepareStats();
@@ -15705,6 +15707,109 @@ function planifierSync() {
 
 function jourValide(j) { return /^\d{4}-\d{2}-\d{2}$/.test(j); }
 
+/* =====================================================================
+   SYNCHRO FIABLE : FUSION À TROIS VERSIONS, TÉLÉCHARGEMENT INCRÉMENTAL
+   - Chaque appareil retient les journées qu'il a modifiées depuis son
+     dernier envoi, et, pour les journées récentes, la dernière version vue
+     sur le serveur (la « base »). Si une même journée a changé des deux
+     côtés (petit-déjeuner noté hors ligne sur le téléphone, déjeuner noté
+     sur la tablette), les trois versions sont fusionnées au lieu que la plus
+     récente écrase toute la journée : chaque ajout et chaque suppression
+     est gardé, l'eau bue s'additionne.
+   - Rien ne dépend de l'heure des appareils (souvent décalée) : chaque
+     envoi porte une version supérieure à celle que le serveur avait.
+   - Seules les lignes modifiées depuis la dernière synchro sont
+     téléchargées (avec une marge). Une synchro complète a lieu à la
+     première synchro de chaque ouverture, à la connexion et sur demande.
+   ===================================================================== */
+const MARGE_SYNC_MS = 12 * 3600 * 1000;
+const JOURS_BASES_SYNC = 60;
+const JOURS_MODIFIES_LS = 'mc_jours_modifies';
+let syncCompleteFaite = false;
+
+/* Journées modifiées ici et pas encore envoyées : { jour: compteur }. Le
+   compteur avance à chaque modification ; après un envoi réussi, la marque
+   n'est retirée que si la journée n'a pas rebougé pendant l'envoi. */
+function joursModifies() {
+  try { const v = JSON.parse(localStorage.getItem(JOURS_MODIFIES_LS)); return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; } catch (e) { return {}; }
+}
+function enregistrerJoursModifies(m) {
+  try { localStorage.setItem(JOURS_MODIFIES_LS, JSON.stringify(m)); } catch (e) {}
+}
+function marquerJourModifie(jour) {
+  const m = joursModifies();
+  m[jour] = (m[jour] || 0) + 1;
+  enregistrerJoursModifies(m);
+  return m[jour];
+}
+function retirerMarqueJour(jour, compteur) {
+  const m = joursModifies();
+  if (m[jour] === compteur) { delete m[jour]; enregistrerJoursModifies(m); }
+}
+function etatSync(id) {
+  try { const e = JSON.parse(localStorage.getItem('mc_sync_etat_' + id)); if (e && e.curseurs && e.connus) return e; } catch (e) {}
+  return { curseurs: {}, connus: {} };
+}
+function enregistrerEtatSync(id, etat) {
+  try { localStorage.setItem('mc_sync_etat_' + id, JSON.stringify(etat)); } catch (e) {}
+}
+function basesSync(id) {
+  try { return JSON.parse(localStorage.getItem('mc_sync_bases_' + id)) || {}; } catch (e) { return {}; }
+}
+function enregistrerBasesSync(id, bases) {
+  const limite = shiftDate(todayStr(), -JOURS_BASES_SYNC);
+  Object.keys(bases).forEach(j => { if (j < limite) delete bases[j]; });
+  try { localStorage.setItem('mc_sync_bases_' + id, JSON.stringify(bases)); } catch (e) {}
+}
+/* Écriture canonique, clés triées à toutes les profondeurs : le serveur
+   (jsonb) ne rend pas les clés dans l'ordre où elles ont été écrites. */
+function canonique(v) {
+  if (Array.isArray(v)) return '[' + v.map(canonique).join(',') + ']';
+  if (v && typeof v === 'object') return '{' + Object.keys(v).filter(k => v[k] !== undefined).sort().map(k => JSON.stringify(k) + ':' + canonique(v[k])).join(',') + '}';
+  return JSON.stringify(v === undefined ? null : v);
+}
+/* Fusion à trois versions d'une liste (aliments d'un repas, sport du jour) :
+   chaque élément apparaît autant de fois que dans la base, plus ce que
+   chaque appareil a ajouté, moins ce qu'il a retiré. Deux bananes
+   identiques restent deux bananes ; un aliment retiré d'un côté ne revient
+   pas de l'autre ; une quantité corrigée remplace l'ancienne. */
+function fusionnerListe(base, local, distant) {
+  const tab = x => (Array.isArray(x) ? x : []);
+  base = tab(base); local = tab(local); distant = tab(distant);
+  const compter = liste => { const m = new Map(); liste.forEach(x => { const k = canonique(x); m.set(k, (m.get(k) || 0) + 1); }); return m; };
+  const nb = compter(base), nl = compter(local), nd = compter(distant);
+  const voulu = new Map();
+  new Set([...nb.keys(), ...nl.keys(), ...nd.keys()]).forEach(k => voulu.set(k, Math.max(0, (nl.get(k) || 0) + (nd.get(k) || 0) - (nb.get(k) || 0))));
+  const sortie = [], pris = new Map();
+  [...local, ...distant].forEach(x => {
+    const k = canonique(x), n = pris.get(k) || 0;
+    if (n < voulu.get(k)) { sortie.push(x); pris.set(k, n + 1); }
+  });
+  return sortie;
+}
+/* Fusion d'une journée modifiée des deux côtés depuis la base : listes
+   élément par élément, eau bue additionnée, et pour le reste (poids, pas,
+   objectif…) la valeur qui a changé ; si les deux ont changé, la plus
+   récente. */
+function fusionnerJournee(base, local, distant) {
+  base = base || {}; local = local || {}; distant = distant || {};
+  const sortie = {};
+  const localPlusRecent = (Number(local.maj) || 0) >= (Number(distant.maj) || 0);
+  new Set([...Object.keys(base), ...Object.keys(local), ...Object.keys(distant)]).forEach(k => {
+    if (k === 'maj' || k === 'meals' || k === 'workouts') return;
+    const b = base[k], l = local[k], d = distant[k];
+    if (k === 'eauMl') { sortie.eauMl = Math.max(0, (Number(l) || 0) + (Number(d) || 0) - (Number(b) || 0)); return; }
+    const lChange = canonique(l) !== canonique(b), dChange = canonique(d) !== canonique(b);
+    const v = lChange && !dChange ? l : dChange && !lChange ? d : (localPlusRecent ? l : d);
+    if (v !== undefined) sortie[k] = v;
+  });
+  const bm = base.meals || {}, lm = local.meals || {}, dm = distant.meals || {};
+  sortie.meals = {};
+  new Set([...MEALS, ...Object.keys(bm), ...Object.keys(lm), ...Object.keys(dm)]).forEach(m => { sortie.meals[m] = fusionnerListe(bm[m], lm[m], dm[m]); });
+  sortie.workouts = fusionnerListe(base.workouts, local.workouts, distant.workouts);
+  return sortie;
+}
+
 async function synchroniser(raison) {
   if (!supa) {
     if (raison === 'manuel') majEtatSync('attente', "Renseigne l'URL et la clé du projet pour activer la synchronisation.");
@@ -15753,6 +15858,9 @@ async function synchroniser(raison) {
         localStorage.setItem(MUSCU_HISTORIQUE_KEY, JSON.stringify(musculationHistorique));
         localStorage.setItem(MUSCU_EXOS_PERSO_KEY, JSON.stringify(musculationExosPerso));
         localStorage.removeItem(MUSCU_SUPPR_LS);
+        localStorage.removeItem(JOURS_MODIFIES_LS);
+        localStorage.removeItem('mc_sync_etat_' + id);
+        localStorage.removeItem('mc_sync_bases_' + id);
         localStorage.setItem('mc_dernier_reset_' + id, String(resetLe));
       } catch (e) {}
       invaliderHistorique();
@@ -15762,43 +15870,81 @@ async function synchroniser(raison) {
     }
 
     // ---------- 1. Ce que le serveur a de plus récent ----------
-    const { data, error } = await supa
-      .from('journees').select('jour,donnees,maj').eq('utilisateur', id);
+    // Complète à la première synchro de l'ouverture, à la connexion et sur
+    // demande ; sinon seulement les journées modifiées depuis la dernière.
+    const complete = !syncCompleteFaite || ['manuel', 'connexion', 'réglages'].includes(raison);
+    const etat = etatSync(id), bases = basesSync(id), marques = joursModifies();
+    const connus = etat.connus.journees || (etat.connus.journees = {});
+    const connusAvant = Object.assign({}, connus);
+    if (complete) Object.keys(connus).forEach(j => delete connus[j]);   // le serveur fait foi
+    let requete = supa.from('journees').select('jour,donnees,maj').eq('utilisateur', id);
+    if (!complete && etat.curseurs.journees) requete = requete.gt('maj', etat.curseurs.journees - MARGE_SYNC_MS);
+    const { data, error } = await requete;
     if (error) throw error;
 
-    const distants = new Map();
-    let changementLocal = false;
+    let changementLocal = false, curseur = Number(etat.curseurs.journees) || 0;
+    const limiteBases = shiftDate(todayStr(), -JOURS_BASES_SYNC);
     (data || []).forEach(r => {
+      if (!jourValide(r.jour) || !r.donnees) return;
       const m = Number(r.maj) || 0;
-      distants.set(r.jour, m);
+      curseur = Math.max(curseur, m);
+      const vu = Number(connusAvant[r.jour]) || 0;        // version du serveur vue la dernière fois
       const local = appData[r.jour];
       const mLocal = Number(local && local.maj) || 0;
-      if (r.donnees && m > mLocal) {
-        appData[r.jour] = Object.assign({}, r.donnees, { maj: m });
-        changementLocal = true;
+      // Journée jamais suivie ainsi (avant cette version) : l'ancienne règle,
+      // la plus récente gagne, et une copie locale plus récente repart.
+      if (!vu && local && mLocal > m && !(r.jour in marques)) marques[r.jour] = marquerJourModifie(r.jour);
+      if (m > vu) {
+        const base = bases[r.jour];
+        if (!local || !(r.jour in marques)) {
+          appData[r.jour] = Object.assign({}, r.donnees, { maj: m });
+          changementLocal = true;
+        } else if (base && vu) {
+          // Modifiée des deux côtés depuis la base : fusion, puis envoi.
+          appData[r.jour] = Object.assign(fusionnerJournee(base, local, r.donnees), { maj: Math.max(Date.now(), m + 1, mLocal + 1) });
+          changementLocal = true;
+        } else if (m > mLocal) {
+          appData[r.jour] = Object.assign({}, r.donnees, { maj: m });
+          retirerMarqueJour(r.jour, marques[r.jour]);
+          delete marques[r.jour];
+          changementLocal = true;
+        }
       }
+      connus[r.jour] = Math.max(vu, m);
+      if (r.jour >= limiteBases) bases[r.jour] = r.donnees;
     });
 
-    // ---------- 2. Ce que l'appareil a de plus récent ----------
+    // ---------- 2. Ce que l'appareil a de nouveau ----------
+    // Journées modifiées ici, et journées que le serveur n'a pas encore
+    // (y compris celles d'avant la synchronisation). Chaque envoi porte une
+    // version supérieure à celle du serveur, quelle que soit l'heure de
+    // l'appareil : les autres appareils voient toujours qu'elle a changé.
     const aPousser = Object.keys(appData)
       .filter(jourValide)
-      .filter(j => {
-        const m = Number(appData[j].maj) || 0;
-        // maj à 0 = journée d'avant la synchronisation : on l'envoie une fois
-        // pour ne pas laisser l'historique existant hors du serveur.
-        if (!distants.has(j)) return true;
-        return m > distants.get(j);
-      })
-      .map(j => ({
-        utilisateur: id, jour: j,
-        donnees: appData[j],
-        maj: Number(appData[j].maj) || 1
-      }));
+      .filter(j => (j in marques) || !(j in connus))
+      .map(j => {
+        const maj = Math.max(Number(appData[j].maj) || 1, (Number(connus[j]) || 0) + 1);
+        appData[j].maj = maj;
+        return { utilisateur: id, jour: j, donnees: appData[j], maj, compteur: marques[j] };
+      });
 
     for (let i = 0; i < aPousser.length; i += 200) {
+      const lot = aPousser.slice(i, i + 200);
       const { error: e2 } = await supa.from('journees')
-        .upsert(aPousser.slice(i, i + 200), { onConflict: 'utilisateur,jour' });
+        .upsert(lot.map(({ compteur, ...ligne }) => ligne), { onConflict: 'utilisateur,jour' });
       if (e2) throw e2;
+      lot.forEach(l => {
+        connus[l.jour] = l.maj;
+        curseur = Math.max(curseur, l.maj);
+        if (l.compteur != null) retirerMarqueJour(l.jour, l.compteur);
+        if (l.jour >= limiteBases) bases[l.jour] = JSON.parse(JSON.stringify(l.donnees));
+      });
+    }
+    etat.curseurs.journees = curseur;
+    enregistrerBasesSync(id, bases);
+    enregistrerEtatSync(id, etat);
+    if (changementLocal || aPousser.length) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch (e) {}
     }
 
     // ---------- 3. Le profil ----------
@@ -15829,14 +15975,19 @@ async function synchroniser(raison) {
     // ceux d'un autre compte, chaque ligne restant scopée à `id` ci-dessus.
     // Corrections admin d'abord (suppressions, fusions) : la synchro qui
     // suit doit déjà savoir quels exercices ne plus jamais renvoyer.
-    await chargerBaseOverrides();
-    await synchroniserMuscu(id);
+    // Corrections admin, exercices des autres comptes et recettes : relus à
+    // chaque synchro complète (ouverture, connexion, demande), pas après
+    // chaque aliment noté.
+    if (complete) await chargerBaseOverrides();
+    await synchroniserMuscu(id, complete);
     // Les exercices personnalisés des AUTRES comptes, eux, doivent être
     // visibles ici (comme les aliments partagés) : chargement à part, en
     // lecture seule, sans bloquer le rendu si ça échoue.
-    chargerExercicesCommunaute(id);
-    chargerRecettesPerso();
-    chargerRecettesPartagees();
+    if (complete) {
+      chargerExercicesCommunaute(id);
+      chargerRecettesPerso();
+      chargerRecettesPartagees();
+    }
 
     // Ancienne file d'aliments locale : effacée, plus jamais renvoyée.
     viderFileAliments();
@@ -15846,7 +15997,8 @@ async function synchroniser(raison) {
     verifierBilanInitial();
 
     const recus = (data || []).length;
-    majEtatSync('ok', `À jour · ${aPousser.length} journée(s) envoyée(s), ${recus} sur le serveur.`);
+    if (complete) syncCompleteFaite = true;
+    majEtatSync('ok', `À jour · ${aPousser.length} journée(s) envoyée(s), ${complete ? recus + ' sur le serveur' : recus + ' reçue(s)'}.`);
   } catch (e) {
     // Une panne de synchro ne doit jamais bloquer l'usage : les données sont
     // déjà en sécurité en local, on se contente de le signaler.
@@ -18064,10 +18216,19 @@ async function viderSuppressionsMuscu() {
 /* Synchronise une collection locale (tableau d'objets avec id + maj) avec
    une table Supabase à la forme (utilisateur, id, donnees, maj). Retourne
    true si des données distantes plus récentes ont modifié la collection. */
-async function syncCollectionMusculation(nomTable, utilisateurId, collectionLocale) {
-  const { data, error } = await supa.from(nomTable).select('id,donnees,maj').eq('utilisateur', utilisateurId);
+async function syncCollectionMusculation(nomTable, utilisateurId, collectionLocale, etat, complete = true) {
+  // Versions vues sur le serveur, ligne par ligne : en synchro incrémentale,
+  // seules les lignes modifiées depuis la dernière synchro sont relues, les
+  // autres gardent la version connue (une synchro complète refait le tour).
+  etat = etat || { curseurs: {}, connus: {} };
+  const connus = complete ? (etat.connus[nomTable] = {}) : (etat.connus[nomTable] || (etat.connus[nomTable] = {}));
+  let requete = supa.from(nomTable).select('id,donnees,maj').eq('utilisateur', utilisateurId);
+  if (!complete && etat.curseurs[nomTable]) requete = requete.gt('maj', etat.curseurs[nomTable] - MARGE_SYNC_MS);
+  const { data, error } = await requete;
   if (error) throw error;
-  const distants = new Map();
+  let curseur = Number(etat.curseurs[nomTable]) || 0;
+  (data || []).forEach(r => { curseur = Math.max(curseur, Number(r.maj) || 0); });
+  const distants = new Map(Object.entries(connus).map(([k, v]) => [k, Number(v) || 0]));
   let changement = false;
   const bloque = id => nomTable === 'exercices_perso_musculation' && EXERCICES_SUPPRIMES.has(id);
   const tombes = tombesMuscu();
@@ -18077,6 +18238,7 @@ async function syncCollectionMusculation(nomTable, utilisateurId, collectionLoca
     if (bloque(r.id)) return;
     const m = Number(r.maj) || 0;
     distants.set(r.id, m);
+    connus[r.id] = m;
     const idxLocal = collectionLocale.findIndex(x => x.id === r.id);
     // Marque de suppression venue du serveur : on retire la copie locale
     // (sauf si elle a été modifiée ici après la suppression).
@@ -18111,9 +18273,12 @@ async function syncCollectionMusculation(nomTable, utilisateurId, collectionLoca
     aPousser.push({ utilisateur: utilisateurId, id, donnees: donneesTombeMuscu(nomTable, id), maj: T[id] });
   });
   for (let i = 0; i < aPousser.length; i += 200) {
-    const { error: e2 } = await supa.from(nomTable).upsert(aPousser.slice(i, i + 200), { onConflict: 'utilisateur,id' });
+    const lot = aPousser.slice(i, i + 200);
+    const { error: e2 } = await supa.from(nomTable).upsert(lot, { onConflict: 'utilisateur,id' });
     if (e2) throw e2;
+    lot.forEach(l => { connus[l.id] = l.maj; curseur = Math.max(curseur, l.maj); });
   }
+  etat.curseurs[nomTable] = curseur;
   // Envoyées : plus besoin de les garder en attente (la marque reste sur le
   // serveur, c'est elle qui fait foi pour toutes les copies).
   tombes[nomTable] = {};
@@ -18121,11 +18286,13 @@ async function syncCollectionMusculation(nomTable, utilisateurId, collectionLoca
   return changement;
 }
 
-async function synchroniserMuscu(utilisateurId) {
+async function synchroniserMuscu(utilisateurId, complete = true) {
   await viderSuppressionsMuscu();
-  const c1 = await syncCollectionMusculation('programmes_musculation', utilisateurId, musculationProgrammes);
-  const c2 = await syncCollectionMusculation('seances_musculation', utilisateurId, musculationHistorique);
-  const c3 = await syncCollectionMusculation('exercices_perso_musculation', utilisateurId, musculationExosPerso);
+  const etat = etatSync(utilisateurId);
+  const c1 = await syncCollectionMusculation('programmes_musculation', utilisateurId, musculationProgrammes, etat, complete);
+  const c2 = await syncCollectionMusculation('seances_musculation', utilisateurId, musculationHistorique, etat, complete);
+  const c3 = await syncCollectionMusculation('exercices_perso_musculation', utilisateurId, musculationExosPerso, etat, complete);
+  enregistrerEtatSync(utilisateurId, etat);
   if (c1 || c2 || c3) {
     // L'historique est retrié : le serveur peut avoir apporté une séance
     // plus récente qu'aucune séance locale, qui doit repasser en tête.
