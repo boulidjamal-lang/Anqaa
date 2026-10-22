@@ -2285,6 +2285,8 @@
     #ecran-repas .meal-kcals { padding: 3px 10px; font-size: 0.74rem; }
     #ecran-repas .food-item { padding: 7px 0; }
     /* Pas du jour : le champ sur la ligne du titre, la jauge dessous. */
+    /* Le champ reste dans la page (la sauvegarde des pas le lit), la carte est masquée. */
+    html:root #carte-pas-seances { display: none !important; }
     #carte-pas-seances { display: grid; grid-template-columns: 1fr 112px; align-items: center; column-gap: 10px; }
     #carte-pas-seances > h3 { grid-column: 1; grid-row: 1; margin: 0; font-size: 0.78rem; }
     #carte-pas-seances .input-group { display: contents; }
@@ -2606,6 +2608,10 @@
     .bt-deco { position: absolute; right: -14px; bottom: -14px; width: 92px; height: 92px; z-index: -1; opacity: .22; }
     .bt-deco .icone-ui { width: 92px; height: 92px; }
     :is(.vitrine, .bento, .hx, .cardio-liste) .icone-ui { color: inherit; }
+    html:root .bt { border-radius: 20px; }
+    html:root :is(.bt-deco, .bt-glow) { display: none; }
+    html:root .bt-s { max-width: none; }
+    html:root .bt-k { font-size: 11px; letter-spacing: .06em; }
     .bt-glow { position: absolute; right: -30%; bottom: -50%; width: 160px; height: 160px; border-radius: 50%; filter: blur(30px); z-index: -1; opacity: .55; }
     .semaine-barres { display: flex; align-items: flex-end; gap: 6px; height: 72px; margin-top: 12px; }
     .semaine-barres div { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; height: 100%; font-size: .6rem; font-weight: 800; color: var(--text-muted); }
@@ -3192,23 +3198,32 @@
     html:root .pg-onglets button { padding: 0 2px; font-size: .76rem; }
     html:root #ecran-stats .stats-periode-resume { margin: 4px 2px 14px; font-weight: 600; }
 
-    .pg-heros { position: relative; overflow: hidden; border-radius: 26px; padding: 18px 16px 14px; margin-bottom: 12px; color: #fff;
-      background: radial-gradient(120% 90% at 100% 0%, rgba(34,211,238,.35), transparent 60%), radial-gradient(90% 80% at 0% 100%, rgba(167,139,250,.45), transparent 60%), linear-gradient(150deg, #0f766e, #1e3a8a 70%, #4c1d95);
-      box-shadow: 0 22px 40px -22px rgba(30,58,138,.8); }
-    .pg-heros small { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
-    html:root .pg-heros h3 { margin: 6px 0 4px; font: 800 1.36rem/1.2 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; color: #fff; }
-    .pg-heros p { margin: 0 0 6px; font-size: .84rem; line-height: 1.4; opacity: .92; }
-    .pg-lien-clair { padding: 0; border: 0; background: none; color: #fff; font: inherit; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    /* Même langage que les bandeaux d'Activité (.hx) : pastel en clair, nuit en sombre. */
+    .pg-heros { position: relative; overflow: hidden; isolation: isolate; border-radius: 26px; padding: 18px 16px 14px; margin-bottom: 12px; color: var(--text);
+      --pgh-trait: #4f46e5; --pgh-point: rgba(79,70,229,.35);
+      background: radial-gradient(70% 60% at 85% 20%, rgba(34,211,238,.30), transparent 70%), radial-gradient(60% 50% at 0% 100%, rgba(167,139,250,.28), transparent 70%), linear-gradient(180deg, #e9f6ff, #f4f1ff);
+      box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); }
+    .pg-heros::after { content: ''; position: absolute; inset: 0; z-index: -1; opacity: .5; pointer-events: none;
+      background: linear-gradient(rgba(13,16,32,.05) 1px, transparent 1px) 0 0/100% 28px, linear-gradient(90deg, rgba(13,16,32,.05) 1px, transparent 1px) 0 0/28px 100%;
+      -webkit-mask: radial-gradient(80% 70% at 70% 45%, #000, transparent); mask: radial-gradient(80% 70% at 70% 45%, #000, transparent); }
+    html:root[data-theme="dark"] .pg-heros { --pgh-trait: #e0e7ff; --pgh-point: rgba(255,255,255,.4);
+      background: radial-gradient(70% 60% at 85% 20%, rgba(34,211,238,.35), transparent 70%), radial-gradient(60% 50% at 0% 100%, rgba(167,139,250,.30), transparent 70%), linear-gradient(180deg, #0b1020, #070a14); }
+    html:root[data-theme="dark"] .pg-heros::after { background: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px) 0 0/100% 28px, linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px) 0 0/28px 100%; }
+    .pg-heros small { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
+    html:root .pg-heros h3 { margin: 6px 0 4px; font: 800 1.36rem/1.2 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; color: var(--text); }
+    .pg-heros p { margin: 0 0 6px; font-size: .84rem; line-height: 1.4; color: var(--text-muted); }
+    .pg-heros p b { color: var(--text); }
+    .pg-lien-clair { padding: 0; border: 0; background: none; color: var(--primary); font: inherit; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
     .pg-h-courbe { display: block; width: 100%; height: auto; margin: 8px 0 2px; overflow: visible; }
-    .pg-h-courbe text { fill: rgba(255,255,255,.85); font: 600 11px 'Inter', sans-serif; }
-    .pg-h-pt { fill: rgba(255,255,255,.5); }
-    .pg-h-tend { fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-    .pg-h-proj { fill: none; stroke: #fff; stroke-width: 2; stroke-dasharray: 5 5; opacity: .85; }
-    .pg-h-cible { fill: none; stroke: #fff; stroke-width: 2; }
-    .pg-h-der { fill: #fff; stroke: #1e3a8a; stroke-width: 2; }
-    .pg-heros-puces { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.22); }
+    .pg-h-courbe text { fill: var(--text-muted); font: 600 11px 'Inter', sans-serif; }
+    .pg-h-pt { fill: var(--pgh-point); }
+    .pg-h-tend { fill: none; stroke: var(--pgh-trait); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .pg-h-proj { fill: none; stroke: var(--pgh-trait); stroke-width: 2; stroke-dasharray: 5 5; opacity: .8; }
+    .pg-h-cible { fill: none; stroke: var(--pgh-trait); stroke-width: 2; }
+    .pg-h-der { fill: var(--pgh-trait); stroke: var(--carte-plein); stroke-width: 2; }
+    .pg-heros-puces { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--trait); }
     .pg-heros-puces b { display: block; font: 800 1.05rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; }
-    .pg-heros-puces span { font-size: 11px; font-weight: 600; opacity: .85; }
+    .pg-heros-puces span { font-size: 11px; font-weight: 600; color: var(--text-muted); }
 
     .pg-grille2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
     .pg-tuile { position: relative; min-width: 0; overflow: hidden; padding: 12px 12px 10px; border-radius: 20px; background: var(--verre); box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); }
@@ -11188,7 +11203,7 @@ const TOUR_ETAPES = [
   { ecran: 'repas', cible: '#onglets', titre: 'La barre d’onglets', texte: "Repas, Activité, Progrès (tes statistiques détaillées) et Profil, toujours en bas de l'écran." },
   { ecran: 'repas', cible: '#onglet-seance', titre: 'Activité', texte: 'Ta musculation (programmes, séances, bibliothèque d’exercices) et ton cardio. La visite « Musculation » détaille la partie muscu.' },
   { ecran: 'seance', cible: '#vitrine-muscu .hx', titre: 'Ta semaine de muscu', texte: "Le corps se colore selon le volume de la semaine : vert en zone idéale, gris à travailler. Touche-le pour le détail. Juste dessous, la séance du jour : le programme suivant dans l'ordre de ta liste, après ta dernière séance." },
-  { ecran: 'seance', cible: '#carte-pas-seances', titre: 'Tes pas', texte: "En bas de l'écran Activité : note tes pas du jour. La jauge montre où tu en es (7 500 pas, c'est le repère santé), et le surplus compte dans ta dépense." },
+  { ecran: 'repas', cible: '#ecran-repas .heros-puce-modif', titre: 'Tes pas', texte: "Touche « Pas » pour noter tes pas du jour : au-delà de 4 000, le surplus compte dans ta dépense. Leur évolution est dans Progrès › Corps." },
   { ecran: 'seance', cible: '#seance-mode-nav', titre: 'Musculation ou cardio', texte: "Bascule entre tes séances de musculation et ton cardio : course, vélo, natation, marche, rameur, HIIT, sport co." },
   { ecran: 'seance', modeCardio: true, cible: '#seance-cardio .hx--cardio', titre: 'Ta semaine de cardio', texte: "L'objectif conseillé : 150 à 300 min par semaine, une minute intense comptant double. La jauge montre où tu en es, la barre en dessous ta répartition facile / modérée / intense. Ajoute une séance avec le bouton juste en dessous : durée, distance, intensité." },
   { ecran: 'stats', avant: () => { ouvrirStats('resume'); }, cible: '#pg-periode-btn', titre: 'Ta progression', texte: "Le Résumé dit en une phrase où tu en es : ta courbe de poids, ta maintenance réelle, ce qui a bougé. Choisis la période ici (7 jours, 30 jours, 3 mois… ou « Perso »). Corps, Repas, Cardio et Muscu donnent le détail." },

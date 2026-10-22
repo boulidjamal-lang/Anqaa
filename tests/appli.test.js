@@ -66,15 +66,15 @@ test('ajouter un aliment met à jour le résumé du jour', () => avecAppli({}, a
   assert.match(r.total, /260/);
 }));
 
-test('les pas remplissent la jauge et la dépense', () => avecAppli({}, async ({ page }) => {
-  // Les pas sont dans l'écran Activité (plus dans Repas du jour).
+test('les pas se notent depuis Repas du jour et comptent dans la dépense', () => avecAppli({}, async ({ page }) => {
+  // Plus de carte des pas dans Activité : la puce « Pas » de Repas du jour suffit.
   await page.evaluate(() => allerA('seance'));
-  assert.equal(await page.$('#ecran-repas #carte-pas-seances'), null);
-  assert.match(await page.textContent('#jauge-pas'), /Indique tes pas/);
+  assert.equal(await page.isVisible('#carte-pas-seances'), false);
+  await page.evaluate(() => allerA('repas'));
   const avant = await page.evaluate(() => computeTargets(getDay(todayStr()), todayStr()).tdee);
-  await page.fill('#daily-steps', '8500');
-  await page.dispatchEvent('#daily-steps', 'change');
-  assert.match(await page.textContent('#jauge-pas'), /Actif/);
+  await page.click('#ecran-repas .heros-puce-modif');
+  await page.fill('#saisie-rapide-champ', '8500');
+  await page.evaluate(() => validerSaisieRapide());
   const r = await page.evaluate(() => ({ pas: getDay(todayStr()).steps, tdee: computeTargets(getDay(todayStr()), todayStr()).tdee }));
   assert.equal(r.pas, 8500);
   assert.ok(r.tdee > avant, 'les pas en plus doivent augmenter la dépense');
@@ -1021,7 +1021,7 @@ test("Repas du jour allégé : idées dans « Recette », pas dans Activité, bi
   const r = await page.evaluate(() => ({
     idees: !!document.querySelector('#ecran-repas [onclick*="chercherRecettesMacros"]'),
     ideesDansRecette: !!document.querySelector('#feuille-choix-recette [onclick*="chercherRecettesMacros"]'),
-    pasDansActivite: !!document.querySelector('#ecran-seance #carte-pas-seances'),
+    pasDansActivite: getComputedStyle(document.getElementById('carte-pas-seances')).display !== 'none' || !document.querySelector('#ecran-repas .heros-puce-modif'),
     bilanDansNutrition: !!document.querySelector('#depense-modal #carte-bilan-jour'),
     bilanDansRepas: !!document.querySelector('#ecran-repas #carte-bilan-jour'),
     vides: document.querySelectorAll('#meals-container .meal-card--vide').length,
@@ -1029,7 +1029,7 @@ test("Repas du jour allégé : idées dans « Recette », pas dans Activité, bi
     macrosAliment: getComputedStyle(document.querySelector('#ecran-repas .food-macros')).display,
     pct: !!document.getElementById('pct-p')
   }));
-  assert.deepEqual(r, { idees: false, ideesDansRecette: true, pasDansActivite: true, bilanDansNutrition: true, bilanDansRepas: false, vides: 3, listesVides: 0, macrosAliment: 'none', pct: false });
+  assert.deepEqual(r, { idees: false, ideesDansRecette: true, pasDansActivite: false, bilanDansNutrition: true, bilanDansRepas: false, vides: 3, listesVides: 0, macrosAliment: 'none', pct: false });
   // Eau : la gourde à gauche, quantité et boutons à droite.
   const eau = await page.evaluate(() => { const g = document.querySelector('#bloc-eau .gourde').getBoundingClientRect(), b = document.querySelector('#bloc-eau .eau-boutons').getBoundingClientRect(); return b.left > g.right - 1 && b.top < g.bottom; });
   assert.ok(eau);
@@ -1227,9 +1227,9 @@ test('vitrines : Activité (corps, séance du jour, programmes), Cardio (arc, tr
     // Un seul affichage des programmes (le carrousel), pas de doublon.
     pcAilleurs: document.querySelectorAll('.pc').length - document.querySelectorAll('#programmes-liste-container .pc').length,
     ancienneListe: document.querySelectorAll('.programme-carte').length,
-    pasEnBas: !!document.querySelector('#seance-mode-cardio ~ #carte-pas-seances')
+    pasEnBas: getComputedStyle(document.getElementById('carte-pas-seances')).display !== 'none'
   }));
-  assert.deepEqual(m, { geant: '4', corps: true, sdj: 'Bas', programmes: ['Haut', 'Bas'], pcAilleurs: 0, ancienneListe: 0, pasEnBas: true });
+  assert.deepEqual(m, { geant: '4', corps: true, sdj: 'Bas', programmes: ['Haut', 'Bas'], pcAilleurs: 0, ancienneListe: 0, pasEnBas: false });
   // Le ⋯ d'une carte : modifier, dupliquer, supprimer — sans ouvrir l'aperçu.
   await page.click('#programmes-liste-container .pc:nth-child(1) .pc-options');
   assert.ok(await page.isVisible('#menu-programme-popup'));
