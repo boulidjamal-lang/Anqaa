@@ -2432,15 +2432,25 @@
     body.sur-repas .semaine-nav { display: block; }
     .semaine-tete { display: flex; justify-content: space-between; align-items: center; padding: 0 4px 6px; font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: capitalize; }
     .semaine-tete button { border: 0; background: var(--piste); color: var(--primary); font: inherit; font-weight: 800; padding: 4px 10px; border-radius: 99px; cursor: pointer; text-transform: none; }
-    .semaine-jours { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; touch-action: pan-y; }
+    /* Roulette : les jours défilent sous une fenêtre fixe au centre ; le jour
+       au centre est le jour affiché. Les voisins s'inclinent comme sur une
+       roue (voir majRoulette). */
+    .semaine-roulette { position: relative; }
+    .semaine-lentille { position: absolute; top: 0; bottom: 0; left: 50%; width: calc(100% / 7); transform: translateX(-50%); border-radius: 18px;
+      background: var(--text); box-shadow: 0 10px 22px -10px rgba(0,0,0,.5); pointer-events: none; }
+    .semaine-jours { position: relative; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+      scrollbar-width: none; -webkit-overflow-scrolling: touch;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent); }
+    .semaine-jours::-webkit-scrollbar { display: none; }
+    .semaine-jours > .semaine-jour, .semaine-jours > .semaine-marge { flex: 0 0 calc(100% / 7); }
+    .semaine-jours > .semaine-jour { scroll-snap-align: center; will-change: transform; transform-origin: 50% 50%; }
     .semaine-jour { display: grid; justify-items: center; gap: 4px; padding: 7px 0 9px; border: 0; border-radius: 18px; background: transparent; cursor: pointer;
-      font-family: inherit; font-size: 0.66rem; font-weight: 700; color: var(--text-muted); transition: background .2s, transform .15s; }
-    .semaine-jour:active { transform: scale(.94); }
+      font-family: inherit; font-size: 0.66rem; font-weight: 700; color: var(--text-muted); transition: color .15s; }
     .semaine-jour:disabled { opacity: .45; cursor: default; }
     .semaine-num { position: relative; display: grid; place-items: center; width: 34px; height: 34px; }
     .semaine-num svg { position: absolute; inset: 0; transform: rotate(-90deg); }
     .semaine-num b { position: relative; font-size: 0.82rem; font-weight: 800; color: var(--text); }
-    .semaine-jour.actif { background: var(--text); color: var(--bg); box-shadow: 0 10px 22px -10px rgba(0,0,0,.5); }
+    .semaine-jour.actif { color: var(--bg); }
     .semaine-jour.actif .semaine-num b { color: var(--bg); }
     .semaine-jour.actif .anneau-piste { stroke: rgba(127,127,127,.35); }
     .anneau-piste { fill: none; stroke: var(--piste); }
@@ -3654,7 +3664,10 @@
        semaine. Voir renderSemaine. -->
   <div class="semaine-nav" id="semaine-nav">
     <div class="semaine-tete"><span id="semaine-mois"></span><button type="button" class="hidden" id="semaine-aujourdhui" onclick="revenirAujourdhui()">Aujourd'hui</button></div>
-    <div class="semaine-jours" id="semaine-jours"></div>
+    <div class="semaine-roulette">
+      <span class="semaine-lentille" aria-hidden="true"></span>
+      <div class="semaine-jours" id="semaine-jours" role="listbox" aria-label="Choisir le jour"></div>
+    </div>
   </div>
   <div class="date-nav">
     <button onclick="changerDate(-1)" aria-label="Jour précédent"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></button>
@@ -6622,49 +6635,121 @@ function joursDAffilee() {
   return n;
 }
 
-/* ---------- Semaine : un mini-anneau par jour ---------- */
+/* ---------- Semaine en roulette : un mini-anneau par jour ----------
+   Les jours défilent au doigt (avec l'élan et le calage natifs du
+   navigateur) sous une fenêtre fixe : le jour qui s'y arrête devient le
+   jour affiché. Pendant le défilement, chaque jour s'incline et rapetisse
+   selon sa distance au centre, comme sur une roue ; le mois suit. */
+const ROULETTE_JOURS = 180;
+const LETTRES_JOURS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+let rouletteGeste = false, rouletteImage = 0, rouletteFin = 0, rouletteCentre = null, rouletteVersion = 0;
+function majJourRoulette(b) {
+  if (b.dataset.v === String(rouletteVersion)) return;
+  b.dataset.v = String(rouletteVersion);
+  const d = b.dataset.date, a = anneauJourHTML(d);
+  b.querySelector('.semaine-num').innerHTML = a.html + `<b>${dateLocale(d).getDate()}</b>`;
+  b.setAttribute('aria-label', dateLocale(d).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) + (a.part ? ' : ' + Math.round(a.part * 100) + ' % de l\'objectif' : ''));
+}
+function anneauJourHTML(d) {
+  const j = appData[d], tour = 2 * Math.PI * 13;
+  const kcal = j && j.meals ? sumMeals(j).kcal : 0;
+  const part = kcal > 0 ? Math.min(1, kcal / Math.max(1, computeTargets(j, d).target)) : 0;
+  return { part, html: `<svg viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="13" class="anneau-piste" stroke-width="3.5"/><circle cx="17" cy="17" r="13" class="anneau-val" stroke="url(#grad-kcal)" stroke-width="3.5" style="stroke-dasharray:${tour};stroke-dashoffset:${tour * (1 - part)}"/></svg>` };
+}
 function renderSemaine() {
   const c = document.getElementById('semaine-jours');
   if (!c) return;
-  const lundi = lundiDeLaSemaine(currentDate), auj = todayStr();
-  const lettres = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-  const tour = 2 * Math.PI * 13;
-  c.innerHTML = lettres.map((l, i) => {
-    const d = decalerJours(lundi, i);
-    const j = appData[d];
-    const kcal = j && j.meals ? sumMeals(j).kcal : 0;
-    const part = kcal > 0 ? Math.min(1, kcal / Math.max(1, computeTargets(j, d).target)) : 0;
-    const futur = d > auj;
-    return `<button type="button" class="semaine-jour${d === currentDate ? ' actif' : ''}${d === auj ? ' aujourdhui' : ''}" ${futur ? 'disabled' : `onclick="choisirJour('${d}')"`}
-      aria-label="${dateLocale(d).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${part ? ' : ' + Math.round(part * 100) + ' % de l\'objectif' : ''}"${d === currentDate ? ' aria-current="date"' : ''}>
-      <span class="semaine-lettre">${l}</span>
-      <span class="semaine-num"><svg viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="13" class="anneau-piste" stroke-width="3.5"/><circle cx="17" cy="17" r="13" class="anneau-val" stroke="url(#grad-kcal)" stroke-width="3.5" style="stroke-dasharray:${tour};stroke-dashoffset:${tour * (1 - part)}"/></svg><b>${dateLocale(d).getDate()}</b></span>
-    </button>`;
-  }).join('');
-  const mois = document.getElementById('semaine-mois');
-  if (mois) mois.textContent = dateLocale(currentDate).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  const auj = todayStr();
+  let debut = shiftDate(auj, -ROULETTE_JOURS);
+  if (currentDate < debut) debut = shiftDate(currentDate, -14);
+  if (c.dataset.debut !== debut || c.dataset.fin !== auj) {
+    const jours = [];
+    for (let d = debut; d <= auj; d = shiftDate(d, 1)) jours.push(d);
+    const marge = '<span class="semaine-marge" aria-hidden="true"></span>'.repeat(3);
+    c.innerHTML = marge + jours.map(d => `<button type="button" class="semaine-jour${d === auj ? ' aujourdhui' : ''}" data-date="${d}" role="option" onclick="choisirJour('${d}')">
+      <span class="semaine-lettre">${LETTRES_JOURS[dateLocale(d).getDay()]}</span><span class="semaine-num"><b>${dateLocale(d).getDate()}</b></span></button>`).join('') + marge;
+    c.dataset.debut = debut; c.dataset.fin = auj;
+    if (!c.dataset.ecoute) {
+      c.dataset.ecoute = '1';
+      c.addEventListener('scroll', () => {
+        if (!rouletteImage) rouletteImage = requestAnimationFrame(majRoulette);
+        clearTimeout(rouletteFin);
+        rouletteFin = setTimeout(finRoulette, 140);
+      }, { passive: true });
+      c.addEventListener('touchstart', () => { rouletteGeste = true; }, { passive: true });
+      c.addEventListener('pointerdown', () => { rouletteGeste = true; }, { passive: true });
+      // L'écran Repas était masqué : on recentre dès qu'il a une largeur.
+      if (window.ResizeObserver) new ResizeObserver(() => { if (c.clientWidth && !rouletteGeste) centrerJour(currentDate, false); }).observe(c);
+    }
+  }
+  // Anneaux recalculés à la demande, seulement pour les jours visibles (majRoulette).
+  rouletteVersion++;
+  c.querySelectorAll('.semaine-jour').forEach(b => {
+    const d = b.dataset.date;
+    const actif = d === currentDate;
+    b.setAttribute('aria-selected', String(actif));
+    if (actif) b.setAttribute('aria-current', 'date'); else b.removeAttribute('aria-current');
+  });
   const btn = document.getElementById('semaine-aujourdhui');
   if (btn) btn.classList.toggle('hidden', currentDate === auj);
+  if (!rouletteGeste) centrerJour(currentDate, false);
+  majRoulette();
+}
+function centrerJour(d, doux) {
+  const c = document.getElementById('semaine-jours');
+  const b = c && c.querySelector(`.semaine-jour[data-date="${d}"]`);
+  if (!b || !c.clientWidth) return;
+  const gauche = b.offsetLeft + b.getBoundingClientRect().width / 2 - c.clientWidth / 2;
+  if (Math.abs(c.scrollLeft - gauche) < 1) { majRoulette(); return; }
+  c.scrollTo({ left: gauche, behavior: doux && !mouvementReduit() ? 'smooth' : 'auto' });
+}
+/* Inclinaison de chaque jour selon sa distance au centre, jour au centre
+   mis en valeur (sous la fenêtre), mois du jour au centre. */
+function majRoulette() {
+  rouletteImage = 0;
+  const c = document.getElementById('semaine-jours');
+  if (!c || !c.clientWidth) return;
+  const jours = c.querySelectorAll('.semaine-jour');
+  if (!jours.length) return;
+  // Largeur exacte d'un jour (offsetWidth est arrondi : l'erreur s'accumulait sur 180 jours).
+  const premier = jours[0].offsetLeft, n = jours.length;
+  const larg = n > 1 ? (jours[n - 1].offsetLeft - premier) / (n - 1) : jours[0].getBoundingClientRect().width;
+  const centre = c.scrollLeft + c.clientWidth / 2;
+  const k = Math.max(0, Math.min(jours.length - 1, Math.round((centre - premier - larg / 2) / larg)));
+  const reduit = mouvementReduit();
+  for (let i = Math.max(0, k - 6); i <= Math.min(jours.length - 1, k + 6); i++) {
+    const b = jours[i], dist = (b.offsetLeft + larg / 2 - centre) / larg, a = Math.min(3.2, Math.abs(dist));
+    majJourRoulette(b);
+    b.style.transform = reduit ? '' : `perspective(420px) rotateY(${(-dist * 16).toFixed(2)}deg) scale(${(1 - a * 0.07).toFixed(3)})`;
+    b.style.opacity = (1 - a * 0.16).toFixed(3);
+    b.classList.toggle('actif', i === k);
+  }
+  const d = jours[k].dataset.date;
+  if (d !== rouletteCentre) {
+    // Petit « cran » à chaque jour qui passe sous la fenêtre (Android).
+    if (rouletteCentre && rouletteGeste && navigator.vibrate) { try { navigator.vibrate(4); } catch (e) {} }
+    rouletteCentre = d;
+    const mois = document.getElementById('semaine-mois');
+    if (mois) mois.textContent = dateLocale(d).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  }
+}
+/* Le défilement s'est arrêté : le jour sous la fenêtre devient le jour affiché. */
+function finRoulette() {
+  majRoulette();
+  const d = rouletteCentre;
+  rouletteGeste = false;
+  if (!d || d === currentDate || d > todayStr()) return;
+  currentDate = d;
+  renderApp();
+  const zones = document.querySelectorAll('#ecran-repas > :not(.semaine-nav)');
+  if (!mouvementReduit()) zones.forEach(z => z.animate && z.animate([{ opacity: .35, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 220, easing: 'ease-out' }));
 }
 function choisirJour(d) {
   if (!d || d > todayStr()) return;
-  currentDate = d;
-  renderApp();
+  if (d === currentDate) return;
+  rouletteGeste = true;
+  centrerJour(d, true);
 }
-// Glisser sur la semaine : semaine précédente / suivante (jamais dans le futur).
-(function () {
-  let x0 = null;
-  document.addEventListener('touchstart', e => { x0 = e.target.closest && e.target.closest('#semaine-jours') ? e.touches[0].clientX : null; }, { passive: true });
-  document.addEventListener('touchend', e => {
-    if (x0 == null) return;
-    const dx = e.changedTouches[0].clientX - x0; x0 = null;
-    if (Math.abs(dx) < 50) return;
-    const cible = shiftDate(currentDate, dx > 0 ? -7 : 7);
-    currentDate = cible > todayStr() ? todayStr() : cible;
-    renderApp();
-  }, { passive: true });
-})();
-
 /* ---------- Coach du jour : un conseil calculé sur place, sans IA ----------
    Ce qui compte le plus à cet instant : rien de noté, objectif dépassé,
    protéines en retard (avec des aliments riches que tu manges déjà),
@@ -6696,6 +6781,8 @@ function majBoutonAujourdhui() {
   if (b) b.classList.toggle('hidden', currentDate === todayStr());
 }
 function revenirAujourdhui() {
+  // La roulette tourne jusqu'à aujourd'hui, puis l'affiche (voir finRoulette).
+  if (ecranActif === 'repas' && document.getElementById('semaine-jours') && document.getElementById('semaine-jours').clientWidth) { choisirJour(todayStr()); return; }
   currentDate = todayStr();
   renderApp();
 }

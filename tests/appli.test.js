@@ -1167,6 +1167,7 @@ test('Repas du jour refait : anneaux, semaine, série de jours, coach', () => av
     const part = 1 - parseFloat(a.style.strokeDashoffset) / tour;
     const res = { part: Math.round(part * 100), attendu: Math.round(600 / cible * 100), trop: a.getAttribute('stroke'),
       jours: document.querySelectorAll('#semaine-jours .semaine-jour').length, actif: document.querySelector('#semaine-jours .semaine-jour.actif b').textContent,
+      dernier: document.querySelector('#semaine-jours .semaine-jour:last-of-type').dataset.date === t,
       serie: document.getElementById('serie-jours').textContent.trim(), coach: document.getElementById('coach-jour').textContent };
     // Dépassement : l'anneau passe à l'orange-rouge.
     getDay(t).meals[MEALS[1]].push({ name: 'Pizza', grams: 600, kcal: cible, p: 60, c: 200, f: 80 }); saveData(t); renderApp();
@@ -1175,17 +1176,24 @@ test('Repas du jour refait : anneaux, semaine, série de jours, coach', () => av
   });
   assert.equal(r.part, r.attendu);
   assert.equal(r.trop, 'url(#grad-kcal)');
-  assert.equal(r.jours, 7);
+  // Roulette : 180 jours d'historique jusqu'à aujourd'hui (jamais de futur), aujourd'hui au centre.
+  assert.equal(r.jours, 181);
+  assert.equal(r.dernier, true);
   assert.equal(r.actif, String(new Date().getDate()));
   assert.equal(r.serie, '3');
   assert.match(r.coach, /Coach du jour/);
   assert.equal(r.tropApres, 'url(#grad-kcal-trop)');
   assert.equal(r.libelle, 'Dépassement');
-  // Toucher hier dans la semaine affiche hier (sauf lundi : hier est dans la semaine d'avant).
-  if (new Date().getDay() !== 1) {
-    const hier = await page.evaluate(() => { const b = document.querySelector('#semaine-jours .semaine-jour.actif').previousElementSibling; b.click(); return [currentDate, shiftDate(todayStr(), -1)]; });
-    assert.equal(hier[0], hier[1]);
-  }
+  // Toucher hier : la roulette tourne jusqu'à hier, qui devient le jour affiché.
+  await page.click(`#semaine-jours .semaine-jour[data-date="${await page.evaluate(() => shiftDate(todayStr(), -1))}"]`);
+  await page.waitForFunction(() => currentDate === shiftDate(todayStr(), -1), null, { timeout: 3000 });
+  assert.equal(await page.evaluate(() => document.querySelector('#semaine-jours .semaine-jour.actif').dataset.date), await page.evaluate(() => currentDate));
+  // Faire défiler de 5 jours vers le passé : le jour qui s'arrête au centre s'affiche.
+  await page.evaluate(() => { const c = document.getElementById('semaine-jours'); rouletteGeste = true; c.scrollLeft -= c.getBoundingClientRect().width / 7 * 5; });
+  await page.waitForFunction(() => currentDate === shiftDate(todayStr(), -6), null, { timeout: 3000 });
+  // « Aujourd'hui » ramène la roulette au bout.
+  await page.click('#semaine-aujourdhui');
+  await page.waitForFunction(() => currentDate === todayStr(), null, { timeout: 3000 });
 }));
 
 test('anciens styles visuels retirés : un choix enregistré n\'est plus appliqué', () => avecAppli({}, async ({ page }) => {
