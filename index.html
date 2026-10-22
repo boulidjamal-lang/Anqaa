@@ -1109,18 +1109,6 @@
     }
     .aliments-filtres input:focus, .aliments-filtres select:focus { border-color: var(--primary); }
 
-    /* --- Réglage des couleurs de l'application (admin) --- */
-    .couleur-ligne {
-      display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      padding: 9px 2px; border-bottom: 1px solid var(--verre-brd);
-    }
-    .couleur-ligne:last-of-type { border-bottom: none; }
-    .couleur-ligne label { font-size: 0.86rem; }
-    .couleur-ligne input[type="color"] {
-      width: 48px; height: 36px; padding: 0; border: 1px solid var(--verre-brd);
-      border-radius: 10px; background: none; cursor: pointer; flex: none;
-    }
-
     /* --- Icônes vectorielles (Lucide) remplaçant les emojis --- */
     .icone-ui {
       width: 1em; height: 1em; display: inline-block; flex: none;
@@ -3701,25 +3689,8 @@
       }
     } catch (e) {}
 
-    // Couleurs personnalisées par l'admin (voir appliquerCouleursApp plus
-    // bas, dans le script principal) : rejouées ici en premier, depuis le
-    // cache local, pour éviter un flash des couleurs par défaut avant que
-    // ce script-ci n'ait eu le temps de les recharger depuis Supabase.
-    try {
-      var cc = JSON.parse(localStorage.getItem('elite_couleurs_app_v1'));
-      if (cc && (cc.clair || cc.sombre)) {
-        var style = document.createElement('style');
-        style.id = 'couleurs-perso';
-        var regle = function (theme, v) {
-          if (!v) return '';
-          return ':root[data-theme="' + theme + '"]{--bg:' + v.bg + ';--text:' + v.text +
-            ';--barre:' + v.bg + ';--primary:' + v.primary + ';--accent:' + v.accent + ';--ai-color:' + v.accent +
-            ';--danger:' + v.danger + ';--icone:' + (v.icone || v.text) + ';}';
-        };
-        style.textContent = regle('light', cc.clair) + regle('dark', cc.sombre);
-        document.head.appendChild(style);
-      }
-    } catch (e) {}
+    // Ancien réglage « Couleurs de l'application » (retiré) : son cache local est effacé.
+    try { localStorage.removeItem('elite_couleurs_app_v1'); } catch (e) {}
 
     var splash = document.getElementById('splash-screen');
     if (!splash) return;
@@ -4156,7 +4127,6 @@
       <button type="button" class="action-tuile" onclick="afficherFeuillExercicesAdmin()"><span class="action-ic" style="background:linear-gradient(135deg,#f472b6,#7c3aed)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg></span><b>Bibliothèque d'exercices</b><small>Vidéos, muscles, faisceaux</small></button>
       <button type="button" class="action-tuile" onclick="afficherFeuillRecettesAdmin()"><span class="action-ic" style="background:linear-gradient(135deg,#fbbf24,#f97316)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11h18" /><path d="M12 3c-1.5 2-2 4-2 5.5A2 2 0 0 0 12 11a2 2 0 0 0 2-2.5c0-1.5-.5-3.5-2-5.5Z" /><path d="M3 11c0 6 3.5 10 9 10s9-4 9-10" /></svg></span><b>Recettes</b><small>Recettes partagées</small></button>
       <button type="button" class="action-tuile" onclick="afficherFeuilleBaseAliments()"><span class="action-ic" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5V19A9 3 0 0 0 21 19V5" /><path d="M3 12A9 3 0 0 0 21 12" /></svg></span><b>Base d'aliments</b><small>Tout le catalogue</small></button>
-      <button type="button" class="action-tuile" onclick="afficherFeuilleCouleursAdmin()"><span class="action-ic" style="background:linear-gradient(135deg,#a78bfa,#6366f1)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /></svg></span><b>Couleurs de l'application</b><small>Pour tous les comptes</small></button>
     </div>
 
     <!-- Vue d'ensemble : repondre aux questions courantes sans avoir a
@@ -4964,54 +4934,6 @@
     </div>
     <p class="note">La modification s'applique pour tous les utilisateurs.</p>
     <button class="btn btn-primary" type="button" onclick="sauvegarderEditionExerciceAdmin()">Enregistrer</button>
-  </div>
-</div>
-
-<!-- ============ FEUILLE : couleurs de l'application (admin) ============ -->
-<div class="feuille" id="feuille-admin-couleurs" role="dialog" aria-modal="true" aria-labelledby="feuille-admin-couleurs-titre">
-  <div class="feuille-contenu">
-    <div class="feuille-poignee"></div>
-    <div class="feuille-entete">
-      <div class="feuille-titre" id="feuille-admin-couleurs-titre"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /></svg> Couleurs de l'application</div>
-      <button class="feuille-fermer" type="button" onclick="annulerCouleursAdmin()" aria-label="Fermer">&times;</button>
-    </div>
-    <p class="note" style="margin:0 0 14px;">Les aperçus s'appliquent tout de suite dans l'appli pendant que tu règles les couleurs — rien n'est partagé avec les autres comptes tant que tu n'as pas appuyé sur « Enregistrer ».</p>
-
-    <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z" /></svg> Palettes enregistrées</div>
-    <div class="input-group">
-      <label for="palette-select">Charger une palette (prête à l'emploi ou enregistrée)</label>
-      <select id="palette-select"><option value="">— Aucune —</option></select>
-    </div>
-    <div style="display:flex; gap:8px; margin-bottom:16px;">
-      <button class="btn btn-secondaire" style="flex:1;" type="button" onclick="chargerPaletteSelectionnee()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5" /></svg> Charger</button>
-      <button class="btn btn-secondaire" style="flex:1;" type="button" onclick="supprimerPaletteSelectionnee()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg> Supprimer</button>
-    </div>
-
-    <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></svg> Thème clair</div>
-    <div class="couleur-ligne"><label for="coul-clair-bg">Fond</label><input type="color" id="coul-clair-bg" oninput="previsualiserCouleursAdmin()"></div>
-    <div class="couleur-ligne"><label for="coul-clair-text">Texte</label><input type="color" id="coul-clair-text" oninput="previsualiserCouleursAdmin()"></div>
-    <div class="couleur-ligne"><label for="coul-clair-primary">Couleur principale</label><input type="color" id="coul-clair-primary" oninput="previsualiserCouleursAdmin()"></div>
-    <div class="couleur-ligne"><label for="coul-clair-accent">Couleur secondaire</label><input type="color" id="coul-clair-accent" oninput="previsualiserCouleursAdmin()"></div>
-    <div class="couleur-ligne"><label for="coul-clair-danger">Alerte</label><input type="color" id="coul-clair-danger" oninput="previsualiserCouleursAdmin()"></div>
-    <div class="couleur-ligne"><label for="coul-clair-icone">Icônes</label><input type="color" id="coul-clair-icone" oninput="previsualiserCouleursAdmin()"></div>
-
-    <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /></svg> Thème sombre</div>
-    <div class="couleur-ligne"><label for="coul-sombre-bg">Fond</label><input type="color" id="coul-sombre-bg" oninput="previsualiserCouleursAdmin()"></div>
-    <div class="couleur-ligne"><label for="coul-sombre-text">Texte</label><input type="color" id="coul-sombre-text" oninput="previsualiserCouleursAdmin()"></div>
-    <div class="couleur-ligne"><label for="coul-sombre-primary">Couleur principale</label><input type="color" id="coul-sombre-primary" oninput="previsualiserCouleursAdmin()"></div>
-    <div class="couleur-ligne"><label for="coul-sombre-accent">Couleur secondaire</label><input type="color" id="coul-sombre-accent" oninput="previsualiserCouleursAdmin()"></div>
-    <div class="couleur-ligne"><label for="coul-sombre-danger">Alerte</label><input type="color" id="coul-sombre-danger" oninput="previsualiserCouleursAdmin()"></div>
-    <div class="couleur-ligne"><label for="coul-sombre-icone">Icônes</label><input type="color" id="coul-sombre-icone" oninput="previsualiserCouleursAdmin()"></div>
-
-    <div class="input-group" style="margin-top:16px;">
-      <label for="nouvelle-palette-nom">Enregistrer les couleurs actuelles comme nouvelle palette</label>
-      <input type="text" id="nouvelle-palette-nom" placeholder="Nom de la palette (ex. « Été », « Test violet »)" maxlength="60">
-    </div>
-    <button class="btn btn-secondaire" style="margin-bottom:16px;" type="button" onclick="enregistrerNouvellePalette()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /><path d="M7 3v4a1 1 0 0 0 1 1h7" /></svg> Enregistrer comme nouvelle palette</button>
-
-    <button class="btn btn-secondaire" style="margin-top:16px;" type="button" onclick="reinitialiserCouleursAdmin()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg> Réinitialiser aux couleurs par défaut</button>
-    <button class="btn btn-primary" style="margin-top:10px;" type="button" onclick="enregistrerCouleursAdmin()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /><path d="M7 3v4a1 1 0 0 0 1 1h7" /></svg> Enregistrer pour tout le monde</button>
-    <button class="btn btn-secondaire" style="margin-top:10px;" type="button" onclick="annulerCouleursAdmin()">Annuler</button>
   </div>
 </div>
 
@@ -11360,79 +11282,6 @@ function majCouleurBarreStyle() {
   if (mtc && bg) mtc.setAttribute('content', bg);
 }
 
-/* =====================================================================
-   COULEURS DE L'APPLICATION — réglage admin (voir afficherFeuilleCouleursAdmin).
-   Fond/texte/couleur principale/couleur secondaire/alerte, pour les deux
-   thèmes : au choix de l'admin, partagé avec tous les comptes (table
-   theme_couleurs), comme les aliments partagés ou les exercices perso.
-   Le reste de la palette (verre, ombres, macros…) n'est pas touché.
-   ===================================================================== */
-const COULEURS_APP_KEY = 'elite_couleurs_app_v1';
-const COULEURS_APP_DEFAUT = {
-  clair:  { bg: '#eaeef5', text: '#0e1420', primary: '#00703a', accent: '#1552c4', danger: '#c62828', icone: '#0e1420' },
-  sombre: { bg: '#06070a', text: '#f4f7fb', primary: '#14b566', accent: '#6aa2ff', danger: '#ff6b6b', icone: '#f4f7fb' }
-};
-let couleursAppActuelles = null; // null = couleurs par défaut (aucune personnalisation enregistrée)
-
-// Texte blanc ou presque noir par-dessus un aplat de cette couleur, selon sa
-// luminosité perçue — pour que --primary-txt reste lisible quelle que soit
-// la couleur principale choisie.
-function texteContrastePour(hex) {
-  const c = (hex || '').replace('#', '');
-  if (c.length !== 6) return '#ffffff';
-  const r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16);
-  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return lum > 0.4 ? '#0e1420' : '#ffffff';
-}
-function hexVersRgb(hex) {
-  const c = (hex || '').replace('#', '');
-  if (c.length !== 6) return '0,0,0';
-  return [0, 2, 4].map(i => parseInt(c.slice(i, i + 2), 16)).join(',');
-}
-function construireCssCouleurs(donnees) {
-  const regle = (theme, v) => {
-    if (!v) return '';
-    return `:root[data-theme="${theme}"]{--bg:${v.bg};--text:${v.text};--barre:${v.bg};` +
-      `--primary:${v.primary};--primary-txt:${texteContrastePour(v.primary)};` +
-      `--primary-glow:rgba(${hexVersRgb(v.primary)},.3);` +
-      `--accent:${v.accent};--ai-color:${v.accent};--danger:${v.danger};--icone:${v.icone};}`;
-  };
-  return regle('light', donnees && donnees.clair) + regle('dark', donnees && donnees.sombre);
-}
-/* Couleurs de l'appli (réglées par l'admin) : appliquées à tous les comptes. */
-function couleursEffectives() {
-  return couleursAppActuelles;
-}
-function appliquerCouleursUtilisateur() {
-  majCouleurBarreStyle();
-  appliquerCouleursApp(couleursEffectives());
-}
-// donnees = null remet les couleurs par défaut du code (le tag reste vide).
-function appliquerCouleursApp(donnees) {
-  let style = document.getElementById('couleurs-perso');
-  if (!style) {
-    style = document.createElement('style');
-    style.id = 'couleurs-perso';
-    document.head.appendChild(style);
-  }
-  style.textContent = donnees ? construireCssCouleurs(donnees) : '';
-}
-// Chargée pour tout le monde (pas seulement l'admin) : ces couleurs sont la
-// palette de l'appli, pas un réglage personnel. Échoue en silence (garde
-// les couleurs par défaut, ou la dernière valeur mise en cache) si hors
-// ligne ou si la table n'existe pas encore.
-async function chargerCouleursApp() {
-  if (!supa) return;
-  try {
-    const { data, error } = await supa.from('theme_couleurs').select('donnees').eq('id', 'app').maybeSingle();
-    if (error) throw error;
-    couleursAppActuelles = data ? data.donnees : null;
-    appliquerCouleursApp(couleursEffectives());
-    try { localStorage.setItem(COULEURS_APP_KEY, JSON.stringify(couleursAppActuelles || {})); } catch (e) {}
-  } catch (e) {
-    console.warn('[Couleurs] chargement indisponible :', e.message);
-  }
-}
 function basculerNotesRepliees(titre, ids) {
   const notes = ids.split(' ').map(id => document.getElementById(id)).filter(Boolean);
   const ouvrir = !notes.some(n => n.classList.contains('ouverte'));
@@ -12062,7 +11911,6 @@ function definirSessionUtilisateur(user) {
 function viderDonneesLocales() {
   appData = {};
   userProfile = { height: 175, age: 25, gender: 'm', weight: 70 };
-  try { appliquerCouleursUtilisateur(); } catch (e) {}
   musculationProgrammes = []; musculationHistorique = []; musculationExosPerso = [];
   try {
     localStorage.removeItem(STORAGE_KEY);
@@ -15774,7 +15622,6 @@ async function synchroniser(raison) {
     if (rp.data && (Number(rp.data.maj) || 0) > majProfilLocal) {
       userProfile = Object.assign(userProfile, rp.data.donnees, { maj: Number(rp.data.maj) || 0 });
       appliquerGeminiKeyEffective();
-      appliquerCouleursUtilisateur();
       majUIWithings();
       changementLocal = true;
     } else if (!rp.data || majProfilLocal > (Number(rp.data.maj) || 0)) {
@@ -24050,7 +23897,7 @@ if (window.visualViewport) {
 
 window.addEventListener('load', () => {
   loadData();
-  appliquerCouleursUtilisateur();
+  majCouleurBarreStyle();
   chargerMuscu();
   chargerRecettesPerso();
   // Lancé ici, au tout premier chargement de l'appli — pas seulement en
@@ -24090,7 +23937,7 @@ window.addEventListener('load', () => {
   // le tout premier compartiment "moi", partagé, à CHAQUE ouverture de
   // l'appli. initAuth() se charge lui-même de déclencher la bonne synchro
   // (avec le vrai identifiant) une fois la session connue.
-  if (initSupabase()) { initAuth(); compterAliments(); chargerCouleursApp(); }
+  if (initSupabase()) { initAuth(); compterAliments(); }
   else {
     compterAliments();
     // Sans client Supabase (pas de réseau au tout premier lancement, le plus
@@ -25890,175 +25737,6 @@ async function basculerPartageRecetteAdmin(utilisateur, id) {
   }
 }
 
-/* =====================================================================
-   ADMIN — COULEURS DE L'APPLICATION (voir appliquerCouleursApp plus haut)
-   ===================================================================== */
-function remplirFormulaireCouleurs(donnees) {
-  const v = donnees || COULEURS_APP_DEFAUT;
-  ['clair', 'sombre'].forEach(theme => {
-    const t = v[theme] || COULEURS_APP_DEFAUT[theme];
-    ['bg', 'text', 'primary', 'accent', 'danger', 'icone'].forEach(champ => {
-      const el = document.getElementById(`coul-${theme}-${champ}`);
-      if (el) el.value = t[champ];
-    });
-  });
-}
-function lireFormulaireCouleurs() {
-  const lire = (theme, champ) => document.getElementById(`coul-${theme}-${champ}`).value;
-  const objetTheme = theme => ({
-    bg: lire(theme, 'bg'), text: lire(theme, 'text'), primary: lire(theme, 'primary'),
-    accent: lire(theme, 'accent'), danger: lire(theme, 'danger'), icone: lire(theme, 'icone')
-  });
-  return { clair: objetTheme('clair'), sombre: objetTheme('sombre') };
-}
-function afficherFeuilleCouleursAdmin() {
-  remplirFormulaireCouleurs(couleursAppActuelles);
-  chargerPalettesListe();
-  ouvrirFeuille('feuille-admin-couleurs');
-}
-// Palettes enregistrées : plusieurs jeux de couleurs nommés, à charger ou
-// écraser librement, séparés des couleurs "actuelles" (theme_couleurs) qui
-// seules sont visibles par tout le monde une fois enregistrées via
-// enregistrerCouleursAdmin(). Mis en cache localement pour éviter une
-// requête Supabase à chaque sélection dans la liste.
-let palettesCouleursCache = [];
-// Palettes prêtes à l'emploi, toujours proposées (sans Supabase) : un
-// thème clair + un thème sombre chacune, contrastes vérifiés pour le texte.
-const PALETTES_PREDEFINIES = [
-  { id: 'anqa', nom: 'Anqā (par défaut)', donnees: COULEURS_APP_DEFAUT },
-  { id: 'ocean', nom: 'Océan', donnees: {
-    clair:  { bg: '#e8f1f8', text: '#0b1b2b', primary: '#0369a1', accent: '#0e7490', danger: '#c62828', icone: '#0b1b2b' },
-    sombre: { bg: '#04111d', text: '#eaf4fb', primary: '#38bdf8', accent: '#22d3ee', danger: '#ff6b6b', icone: '#eaf4fb' } } },
-  { id: 'feu', nom: 'Feu', donnees: {
-    clair:  { bg: '#fbf0ea', text: '#1f0f08', primary: '#c2410c', accent: '#b91c1c', danger: '#9f1239', icone: '#1f0f08' },
-    sombre: { bg: '#120805', text: '#fdf1ea', primary: '#fb923c', accent: '#f87171', danger: '#fb7185', icone: '#fdf1ea' } } },
-  { id: 'amethyste', nom: 'Améthyste', donnees: {
-    clair:  { bg: '#f1edf8', text: '#170f24', primary: '#6d28d9', accent: '#be185d', danger: '#c62828', icone: '#170f24' },
-    sombre: { bg: '#0c0714', text: '#f4effb', primary: '#a78bfa', accent: '#f472b6', danger: '#ff6b6b', icone: '#f4effb' } } },
-  { id: 'or', nom: 'Or', donnees: {
-    clair:  { bg: '#f7f3e8', text: '#1c160a', primary: '#a16207', accent: '#4d7c0f', danger: '#c62828', icone: '#1c160a' },
-    sombre: { bg: '#0d0b06', text: '#faf6ea', primary: '#facc15', accent: '#a3e635', danger: '#ff6b6b', icone: '#faf6ea' } } },
-  { id: 'graphite', nom: 'Graphite', donnees: {
-    clair:  { bg: '#eceef1', text: '#111418', primary: '#334155', accent: '#0f766e', danger: '#c62828', icone: '#111418' },
-    sombre: { bg: '#0a0b0d', text: '#eef1f4', primary: '#cbd5e1', accent: '#2dd4bf', danger: '#ff6b6b', icone: '#eef1f4' } } },
-  { id: 'foret', nom: 'Forêt', donnees: {
-    clair:  { bg: '#ebf3ec', text: '#0b1a10', primary: '#166534', accent: '#854d0e', danger: '#c62828', icone: '#0b1a10' },
-    sombre: { bg: '#050d08', text: '#ecf6ee', primary: '#4ade80', accent: '#fbbf24', danger: '#ff6b6b', icone: '#ecf6ee' } } },
-  { id: 'rose', nom: 'Rose', donnees: {
-    clair:  { bg: '#fbeef3', text: '#220b15', primary: '#be185d', accent: '#7c3aed', danger: '#b91c1c', icone: '#220b15' },
-    sombre: { bg: '#12060c', text: '#fdeef4', primary: '#f472b6', accent: '#c4b5fd', danger: '#ff6b6b', icone: '#fdeef4' } } },
-  { id: 'nuit', nom: 'Nuit polaire', donnees: {
-    clair:  { bg: '#e9edf6', text: '#0d1222', primary: '#1d4ed8', accent: '#0891b2', danger: '#c62828', icone: '#0d1222' },
-    sombre: { bg: '#05070f', text: '#e9eefc', primary: '#818cf8', accent: '#67e8f9', danger: '#ff6b6b', icone: '#e9eefc' } } }
-];
-async function chargerPalettesListe() {
-  const sel = document.getElementById('palette-select');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">— Aucune —</option>';
-  const groupePretes = document.createElement('optgroup');
-  groupePretes.label = 'Palettes prêtes à l\'emploi';
-  PALETTES_PREDEFINIES.forEach((p, i) => {
-    const opt = document.createElement('option');
-    opt.value = 'predef:' + i;
-    opt.textContent = p.nom;
-    groupePretes.appendChild(opt);
-  });
-  sel.appendChild(groupePretes);
-  palettesCouleursCache = [];
-  if (!supa) return;
-  try {
-    const { data, error } = await supa.from('palettes_couleurs').select('nom, donnees').order('nom');
-    if (error) throw error;
-    palettesCouleursCache = data || [];
-    if (palettesCouleursCache.length) {
-      const groupe = document.createElement('optgroup');
-      groupe.label = 'Mes palettes enregistrées';
-      palettesCouleursCache.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.nom;
-        opt.textContent = p.nom;
-        groupe.appendChild(opt);
-      });
-      sel.appendChild(groupe);
-    }
-  } catch (e) {
-    console.warn('[Couleurs] palettes indisponibles :', e.message);
-  }
-}
-function chargerPaletteSelectionnee() {
-  const sel = document.getElementById('palette-select');
-  const nom = sel ? sel.value : '';
-  if (!nom) return;
-  const p = nom.startsWith('predef:') ? PALETTES_PREDEFINIES[Number(nom.slice(7))] : palettesCouleursCache.find(p => p.nom === nom);
-  if (!p) return;
-  remplirFormulaireCouleurs(p.donnees);
-  previsualiserCouleursAdmin();
-}
-async function supprimerPaletteSelectionnee() {
-  const sel = document.getElementById('palette-select');
-  const nom = sel ? sel.value : '';
-  if (!nom || !supa) return;
-  if (nom.startsWith('predef:')) { alert("Les palettes prêtes à l'emploi ne peuvent pas être supprimées."); return; }
-  if (!confirm(`Supprimer la palette « ${nom} » ?`)) return;
-  try {
-    const { error } = await supa.from('palettes_couleurs').delete().eq('nom', nom);
-    if (error) throw error;
-    await chargerPalettesListe();
-  } catch (e) {
-    alert('Suppression impossible : ' + e.message);
-  }
-}
-async function enregistrerNouvellePalette() {
-  if (!supa) return;
-  const input = document.getElementById('nouvelle-palette-nom');
-  const nom = input ? input.value.trim() : '';
-  if (!nom) { alert('Donne un nom à la palette avant de l\'enregistrer.'); return; }
-  const donnees = lireFormulaireCouleurs();
-  try {
-    const { error } = await supa.from('palettes_couleurs')
-      .upsert({ nom, donnees, maj: Date.now(), modifie_par: sessionUtilisateur ? sessionUtilisateur.email : 'inconnu' }, { onConflict: 'nom' });
-    if (error) throw error;
-    if (input) input.value = '';
-    await chargerPalettesListe();
-    const sel = document.getElementById('palette-select');
-    if (sel) sel.value = nom;
-  } catch (e) {
-    alert('Enregistrement impossible : ' + e.message);
-  }
-}
-// Aperçu en direct pendant que l'admin règle les couleurs : appliqué tout
-// de suite dans l'appli (voir appliquerCouleursApp), rien n'est encore
-// envoyé à Supabase — annulerCouleursAdmin() revient en arrière si l'admin
-// ferme sans enregistrer.
-function previsualiserCouleursAdmin() {
-  appliquerCouleursApp(lireFormulaireCouleurs());
-}
-function reinitialiserCouleursAdmin() {
-  remplirFormulaireCouleurs(null);
-  previsualiserCouleursAdmin();
-}
-async function enregistrerCouleursAdmin() {
-  if (!supa) return;
-  const donnees = lireFormulaireCouleurs();
-  try {
-    const { error } = await supa.from('theme_couleurs')
-      .upsert({ id: 'app', donnees, maj: Date.now(), modifie_par: sessionUtilisateur ? sessionUtilisateur.email : 'inconnu' }, { onConflict: 'id' });
-    if (error) throw error;
-    couleursAppActuelles = donnees;
-    try { localStorage.setItem(COULEURS_APP_KEY, JSON.stringify(donnees)); } catch (e) {}
-    appliquerCouleursApp(couleursEffectives());
-    await consignerAction('couleurs_app_modifiees', 'app', 'Couleurs de l\'application', null, null);
-    fermerFeuilles();
-  } catch (e) {
-    alert('Enregistrement impossible : ' + e.message);
-  }
-}
-// Revient aux dernières couleurs enregistrées (ou aux couleurs par défaut
-// si rien n'a jamais été enregistré), pour effacer un aperçu non sauvegardé.
-function annulerCouleursAdmin() {
-  appliquerCouleursApp(couleursEffectives());
-  fermerFeuilles();
-}
 
 /* --- Fermeture de toutes les feuilles ------------------------------- */
 function fermerFeuilles() {
