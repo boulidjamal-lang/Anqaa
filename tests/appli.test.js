@@ -1944,3 +1944,33 @@ test('bibliothèque : classiques en tête puis l\'alphabet ; icônes d\'aliments
   assert.equal(r.ligne, '🍽️');
   assert.deepEqual(r.objectifs, ['seche:Sèche', 'maintien:Maintien', 'masse:Prise de masse', 'recomposition:Recomposition']);
 }));
+
+test('IA : cachée sans clé liée au compte, visible avec', () => avecAppli({}, async ({ page, dialogues }) => {
+  const etat = () => page.evaluate(() => {
+    const vu = sel => { const e = document.querySelector(sel); return !!e && getComputedStyle(e).display !== 'none'; };
+    const avant = [ecranActif];
+    allerA('repas'); ouvrirFeuilleRepas(repasDuMoment());
+    const r = { classe: document.documentElement.classList.contains('ia-active'), photo: vu('#opt-photo'), idees: vu('.idees-recette'),
+      bilanJour: vu('#carte-bilan-jour'), periode: vu('.stats-bilan'), programme: vu('[onclick="ouvrirAssistantProgrammeIA()"].action-tuile'),
+      aideIA: vu('#aide-routine-modal .btn-primary.ia-seulement'), exercicesLarge: getComputedStyle(document.querySelector('.pleine-sans-ia')).gridColumnStart };
+    fermerFeuilles(); allerA(avant[0]);
+    demarrerTourGuide('muscu'); r.etapesMuscu = tourListe.filter(e => e.ia).length; fermerTourGuide();
+    demarrerTourGuide(); r.texteBilan = tourListe.find(e => e.titre === 'Bilan de la journée').texte; fermerTourGuide();
+    return r;
+  });
+  const sans = await etat();
+  assert.deepEqual([sans.classe, sans.photo, sans.idees, sans.bilanJour, sans.periode, sans.programme, sans.aideIA], [false, false, false, false, false, false, false]);
+  assert.equal(sans.exercicesLarge, '1');
+  assert.equal(sans.etapesMuscu, 0);
+  assert.doesNotMatch(sans.texteBilan, /IA/);
+  // Appelée quand même (écran resté ouvert) : un message clair, rien ne s'ouvre.
+  await page.evaluate(() => ouvrirPhoto(MEALS[0]));
+  assert.equal(await page.evaluate(() => document.getElementById('ai-modal').classList.contains('show')), false);
+  assert.match(dialogues.pop(), /pas activée sur ton compte/);
+  // Clé liée au compte (synchronisée avec le profil) : tout réapparaît.
+  await page.evaluate(() => { userProfile.geminiKey = 'AIza-test'; appliquerGeminiKeyEffective(); });
+  const avec = await etat();
+  assert.deepEqual([avec.classe, avec.photo, avec.idees, avec.bilanJour, avec.periode, avec.programme, avec.aideIA], [true, true, true, true, true, true, true]);
+  assert.equal(avec.etapesMuscu, 1);
+  assert.match(avec.texteBilan, /par l'IA/);
+}));

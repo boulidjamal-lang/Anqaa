@@ -2737,6 +2737,10 @@
 
     /* Actions en tuiles (Activité, Mesures) et lignes de réglage (Profil) */
     .actions-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    /* IA : visible seulement avec une clé liée au compte (voir appliquerGeminiKeyEffective). */
+    html:not(.ia-active) .ia-seulement { display: none !important; }
+    html:not(.ia-active) .pleine-sans-ia { grid-column: 1 / -1; }
+    html:not(.ia-active) .duo-ia { grid-template-columns: 1fr !important; }
     .action-tuile { position: relative; display: grid; align-content: start; gap: 3px; min-height: 118px; padding: 14px; border: 0; border-radius: 22px; text-align: left; cursor: pointer;
       font: inherit; color: var(--text); background: var(--verre); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
       box-shadow: var(--ombre, 0 14px 30px -16px rgba(0,0,0,.35)), inset 0 0 0 1px var(--trait); transition: transform .15s; }
@@ -4031,8 +4035,8 @@
       <div class="actions-grille">
         <button type="button" class="action-tuile" onclick="ouvrirCreationProgramme()"><span class="action-ic" style="background:linear-gradient(135deg,#34d399,#06b6d4)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg></span><b>Créer un programme</b><small>Tes exercices, séries et charges</small></button>
         <button type="button" class="action-tuile" onclick="demarrerSeanceLibre()"><span class="action-ic" style="background:linear-gradient(135deg,#fbbf24,#f97316)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" /></svg></span><b>Séance vide</b><small>Ajoute les exercices au fil de l’eau</small></button>
-        <button type="button" class="action-tuile" onclick="ouvrirAssistantProgrammeIA()"><span class="action-ic" style="background:linear-gradient(135deg,#a78bfa,#6366f1)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /><path d="M20 3v4" /><path d="M22 5h-4" /></svg></span><b>Programme IA</b><small>Généré selon ton objectif</small></button>
-        <button type="button" class="action-tuile" onclick="ouvrirBibliotheque()"><span class="action-ic" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></svg></span><b>Exercices</b><small>Vidéos, muscles, conseils</small></button>
+        <button type="button" class="action-tuile pleine-sans-ia" onclick="ouvrirBibliotheque()"><span class="action-ic" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></svg></span><b>Exercices</b><small>Vidéos, muscles, conseils</small></button>
+        <button type="button" class="action-tuile ia-seulement" onclick="ouvrirAssistantProgrammeIA()"><span class="action-ic" style="background:linear-gradient(135deg,#a78bfa,#6366f1)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /><path d="M20 3v4" /><path d="M22 5h-4" /></svg></span><b>Programme IA</b><small>Généré selon ton objectif</small></button>
       </div>
       </div>
       </div>
@@ -4139,7 +4143,7 @@
 
     <div class="stats-tab stats-tab-actif" data-tab="resume">
       <div id="pg-resume"></div>
-    <div class="stats-bilan">
+    <div class="stats-bilan ia-seulement">
       <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg> Bilan de la période</div>
       <div class="analysis-card">
         <p class="note note-explicative">Sur la période choisie en haut : nutrition, poids, activité et séances de musculation.</p>
@@ -4577,7 +4581,7 @@
       <span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h20" /><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8" /><path d="m4 8 16-4" /><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8" /></svg></span>
       <span>Recette<span class="sous">Une de tes recettes enregistrées, en un tap</span></span>
     </button>
-    <button class="feuille-action" id="opt-photo" onclick="depuisFeuille('photo')">
+    <button class="feuille-action ia-seulement" id="opt-photo" onclick="depuisFeuille('photo')">
       <span class="ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" /><circle cx="12" cy="13" r="3" /></svg></span>
       <span>Photo ou description<span class="sous">Détection des aliments par l'IA, avec ou sans photo</span></span>
     </button>
@@ -4646,7 +4650,7 @@
     </div>
     <!-- Idées de l'IA qui complètent les macros du jour, pour le repas choisi
          (auparavant un bloc à part dans Repas du jour). -->
-    <div class="idees-recette">
+    <div class="idees-recette ia-seulement">
       <p class="note note-repliee" id="note-suggestions">Des idées de repas ou collations pour compléter tes macros du jour, sans dépasser ton objectif.</p>
       <button type="button" class="btn btn-analysis" style="width:100%; margin:0 0 6px;" onclick="chercherRecettesMacros(repasFeuille || repasDuMoment())">✦ Idées de l'IA selon mes macros</button>
       <span class="puce-ia"></span>
@@ -5622,8 +5626,8 @@
           </p>
         </details>
       </div>
-      <div class="titre-depliant titre-section" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-bilan-jour')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-bilan-jour')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" /></svg> Bilan de la journée</div>
-      <div class="analysis-card" id="carte-bilan-jour">
+      <div class="titre-depliant titre-section ia-seulement" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-bilan-jour')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-bilan-jour')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" /></svg> Bilan de la journée</div>
+      <div class="analysis-card ia-seulement" id="carte-bilan-jour">
         <p class="note note-repliee" id="note-bilan-jour">Un bilan de ta nutrition et de ton activité (pas, séances, et le détail de ta séance de musculation si tu en as fait une) pour le jour affiché dans Repas du jour.</p>
         <button class="btn btn-analysis" onclick="lancerAnalyseJour()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" /></svg> Analyser ma journée</button>
         <span class="puce-ia"></span>
@@ -5847,7 +5851,7 @@
   </div>
 </div>
 
-<!-- ================= SÉANCE — Bilan de fin de séance (analyse IA) ================= -->
+<!-- ================= SÉANCE — Bilan de fin de séance ================= -->
 <div id="bilan-seance-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-bilan-seance">
   <div class="modal-content" style="max-width:480px;">
     <div class="modal-entete">
@@ -5939,9 +5943,9 @@
       <li><b>Garde la même routine 6 à 12 semaines.</b>
         <span>C'est la répétition qui permet de mesurer ta progression ; change un exercice s'il te fait mal ou si tu stagnes plusieurs semaines.</span></li>
     </ol>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;">
+    <div class="duo-ia" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;">
       <button class="btn btn-secondaire" onclick="fermerModal('aide-routine-modal'); if (!document.getElementById('seance-vue-programme') || document.getElementById('seance-vue-programme').classList.contains('hidden')) ouvrirCreationProgramme();">Créer moi-même</button>
-      <button class="btn btn-primary" onclick="fermerModal('aide-routine-modal'); ouvrirAssistantProgrammeIA();">Avec l'IA</button>
+      <button class="btn btn-primary ia-seulement" onclick="fermerModal('aide-routine-modal'); ouvrirAssistantProgrammeIA();">Avec l'IA</button>
     </div>
   </div>
 </div>
@@ -6461,6 +6465,9 @@ let userProfile = { height: 175, age: 25, gender: 'm', weight: 70 };
  continuait sinon à l'utiliser pour n'importe quel compte connecté dessus. */
 function appliquerGeminiKeyEffective() {
   geminiKey = (userProfile.geminiKey || '').trim() || GEMINI_CLE_DEFAUT;
+  // Sans clé liée au compte, tout ce qui mène à l'IA disparaît (.ia-seulement)
+  // au lieu de mener à un message d'erreur.
+  document.documentElement.classList.toggle('ia-active', !!geminiKey);
   const champ = document.getElementById('gemini-key-input');
   if (champ) champ.value = userProfile.geminiKey || '';
   // Purge une éventuelle clé laissée par cet appareil avant ce correctif :
@@ -8283,6 +8290,7 @@ function ouvrirManuel(mealId) {
   setTimeout(() => afficherRecherche('', true), 90);
 }
 function ouvrirPhoto(mealId) {
+  if (iaIndisponible()) return;
   activeMealId = mealId;
   document.getElementById('ai-file-input').value = '';
   document.getElementById('preview-image').classList.add('hidden');
@@ -9787,7 +9795,7 @@ const PROMPT_JSON_ALIMENTS = "Renvoie UNIQUEMENT un objet JSON (sans texte autou
    indépendants (avant, seule une photo pouvait déclencher l'analyse — pas
    moyen de dire à l'IA ce qu'on a mangé quand on n'a pas de photo). */
 async function analyserRepasGemini() {
-  if (!geminiKey) { showAiError('Ajoute ta clé API Gemini dans <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></svg> Profil.'); return; }
+  if (!geminiKey) { showAiError("L'IA n'est pas activée sur ton compte."); return; }
   const file = document.getElementById('ai-file-input').files[0];
   const desc = (document.getElementById('ai-description')?.value || '').trim();
   if (!file && !desc) { showAiError('Ajoute une photo, une description, ou les deux.'); return; }
@@ -9960,7 +9968,7 @@ function resumeSeanceMuscuJour(dateStr) {
 }
 
 async function lancerAnalyseJour() {
-  if (!geminiKey) { alert('Ajoute ta clé API Gemini dans Profil.'); return; }
+  if (iaIndisponible()) return;
   const loader = document.getElementById('analysis-loader');
   const box = document.getElementById('analysis-box');
   loader.classList.remove('hidden'); box.classList.add('hidden');
@@ -9987,7 +9995,7 @@ Calories consommées: ${totals.kcal} / objectif ${t.target} kcal. Protéines ${t
   }
 }
 async function chercherRecettesMacros(typeRepas) {
-  if (!geminiKey) { alert('Ajoute ta clé API Gemini dans Profil.'); return; }
+  if (iaIndisponible()) return;
   const loader = document.getElementById('recette-loader');
   const box = document.getElementById('recette-box');
   loader.classList.remove('hidden'); box.classList.add('hidden');
@@ -10071,7 +10079,7 @@ function basculerIdeeRecette(i) {
   renderIdeesRecettes();
 }
 async function lancerAnalysePeriode() {
-  if (!geminiKey) { alert('Ajoute ta clé API Gemini dans Profil.'); return; }
+  if (iaIndisponible()) return;
   const loader = document.getElementById('analysis-loader-stats');
   const box = document.getElementById('analysis-box-stats');
   // C'était « add » : le loader ne s'affichait jamais, l'utilisateur cliquait
@@ -11487,6 +11495,14 @@ window.addEventListener('scroll', () => {
   requestAnimationFrame(onScrollAppBar);
 }, { passive: true });
 
+/* Garde des fonctions IA : sans clé liée au compte, leurs boutons sont
+   cachés ; si l'une est appelée quand même (écran resté ouvert pendant que
+   la clé était retirée), un message clair plutôt qu'une erreur de Google. */
+function iaIndisponible() {
+  if (geminiKey) return false;
+  alert("L'IA n'est pas activée sur ton compte.");
+  return true;
+}
 function majNoteCleIA() {
   const n = document.getElementById('note-cle-ia');
   if (!n) return;
@@ -11635,7 +11651,7 @@ const TOUR_ETAPES = [
   { ecran: 'repas', cible: '#onglet-plus', titre: 'Le bouton +', texte: "Il fait l'action utile de l'écran : ici, une recette, un aliment, une photo ou un code-barres pour le repas du moment. Sur Activité, il lance une séance ; sur Profil, une mesure. Dans Progrès, il est grisé." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-recette', titre: 'Recette', texte: "Tes recettes enregistrées, et celles partagées par l'équipe : une portion s'ajoute en un toucher, macros déjà calculées. Tu y trouves aussi des idées de l'IA qui complètent tes macros du jour." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-manuel', titre: 'Aliment', texte: "Recherche dans la base d'aliments, avec en premier ce que tu manges souvent. Un aliment introuvable ? Saisis-le : il reste à toi, et rejoint la base commune une fois validé." },
-  { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-photo', titre: 'Photo ou description', texte: "Prends en photo ou décris ton assiette : l'IA estime les aliments, les quantités et les macros." },
+  { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-photo', ia: true, titre: 'Photo ou description', texte: "Prends en photo ou décris ton assiette : l'IA estime les aliments, les quantités et les macros." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-barcode', titre: 'Code-barres', texte: "Scanne un produit emballé : ses valeurs nutritionnelles sont récupérées toutes seules." },
   { ecran: 'repas', cible: '#bloc-eau', titre: "L'eau", texte: 'Un toucher sur +250 ml, +500 ml ou +1 L à chaque fois que tu bois.' },
   { ecran: 'repas', cible: '#onglets', titre: 'La barre d’onglets', texte: "Repas, Activité, Progrès (tes statistiques détaillées) et Profil, toujours en bas de l'écran." },
@@ -11645,7 +11661,7 @@ const TOUR_ETAPES = [
   { ecran: 'seance', cible: '#seance-mode-nav', titre: 'Musculation ou cardio', texte: "Bascule entre tes séances de musculation et ton cardio : course, vélo, natation, marche, rameur, HIIT, sport co." },
   { ecran: 'seance', modeCardio: true, cible: '#seance-cardio .hx--cardio', titre: 'Ta semaine de cardio', texte: "L'objectif conseillé : 150 à 300 min par semaine, une minute intense comptant double. La jauge montre où tu en es, la barre en dessous ta répartition facile / modérée / intense. Ajoute une séance avec le bouton juste en dessous : durée, distance, intensité." },
   { ecran: 'stats', avant: () => { ouvrirStats('resume'); }, cible: '#pg-periode-btn', titre: 'Ta progression', texte: "Le Résumé dit en une phrase où tu en es : ta courbe de poids, ta maintenance réelle, ce qui a bougé. Choisis la période ici (7 jours, 30 jours, 3 mois… ou « Perso »). Corps, Repas, Cardio et Muscu donnent le détail." },
-  { ecran: 'repas', cible: '#ecran-repas .summary-card', titre: 'Bilan de la journée', texte: "Touche le résumé des calories : ta dépense du jour en détail, et une analyse de ta journée par l'IA (nutrition, activité et séance du jour)." },
+  { ecran: 'repas', cible: '#ecran-repas .summary-card', titre: 'Bilan de la journée', get texte() { return 'Touche le résumé des calories : ta dépense du jour en détail' + (geminiKey ? ", et une analyse de ta journée par l'IA (nutrition, activité et séance du jour)." : '.'); } },
   { ecran: 'repas', cible: '#moi-entete', titre: 'Ton profil', texte: 'Touche ta photo ou ton nom d’utilisateur, en haut : ton compte, ton objectif, tes informations et tes mesures corporelles.' },
   { ecran: 'reglages', cible: '#vitrine-profil .niveau', titre: 'Ton niveau', texte: "Chaque séance de muscu (+40 XP), de cardio (+25) et chaque journée notée (+10) te fait monter de niveau. Les badges se débloquent avec ta régularité." },
   { ecran: 'reglages', cible: '#vitrine-profil .carte-objectifs', titre: 'Ton objectif', texte: "Maintien, sèche, prise de masse ou recomposition : il règle tes calories et tes macros. En changer ne réécrit jamais ton historique." },
@@ -11660,7 +11676,7 @@ const TOUR_MUSCU = [
   { titre: 'La musculation dans Askēsis', texte: "Trois temps : préparer tes séances sur l'écran Activité, faire une séance (avec une démonstration), puis suivre ta progression dans les statistiques." },
   { ecran: 'seance', cible: '#programmes-liste-container', titre: 'Tes programmes', texte: "Un programme = une liste d'exercices avec leurs séries, charges et répétitions cibles. Le ⋯ d'un programme permet de le modifier, le dupliquer ou le supprimer." },
   { ecran: 'seance', cible: '[onclick="ouvrirCreationProgramme()"]', titre: 'Créer un programme', texte: "Ajoute tes exercices, règle les séries, les techniques (dégressif, pyramidal…), les supersets, le tempo et l'objectif de chaque exercice. Comme en séance, glisse un exercice vers la gauche pour le retirer, vers la droite pour le remplacer ; garde le doigt appuyé dessus pour le déplacer dans la liste ; touche son nom pour voir ta courbe de progression." },
-  { ecran: 'seance', cible: '[onclick="ouvrirAssistantProgrammeIA()"]', titre: "Programme par l'IA", texte: "Donne ton objectif, tes jours disponibles et ton matériel : l'IA te propose un programme complet, que tu peux ensuite modifier." },
+  { ecran: 'seance', cible: '[onclick="ouvrirAssistantProgrammeIA()"]', ia: true, titre: "Programme par l'IA", texte: "Donne ton objectif, tes jours disponibles et ton matériel : l'IA te propose un programme complet, que tu peux ensuite modifier." },
   { ecran: 'seance', cible: '[onclick="ouvrirBibliotheque()"]', titre: "Bibliothèque d'exercices", texte: "Plus de 800 exercices, filtrés par muscle et par matériel. Chaque fiche a trois onglets : Instructions (vidéo, muscles, étapes), Résumé (tes records et ta courbe) et Historique." },
   { ecran: 'seance', cible: '#gymbros-rangee .gstrip', titre: 'Tes gymbros', texte: "Tes amis en un coup d'œil (anneau = entraîné aujourd'hui). « Tout voir » ouvre leur fil, le classement de la semaine et vos face-à-face ; « + » partage ton lien d'invitation." },
   { ecran: 'seance', cible: '#seance-lancer', titre: 'Lancer une séance',
@@ -11752,7 +11768,7 @@ let tourResizeHandler = null;
 let tourGeneration = 0;
 
 function demarrerTourGuide(type) {
-  tourListe = type === 'muscu' ? TOUR_MUSCU : TOUR_ETAPES;
+  tourListe = (type === 'muscu' ? TOUR_MUSCU : TOUR_ETAPES).filter(e => !e.ia || geminiKey);
   fermerFeuilles();
   document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
   document.body.classList.remove('couche-ouverte');
@@ -20149,7 +20165,7 @@ function preremplirChargesIAProgramme() {
 }
 function ouvrirAssistantProgrammeIA() {
   document.querySelectorAll('#ia-prog-objectif .onb-ic[data-ico]').forEach(x => { if (!x.innerHTML) x.innerHTML = svgV(x.dataset.ico); });
-  if (!geminiKey) { alert('Ajoute ta clé API Gemini dans Profil.'); return; }
+  if (iaIndisponible()) return;
   rebasculerFormulaireIAProgramme();
   // Construit à l'ouverture : ZONES_VOLUME est déclaré plus bas dans le script.
   rendrePrioritesIAProgramme();
