@@ -2251,3 +2251,125 @@ test("Profil : la page montre « moi » (identité, objectif, corps, badges), l'
   assert.deepEqual([r.corps, r.reglages, r.identite, r.compteSansBalance, r.modifier], [true, true, true, true, true]);
   assert.deepEqual(r.balance, [true, false]);
 }));
+
+// Un faux Supabase pour le Pro : la table « abonnements » (absente, vide,
+// ou une ligne), les fonctions d'admin et la fonction serveur « ia ».
+async function installerFauxPro(page, etat) {
+  await page.evaluate(etat => {
+    window.__pro = { etat, rpc: [], ia: [] };
+    sessionUtilisateur = { id: 'u1', email: 'moi@exemple.fr' };
+    supa = {
+      from: () => {
+        const q = { select: () => q, eq: () => q, maybeSingle: async () => window.__pro.etat === 'absente'
+          ? { data: null, error: { code: 'PGRST205', message: "Could not find the table 'public.abonnements' in the schema cache" } }
+          : { data: window.__pro.etat, error: null } };
+        return q;
+      },
+      rpc: async (nom, args) => { window.__pro.rpc.push([nom, args]); window.__pro.etat = args.p_offert ? { formule: 'offert', statut: 'actif', fin: null } : null; return { error: null }; },
+      functions: { invoke: async (nom, o) => window.__pro.ia.shift()(o) }
+    };
+  }, etat);
+}
+
+test("Pro : rien n'est verrouillé tant que le SQL Pro n'est pas exécuté ; ensuite, verrous pour un compte gratuit, aucun pour un fondateur", () => avecAppli({}, async ({ page }) => {
+  await installerFauxPro(page, 'absente');
+  const lire = () => page.evaluate(async () => {
+    await chargerAbonnementPro();
+    document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+    const res = { verrous: document.documentElement.classList.contains('verrous-pro'), acces: accesPro(), ligne: document.getElementById('ligne-pro').classList.contains('hidden') ? null : [document.getElementById('pro-statut').textContent, document.getElementById('pro-bouton-ligne').textContent] };
+    // Photos, balance, période longue : la fenêtre Pro à la place.
+    ouvrirPhotosProgression();
+    res.photos = document.getElementById('photos-modal').classList.contains('show') ? 'photos' : document.getElementById('pro-modal').classList.contains('show') ? document.querySelector('#pro-contenu .pro-raison').textContent : '?';
+    document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+    res.balance = connexionWithings({ preventDefault() {} });
+    document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+    choisirPeriodeStats('30'); choisirPeriodeStats('365');
+    res.periode = periodeStats;
+    document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+    allerA('reglages');
+    res.pastilleNom = !!document.querySelector('#vitrine-profil .pf-id .pastille-pro--abonne');
+    return res;
+  });
+  const sansTable = await lire();
+  assert.deepEqual(sansTable, { verrous: false, acces: true, ligne: null, photos: 'photos', balance: true, periode: '365', pastilleNom: false });
+
+  await page.evaluate(() => { window.__pro.etat = null; });
+  const gratuit = await lire();
+  assert.deepEqual(gratuit, { verrous: true, acces: false, ligne: ['Gratuit', 'Découvrir'], photos: 'Les photos de progression font partie de Pro.', balance: false, periode: '30', pastilleNom: false });
+  // Un bloc avancé de Progrès est flouté ; le toucher ouvre la fenêtre Pro.
+  const bloc = await page.evaluate(() => {
+    ouvrirStats('resume');
+    const g = document.querySelector('#pg-resume .pg-maint');
+    const apres = getComputedStyle(g, '::after').content;
+    g.click();
+    return [apres, document.getElementById('pro-modal').classList.contains('show')];
+  });
+  assert.deepEqual(bloc, ['"Pro · Débloquer"', true]);
+  // L'offre : deux formules, l'annuel choisi ; sans liens de paiement, « bientôt ».
+  const offre = await page.evaluate(() => ({
+    formules: [...document.querySelectorAll('.pro-formule')].map(b => [b.querySelector('span').textContent, b.getAttribute('aria-checked')]),
+    bouton: [document.getElementById('pro-essai').textContent, document.getElementById('pro-essai').disabled]
+  }));
+  assert.deepEqual(offre, { formules: [['29,99 € / an', 'true'], ['3,99 € / mois', 'false']], bouton: ['Paiement bientôt disponible', true] });
+
+  await page.evaluate(() => { window.__pro.etat = { formule: 'fondateur', statut: 'actif', fin: null }; });
+  const fondateur = await lire();
+  assert.deepEqual(fondateur, { verrous: false, acces: true, ligne: ['Membre fondateur · à vie', 'Voir'], photos: 'photos', balance: true, periode: '365', pastilleNom: true });
+
+  // Abonnement payé mais arrivé à sa fin : retour au gratuit.
+  await page.evaluate(() => { window.__pro.etat = { formule: 'an', statut: 'actif', fin: new Date(Date.now() - 60e3).toISOString() }; });
+  assert.equal((await lire()).verrous, true);
+}));
+
+test("Pro : l'IA passe par le serveur quand il répond (3 essais par mois), puis propose Pro ; lien de paiement au nom du compte", () => avecAppli({}, async ({ page }) => {
+  await installerFauxPro(page, null);
+  const r = await page.evaluate(async () => {
+    const reponse = (status, corps) => ({ data: null, error: { context: new Response(JSON.stringify(corps), { status }) } });
+    window.__pro.ia.push(
+      () => ({ data: { pret: true, pro: false, restant: 1 }, error: null }),
+      o => ({ data: { candidates: [{ content: { parts: [{ text: 'Belle journée.' }] } }], restant: 0, corps: o.body }, error: null }),
+      () => reponse(402, { erreur: 'Tes 3 essais IA du mois sont utilisés. Passe à Pro pour continuer.', code: 'pro_requis', restant: 0 })
+    );
+    await chargerAbonnementPro();
+    await verifierIAServeur();
+    const res = { active: document.documentElement.classList.contains('ia-active'), puce: document.querySelector('.puce-ia').textContent };
+    res.texte = await geminiGenerate([{ text: 'Analyse ma journée' }], 'texte');
+    res.puceApres = document.querySelector('.puce-ia').textContent;
+    try { await geminiGenerate([{ text: 'Encore' }], 'texte'); } catch (e) { res.erreur = messageIA(e); }
+    res.fenetre = document.getElementById('pro-modal').classList.contains('show') && document.querySelector('#pro-contenu .pro-raison').textContent;
+    // Paiement : le lien Stripe porte l'identifiant et l'email du compte.
+    PRO_LIENS.an = 'https://buy.stripe.com/test_annuel'; PRO_LIENS.mois = 'https://buy.stripe.com/test_mensuel';
+    renderPro();
+    const bouton = document.getElementById('pro-essai');
+    res.avantAccord = [bouton.textContent, bouton.disabled];
+    document.getElementById('pro-accord').click();
+    res.apresAccord = bouton.disabled;
+    let ouverte = null;
+    window.open = url => { ouverte = url; return {}; };
+    choisirFormulePro('mois');
+    commencerPro();
+    res.lien = ouverte;
+    res.suivi = !!localStorage.getItem('askesis_pro_paiement');
+    return res;
+  });
+  assert.deepEqual([r.active, r.puce, r.texte, r.puceApres], [true, '1 essai IA gratuit ce mois-ci', 'Belle journée.', 'Essais IA du mois utilisés · Pro pour continuer']);
+  assert.equal(r.erreur, 'Tes 3 essais IA du mois sont utilisés. Passe à Pro pour continuer.');
+  assert.equal(r.fenetre, 'Tes 3 essais IA du mois sont utilisés.');
+  assert.deepEqual([r.avantAccord, r.apresAccord], [['Essayer 14 jours gratuitement', true], false]);
+  assert.equal(r.lien, 'https://buy.stripe.com/test_mensuel?client_reference_id=u1&prefilled_email=moi%40exemple.fr&locale=fr');
+  assert.equal(r.suivi, true);
+}));
+
+test('Pro : l\'administrateur offre le Pro à un compte, puis le retire', () => avecAppli({}, async ({ page }) => {
+  await installerFauxPro(page, null);
+  const r = await page.evaluate(async () => {
+    const etat = () => [document.querySelector('#admin-pro b').textContent, [...document.querySelectorAll('#admin-pro .pilule')].map(b => b.textContent)];
+    const res = [];
+    await afficherProAdmin('u2'); res.push(etat());
+    await basculerProAdmin('u2', true); res.push(etat());
+    await basculerProAdmin('u2', false); res.push(etat());
+    return { res, rpc: window.__pro.rpc };
+  });
+  assert.deepEqual(r.res, [['Gratuit', ['Offrir Pro']], ['Pro offert', ['Retirer']], ['Gratuit', ['Offrir Pro']]]);
+  assert.deepEqual(r.rpc, [['admin_offrir_pro', { p_utilisateur: 'u2', p_offert: true }], ['admin_offrir_pro', { p_utilisateur: 'u2', p_offert: false }]]);
+}));

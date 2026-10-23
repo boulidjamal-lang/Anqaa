@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <style>
+    :root { --bg: #f2f2f4; --s1: #fff; --text: #0b0b0c; --muted: #6b6b72; --ligne: rgba(0,0,0,.08); --marque: #fff3c4; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #0a0a0b; --s1: #161618; --text: #f5f5f7; --muted: #9b9ba2; --ligne: rgba(255,255,255,.08); --marque: #3a3210; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: calc(24px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom)); background: var(--bg); color: var(--text);
+      font: 15px/1.6 -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', Roboto, sans-serif; }
+    main { max-width: 700px; margin: 0 auto; padding: 22px 20px; border-radius: 24px; background: var(--s1); box-shadow: 0 0 0 1px var(--ligne); }
+    h1 { margin: 0 0 4px; font-size: 1.6rem; letter-spacing: -.02em; }
+    h2 { margin: 26px 0 6px; font-size: 1.05rem; }
+    p, li { color: var(--text); }
+    .maj, .retour { color: var(--muted); font-size: .85rem; }
+    .retour { display: inline-block; margin-bottom: 14px; color: var(--text); text-decoration: none; font-weight: 600; }
+    .a-completer { padding: 0 4px; border-radius: 4px; background: var(--marque); font-weight: 600; }
+    .brouillon { margin: 12px 0 0; padding: 10px 12px; border-radius: 14px; box-shadow: 0 0 0 1px var(--ligne); color: var(--muted); font-size: .85rem; }
+    a { color: inherit; }
+  </style>
+  <title>Politique de confidentialité — Askēsis</title>
+</head>
+<body>
+<main>
+  <a class="retour" href="./">‹ Askēsis</a>
+  <h1>Politique de confidentialité</h1>
+  <p class="maj">Version du <span class="a-completer">[À compléter : date de mise en ligne]</span></p>
+  <p class="brouillon">Brouillon préparé pour le lancement d'Askēsis Pro : les passages surlignés sont à compléter, et l'ensemble est à faire relire avant la mise en vente.</p>
+
+  <h2>Responsable du traitement</h2>
+  <p><span class="a-completer">[À compléter : prénom et nom]</span>, éditeur d'Askēsis. Contact pour toute question ou demande : <span class="a-completer">[À compléter : adresse email de contact]</span>.</p>
+
+  <h2>Données traitées</h2>
+  <ul>
+    <li>Compte : adresse email et mot de passe (stocké chiffré par Supabase, jamais lisible).</li>
+    <li>Profil : sexe, âge, taille, objectif, nom d'utilisateur, photo et bio (visibles seulement par tes gymbros acceptés).</li>
+    <li>Données de santé : poids, mensurations, composition corporelle, photos de progression, repas, eau, pas, séances de musculation et de cardio.</li>
+    <li>Pro : formule, état et date de fin de l'abonnement, nombre d'essais d'intelligence artificielle du mois. Les données de paiement (carte bancaire) sont traitées uniquement par Stripe.</li>
+  </ul>
+
+  <h2>Pourquoi, et sur quelle base</h2>
+  <p>Ces données servent uniquement à faire fonctionner l'application : calculer tes besoins, suivre ta progression, synchroniser tes appareils, gérer ton abonnement. Les données de santé sont traitées avec ton consentement explicite (article 9.2.a du RGPD), que tu peux retirer à tout moment en supprimant tes données ou ton compte <span class="a-completer">[À compléter : prévoir la case de consentement à la création du compte]</span>. Aucune donnée n'est vendue, ni utilisée pour de la publicité.</p>
+
+  <h2>Qui y a accès</h2>
+  <ul>
+    <li>Supabase (hébergement des comptes et des données, région <span class="a-completer">[À compléter : région du projet]</span>).</li>
+    <li>Google (Gemini) : uniquement le texte ou la photo envoyés quand tu utilises une fonction d'intelligence artificielle.</li>
+    <li>Stripe : paiement de l'abonnement Pro.</li>
+    <li>Withings : seulement si tu connectes ta balance, pour importer tes pesées.</li>
+    <li>Open Food Facts : recherche de produits, sans aucune donnée personnelle.</li>
+    <li>GitHub et Netlify : hébergement des fichiers de l'application.</li>
+  </ul>
+  <p>Certains de ces prestataires sont établis aux États-Unis ; les transferts sont encadrés par les clauses contractuelles types de la Commission européenne ou le cadre de protection des données UE–États-Unis.</p>
+
+  <h2>Combien de temps</h2>
+  <p>Tant que ton compte existe. À la suppression du compte, ses données sont effacées <span class="a-completer">[À compléter : délai, par exemple sous 30 jours, sauf obligations comptables liées aux paiements]</span>.</p>
+
+  <h2>Tes droits</h2>
+  <p>Tu peux accéder à tes données, les corriger, les exporter, les effacer ou t'opposer à leur traitement en écrivant à <span class="a-completer">[À compléter : adresse email de contact]</span>. Tu peux aussi adresser une réclamation à la CNIL (cnil.fr).</p>
+
+  <h2>Stockage sur ton appareil</h2>
+  <p>L'application garde une copie de tes données sur ton téléphone pour fonctionner hors ligne. Elle n'utilise aucun cookie publicitaire ni outil de mesure d'audience.</p>
+
+</main>
+</body>
+</html>

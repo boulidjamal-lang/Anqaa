@@ -3759,6 +3759,47 @@
     #carte-identite .profil-perso { border-top: 1px solid var(--ligne); }
 
     /* =====================================================================
+       ASKĒSIS PRO — pastilles, blocs réservés et fenêtre. Pastilles et
+       verrous n'apparaissent que pour un compte gratuit, une fois le Pro en
+       place sur le serveur (classe verrous-pro sur la page).
+       ===================================================================== */
+    .pastille-pro { display: none; align-items: center; margin-left: 6px; padding: 2px 7px; border-radius: 99px; vertical-align: 2px;
+      background: var(--inv); color: var(--sur-inv); font-size: .62rem; font-weight: 800; letter-spacing: .02em; line-height: 1.3; }
+    html.verrous-pro .pastille-pro, .pastille-pro--abonne { display: inline-flex; }
+    /* Bloc réservé : flouté, « Pro · Débloquer » au milieu ; le toucher ouvre la fenêtre Pro. */
+    html.verrous-pro .pro-seulement:not(:empty) { position: relative; overflow: hidden; min-height: 64px; cursor: pointer;
+      color: transparent !important; text-shadow: 0 0 9px var(--t3); }
+    html.verrous-pro .pro-seulement:not(:empty) > * { filter: blur(6px); opacity: .55; pointer-events: none; -webkit-user-select: none; user-select: none; }
+    html.verrous-pro .pro-seulement:not(:empty)::after { content: 'Pro · Débloquer'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      padding: 8px 14px; border-radius: 99px; background: var(--inv); color: var(--sur-inv); font-size: .78rem; font-weight: 700; white-space: nowrap;
+      text-shadow: none; box-shadow: var(--ombre-haute); }
+    /* La fenêtre */
+    .pro-logo { display: inline-block; width: 18px; height: 24px; margin-right: 9px; vertical-align: -4px; }
+    .action-ic .pro-logo { width: 14px; height: 19px; margin: 0; vertical-align: 0; }
+    .pro-raison { margin: 0 0 10px; padding: 10px 12px; border-radius: 14px; background: var(--s2); font-size: .84rem; font-weight: 600; }
+    .pro-accroche { margin: 0 2px 12px; color: var(--text-muted); font-size: .9rem; }
+    .pro-merci { margin: 0 2px 12px; }
+    html:root body .modal-content .pro-avantages { margin-bottom: 14px; }
+    .pro-formules { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 14px; }
+    .pro-formule { position: relative; display: grid; gap: 2px; padding: 14px 12px 12px; border: 0; border-radius: 18px; background: var(--s2); color: var(--text);
+      font: inherit; text-align: left; cursor: pointer; }
+    .pro-formule b { font-size: .8rem; font-weight: 600; color: var(--text-muted); }
+    .pro-formule span { font-size: 1.02rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .pro-formule small { font-size: .72rem; color: var(--text-muted); }
+    .pro-formule em { position: absolute; right: 10px; top: 10px; padding: 2px 7px; border-radius: 99px; background: var(--inv); color: var(--sur-inv);
+      font-style: normal; font-size: .64rem; font-weight: 800; }
+    .pro-formule[aria-checked="true"] { box-shadow: 0 0 0 2px var(--text); }
+    .pro-accord { display: flex; gap: 10px; align-items: flex-start; margin: 0 2px 12px; font-size: .8rem; line-height: 1.4; color: var(--text-muted); cursor: pointer; }
+    .pro-accord input { width: auto; flex: none; margin: 2px 0 0; }
+    .pro-accord a, .pro-pied a { color: var(--text); }
+    .pro-pied { margin: 10px 2px 0; font-size: .74rem; text-align: center; }
+    .pro-actualiser { display: block; margin: 8px auto 0; }
+    .pro-statut-grand { margin: 0 2px 8px; font-size: 1.05rem; font-weight: 700; }
+    #admin-pro .ligne-reglage { padding: 10px 0 0; margin-top: 10px; border-top: 1px solid var(--ligne); }
+    .reglages-legal { margin: 18px 4px 0; font-size: .74rem; text-align: center; }
+    .reglages-legal a { color: var(--text-muted); }
+
+    /* =====================================================================
        HABILLAGE SOBRE — noir, blanc et gris, comme le logo
        Une seule police (celle du téléphone), des surfaces unies, un seul
        style d'icônes. La couleur ne sert plus qu'aux données : calories
@@ -4060,6 +4101,8 @@
     /* Voile derrière les fenêtres et les feuilles : neutre, sans teinte bleue. */
     html:root body :is(.modal, .feuille) { background-color: rgba(0,0,0,.55) !important; }
     html:root[data-theme="light"] body :is(.modal, .feuille) { background-color: rgba(20,20,22,.28) !important; }
+    /* Un bouton désactivé en a l'air (le négatif ne le montrait plus). */
+    html:root body .btn:disabled { opacity: .4 !important; cursor: not-allowed; }
 
   </style>
 </head>
@@ -4511,14 +4554,14 @@
       <div class="titre-depliant titre-section" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-tendance')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-tendance')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></svg> Ta courbe de poids</div>
       <div class="chart-container"><canvas id="poidsChart"></canvas></div>
       <p class="note note-repliee" id="note-tendance" style="margin: -6px 2px 4px;"></p>
-      <p class="pg-projection" id="pg-projection-corps"></p>
+      <p class="pg-projection pro-seulement" id="pg-projection-corps"></p>
 
       <div class="titre-depliant titre-section" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-compo')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-compo')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z" /><path d="m14.5 12.5 2-2" /><path d="m11.5 9.5 2-2" /><path d="m8.5 6.5 2-2" /><path d="m17.5 15.5 2-2" /></svg> Composition corporelle</div>
       <div class="compo-grille" id="compo-grille"></div>
       <p class="note note-repliee" id="note-compo" style="margin: -6px 2px 4px;"></p>
       <h3 class="pg-h">Mensurations <button type="button" class="pg-lien" onclick="ouvrirMesuresModal()">+ Ajouter</button></h3>
       <div class="pg-carte" id="pg-mensurations"></div>
-      <h3 class="pg-h">Photos <button type="button" class="pg-lien" onclick="ouvrirPhotosProgression()">Comparer</button></h3>
+      <h3 class="pg-h">Photos<span class="pastille-pro">Pro</span> <button type="button" class="pg-lien" onclick="ouvrirPhotosProgression()">Comparer</button></h3>
       <div class="pg-carte pg-photos" role="button" tabindex="0" onclick="ouvrirPhotosProgression()" onkeydown="if(event.key==='Enter')this.click()">
         <span class="pg-photos-ic" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg></span>
         <div><b>Avant / après</b><span>Même pose, même lumière, une photo par mois : compare-les côte à côte.</span></div>
@@ -4532,7 +4575,7 @@
 
     <div class="stats-tab" data-tab="nutrition">
       <div class="grille-cles" id="grille-cles-nutrition"></div>
-      <div id="pg-constat-nutrition"></div>
+      <div id="pg-constat-nutrition" class="pro-seulement"></div>
       <div class="pg-carte">
         <div class="segment pg-series" id="nutri-series-nav" role="group" aria-label="Courbe affichée">
           <button type="button" onclick="choisirSerieNutrition('kcal')" aria-pressed="true">Calories</button>
@@ -4575,7 +4618,7 @@
       <h3 class="pg-h">Ta force <button type="button" class="pg-lien" onclick="ouvrirRepliMuscu('progression')">Tous les exercices ›</button></h3>
       <div class="pg-carte" id="pg-force"></div>
       <h3 class="pg-h">Séries par muscle, semaine par semaine</h3>
-      <div class="pg-carte" id="pg-grille-muscu"></div>
+      <div class="pg-carte pro-seulement" id="pg-grille-muscu"></div>
       <details class="pg-repli" data-repli="semaine" ontoggle="replieMuscuBascule(this)">
         <summary>Cette semaine, muscle par muscle</summary>
         <div id="muscu-zones-container"></div>
@@ -4591,7 +4634,7 @@
 
         <div class="titre-section"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2" /><path d="M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2" /><path d="M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3" /><path d="M4 22h16" /><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z" /><path d="M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3" /></svg> Records personnels</div>
         <div id="muscu-stats-records"></div>
-        <div id="muscu-force-container"></div>
+        <div id="muscu-force-container" class="pro-seulement"></div>
       </details>
       <details class="pg-repli" data-repli="seances" ontoggle="replieMuscuBascule(this)">
         <summary>Séances et programmes</summary>
@@ -4685,6 +4728,7 @@
       <div class="bloc-verre" style="padding:15px; margin-bottom:14px;">
         <h3 style="margin-top:0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg> Compte</h3>
         <div id="admin-stats-fiche" class="stats-grille"></div>
+        <div id="admin-pro"></div>
       </div>
 
       <div class="bloc-verre" style="padding:15px; margin-bottom:14px;">
@@ -4795,7 +4839,7 @@
       <div class="corps-mesures" id="carte-mesures">
         <p class="note" id="resume-mesures">Aucune mesure enregistrée pour l'instant.</p>
         <div class="actions-grille">
-          <button type="button" class="action-tuile" onclick="ouvrirPhotosProgression()"><span class="action-ic" style="background:linear-gradient(135deg,#a78bfa,#6366f1)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg></span><b>Photos de progression</b><small>Compare avant / après</small></button>
+          <button type="button" class="action-tuile" onclick="ouvrirPhotosProgression()"><span class="action-ic" style="background:linear-gradient(135deg,#a78bfa,#6366f1)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg></span><b>Photos de progression<span class="pastille-pro">Pro</span></b><small>Compare avant / après</small></button>
           <button type="button" class="action-tuile" onclick="ouvrirMesuresModal()"><span class="action-ic" style="background:linear-gradient(135deg,#fbbf24,#f97316)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z" /><path d="m14.5 12.5 2-2" /><path d="m11.5 9.5 2-2" /><path d="m8.5 6.5 2-2" /><path d="m17.5 15.5 2-2" /></svg></span><b>Ajouter une mesure</b><small>Tour de taille, bras…</small></button>
         </div>
       </div>
@@ -5232,12 +5276,19 @@
         <div class="bloc-sql" id="bloc-sql-gymbro"></div>
         <button class="btn btn-secondaire" style="margin-top:9px;" onclick="copierSqlGymbro()">Copier le SQL</button>
       </details>
+
+      <details style="margin-top:10px;">
+        <summary style="cursor:pointer;font-size:0.75rem;color:var(--text-muted);font-weight:700;">SQL : Askēsis Pro (abonnements, essais d'IA, fondateurs)</summary>
+        <p class="note note-explicative" style="margin:10px 0 0;">À exécuter une fois : crée la table des abonnements (que l'appli lit pour savoir qui est Pro), le compteur des essais d'IA, et fait de tous les comptes existants des membres fondateurs (Pro à vie). Tant qu'il n'est pas exécuté, rien n'est verrouillé dans l'appli. La suite (Stripe, fonctions serveur) : PRO_mise_en_service.md.</p>
+        <div class="bloc-sql" id="bloc-sql-pro"></div>
+        <button class="btn btn-secondaire" style="margin-top:9px;" onclick="copierSqlPro()">Copier le SQL</button>
+      </details>
     </div>
 
     <div class="input-group">
       <label for="gemini-key-input"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 21 9.6-9.6" /><path d="m7.5 15.5 2.3 2.3a1 1 0 0 1 0 1.4l-2.1 2.1a1 1 0 0 1-1.4 0L4 19" /><circle cx="15.5" cy="7.5" r="5.5" /></svg> Clé API Google Gemini</label>
       <input type="password" id="gemini-key-input" placeholder="AIzaSy…" onchange="sauvegarderParametresGlobaux()">
-      <small style="color:var(--text-muted); display: block; margin-top: 6px; font-size:0.75rem;">Liée à ton compte, pas à cet appareil. Clé par défaut utilisée si vide — la tienne sur <strong>aistudio.google.com</strong>.</small>
+      <small style="color:var(--text-muted); display: block; margin-top: 6px; font-size:0.75rem;">Liée à ton compte, pas à cet appareil. Sert seulement tant que la fonction serveur « ia » n'est pas déployée (voir PRO_mise_en_service.md) : ensuite, la clé vit sur le serveur et l'IA s'ouvre à tous les comptes.</small>
     </div>
 
     <div class="input-group">
@@ -5720,6 +5771,17 @@
   </div>
 </div>
 
+<!-- ================= ASKĒSIS PRO (offre, ou état de l'abonnement) ================= -->
+<div id="pro-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-pro">
+  <div class="modal-content" style="max-width:440px;">
+    <div class="modal-entete">
+      <h3 id="titre-pro"><span class="logo-anqa pro-logo" aria-hidden="true"></span>Askēsis Pro</h3>
+      <button class="close-modal" onclick="fermerModal('pro-modal')" aria-label="Fermer">&times;</button>
+    </div>
+    <div id="pro-contenu"></div>
+  </div>
+</div>
+
 <!-- ================= MODIFIER LE PROFIL (nom d'utilisateur, photo, bio) ================= -->
 <div id="profil-modif-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-profil-modif">
   <div class="modal-content" style="max-width:440px;">
@@ -5776,13 +5838,18 @@
           </button></span>
         <button type="button" class="pilule" onclick="ouvrirModal('compte-modal');">Gérer</button>
       </div>
+      <div class="ligne-reglage hidden" id="ligne-pro">
+        <span class="action-ic"><span class="logo-anqa pro-logo" aria-hidden="true"></span></span>
+        <span class="ligne-txt"><small>Askēsis Pro</small><b id="pro-statut">Gratuit</b></span>
+        <button type="button" class="pilule" id="pro-bouton-ligne" onclick="ouvrirPro()">Découvrir</button>
+      </div>
     </div>
 
     <div class="reglages-titre">Appareils</div>
     <div class="carte-liste">
       <div class="ligne-reglage">
         <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="3" /><path d="M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z" /></svg></span>
-        <span class="ligne-txt"><small>Balance</small><b>Withings</b></span>
+        <span class="ligne-txt"><small>Balance</small><b>Withings<span class="pastille-pro">Pro</span></b></span>
         <span id="withings-deconnecte-reglages"><a href="#" class="pilule lien-connexion-withings" target="_blank" rel="noopener" onclick="return connexionWithings(event)">Connecter</a></span>
         <span id="withings-connecte-reglages" class="hidden"><button type="button" class="pilule" onclick="deconnexionWithings()">Déconnecter</button></span>
       </div>
@@ -5833,6 +5900,7 @@
         <span class="ligne-txt"><b>Installer sur l'écran d'accueil</b><small>Plein écran, et un lancement plus rapide</small></span><svg class="icone-ui chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
       </button>
     </div>
+    <p class="note reglages-legal"><a href="mentions-legales.html" target="_blank" rel="noopener">Mentions légales</a> · <a href="cgv.html" target="_blank" rel="noopener">Conditions de vente</a> · <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a></p>
   </div>
 </div>
 
@@ -6027,7 +6095,7 @@
     </div>
 
     <div id="withings-deconnecte">
-      <a href="#" class="btn btn-secondaire lien-connexion-withings" style="margin:-6px 0 6px; display:inline-block; box-sizing:border-box; text-align:center; text-decoration:none;" target="_blank" rel="noopener" onclick="return connexionWithings(event)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></svg> Connecter ma balance Withings</a>
+      <a href="#" class="btn btn-secondaire lien-connexion-withings" style="margin:-6px 0 6px; display:inline-block; box-sizing:border-box; text-align:center; text-decoration:none;" target="_blank" rel="noopener" onclick="return connexionWithings(event)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></svg> Connecter ma balance Withings<span class="pastille-pro">Pro</span></a>
       <p class="note note-explicative" style="margin:0 0 14px;">Bloqué dans l'appli Withings au lieu de revenir ici ? Reste appuyé sur ce bouton pour choisir « Ouvrir dans Safari ».</p>
     </div>
     <div id="withings-connecte" class="hidden">
@@ -6843,7 +6911,7 @@ function appliquerGeminiKeyEffective() {
   geminiKey = (userProfile.geminiKey || '').trim() || GEMINI_CLE_DEFAUT;
   // Sans clé liée au compte, tout ce qui mène à l'IA disparaît (.ia-seulement)
   // au lieu de mener à un message d'erreur.
-  document.documentElement.classList.toggle('ia-active', !!geminiKey);
+  document.documentElement.classList.toggle('ia-active', !!geminiKey || !!(iaServeur && iaServeur.pret));
   const champ = document.getElementById('gemini-key-input');
   if (champ) champ.value = userProfile.geminiKey || '';
   // Purge une éventuelle clé laissée par cet appareil avant ce correctif :
@@ -10758,6 +10826,16 @@ function limiteIA() {
 }
 
 function majAffichageIA() {
+  // IA par le serveur, sans Pro : les essais gratuits qui restent ce mois-ci.
+  if (iaServeur && iaServeur.pret && !iaServeur.pro && typeof iaServeur.restant === 'number') {
+    const r = iaServeur.restant;
+    document.querySelectorAll('.puce-ia').forEach(el => {
+      el.textContent = r ? `${r} essai${r > 1 ? 's' : ''} IA gratuit${r > 1 ? 's' : ''} ce mois-ci` : 'Essais IA du mois utilisés · Pro pour continuer';
+      el.classList.toggle('proche', r === 1);
+      el.classList.toggle('atteint', r === 0);
+    });
+    return;
+  }
   const c = compteurIA();
   const limite = limiteIA();
   const texte = limite
@@ -10781,11 +10859,48 @@ function enregistrerLimiteIA() {
 /* Les messages déjà écrits pour l'utilisateur sortent tels quels ; seuls les
    imprévus techniques gardent la mention de leur origine. */
 function messageIA(e) {
+  if (e && e.lisible) return e.message;
   const m = String((e && e.message) || e);
   return /^Quota atteint|^Gemini est surchargé/.test(m) ? m : 'Erreur Gemini : ' + m;
 }
 
+/* L'IA par le serveur (fonction « ia ») : la clé Gemini reste là-bas, et le
+   serveur compte les essais (3 par mois sans Pro). */
+async function geminiParServeur(parts, type) {
+  const DELAIS_RETRY_MS = [1500, 3000];
+  let statut, corps;
+  for (let essai = 0; ; essai++) {
+    incrementerIA(type);
+    const { data, error } = await supa.functions.invoke('ia', { body: { parts, modele: GEMINI_MODEL } });
+    if (!error) { statut = 200; corps = data || {}; break; }
+    statut = error.context && typeof error.context.status === 'number' ? error.context.status : 0;
+    corps = {};
+    try { corps = await error.context.json(); } catch (e) {}
+    if (statut === 503 && essai < DELAIS_RETRY_MS.length && !/configurée/.test(corps.erreur || '')) {
+      await new Promise(resolve => setTimeout(resolve, DELAIS_RETRY_MS[essai]));
+      continue;
+    }
+    break;
+  }
+  if (corps && 'restant' in corps && iaServeur) { iaServeur.restant = corps.restant; majAffichageIA(); }
+  const lisible = m => Object.assign(new Error(m), { lisible: true });
+  if (statut === 402) {
+    if (corps.code === 'pro_requis') ouvrirPro('ia');
+    throw lisible(corps.erreur || 'Essais IA du mois utilisés.');
+  }
+  if (statut === 0) throw lisible('Pas de connexion au serveur. Réessaie dans un instant.');
+  if (statut === 401) throw lisible("Connecte-toi pour utiliser l'IA.");
+  if (statut === 429) throw lisible('Quota atteint. Réessaie dans un moment.');
+  if (statut === 503) throw lisible(/configurée/.test(corps.erreur || '') ? corps.erreur : 'Gemini est surchargé pour le moment (forte demande). Réessaie dans une minute.');
+  if (statut !== 200) throw new Error((corps.error && corps.error.message) || corps.erreur || ('HTTP ' + statut));
+  const text = corps.candidates && corps.candidates[0] && corps.candidates[0].content && corps.candidates[0].content.parts
+    ? corps.candidates[0].content.parts.map(p => p.text || '').join('') : '';
+  if (!text) throw new Error('Réponse vide.');
+  return text;
+}
+
 async function geminiGenerate(parts, type) {
+  if (iaServeur && iaServeur.pret && supa) return geminiParServeur(parts, type);
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(geminiKey)}`;
   const DELAIS_RETRY_MS = [1500, 3000];
   let j, r;
@@ -11235,7 +11350,7 @@ function appliquerPeriodeStats() {
 function rendrePeriodesStats() {
   const c = document.getElementById('stats-periode');
   if (c && !c.children.length) {
-    c.innerHTML = PERIODES_STATS.map(p => `<button type="button" onclick="choisirPeriodeStats(${argJs(p[0])})" aria-pressed="false">${LIBELLES_PERIODE[p[0]]}</button>`).join('');
+    c.innerHTML = PERIODES_STATS.map(p => `<button type="button" onclick="choisirPeriodeStats(${argJs(p[0])})" aria-pressed="false">${LIBELLES_PERIODE[p[0]]}${periodePro(p[0]) ? '<span class="pastille-pro">Pro</span>' : ''}</button>`).join('');
   }
   if (c) [...c.children].forEach((btn, i) => btn.setAttribute('aria-pressed', String(PERIODES_STATS[i][0] === periodeStats)));
   const lib = document.getElementById('pg-periode-lib');
@@ -11244,6 +11359,7 @@ function rendrePeriodesStats() {
   if (bloc) bloc.classList.toggle('hidden', periodeStats !== 'perso');
 }
 function choisirPeriodeStats(cle) {
+  if (periodePro(cle) && !exigerPro('periodes')) return;
   periodeStats = cle;
   basculerMenuPeriode(false);
   try { localStorage.setItem(STATS_PERIODE_LS, cle); } catch (e) {}
@@ -12063,7 +12179,7 @@ function iaIndisponible() {
 function majNoteCleIA() {
   const n = document.getElementById('note-cle-ia');
   if (!n) return;
-  n.innerHTML = geminiKey
+  n.innerHTML = geminiKey || (iaServeur && iaServeur.pret)
     ? ''
     : `Aucune clé API n'est enregistrée : ajoute-la dans <svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></svg> Profil pour activer les analyses.`;
 }
@@ -12765,6 +12881,10 @@ function definirSessionUtilisateur(user) {
     compterAValiderAdmin();
     chargerFilGymbros(true);
     chargerRecettesPartagees();
+    // Askēsis Pro : l'état gardé sur l'appareil tout de suite, puis celui du serveur.
+    appliquerEtatPro();
+    chargerAbonnementPro().then(() => { if (paiementProRecent()) suivrePaiementPro(); });
+    verifierIAServeur();
     // La gate de connexion vient de se refermer : c'est le bon moment pour
     // éventuellement proposer l'installation, jamais avant (elle empilerait
     // sa pop-up sur la modale de connexion, obligatoire tant qu'elle est ouverte).
@@ -12774,6 +12894,7 @@ function definirSessionUtilisateur(user) {
     // se reverrouille immédiatement, sans exception.
     connexionObligatoire = true;
     monPseudo = null;
+    oublierPro();
     ouvrirModal('compte-modal', true);
   }
   // Le changement d'identifiant ne rejoue pas automatiquement les données
@@ -14737,6 +14858,7 @@ function retourRechercheGymbro() {
 const BUCKET_PHOTOS = 'photos-progression';
 let photosProgression = [];  // [{ chemin, date, url }]
 function ouvrirPhotosProgression() {
+  if (!exigerPro('photos')) return;
   document.getElementById('photos-date').value = todayStr();
   ouvrirModal('photos-modal');
   chargerPhotosProgression();
@@ -15935,6 +16057,7 @@ async function voirStatsCompte(utilisateur, nomAffiche) {
   zone.classList.remove('hidden');
   document.getElementById('admin-stats-nom').textContent = nomAffiche;
   remplirFicheCompteAdmin(adminComptes[utilisateur] || {});
+  afficherProAdmin(utilisateur);
   resume.innerHTML = '<p class="note">Chargement…</p>';
   zone.scrollIntoView({ behavior: 'smooth', block: 'start' });
   // Indépendant du reste : un compte peut avoir des séances de musculation
@@ -16153,6 +16276,11 @@ function brancherLiensWithings() {
    serveur — sinon on laisse le navigateur suivre le href normalement
    (return true), target="_blank" ouvre déjà un nouvel onglet tout seul. */
 function connexionWithings(e) {
+  if (!accesPro()) {
+    if (e) e.preventDefault();
+    ouvrirPro('withings');
+    return false;
+  }
   if (!WITHINGS_PROXY) {
     if (e) e.preventDefault();
     alert("La connexion Withings est momentanément indisponible : elle attend le déploiement de l'Edge Function côté serveur.");
@@ -22784,6 +22912,392 @@ function badgesUtilisateur() {
     { cle: 'eclair', nom: 'Explosif', detail: niveauUtilisateur().n >= 10 ? 'Niveau 10 atteint' : 'Atteins le niveau 10', ok: niveauUtilisateur().n >= 10, ic: 'eclair', g: 'linear-gradient(135deg,#f472b6,#a855f7)', l: 'rgba(168,85,247,.7)' }
   ];
 }
+/* =====================================================================
+   ASKĒSIS PRO
+   Réservés à Pro : l'IA au-delà de 3 essais par mois, les analyses
+   avancées de Progrès (maintenance réelle, prévisions, constats, zones de
+   volume, niveau de force, périodes de plus de 3 mois), les photos de
+   progression et la balance Withings. Tout le reste reste gratuit.
+   Rien n'est verrouillé tant que le serveur n'a pas la table
+   « abonnements » (SQL_PRO ci-dessous pas encore exécuté) : l'appli reste
+   alors comme avant. L'abonnement est lu à la connexion et au retour dans
+   l'appli, puis gardé sur l'appareil jusqu'à sa date de fin (hors ligne
+   compris). Paiement : des liens Stripe (essai de 14 jours) qui portent
+   l'identifiant du compte ; le webhook (supabase/functions/stripe-webhook)
+   tient la table à jour. Mise en service : PRO_mise_en_service.md.
+   ===================================================================== */
+const PRO_LS = 'askesis_pro';
+const PRO_PAIEMENT_LS = 'askesis_pro_paiement';
+// Liens de paiement Stripe (essai de 14 jours compris) et du portail client,
+// à coller ici une fois créés. Vides : le Pro se montre, mais le paiement
+// est annoncé « bientôt ».
+const PRO_LIENS = { an: '', mois: '', portail: '' };
+const PRO_TARIFS = { an: '29,99 €', anParMois: '2,50 €', mois: '3,99 €', remise: '−37 %', essaiJours: 14 };
+const IA_ESSAIS_GRATUITS = 3;
+const RAISONS_PRO = {
+  ia: `Tes ${IA_ESSAIS_GRATUITS} essais IA du mois sont utilisés.`,
+  photos: 'Les photos de progression font partie de Pro.',
+  withings: 'La balance Withings fait partie de Pro.',
+  analyses: 'Cette analyse fait partie de Pro.',
+  periodes: 'Les périodes de plus de 3 mois font partie de Pro.'
+};
+const ICONES_PRO = {
+  progres: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="m19 9-5 5-4-4-3 3" /></svg>',
+  photos: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>',
+  balance: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="3" /><path d="M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z" /></svg>'
+};
+// Périodes de Progrès au-delà de 3 mois, et sur mesure : Pro. (Fonction et
+// non constante : appelée par des rendus qui peuvent passer avant ces lignes.)
+function periodePro(cle) { return cle === '180' || cle === '365' || cle === 'tout' || cle === 'perso'; }
+// var : lus par des rendus qui peuvent passer avant ces lignes au démarrage.
+var etatPro = lireEtatPro();
+var iaServeur = null; // { pret, pro, restant } quand la fonction « ia » répond
+var formuleProChoisie = 'an', accordPro = false;
+
+function lireEtatPro() {
+  try { return JSON.parse(localStorage.getItem(PRO_LS) || 'null'); } catch (e) { return null; }
+}
+function proEnPlace() {
+  return !!(etatPro && etatPro.systeme && sessionUtilisateur && etatPro.utilisateur === sessionUtilisateur.id);
+}
+function abonnementProValide(a) {
+  return !!a && ['actif', 'essai', 'annule', 'impaye'].includes(a.statut) && (!a.fin || new Date(a.fin) > new Date());
+}
+function estPro() { return proEnPlace() && abonnementProValide(etatPro.abonnement); }
+// Tant que le Pro n'est pas en place sur le serveur, tout reste ouvert.
+function accesPro() { return !proEnPlace() || estPro(); }
+function exigerPro(raison) {
+  if (accesPro()) return true;
+  ouvrirPro(raison);
+  return false;
+}
+
+async function chargerAbonnementPro() {
+  if (!supa || !sessionUtilisateur) return;
+  const moi = sessionUtilisateur.id;
+  const { data, error } = await supa.from('abonnements').select('formule, statut, fin').eq('utilisateur', moi).maybeSingle();
+  if (error) {
+    // Table absente : le SQL Pro n'est pas encore exécuté. Autre erreur
+    // (réseau…) : on garde ce qu'on savait.
+    if (error.code !== 'PGRST205' && error.code !== '42P01') return;
+    etatPro = { utilisateur: moi, systeme: false, abonnement: null };
+  } else {
+    etatPro = { utilisateur: moi, systeme: true, abonnement: data || null };
+  }
+  etatPro.lu = Date.now();
+  try { localStorage.setItem(PRO_LS, JSON.stringify(etatPro)); } catch (e) {}
+  appliquerEtatPro();
+}
+/* L'IA par le serveur (fonction « ia ») : disponible si elle répond. Sinon,
+   l'ancienne voie (clé liée au compte) reste en place. */
+async function verifierIAServeur() {
+  iaServeur = null;
+  if (supa && sessionUtilisateur) {
+    try {
+      const { data, error } = await supa.functions.invoke('ia', { method: 'GET' });
+      if (!error && data && data.pret) iaServeur = data;
+    } catch (e) {}
+  }
+  appliquerGeminiKeyEffective();
+  majAffichageIA();
+}
+function oublierPro() {
+  etatPro = null; iaServeur = null;
+  try { localStorage.removeItem(PRO_LS); } catch (e) {}
+  appliquerEtatPro();
+  appliquerGeminiKeyEffective();
+}
+function appliquerEtatPro() {
+  const verrous = !accesPro();
+  document.documentElement.classList.toggle('verrous-pro', verrous);
+  document.documentElement.classList.toggle('est-pro', estPro());
+  if (verrous && periodePro(periodeStats)) choisirPeriodeStats('90');
+  majLignePro();
+  renderVitrineProfil();
+  const fenetre = document.getElementById('pro-modal');
+  if (fenetre && fenetre.classList.contains('show')) renderPro();
+}
+
+function dateLonguePro(d) { return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }); }
+function texteAbonnementPro() {
+  const a = etatPro && etatPro.abonnement;
+  if (!estPro()) return a && a.statut === 'expire' ? 'Abonnement terminé' : 'Gratuit';
+  if (a.formule === 'fondateur') return 'Membre fondateur · à vie';
+  if (a.formule === 'offert') return 'Pro offert';
+  const nom = a.formule === 'an' ? 'Pro annuel' : 'Pro mensuel';
+  if (a.statut === 'essai') return `Essai gratuit · jusqu'au ${dateLonguePro(a.fin)}`;
+  if (a.statut === 'annule') return `${nom} · résilié, actif jusqu'au ${dateLonguePro(a.fin)}`;
+  if (a.statut === 'impaye') return `${nom} · paiement en attente`;
+  return `${nom} · renouvelé le ${dateLonguePro(a.fin)}`;
+}
+function abonnementProPaye() { return estPro() && ['mois', 'an'].includes(etatPro.abonnement.formule); }
+// Réglages › Compte : la ligne « Askēsis Pro » (seulement quand le Pro est en place).
+function majLignePro() {
+  const ligne = document.getElementById('ligne-pro');
+  if (!ligne) return;
+  ligne.classList.toggle('hidden', !proEnPlace());
+  document.getElementById('pro-statut').textContent = texteAbonnementPro();
+  document.getElementById('pro-bouton-ligne').textContent = estPro() ? (abonnementProPaye() ? 'Gérer' : 'Voir') : 'Découvrir';
+}
+
+/* La fenêtre « Askēsis Pro » : l'offre (avantages, formule, essai) pour un
+   compte gratuit ; l'état de l'abonnement pour un compte Pro. */
+function ouvrirPro(raison) {
+  renderPro(raison || '');
+  ouvrirModal('pro-modal', true);
+}
+function renderPro(raison) {
+  const c = document.getElementById('pro-contenu');
+  if (!c) return;
+  if (raison !== undefined) c.dataset.raison = raison;
+  raison = c.dataset.raison || '';
+  const avantages = `<div class="carte-liste pro-avantages">${[
+    ['ia', "L'IA sans limite", "Photo d'un repas, programme sur mesure, analyse de ta journée et de ta période"],
+    ['progres', 'Progrès avancé', 'Maintenance réelle, prévisions, constats, zones de volume, niveau de force, périodes longues'],
+    ['photos', 'Photos de progression', 'Avant / après, côte à côte'],
+    ['balance', 'Balance Withings', 'Tes pesées arrivent toutes seules']
+  ].map(([ic, titre, sous]) => `<div class="ligne-reglage"><span class="action-ic">${ic === 'ia' ? svgV('eclair') : ICONES_PRO[ic]}</span><span class="ligne-txt"><b>${titre}</b><small>${sous}</small></span></div>`).join('')}</div>`;
+  if (estPro()) {
+    const a = etatPro.abonnement;
+    c.innerHTML = `<p class="pro-statut-grand">${escapeHtml(texteAbonnementPro())}</p>
+      ${a.formule === 'fondateur' ? `<p class="note pro-merci">Merci d'avoir été là dès le début : Pro est à toi, pour toujours.</p>` : ''}
+      ${avantages}
+      ${abonnementProPaye() && PRO_LIENS.portail ? `<button type="button" class="btn btn-secondaire" onclick="gererAbonnementPro()">Gérer mon abonnement</button>
+      <p class="note pro-pied">Changer de formule ou de carte, résilier : chez Stripe, notre prestataire de paiement.</p>` : ''}`;
+    return;
+  }
+  const formule = (cle, titre, prix, sous, badge) => `<button type="button" class="pro-formule" role="radio" aria-checked="${formuleProChoisie === cle}" onclick="choisirFormulePro('${cle}')"><b>${titre}</b><span>${prix}</span>${sous ? `<small>${sous}</small>` : ''}${badge ? `<em>${badge}</em>` : ''}</button>`;
+  c.innerHTML = `${RAISONS_PRO[raison] ? `<p class="pro-raison">${RAISONS_PRO[raison]}</p>` : ''}
+    <p class="pro-accroche">Va plus loin dans ton suivi.</p>
+    ${avantages}
+    <div class="pro-formules" role="radiogroup" aria-label="Formule">
+      ${formule('an', 'Annuel', PRO_TARIFS.an + ' / an', 'soit ' + PRO_TARIFS.anParMois + ' / mois', PRO_TARIFS.remise)}
+      ${formule('mois', 'Mensuel', PRO_TARIFS.mois + ' / mois', 'sans engagement', '')}
+    </div>
+    <label class="pro-accord"><input type="checkbox" id="pro-accord"${accordPro ? ' checked' : ''} onchange="accordPro = this.checked; majBoutonPro()"> <span>J'accepte les <a href="cgv.html" target="_blank" rel="noopener">conditions de vente</a> et je demande l'accès immédiat à Pro.</span></label>
+    <button type="button" class="btn btn-primary" id="pro-essai" onclick="commencerPro()" disabled></button>
+    <p class="note pro-pied" id="pro-pied"></p>
+    <button type="button" class="lien-depliant pro-actualiser" onclick="actualiserPro()">Déjà abonné ? Actualiser</button>`;
+  majBoutonPro();
+}
+function choisirFormulePro(cle) { formuleProChoisie = cle; renderPro(); }
+function paiementProPret() { return !!(PRO_LIENS.an && PRO_LIENS.mois); }
+function majBoutonPro() {
+  const b = document.getElementById('pro-essai'), pied = document.getElementById('pro-pied');
+  if (!b) return;
+  const pret = paiementProPret();
+  b.textContent = pret ? `Essayer ${PRO_TARIFS.essaiJours} jours gratuitement` : 'Paiement bientôt disponible';
+  b.disabled = !pret || !accordPro || !sessionUtilisateur;
+  const prix = formuleProChoisie === 'an' ? PRO_TARIFS.an + ' / an' : PRO_TARIFS.mois + ' / mois';
+  pied.innerHTML = (pret
+    ? `${PRO_TARIFS.essaiJours} jours gratuits, puis ${prix}. Sans engagement : résiliable à tout moment, pendant l'essai aussi.`
+    : 'Le paiement en ligne arrive très bientôt.') + ' <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a>';
+}
+// Ouvre une page Stripe à côté de l'appli (l'appli reste ouverte derrière).
+function ouvrirPageStripe(url) {
+  const fenetre = window.open(url, '_blank');
+  if (fenetre) { try { fenetre.opener = null; } catch (e) {} } else location.href = url;
+}
+function commencerPro() {
+  const lien = PRO_LIENS[formuleProChoisie];
+  if (!lien || !sessionUtilisateur || !accordPro) return;
+  const url = new URL(lien);
+  url.searchParams.set('client_reference_id', sessionUtilisateur.id);
+  if (sessionUtilisateur.email) url.searchParams.set('prefilled_email', sessionUtilisateur.email);
+  url.searchParams.set('locale', 'fr');
+  try { localStorage.setItem(PRO_PAIEMENT_LS, String(Date.now())); } catch (e) {}
+  ouvrirPageStripe(url.toString());
+}
+function gererAbonnementPro() {
+  if (!PRO_LIENS.portail) return;
+  const url = new URL(PRO_LIENS.portail);
+  if (sessionUtilisateur && sessionUtilisateur.email) url.searchParams.set('prefilled_email', sessionUtilisateur.email);
+  ouvrirPageStripe(url.toString());
+}
+function bienvenuePro() {
+  try { localStorage.removeItem(PRO_PAIEMENT_LS); } catch (e) {}
+  celebrer('Bienvenue dans Pro', texteAbonnementPro(), 'eclair');
+  verifierIAServeur();
+}
+async function actualiserPro() {
+  await chargerAbonnementPro();
+  if (estPro()) { renderPro(); bienvenuePro(); }
+  else informer("Aucun abonnement trouvé pour ce compte pour l'instant. Si tu viens de payer, attends quelques secondes et réessaie.");
+}
+/* Après un paiement, Stripe prévient le serveur en quelques secondes : on
+   relit l'abonnement toutes les 3 s pendant 30 s. */
+function paiementProRecent() {
+  let debut = 0;
+  try { debut = Number(localStorage.getItem(PRO_PAIEMENT_LS)) || 0; } catch (e) {}
+  return debut && Date.now() - debut < 30 * 60e3;
+}
+function suivrePaiementPro() {
+  let tours = 0;
+  const tour = async () => {
+    await chargerAbonnementPro();
+    if (estPro()) { fermerModal('pro-modal'); bienvenuePro(); return; }
+    if (++tours < 10) setTimeout(tour, 3000);
+  };
+  tour();
+}
+// Retour de la page de paiement (redirection vers l'appli avec ?pro=merci).
+function retourPaiementPro() {
+  const p = new URLSearchParams(location.search);
+  if (p.get('pro') !== 'merci') return;
+  p.delete('pro');
+  history.replaceState(null, '', location.pathname + (p.toString() ? '?' + p : '') + location.hash);
+  try { localStorage.setItem(PRO_PAIEMENT_LS, String(Date.now())); } catch (e) {}
+  informer("Merci ! Ton abonnement Pro est en route : il s'active dans l'appli en quelques secondes.");
+  if (sessionUtilisateur) suivrePaiementPro();
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !sessionUtilisateur) return;
+  if (paiementProRecent()) suivrePaiementPro();
+  else if (!etatPro || !etatPro.lu || Date.now() - etatPro.lu > 6 * 3600e3) chargerAbonnementPro();
+});
+// Bloc réservé (flouté) : le toucher ouvre la fenêtre Pro au lieu d'agir.
+document.addEventListener('click', e => {
+  if (!document.documentElement.classList.contains('verrous-pro')) return;
+  const bloc = e.target.closest && e.target.closest('.pro-seulement');
+  if (!bloc || !bloc.innerHTML.trim()) return;
+  e.preventDefault();
+  e.stopPropagation();
+  ouvrirPro(bloc.dataset.pro || 'analyses');
+}, true);
+
+/* Administration : l'état Pro d'un compte, et le Pro offert (amis, testeurs). */
+async function afficherProAdmin(utilisateur) {
+  const c = document.getElementById('admin-pro');
+  if (!c || !supa) return;
+  c.innerHTML = '';
+  const { data, error } = await supa.from('abonnements').select('formule, statut, fin').eq('utilisateur', utilisateur).maybeSingle();
+  if (error) {
+    c.innerHTML = `<p class="note">${error.code === 'PGRST205' || error.code === '42P01' ? 'Pro pas encore en place : exécute le SQL « Askēsis Pro » (Réglages techniques).' : 'Pro : ' + escapeHtml(error.message)}</p>`;
+    return;
+  }
+  const libelle = !data ? 'Gratuit'
+    : data.formule === 'fondateur' ? 'Membre fondateur'
+    : data.formule === 'offert' ? 'Pro offert'
+    : `${data.formule === 'an' ? 'Annuel' : 'Mensuel'} · ${data.statut}${data.fin ? ' · fin ' + new Date(data.fin).toLocaleDateString('fr-FR') : ''}`;
+  c.innerHTML = `<div class="ligne-reglage"><span class="ligne-txt"><small>Askēsis Pro</small><b>${escapeHtml(libelle)}</b></span>
+    ${!abonnementProValide(data) ? `<button type="button" class="pilule" onclick="basculerProAdmin(${argJs(utilisateur)}, true)">Offrir Pro</button>` : ''}
+    ${data && data.formule === 'offert' ? `<button type="button" class="pilule" onclick="basculerProAdmin(${argJs(utilisateur)}, false)">Retirer</button>` : ''}</div>`;
+}
+async function basculerProAdmin(utilisateur, offrir) {
+  const { error } = await supa.rpc('admin_offrir_pro', { p_utilisateur: utilisateur, p_offert: offrir });
+  if (error) { informer('Impossible : ' + error.message); return; }
+  afficherProAdmin(utilisateur);
+}
+function copierSqlPro() {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(SQL_PRO).catch(() => informer('Copie ce SQL :', { copie: SQL_PRO }));
+  } else {
+    informer('Copie ce SQL :', { copie: SQL_PRO });
+  }
+}
+const SQL_PRO = `-- Askēsis Pro : abonnements, essais d'IA, membres fondateurs.
+-- À exécuter une fois dans l'éditeur SQL de Supabase, après les autres SQL.
+-- Idempotent : relancer ne casse rien, et ne fait pas de nouveaux
+-- fondateurs (seuls les comptes qui existent au PREMIER passage le sont).
+-- Tant qu'il n'est pas exécuté, l'appli ne verrouille rien.
+
+-- 1) Un abonnement par compte. Lisible par son titulaire (et l'admin) ;
+--    écrit seulement par le serveur (webhook Stripe) et les fonctions
+--    d'admin ci-dessous.
+create table if not exists public.abonnements (
+  utilisateur       text primary key,
+  formule           text not null check (formule in ('fondateur', 'offert', 'mois', 'an')),
+  statut            text not null check (statut in ('actif', 'essai', 'annule', 'impaye', 'expire')),
+  fin               timestamptz,
+  client_stripe     text,
+  abonnement_stripe text unique,
+  cree_le           timestamptz not null default now(),
+  maj               timestamptz not null default now()
+);
+alter table public.abonnements enable row level security;
+drop policy if exists "abonnements lecture" on public.abonnements;
+create policy "abonnements lecture" on public.abonnements for select to authenticated
+  using (utilisateur = auth.uid()::text or auth.jwt() ->> 'email' = '${ADMIN_EMAIL}');
+
+-- 2) Membres fondateurs : tous les comptes qui existent au premier passage.
+do $$
+begin
+  if not exists (select 1 from public.abonnements where formule = 'fondateur') then
+    insert into public.abonnements (utilisateur, formule, statut, fin)
+    select id::text, 'fondateur', 'actif', null from auth.users
+    on conflict (utilisateur) do nothing;
+  end if;
+end;
+$$;
+
+-- 3) Admin : offrir Pro à un compte, ou le retirer (jamais un abonnement payé).
+create or replace function public.admin_offrir_pro(p_utilisateur text, p_offert boolean)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(auth.jwt() ->> 'email', '') <> '${ADMIN_EMAIL}' then
+    raise exception 'Accès réservé à l''administrateur';
+  end if;
+  if p_offert then
+    insert into abonnements (utilisateur, formule, statut, fin) values (p_utilisateur, 'offert', 'actif', null)
+    on conflict (utilisateur) do update set formule = 'offert', statut = 'actif', fin = null, maj = now()
+      where abonnements.statut = 'expire';
+  else
+    delete from abonnements where utilisateur = p_utilisateur and formule = 'offert';
+  end if;
+end;
+$$;
+grant execute on function public.admin_offrir_pro(text, boolean) to authenticated;
+
+-- 4) Essais d'IA : un compteur par compte et par mois, tenu par la fonction
+--    serveur « ia » (3 essais par mois sans Pro).
+create table if not exists public.usages_ia (
+  utilisateur text not null,
+  mois        date not null,
+  nombre      integer not null default 0 check (nombre >= 0),
+  primary key (utilisateur, mois)
+);
+alter table public.usages_ia enable row level security;
+drop policy if exists "usages_ia lecture" on public.usages_ia;
+create policy "usages_ia lecture" on public.usages_ia for select to authenticated
+  using (utilisateur = auth.uid()::text);
+
+-- Compte un usage si la limite du mois n'est pas atteinte : renvoie le
+-- nouveau total, ou null si la limite est atteinte.
+create or replace function public.compter_usage_ia(p_utilisateur text, p_limite integer)
+returns integer language plpgsql security definer set search_path = public as $$
+declare v integer;
+begin
+  insert into usages_ia as u (utilisateur, mois, nombre)
+  values (p_utilisateur, date_trunc('month', now())::date, 1)
+  on conflict (utilisateur, mois) do update set nombre = u.nombre + 1
+    where u.nombre < p_limite
+  returning nombre into v;
+  return v;
+end;
+$$;
+-- Rend un usage quand l'IA a échoué (rien n'a été fourni).
+create or replace function public.rendre_usage_ia(p_utilisateur text)
+returns void language sql security definer set search_path = public as $$
+  update usages_ia set nombre = greatest(0, nombre - 1)
+  where utilisateur = p_utilisateur and mois = date_trunc('month', now())::date;
+$$;
+-- Réservées au serveur (clé service) : personne d'autre ne touche aux compteurs.
+revoke execute on function public.compter_usage_ia(text, integer) from public, anon, authenticated;
+revoke execute on function public.rendre_usage_ia(text) from public, anon, authenticated;
+
+-- 5) Un compte effacé emporte ses lignes Pro (pense aussi à résilier son
+--    abonnement Stripe s'il en avait un).
+create or replace function public.nettoyer_pro()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  delete from abonnements where utilisateur = old.id::text;
+  delete from usages_ia where utilisateur = old.id::text;
+  return old;
+end;
+$$;
+drop trigger if exists nettoyer_pro on auth.users;
+create trigger nettoyer_pro after delete on auth.users for each row execute function public.nettoyer_pro();`;
+
 function renderVitrineProfil() {
   const c = document.getElementById('vitrine-profil');
   if (!c) return;
@@ -22801,7 +23315,7 @@ function renderVitrineProfil() {
   c.innerHTML = `
     <div class="pf-carte">
       <div class="pf-av">${av}</div>
-      <div class="pf-id"><h3>${escapeHtml(nom)}</h3><span class="pf-niv">Niveau ${niv.n} · ${niv.titre}</span>${bio ? `<p class="pf-bio">${escapeHtml(bio)}</p>` : ''}</div>
+      <div class="pf-id"><h3>${escapeHtml(nom)}${estPro() ? '<span class="pastille-pro pastille-pro--abonne">Pro</span>' : ''}</h3><span class="pf-niv">Niveau ${niv.n} · ${niv.titre}</span>${bio ? `<p class="pf-bio">${escapeHtml(bio)}</p>` : ''}</div>
       <button type="button" class="pf-modif" onclick="ouvrirModal('profil-modif-modal')">Modifier</button>
     </div>
     <div class="chiffres-geants"><div class="cg"><b data-compte="${musculationHistorique.length}">${musculationHistorique.length}</b><small>séances</small></div><div class="cg"><b data-compte="${niv.joursNotes}">${niv.joursNotes}</b><small>jours suivis</small></div><div class="cg"><b data-compte="${joursDAffilee()}">${joursDAffilee()}</b><small>d'affilée</small></div></div>
@@ -23419,8 +23933,8 @@ function renderResumeProgres() {
   // Maintenance réelle
   const mt = maintenanceReelle(s, e);
   const maint = mt.kcal
-    ? `<div class="pg-carte pg-maint">${pgAnneau(mt.moyConso / mt.kcal, 'var(--text)', Math.round(mt.moyConso / mt.kcal * 100) + ' %')}<div><small>Ta maintenance réelle</small><b>${nombreFr(mt.kcal, 0)} kcal</b><p>Calculée sur tes pesées et ce que tu as noté, pas sur une formule. Tu manges ${Math.round(mt.moyConso / mt.kcal * 100)} % de ta maintenance${b.rythmeSemaine != null ? ' → ' + escapeHtml(fmtSigne(b.rythmeSemaine, ' kg par semaine', 1)) : ''}.</p></div></div>`
-    : `<div class="pg-carte pg-maint pg-maint--vide">${pgAnneau(0, 'var(--text)', '…')}<div><small>Ta maintenance réelle</small><b>Bientôt</b><p>Encore ${mt.manque || 'quelques'} jour${mt.manque > 1 ? 's' : ''} avec tes repas notés et ${MAINTENANCE_PESEES_MIN} pesées au moins sur la période : on calculera les calories qui te font garder ton poids, d'après ta balance.</p></div></div>`;
+    ? `<div class="pg-carte pg-maint pro-seulement">${pgAnneau(mt.moyConso / mt.kcal, 'var(--text)', Math.round(mt.moyConso / mt.kcal * 100) + ' %')}<div><small>Ta maintenance réelle</small><b>${nombreFr(mt.kcal, 0)} kcal</b><p>Calculée sur tes pesées et ce que tu as noté, pas sur une formule. Tu manges ${Math.round(mt.moyConso / mt.kcal * 100)} % de ta maintenance${b.rythmeSemaine != null ? ' → ' + escapeHtml(fmtSigne(b.rythmeSemaine, ' kg par semaine', 1)) : ''}.</p></div></div>`
+    : `<div class="pg-carte pg-maint pg-maint--vide pro-seulement">${pgAnneau(0, 'var(--text)', '…')}<div><small>Ta maintenance réelle</small><b>Bientôt</b><p>Encore ${mt.manque || 'quelques'} jour${mt.manque > 1 ? 's' : ''} avec tes repas notés et ${MAINTENANCE_PESEES_MIN} pesées au moins sur la période : on calculera les calories qui te font garder ton poids, d'après ta balance.</p></div></div>`;
 
   // Ce qui a bougé
   const faits = [];
@@ -23448,7 +23962,7 @@ function renderResumeProgres() {
     if (d) faits.push(['🎯', d > 0 ? 'pg-f-vert' : 'pg-f-orange', `<b>${b.dansLaCible} jours dans ta cible</b>`, `${d > 0 ? d + ' de plus' : -d + ' de moins'} que la période d'avant.`]);
   }
   const ceQuiABouge = faits.length
-    ? `<h3 class="pg-h">Ce qui a bougé</h3><div class="pg-carte">${faits.slice(0, 3).map(([ic, cls, t, sous]) => `<div class="pg-fait"><span class="pg-fait-ic ${cls}" aria-hidden="true">${ic}</span><div>${t}<span>${sous}</span></div></div>`).join('')}</div>`
+    ? `<h3 class="pg-h">Ce qui a bougé</h3><div class="pg-carte pro-seulement">${faits.slice(0, 3).map(([ic, cls, t, sous]) => `<div class="pg-fait"><span class="pg-fait-ic ${cls}" aria-hidden="true">${ic}</span><div>${t}<span>${sous}</span></div></div>`).join('')}</div>`
     : '';
 
   // Régularité
@@ -25228,6 +25742,8 @@ window.addEventListener('load', () => {
   document.getElementById('bloc-sql-accents').textContent = sqlAccents();
   document.getElementById('bloc-sql-rls').textContent = sqlRls();
   document.getElementById('bloc-sql-gymbro').textContent = SQL_GYMBRO_PHOTOS;
+  document.getElementById('bloc-sql-pro').textContent = SQL_PRO;
+  retourPaiementPro();
   // Pas de synchroniser('démarrage') ici : la vérification de session est
   // asynchrone, donc juste après initAuth() sessionUtilisateur est encore
   // null pendant un court instant. Une synchro lancée pile à ce moment-là

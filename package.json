@@ -3,7 +3,8 @@
   "private": true,
   "description": "Askēsis : appli nutrition, musculation et cardio (index.html, ses données dans assets/donnees.js, servi par GitHub Pages).",
   "scripts": {
-    "test": "node --test --test-concurrency=1 tests/appli.test.js"
+    "test": "npm run test:fonctions && node --test --test-concurrency=1 tests/appli.test.js",
+    "test:fonctions": "node --test --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning --import ./tests/fonctions/chargeur.mjs tests/fonctions.test.js"
   },
   "devDependencies": {
     "chart.js": "4.5.1",

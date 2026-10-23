@@ -9,11 +9,16 @@ Le réseau est coupé pendant les tests (Supabase, IA, polices) : l'appli doit
 fonctionner sans. Chart.js est servi depuis `node_modules`, dans la même
 version que celle de `index.html` (un test vérifie qu'elles correspondent).
 
+`tests/fonctions.test.js` teste à part les deux fonctions serveur du Pro
+(`supabase/functions/ia` et `stripe-webhook`) : elles tournent sous Node avec
+de faux Supabase, Stripe et Gemini (`tests/fonctions/`), sans rien déployer.
+
 ## Lancer
 
 ```
 npm install
-npm test
+npm test                 # fonctions serveur, puis l'appli
+npm run test:fonctions   # seulement les fonctions serveur
 ```
 
 Chromium : celui de `CHROMIUM_PATH` s'il est défini, sinon celui préinstallé
