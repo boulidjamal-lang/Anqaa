@@ -1345,8 +1345,8 @@ test('vitrines : Activité (corps, séance du jour, programmes), Cardio (arc, tr
   assert.deepEqual(c, { arc: true, trace: 0, valeur: '5 km', mois: 1, longue: '5km' });
   await page.evaluate(() => allerA('reglages'));
   const p = await page.evaluate(() => ({
-    niveau: document.querySelector('#vitrine-profil .niveau-t b').textContent,
-    badges: document.querySelectorAll('#vitrine-profil .badge').length,
+    niveau: document.querySelector('#vitrine-badges .niveau-t b').textContent,
+    badges: document.querySelectorAll('#vitrine-badges .badge').length,
     objectifCache: getComputedStyle(document.getElementById('carte-objectif')).display
   }));
   // 1 séance (40 XP) + 1 cardio (25 XP), aucun repas : 65 XP, sous le seuil du niveau 2 (100 XP).
@@ -2221,4 +2221,33 @@ test("image de partage : noir et blanc quel que soit le thème (barres blanches 
   assert.deepEqual(r.fond, [10, 10, 11]);
   assert.ok(r.grille[0] > 15 && r.grille[0] < 40, `grille visible mais discrète : ${r.grille}`);
   assert.deepEqual(r.barre, [245, 245, 247]);
+}));
+
+test("Profil : la page montre « moi » (identité, objectif, corps, badges), l'engrenage tous les réglages, « Modifier » le nom, la photo et la bio", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    allerA('reglages');
+    const ecran = document.getElementById('ecran-reglages');
+    const blocs = ['vitrine-profil', 'carte-corps', 'gymbros-rangee-profil', 'vitrine-badges'];
+    const ordre = [...ecran.children].filter(e => blocs.includes(e.id)).map(e => e.id);
+    const dans = (sel, id) => !!document.querySelector(`${sel} #${id}`);
+    document.querySelector('#vitrine-profil .pf-modif').click();
+    const modifier = document.getElementById('profil-modif-modal').classList.contains('show');
+    fermerModal('profil-modif-modal');
+    // La balance : « Connecter » dans les réglages, puis « Déconnecter » une fois reliée.
+    const visible = id => !document.getElementById(id).classList.contains('hidden');
+    const balance = [visible('withings-deconnecte-reglages'), visible('withings-connecte-reglages')];
+    return {
+      ordre,
+      corps: ['base-gender', 'base-age', 'base-height', 'resume-mesures'].every(id => dans('#carte-corps', id)),
+      reglages: ['reglages-email', 'reglages-puce-sync', 'segment-theme', 'btn-revoir-tutoriel', 'btn-visite-muscu', 'btn-premiers-pas', 'bloc-installer-app', 'withings-deconnecte-reglages'].every(id => dans('#reglages-modal', id)),
+      identite: ['profil-pseudo', 'profil-perso', 'profil-bio', 'profil-partage'].every(id => dans('#profil-modif-modal', id)),
+      compteSansBalance: !document.querySelector('#compte-modal .lien-connexion-withings'),
+      modifier, balance,
+      titres: [...ecran.querySelectorAll('.vitrine-sec h3')].map(h => h.textContent)
+    };
+  });
+  assert.deepEqual(r.ordre, ['vitrine-profil', 'carte-corps', 'gymbros-rangee-profil', 'vitrine-badges']);
+  assert.deepEqual(r.titres, ['Mon objectif', 'Mon corps', 'Niveau et badges']);
+  assert.deepEqual([r.corps, r.reglages, r.identite, r.compteSansBalance, r.modifier], [true, true, true, true, true]);
+  assert.deepEqual(r.balance, [true, false]);
 }));

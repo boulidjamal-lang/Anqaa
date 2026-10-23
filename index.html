@@ -2669,17 +2669,9 @@
     .cardio-ajouter { margin: 2px 0 12px; }
 
     /* Profil */
-    .couv { position: relative; margin: 0 -16px; height: 178px; overflow: hidden; isolation: isolate; border-radius: 0 0 30px 30px;
-      background: radial-gradient(60% 90% at 15% 20%, #34d399, transparent 60%), radial-gradient(60% 90% at 85% 10%, #22d3ee, transparent 60%), radial-gradient(70% 100% at 60% 100%, #a78bfa, transparent 60%), #0b1020; }
-    :root[data-theme="light"] .couv { background: radial-gradient(60% 90% at 15% 20%, #6ee7b7, transparent 60%), radial-gradient(60% 90% at 85% 10%, #67e8f9, transparent 60%), radial-gradient(70% 100% at 60% 100%, #c4b5fd, transparent 60%), #eef2ff; }
-    .couv::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, var(--bg)); }
-    .couv svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .35; mix-blend-mode: overlay; }
-    .pf { position: relative; margin-top: -74px; text-align: center; }
     .pf-av { width: 116px; height: 116px; margin: 0 auto; border-radius: 50%; padding: 3px; background: conic-gradient(from 210deg, #34d399, #22d3ee, #a78bfa, #f472b6, #34d399); box-shadow: 0 16px 36px -14px rgba(34,211,238,.7); }
     .pf-av .avatar { width: 100%; height: 100%; border-radius: 50%; border: 3px solid var(--carte-plein); object-fit: cover; font-size: 2.6rem; font-weight: 800;
       background: linear-gradient(135deg, #0f766e, #1d4ed8); color: #fff; }
-    .pf h3 { margin: 10px 0 0; font-weight: 800; font-size: 1.8rem; letter-spacing: -.045em; overflow-wrap: anywhere; }
-    .pf p { margin: 4px auto 0; max-width: 290px; color: var(--text-muted); font-size: .86rem; font-weight: 500; overflow-wrap: anywhere; }
     .pf-modif { margin-top: 12px; border: 0; border-radius: 99px; padding: 9px 18px; background: var(--piste); color: var(--text); font: inherit; font-size: .8rem; font-weight: 800; cursor: pointer; }
     .niveau, .cg, .carte-badges, .carte-objectifs { background: var(--verre); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8); box-shadow: var(--ombre-v), inset 0 0 0 1px var(--trait); }
     .niveau { margin: 16px 0 4px; padding: 14px 16px; border-radius: 22px; text-align: left; }
@@ -2714,26 +2706,6 @@
     .obj-cibles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--trait); text-align: center; font-size: .64rem; font-weight: 700; color: var(--text-muted); }
     .obj-cibles b { display: block; font-size: 1rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }    /* Les tuiles remplacent la carte « Objectif » (son sélecteur reste la source) */
     #vitrine-profil:not(:empty) ~ #carte-objectif { display: none; }
-    .profil-entete { position: relative; z-index: 2; }
-    #vitrine-profil:not(:empty) { margin-top: -58px; }
-    /* Sans en-tête au-dessus, la couverture monte jusqu'en haut de l'écran. */
-    /* Haut du Profil : la couverture (ta photo, très floutée) va du haut de
-       l'écran jusque sous « Modifier le profil » ; texte en blanc dessus. */
-    .pf-haut { position: relative; isolation: isolate; padding: 104px 0 24px; }
-    html:root .pf-haut .couv { position: absolute; z-index: -1; top: calc(-18px - env(safe-area-inset-top, 0px)); left: -16px; right: -16px; bottom: 0; height: auto; margin: 0;
-      border-radius: 0 0 30px 30px; overflow: hidden; background: linear-gradient(135deg, #0f766e, #1d4ed8); }
-    .pf-haut .couv::before { content: ''; position: absolute; inset: -48px; background: var(--couv-photo, linear-gradient(135deg, #0f766e, #1d4ed8 60%, #7c3aed)) center 35% / cover;
-      filter: blur(28px) saturate(1.35); transform: scale(1.1); }
-    html:root .pf-haut .couv::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.32) 0, rgba(0,0,0,.18) 40%, rgba(0,0,0,.46) 100%); }
-    .pf-haut .pf { margin-top: 0; color: #fff; }
-    .pf-haut .pf h3 { color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.35); }
-    .pf-haut .pf p { color: rgba(255,255,255,.88); }
-    .pf-haut .pf-modif { background: rgba(255,255,255,.2); color: #fff; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
-    .pf-haut + .niveau { margin-top: 14px; }
-    /* Titre et boutons du Profil posés sur la photo */
-    body.sur-reglages .profil-entete .titre-ecran { color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.3); }
-    html:root body.sur-reglages .profil-entete .btn-icone { background: rgba(255,255,255,.2); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
-    html:root body.sur-reglages .profil-entete .btn-icone .icone-ui { color: #fff; }
 
 
     /* Actions en tuiles (Activité, Mesures) et lignes de réglage (Profil) */
@@ -3753,6 +3725,40 @@
 
 
     /* =====================================================================
+       PROFIL — une page « moi » : identité, chiffres, objectif, corps,
+       gymbros, niveau et badges. Tout le reste est derrière l'engrenage
+       (compte, balance, thème, musculation, aide), en listes groupées.
+       ===================================================================== */
+    .pf-carte { display: flex; align-items: center; gap: 14px; margin: 4px 0 12px; padding: 16px; border-radius: 24px; background: var(--s1); box-shadow: var(--ombre-carte); }
+    html:root body .pf-carte .pf-av { width: 64px; height: 64px; flex: none; margin: 0; padding: 0; border-radius: 50%; background: var(--s2) !important; }
+    html:root body .pf-carte .pf-av .avatar { width: 100%; height: 100%; border: 0; font-size: 1.55rem; }
+    .pf-id { flex: 1; min-width: 0; }
+    .pf-id h3 { margin: 0; font-size: 1.22rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; overflow-wrap: anywhere; }
+    .pf-niv { display: block; margin-top: 3px; font-size: .8rem; font-weight: 600; color: var(--text-muted); }
+    .pf-bio { margin: 6px 0 0; font-size: .8rem; line-height: 1.35; color: var(--text-muted); overflow-wrap: anywhere; }
+    .pf-carte .pf-modif { flex: none; padding: 8px 14px; border: 0; border-radius: 99px; font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; }
+    /* Mon corps : les trois informations, puis les mensurations. */
+    html:root body .carte-corps { padding: 0 !important; overflow: hidden; }
+    .carte-corps .infos-grille { padding: 14px; }
+    .corps-mesures { padding: 12px 14px 14px; border-top: 1px solid var(--ligne); }
+    .corps-mesures > .note { margin: 0 0 10px; }
+    /* Niveau et badges : une carte, le niveau en tête. */
+    html:root body .carte-badges .niveau { margin: 0 0 16px; padding: 0 0 14px; border-radius: 0; background: none !important; box-shadow: none !important; border-bottom: 1px solid var(--ligne) !important; }
+    /* Réglages : un titre au-dessus de chaque groupe. */
+    .reglages-titre { margin: 18px 4px 8px; font-size: .78rem; font-weight: 600; color: var(--text-muted); }
+    .modal-entete + .reglages-titre { margin-top: 2px; }
+    html:root body .modal-content .carte-liste { margin-bottom: 0; padding: 2px 14px; border-radius: 18px; background: var(--s2) !important; box-shadow: none !important; }
+    .modal-content .carte-liste .ligne-reglage { padding: 11px 0; }
+    .ligne-reglage .chevron { width: 18px; height: 18px; flex: none; color: var(--t3); }
+    .ligne-reglage > .segment { flex: none; width: auto; margin: 0; }
+    .ligne-reglage > .segment button { padding: 7px 10px; font-size: .78rem; }
+    html:root body .modal-content .carte-liste .segment { background: var(--s3) !important; }
+    html:root[data-theme="dark"] body .modal-content .carte-liste .segment button[aria-pressed="true"] { background: #48484e !important; }
+    a.pilule { display: inline-block; text-decoration: none; }
+    .reglages-note { margin: 6px 4px 0; font-size: .74rem; }
+    #carte-identite .profil-perso { border-top: 1px solid var(--ligne); }
+
+    /* =====================================================================
        HABILLAGE SOBRE — noir, blanc et gris, comme le logo
        Une seule police (celle du téléphone), des surfaces unies, un seul
        style d'icônes. La couleur ne sert plus qu'aux données : calories
@@ -3981,7 +3987,6 @@
     html:root body .pg-heros { --pgh-trait: var(--text) !important; --pgh-point: color-mix(in srgb, var(--text) 35%, transparent) !important; }
 
     /* ---------- Profil ---------- */
-    html:root body .pf-haut .couv::before { background: var(--couv-photo, linear-gradient(160deg, #2c2c30, #0a0a0b)) center 35% / cover !important; }
     html:root body .pf-av { background: var(--s3) !important; box-shadow: none !important; }
     html:root body .pf-av .avatar { background: var(--s2) !important; color: var(--text) !important; }
     html:root body .xp i { background: var(--text) !important; box-shadow: none !important; }
@@ -4052,16 +4057,6 @@
     html:root body :is(.pg-cal i.r, .pg-legende i.r) { background: var(--text) !important; }
     html:root body :is(.pg-cal i.m, .pg-legende i.m) { background: var(--corps-cible) !important; }
     html:root body .pg-cal i.rm { background: linear-gradient(135deg, var(--text) 50%, var(--corps-cible) 50%) !important; }
-    /* Profil sans photo, en clair : une couverture claire et des textes en noir. */
-    html:root[data-theme="light"] body .pf-haut .couv:not(.couv--photo)::before { background: linear-gradient(160deg, #e1e1e6, #f2f2f4) !important; }
-    html:root[data-theme="light"] body .pf-haut .couv:not(.couv--photo)::after { display: none !important; }
-    html:root[data-theme="light"] body .pf-haut:has(.couv:not(.couv--photo)) .pf h3 { color: var(--text) !important; text-shadow: none !important; }
-    html:root[data-theme="light"] body .pf-haut:has(.couv:not(.couv--photo)) .pf p { color: var(--text-muted) !important; }
-    html:root[data-theme="light"] body .pf-haut:has(.couv:not(.couv--photo)) .pf-modif,
-    html:root[data-theme="light"] body.sur-reglages:has(.couv:not(.couv--photo)) .profil-entete .btn-icone {
-      background: var(--s1) !important; color: var(--text) !important; box-shadow: var(--ombre-carte) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-    html:root[data-theme="light"] body.sur-reglages:has(.couv:not(.couv--photo)) .profil-entete .btn-icone .icone-ui { color: var(--text) !important; }
-    html:root[data-theme="light"] body.sur-reglages:has(.couv:not(.couv--photo)) .profil-entete .titre-ecran { color: var(--text) !important; text-shadow: none !important; }
     /* Voile derrière les fenêtres et les feuilles : neutre, sans teinte bleue. */
     html:root body :is(.modal, .feuille) { background-color: rgba(0,0,0,.55) !important; }
     html:root[data-theme="light"] body :is(.modal, .feuille) { background-color: rgba(20,20,22,.28) !important; }
@@ -4758,44 +4753,8 @@
       <button type="button" class="btn-icone btn-engrenage" onclick="ouvrirModal('reglages-modal')" aria-label="Réglages" title="Réglages"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></svg></button></span>
     </div>
 
+    <!-- Moi : identité, chiffres et objectif (dessinés par renderVitrineProfil). -->
     <div id="vitrine-profil" class="vitrine"></div>
-    <div id="gymbros-rangee-profil" class="gstrip-zone"></div>
-
-    <div class="vitrine-sec"><h3>Mon compte</h3></div>
-    <div class="carte-liste" id="carte-compte">
-      <div class="ligne-reglage">
-        <span class="action-ic" style="background:linear-gradient(135deg,#38bdf8,#6366f1)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg></span>
-        <span class="ligne-txt"><small>Compte</small><b id="reglages-email">Non connecté</b>
-          <button class="puce-sync" id="reglages-puce-sync" data-etat="attente" onclick="ouvrirModal('sync-info-modal')" title="État de la synchronisation">
-            <span class="pastille" aria-hidden="true"></span><span id="reglages-puce-sync-txt">—</span>
-          </button></span>
-        <button type="button" class="pilule" onclick="ouvrirModal('compte-modal');">Gérer</button>
-      </div>
-      <div class="ligne-reglage">
-        <span class="action-ic" style="background:linear-gradient(135deg,#f472b6,#a855f7)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8" /></svg></span>
-        <span class="ligne-txt"><small>Nom d'utilisateur</small><b id="profil-pseudo">—</b></span>
-        <button type="button" class="pilule" onclick="ouvrirPseudoModal()">Modifier</button>
-      </div>
-      <p class="note ligne-note" id="profil-pseudo-note"></p>
-      <!-- Photo de profil et bio : visibles seulement par les gymbros acceptés. -->
-      <div id="profil-perso" class="profil-perso hidden">
-        <button type="button" class="profil-avatar-btn" onclick="document.getElementById('profil-photo-input').click()" aria-label="Changer la photo de profil">
-          <span id="profil-avatar"></span><span class="profil-avatar-crayon" aria-hidden="true">✎</span>
-        </button>
-        <input type="file" id="profil-photo-input" accept="image/*" class="hidden" onchange="choisirPhotoProfil(this)">
-        <div class="profil-perso-texte input-group" style="margin:0;">
-          <label for="profil-bio" class="profil-perso-titre">Bio</label>
-          <textarea id="profil-bio" maxlength="160" rows="2" placeholder="Objectif, programme, salle… (facultatif)" oninput="majCompteurBio()" onblur="enregistrerBioProfil()"></textarea>
-          <div class="profil-bio-pied"><small id="profil-bio-compte">0/160</small>
-            <button type="button" class="lien-depliant hidden" id="profil-photo-retirer" onclick="retirerPhotoProfil()">Retirer la photo</button></div>
-        </div>
-      </div>
-      <p class="note hidden" id="profil-perso-note" style="margin:0 0 12px;">Ta photo et ta bio ne sont visibles que par tes gymbros acceptés.</p>
-      <label class="hidden" style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:600; margin:10px 0 0; cursor:pointer;">
-        <input type="checkbox" id="profil-partage" style="width:auto;" onchange="basculerPartageSeances(this.checked)">
-        Partager mes séances avec mes gymbros
-      </label>
-    </div>
 
     <div class="fitness-card" id="carte-objectif">
       <h3><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg> Objectif</h3>
@@ -4812,33 +4771,40 @@
       <p class="note hidden" style="margin:10px 0 0;" id="note-recomposition"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M8 16H3v5" /></svg> Mêmes calories qu'en maintien, mais protéines d'une sèche — pour prendre du muscle et perdre du gras en même temps (fonctionne surtout si tu progresses encore en charge).</p>
     </div>
 
-    <div class="vitrine-sec"><h3>Infos personnelles</h3></div>
-    <div class="carte-liste infos-grille">
-      <div class="input-group">
-        <label for="base-gender">Sexe</label>
-        <select id="base-gender" onchange="sauvegarderParametresGlobaux()">
-          <option value="m">Homme</option>
-          <option value="f">Femme</option>
-        </select>
+    <!-- Mon corps : ce qui sert aux calculs (sexe, âge, taille), puis le suivi
+         (mensurations, photos). -->
+    <div class="vitrine-sec"><h3>Mon corps</h3></div>
+    <div class="carte-liste carte-corps" id="carte-corps">
+      <div class="infos-grille">
+        <div class="input-group">
+          <label for="base-gender">Sexe</label>
+          <select id="base-gender" onchange="sauvegarderParametresGlobaux()">
+            <option value="m">Homme</option>
+            <option value="f">Femme</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="base-age">Âge</label>
+          <input type="number" id="base-age" value="25" inputmode="numeric" onchange="sauvegarderParametresGlobaux()">
+        </div>
+        <div class="input-group">
+          <label for="base-height">Taille (cm)</label>
+          <input type="number" id="base-height" value="175" inputmode="numeric" onchange="sauvegarderParametresGlobaux()">
+        </div>
       </div>
-      <div class="input-group">
-        <label for="base-age">Âge</label>
-        <input type="number" id="base-age" value="25" inputmode="numeric" onchange="sauvegarderParametresGlobaux()">
-      </div>
-      <div class="input-group">
-        <label for="base-height">Taille (cm)</label>
-        <input type="number" id="base-height" value="175" inputmode="numeric" onchange="sauvegarderParametresGlobaux()">
+      <div class="corps-mesures" id="carte-mesures">
+        <p class="note" id="resume-mesures">Aucune mesure enregistrée pour l'instant.</p>
+        <div class="actions-grille">
+          <button type="button" class="action-tuile" onclick="ouvrirPhotosProgression()"><span class="action-ic" style="background:linear-gradient(135deg,#a78bfa,#6366f1)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg></span><b>Photos de progression</b><small>Compare avant / après</small></button>
+          <button type="button" class="action-tuile" onclick="ouvrirMesuresModal()"><span class="action-ic" style="background:linear-gradient(135deg,#fbbf24,#f97316)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z" /><path d="m14.5 12.5 2-2" /><path d="m11.5 9.5 2-2" /><path d="m8.5 6.5 2-2" /><path d="m17.5 15.5 2-2" /></svg></span><b>Ajouter une mesure</b><small>Tour de taille, bras…</small></button>
+        </div>
       </div>
     </div>
 
-    <div class="vitrine-sec"><h3>Mesures corporelles</h3></div>
-    <div class="carte-liste" id="carte-mesures">
-      <p class="note" id="resume-mesures">Aucune mesure enregistrée pour l'instant.</p>
-      <div class="actions-grille">
-        <button type="button" class="action-tuile" onclick="ouvrirPhotosProgression()"><span class="action-ic" style="background:linear-gradient(135deg,#a78bfa,#6366f1)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg></span><b>Photos de progression</b><small>Compare avant / après</small></button>
-        <button type="button" class="action-tuile" onclick="ouvrirMesuresModal()"><span class="action-ic" style="background:linear-gradient(135deg,#fbbf24,#f97316)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z" /><path d="m14.5 12.5 2-2" /><path d="m11.5 9.5 2-2" /><path d="m8.5 6.5 2-2" /><path d="m17.5 15.5 2-2" /></svg></span><b>Ajouter une mesure</b><small>Tour de taille, bras…</small></button>
-      </div>
-    </div>
+    <div id="gymbros-rangee-profil" class="gstrip-zone"></div>
+
+    <!-- Niveau et badges (dessinés par renderVitrineProfil). -->
+    <div id="vitrine-badges" class="vitrine"></div>
   </section>
 </main>
 
@@ -5727,15 +5693,6 @@
     </div>
 
     <div id="compte-extras" class="hidden">
-      <hr class="sep">
-      <div id="withings-deconnecte-compte">
-        <a href="#" class="btn btn-secondaire lien-connexion-withings" style="width:100%; display:inline-block; box-sizing:border-box; text-align:center; text-decoration:none;" target="_blank" rel="noopener" onclick="return connexionWithings(event)">Connecter ma balance Withings</a>
-        <p class="note note-explicative" style="margin:6px 0 0;">Bloqué dans l'appli Withings au lieu de revenir ici ? Reste appuyé sur ce bouton pour choisir « Ouvrir dans Safari ».</p>
-      </div>
-      <div id="withings-connecte-compte" class="hidden">
-        <button class="btn btn-secondaire" style="width:100%;" onclick="deconnexionWithings()">Déconnecter ma balance Withings</button>
-      </div>
-
       <button class="btn btn-primary" style="margin-top:16px;" onclick="fermerModal('compte-modal')">Fermer</button>
     </div>
   </div>
@@ -5763,6 +5720,44 @@
   </div>
 </div>
 
+<!-- ================= MODIFIER LE PROFIL (nom d'utilisateur, photo, bio) ================= -->
+<div id="profil-modif-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-profil-modif">
+  <div class="modal-content" style="max-width:440px;">
+    <div class="modal-entete">
+      <h3 id="titre-profil-modif">Modifier le profil</h3>
+      <button class="close-modal" onclick="fermerModal('profil-modif-modal')" aria-label="Fermer">&times;</button>
+    </div>
+    <p class="note" id="profil-modif-connexion">Connecte-toi pour choisir ton nom d'utilisateur, ta photo et ta bio.</p>
+    <div class="carte-liste" id="carte-identite">
+      <div class="ligne-reglage">
+        <span class="action-ic" style="background:linear-gradient(135deg,#f472b6,#a855f7)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8" /></svg></span>
+        <span class="ligne-txt"><small>Nom d'utilisateur</small><b id="profil-pseudo">—</b></span>
+        <button type="button" class="pilule" onclick="ouvrirPseudoModal()">Modifier</button>
+      </div>
+      <p class="note ligne-note" id="profil-pseudo-note"></p>
+      <!-- Photo de profil et bio : visibles seulement par les gymbros acceptés. -->
+      <div id="profil-perso" class="profil-perso hidden">
+        <button type="button" class="profil-avatar-btn" onclick="document.getElementById('profil-photo-input').click()" aria-label="Changer la photo de profil">
+          <span id="profil-avatar"></span><span class="profil-avatar-crayon" aria-hidden="true">✎</span>
+        </button>
+        <input type="file" id="profil-photo-input" accept="image/*" class="hidden" onchange="choisirPhotoProfil(this)">
+        <div class="profil-perso-texte input-group" style="margin:0;">
+          <label for="profil-bio" class="profil-perso-titre">Bio</label>
+          <textarea id="profil-bio" maxlength="160" rows="2" placeholder="Objectif, programme, salle… (facultatif)" oninput="majCompteurBio()" onblur="enregistrerBioProfil()"></textarea>
+          <div class="profil-bio-pied"><small id="profil-bio-compte">0/160</small>
+            <button type="button" class="lien-depliant hidden" id="profil-photo-retirer" onclick="retirerPhotoProfil()">Retirer la photo</button></div>
+        </div>
+      </div>
+      <p class="note hidden" id="profil-perso-note" style="margin:0 0 12px;">Ta photo et ta bio ne sont visibles que par tes gymbros acceptés.</p>
+      <label class="hidden" style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:600; margin:10px 0 0; cursor:pointer;">
+        <input type="checkbox" id="profil-partage" style="width:auto;" onchange="basculerPartageSeances(this.checked)">
+        Partager mes séances avec mes gymbros
+      </label>
+    </div>
+    <button type="button" class="btn btn-primary" style="margin-top:16px;" onclick="fermerModal('profil-modif-modal')">Terminé</button>
+  </div>
+</div>
+
 <!-- ================= RÉGLAGES (engrenage en haut à droite du Profil) ================= -->
 <div id="reglages-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-reglages">
   <div class="modal-content" style="max-width:480px;">
@@ -5770,49 +5765,74 @@
       <h3 id="titre-reglages"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></svg> Réglages</h3>
       <button class="close-modal" onclick="fermerModal('reglages-modal')" aria-label="Fermer">&times;</button>
     </div>
-    <div class="bloc-verre" style="padding:15px; margin-bottom:16px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-        <div style="min-width:0;">
-          <div style="font-weight:700; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg> Découverte</div>
-          <div style="font-weight:700; font-size:0.88rem; margin-top:4px;">Visites guidées</div>
-        </div>
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
-        <button class="btn btn-secondaire" id="btn-revoir-tutoriel" style="min-height:auto; padding:10px 8px; font-size:0.8rem;" onclick="demarrerTourGuide()">L'application</button>
-        <button class="btn btn-secondaire" id="btn-visite-muscu" style="min-height:auto; padding:10px 8px; font-size:0.8rem;" onclick="demarrerTourGuide('muscu')">Musculation</button>
-        <button class="btn btn-secondaire" id="btn-premiers-pas" style="min-height:auto; padding:10px 8px; font-size:0.8rem; grid-column:1 / -1;" onclick="reafficherPremiersPas()">Premiers pas (étapes pour démarrer)</button>
+
+    <div class="reglages-titre">Compte</div>
+    <div class="carte-liste" id="carte-compte">
+      <div class="ligne-reglage">
+        <span class="action-ic" style="background:linear-gradient(135deg,#38bdf8,#6366f1)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg></span>
+        <span class="ligne-txt"><small>Compte</small><b id="reglages-email">Non connecté</b>
+          <button class="puce-sync" id="reglages-puce-sync" data-etat="attente" onclick="ouvrirModal('sync-info-modal')" title="État de la synchronisation">
+            <span class="pastille" aria-hidden="true"></span><span id="reglages-puce-sync-txt">—</span>
+          </button></span>
+        <button type="button" class="pilule" onclick="ouvrirModal('compte-modal');">Gérer</button>
       </div>
     </div>
 
-    <div class="bloc-verre" style="padding:15px; margin-bottom:16px;">
-      <div style="font-weight:700; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px;">Musculation</div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
-        <button class="btn btn-secondaire" style="min-height:auto; padding:10px 8px; font-size:0.8rem;" onclick="ouvrirReglagesMuscu('zones')">Zones de volume</button>
-        <button class="btn btn-secondaire" style="min-height:auto; padding:10px 8px; font-size:0.8rem;" onclick="ouvrirReglagesMuscu('increments')">Incréments de charge</button>
+    <div class="reglages-titre">Appareils</div>
+    <div class="carte-liste">
+      <div class="ligne-reglage">
+        <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="3" /><path d="M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z" /></svg></span>
+        <span class="ligne-txt"><small>Balance</small><b>Withings</b></span>
+        <span id="withings-deconnecte-reglages"><a href="#" class="pilule lien-connexion-withings" target="_blank" rel="noopener" onclick="return connexionWithings(event)">Connecter</a></span>
+        <span id="withings-connecte-reglages" class="hidden"><button type="button" class="pilule" onclick="deconnexionWithings()">Déconnecter</button></span>
       </div>
     </div>
+    <p class="note reglages-note">Bloqué dans l'appli Withings au lieu de revenir ici ? Reste appuyé sur « Connecter » pour choisir « Ouvrir dans Safari ».</p>
 
-    <div class="bloc-verre hidden" id="bloc-installer-app" style="padding:15px; margin-bottom:16px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-        <div style="min-width:0;">
-          <div style="font-weight:700; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2" ry="2" /><path d="M12 18h.01" /></svg> Application</div>
-          <div style="font-weight:700; font-size:0.88rem; margin-top:4px;">Pas encore sur ton écran d'accueil</div>
-        </div>
-        <button class="btn btn-secondaire" style="width:auto; flex:none; white-space:nowrap;" onclick="ouvrirInstallation()">Installer</button>
-      </div>
-    </div>
-
-    <div class="input-group">
-      <label><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /></svg> Thème</label>
-      <div class="segment" id="segment-theme">
+    <div class="reglages-titre">Affichage</div>
+    <div class="carte-liste">
+      <div class="ligne-reglage">
+        <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 18a6 6 0 0 0 0-12v12z" /></svg></span>
+        <span class="ligne-txt"><b>Thème</b></span>
+        <div class="segment" id="segment-theme">
         <button type="button" onclick="choisirTheme('light')" aria-pressed="false">Clair</button>
         <button type="button" onclick="choisirTheme('dark')" aria-pressed="false">Sombre</button>
         <button type="button" onclick="choisirTheme('auto')" aria-pressed="false" title="Suit le réglage clair/sombre du téléphone">Auto</button>
       </div>
+      </div>
     </div>
 
+    <div class="reglages-titre">Musculation</div>
+    <div class="carte-liste">
+      <button type="button" class="ligne-reglage ligne-reglage--bouton" onclick="ouvrirReglagesMuscu('zones')">
+        <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M7 16h3" /><path d="M7 11h7" /><path d="M7 6h12" /></svg></span>
+        <span class="ligne-txt"><b>Zones de volume</b><small>Séries par semaine, muscle par muscle</small></span><svg class="icone-ui chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+      </button>
+      <button type="button" class="ligne-reglage ligne-reglage--bouton" onclick="ouvrirReglagesMuscu('increments')">
+        <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2" /><path d="M10 2h4" /></svg></span>
+        <span class="ligne-txt"><b>Séance</b><small>Repos, RIR, incréments de charge</small></span><svg class="icone-ui chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+      </button>
+    </div>
 
-
+    <div class="reglages-titre">Aide</div>
+    <div class="carte-liste">
+      <button type="button" class="ligne-reglage ligne-reglage--bouton" id="btn-revoir-tutoriel" onclick="demarrerTourGuide()">
+        <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg></span>
+        <span class="ligne-txt"><b>Visite guidée de l'appli</b></span><svg class="icone-ui chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+      </button>
+      <button type="button" class="ligne-reglage ligne-reglage--bouton" id="btn-visite-muscu" onclick="demarrerTourGuide('muscu')">
+        <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.4 14.4 9.6 9.6" /><path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z" /><path d="m21.5 21.5-1.4-1.4" /><path d="M3.9 3.9 2.5 2.5" /><path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z" /></svg></span>
+        <span class="ligne-txt"><b>Visite guidée de la musculation</b></span><svg class="icone-ui chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+      </button>
+      <button type="button" class="ligne-reglage ligne-reglage--bouton" id="btn-premiers-pas" onclick="reafficherPremiersPas()">
+        <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" /></svg></span>
+        <span class="ligne-txt"><b>Premiers pas</b><small>Les étapes pour bien démarrer</small></span><svg class="icone-ui chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+      </button>
+      <button type="button" class="ligne-reglage ligne-reglage--bouton hidden" id="bloc-installer-app" onclick="ouvrirInstallation()">
+        <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2" ry="2" /><path d="M12 18h.01" /></svg></span>
+        <span class="ligne-txt"><b>Installer sur l'écran d'accueil</b><small>Plein écran, et un lancement plus rapide</small></span><svg class="icone-ui chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -12199,10 +12219,10 @@ const TOUR_ETAPES = [
   { ecran: 'seance', modeCardio: true, cible: '#seance-cardio .hx--cardio', titre: 'Ta semaine de cardio', texte: "L'objectif conseillé : 150 à 300 min par semaine, une minute intense comptant double. La jauge montre où tu en es, la barre en dessous ta répartition facile / modérée / intense. Ajoute une séance avec le bouton juste en dessous : durée, distance, intensité." },
   { ecran: 'stats', avant: () => { ouvrirStats('resume'); }, cible: '#pg-periode-btn', titre: 'Ta progression', texte: "Le Résumé dit en une phrase où tu en es : ta courbe de poids, ta maintenance réelle, ce qui a bougé. Choisis la période ici (7 jours, 30 jours, 3 mois… ou « Perso »). Corps, Repas, Cardio et Muscu donnent le détail." },
   { ecran: 'repas', cible: '#ecran-repas .summary-card', titre: 'Bilan de la journée', get texte() { return 'Touche le résumé des calories : ta dépense du jour en détail' + (geminiKey ? ", et une analyse de ta journée par l'IA (nutrition, activité et séance du jour)." : '.'); } },
-  { ecran: 'repas', cible: '#moi-entete', titre: 'Ton profil', texte: 'Touche ta photo ou ton nom d’utilisateur, en haut : ton compte, ton objectif, tes informations et tes mesures corporelles.' },
-  { ecran: 'reglages', cible: '#vitrine-profil .niveau', titre: 'Ton niveau', texte: "Chaque séance de muscu (+40 XP), de cardio (+25) et chaque journée notée (+10) te fait monter de niveau. Les badges se débloquent avec ta régularité." },
+  { ecran: 'repas', cible: '#moi-entete', titre: 'Ton profil', texte: 'Touche ta photo ou ton nom d’utilisateur, en haut : ton objectif, ton corps (taille, mensurations, photos), ton niveau et tes badges.' },
+  { ecran: 'reglages', cible: '#vitrine-badges .niveau', titre: 'Ton niveau', texte: "Chaque séance de muscu (+40 XP), de cardio (+25) et chaque journée notée (+10) te fait monter de niveau. Les badges se débloquent avec ta régularité." },
   { ecran: 'reglages', cible: '#vitrine-profil .carte-objectifs', titre: 'Ton objectif', texte: "Maintien, sèche, prise de masse ou recomposition : il règle tes calories et tes macros. En changer ne réécrit jamais ton historique." },
-  { ecran: 'reglages', cible: '.btn-engrenage', titre: 'Réglages', texte: "Thème clair ou sombre, réglages de musculation, installation sur l'écran d'accueil, et les deux visites guidées." },
+  { ecran: 'reglages', cible: '.btn-engrenage', titre: 'Réglages', texte: "Ton compte, ta balance Withings, le thème clair ou sombre, les réglages de musculation, les visites guidées et l'installation sur l'écran d'accueil." },
   { titre: "C'est parti !", texte: "Tu connais l'essentiel. Pour tout savoir sur les programmes, les séances et les jauges de volume, lance la visite « Musculation » depuis les Réglages." }
 ];
 /* Visite dédiée à la musculation. Les étapes « siSession » montrent un
@@ -14028,6 +14048,8 @@ function majEnteteMoi() {
 }
 function majUIProfilPerso() {
   majEnteteMoi();
+  const connexion = document.getElementById('profil-modif-connexion');
+  if (connexion) connexion.classList.toggle('hidden', !!sessionUtilisateur);
   const bloc = document.getElementById('profil-perso');
   if (!bloc) return;
   const visible = !!(sessionUtilisateur && monProfil);
@@ -16081,7 +16103,7 @@ function majUIWithings() {
   const t = tokenWithings();
   const paires = [
     ['withings-deconnecte', 'withings-connecte'],
-    ['withings-deconnecte-compte', 'withings-connecte-compte']
+    ['withings-deconnecte-reglages', 'withings-connecte-reglages']
   ];
   paires.forEach(([offId, onId]) => {
     const zoneOff = document.getElementById(offId);
@@ -22775,22 +22797,25 @@ function renderVitrineProfil() {
   const t = computeTargets(getDay(todayStr()), todayStr());
   const tuile = (cle, nomO, ic, g) => `<button type="button" class="obj-tuile${obj === cle ? ' on' : ''}" onclick="choisirObjectifVitrine('${cle}')" aria-pressed="${obj === cle}"><span class="obj-ic" style="background:${g}">${svgV(ic)}</span>${nomO}</button>`;
   const badges = badgesUtilisateur();
-  const photo = sessionUtilisateur && typeof monProfil !== 'undefined' && monProfil && estAvatarValide(monProfil.avatar) ? monProfil.avatar : null;
+  // Moi : la photo, le nom, le niveau en une ligne, la bio ; les chiffres ; l'objectif.
   c.innerHTML = `
-    <div class="pf-haut">
-    <div class="couv${photo ? ' couv--photo' : ''}" aria-hidden="true"${photo ? ` style="--couv-photo:url('${photo}')"` : ''}></div>
-    <div class="pf"><div class="pf-av">${av}</div><h3>${escapeHtml(nom)}</h3>${bio ? `<p>${escapeHtml(bio)}</p>` : ''}
-      <button type="button" class="pf-modif" onclick="document.getElementById('carte-compte').scrollIntoView({behavior:'smooth',block:'center'})">Modifier le profil</button></div>
+    <div class="pf-carte">
+      <div class="pf-av">${av}</div>
+      <div class="pf-id"><h3>${escapeHtml(nom)}</h3><span class="pf-niv">Niveau ${niv.n} · ${niv.titre}</span>${bio ? `<p class="pf-bio">${escapeHtml(bio)}</p>` : ''}</div>
+      <button type="button" class="pf-modif" onclick="ouvrirModal('profil-modif-modal')">Modifier</button>
     </div>
-      <div class="niveau"><div class="niveau-t"><b>Niveau ${niv.n} · ${niv.titre}</b><span>${nombreFr(niv.xp)} / ${nombreFr(niv.haut)} XP</span></div><div class="xp"><i style="width:${pct}%"></i></div>
-        <div class="niveau-s">+40 XP par séance de muscu · +25 par séance cardio · +10 par journée notée</div></div>
     <div class="chiffres-geants"><div class="cg"><b data-compte="${musculationHistorique.length}">${musculationHistorique.length}</b><small>séances</small></div><div class="cg"><b data-compte="${niv.joursNotes}">${niv.joursNotes}</b><small>jours suivis</small></div><div class="cg"><b data-compte="${joursDAffilee()}">${joursDAffilee()}</b><small>d'affilée</small></div></div>
-    <div class="vitrine-sec"><h3>Badges</h3><span>${badges.filter(b => b.ok).length} / ${badges.length}</span></div>
-    <div class="carte-badges"><div class="badges">${badges.map(b => `<div class="badge${b.ok ? '' : ' verrou'}" title="${escapeHtml(b.detail)}"><span class="med" style="${b.ok ? `background:${b.g};--l:${b.l}` : ''}">${svgV(b.ic)}${b.ok && b.valeur ? `<em>${b.valeur}</em>` : ''}</span><b>${escapeHtml(b.nom)}</b>${escapeHtml(b.detail)}</div>`).join('')}</div></div>
     <div class="vitrine-sec"><h3>Mon objectif</h3></div>
     <div class="carte-objectifs"><div class="obj-tuiles">${tuile('seche', 'Sèche', 'bas', 'linear-gradient(135deg,#22d3ee,#0ea5e9)')}${tuile('maintien', 'Maintien', 'cible', 'linear-gradient(135deg,#34d399,#10b981)')}${tuile('masse', 'Masse', 'haut', 'linear-gradient(135deg,#fbbf24,#f97316)')}${tuile('recomposition', 'Recompo', 'recomp', 'linear-gradient(135deg,#a78bfa,#6366f1)')}</div>
       <div class="obj-cibles"><span><b>${nombreFr(t.target)}</b> kcal</span><span><b>${t.protein}</b> g prot.</span><span><b>${t.carbs}</b> g gluc.</span><span><b>${t.fat}</b> g lip.</span></div></div>`;
   animerComptes(c);
+  // En bas de la page : le niveau en détail, puis les badges.
+  const b = document.getElementById('vitrine-badges');
+  if (b) b.innerHTML = `<div class="vitrine-sec"><h3>Niveau et badges</h3><span>${badges.filter(x => x.ok).length} / ${badges.length}</span></div>
+    <div class="carte-badges">
+      <div class="niveau"><div class="niveau-t"><b>Niveau ${niv.n} · ${niv.titre}</b><span>${nombreFr(niv.xp)} / ${nombreFr(niv.haut)} XP</span></div><div class="xp"><i style="width:${pct}%"></i></div>
+        <div class="niveau-s">+40 XP par séance de muscu · +25 par séance cardio · +10 par journée notée</div></div>
+      <div class="badges">${badges.map(x => `<div class="badge${x.ok ? '' : ' verrou'}" title="${escapeHtml(x.detail)}"><span class="med" style="${x.ok ? `background:${x.g};--l:${x.l}` : ''}">${svgV(x.ic)}${x.ok && x.valeur ? `<em>${x.valeur}</em>` : ''}</span><b>${escapeHtml(x.nom)}</b>${escapeHtml(x.detail)}</div>`).join('')}</div></div>`;
   verifierTrophees();
 }
 /* Bandeau de célébration (record, badge, niveau) : glisse du haut avec des
