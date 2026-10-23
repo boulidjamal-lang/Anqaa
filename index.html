@@ -12920,6 +12920,10 @@ function viderDonneesLocales() {
     localStorage.removeItem(MUSCU_EXOS_PERSO_KEY);
     localStorage.removeItem(MUSCU_COMPTE_LOCAL_LS);
     localStorage.removeItem(JOURS_MODIFIES_LS);
+    // L'état de synchro (versions déjà vues, bases de fusion) part avec les
+    // données : gardé, il faisait croire à la reconnexion que les journées
+    // étaient déjà là, et elles n'étaient jamais retéléchargées.
+    Object.keys(localStorage).filter(k => /^mc_sync_(etat|bases)_/.test(k)).forEach(k => localStorage.removeItem(k));
   } catch (e) {}
   syncCompleteFaite = false;
   invaliderHistorique();
@@ -16616,6 +16620,39 @@ function fusionnerJournee(base, local, distant) {
   return sortie;
 }
 
+/* Fusion d'une journée modifiée des deux côtés sans version commune connue
+   (première synchro de cette version, journée de plus de 60 jours) : chaque
+   élément présent d'un côté ou de l'autre est gardé, sans doublon pour ceux
+   qui sont des deux côtés ; l'eau, la plus grande des deux ; pour le reste,
+   la valeur la plus récente (ou la seule connue). Un aliment retiré d'un
+   seul côté peut revenir : c'est le prix pour ne jamais perdre un repas. */
+function reunirListes(a, b) {
+  const tab = x => (Array.isArray(x) ? x : []);
+  a = tab(a); b = tab(b);
+  const nA = new Map();
+  a.forEach(x => { const k = canonique(x); nA.set(k, (nA.get(k) || 0) + 1); });
+  const sortie = a.slice(), vus = new Map();
+  b.forEach(x => { const k = canonique(x), n = (vus.get(k) || 0) + 1; vus.set(k, n); if (n > (nA.get(k) || 0)) sortie.push(x); });
+  return sortie;
+}
+function fusionnerSansBase(local, distant, localPlusRecent) {
+  local = local || {}; distant = distant || {};
+  const recent = localPlusRecent ? local : distant, ancien = localPlusRecent ? distant : local;
+  const sortie = {};
+  new Set([...Object.keys(local), ...Object.keys(distant)]).forEach(k => {
+    if (k === 'maj' || k === 'meals' || k === 'workouts') return;
+    if (k === 'eauMl') { sortie.eauMl = Math.max(Number(local.eauMl) || 0, Number(distant.eauMl) || 0); return; }
+    const v = recent[k] !== undefined && recent[k] !== null ? recent[k] : ancien[k];
+    if (v !== undefined) sortie[k] = v;
+  });
+  const lm = local.meals || {}, dm = distant.meals || {};
+  sortie.meals = {};
+  new Set([...MEALS, ...Object.keys(lm), ...Object.keys(dm)]).forEach(m => { sortie.meals[m] = reunirListes(lm[m], dm[m]); });
+  sortie.workouts = reunirListes(local.workouts, distant.workouts);
+  return sortie;
+}
+const memeJournee = (a, b) => canonique(Object.assign({}, a, { maj: undefined })) === canonique(Object.assign({}, b, { maj: undefined }));
+
 async function synchroniser(raison) {
   if (!supa) {
     if (raison === 'manuel') majEtatSync('attente', "Renseigne l'URL et la clé du projet pour activer la synchronisation.");
@@ -16694,14 +16731,19 @@ async function synchroniser(raison) {
       if (!jourValide(r.jour) || !r.donnees) return;
       const m = Number(r.maj) || 0;
       curseur = Math.max(curseur, m);
-      const vu = Number(connusAvant[r.jour]) || 0;        // version du serveur vue la dernière fois
       const local = appData[r.jour];
+      // Version du serveur vue la dernière fois. Une journée qui n'est plus
+      // sur l'appareil (vidé à une déconnexion) est reprise du serveur, quelle
+      // que soit la version déjà vue.
+      const vu = local ? Number(connusAvant[r.jour]) || 0 : 0;
       const mLocal = Number(local && local.maj) || 0;
-      // Journée jamais suivie ainsi (avant cette version) : l'ancienne règle,
-      // la plus récente gagne, et une copie locale plus récente repart.
-      if (!vu && local && mLocal > m && !(r.jour in marques)) marques[r.jour] = marquerJourModifie(r.jour);
-      if (m > vu) {
+      if (local && memeJournee(local, r.donnees)) {
+        // Même contenu des deux côtés : rien à fusionner ni à renvoyer.
+        if (r.jour in marques) { retirerMarqueJour(r.jour, marques[r.jour]); delete marques[r.jour]; }
+      } else if (m > vu) {
         const base = bases[r.jour];
+        // Journée jamais suivie ainsi (avant cette version) et plus récente ici : elle repart.
+        if (!vu && local && mLocal > m && !(r.jour in marques)) marques[r.jour] = marquerJourModifie(r.jour);
         if (!local || !(r.jour in marques)) {
           appData[r.jour] = Object.assign({}, r.donnees, { maj: m });
           changementLocal = true;
@@ -16709,10 +16751,9 @@ async function synchroniser(raison) {
           // Modifiée des deux côtés depuis la base : fusion, puis envoi.
           appData[r.jour] = Object.assign(fusionnerJournee(base, local, r.donnees), { maj: Math.max(Date.now(), m + 1, mLocal + 1) });
           changementLocal = true;
-        } else if (m > mLocal) {
-          appData[r.jour] = Object.assign({}, r.donnees, { maj: m });
-          retirerMarqueJour(r.jour, marques[r.jour]);
-          delete marques[r.jour];
+        } else {
+          // Modifiée des deux côtés sans version commune : tout est gardé, puis envoi.
+          appData[r.jour] = Object.assign(fusionnerSansBase(local, r.donnees, mLocal >= m), { maj: Math.max(Date.now(), m + 1, mLocal + 1) });
           changementLocal = true;
         }
       }

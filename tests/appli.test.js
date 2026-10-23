@@ -1915,6 +1915,42 @@ test("synchro : après la première, seules les nouveautés sont téléchargées
   assert.ok(serveur.journal.filter(q => q.table === 'recettes_perso').length > recettes);
 }));
 
+test('synchro : après une déconnexion, la reconnexion retélécharge les journées et n\'écrase rien', () => deuxAppareils(async (tel, tab) => {
+  await noterAliment(tab, 'breakfast', 'Flocons');
+  await synchro(tab); await synchro(tel);
+  assert.deepEqual((await journee(tel)).matin, ['Flocons']);
+  // « Se déconnecter » vide le téléphone, puis on se reconnecte au même compte.
+  await tel.evaluate(() => { viderDonneesLocales(); sessionUtilisateur = null; });
+  assert.equal(await tel.evaluate(() => Object.keys(localStorage).filter(k => /^mc_sync_/.test(k)).length), 0);
+  await tel.evaluate(() => { sessionUtilisateur = { id: 'u1', email: 'u1@test.fr' }; });
+  await synchro(tel, 'connexion');
+  assert.deepEqual((await journee(tel)).matin, ['Flocons']);
+  // Un aliment noté ensuite s'ajoute à la journée du serveur au lieu de l'écraser.
+  await noterAliment(tel, 'lunch', 'Riz');
+  await synchro(tel); await synchro(tab);
+  assert.deepEqual(await journee(tab), { matin: ['Flocons'], midi: ['Riz'], eau: 0 });
+}));
+
+test('synchro : un appareil vidé en gardant son état de synchro (version précédente) récupère ses journées', () => deuxAppareils(async (tel, tab) => {
+  await noterAliment(tab, 'breakfast', 'Flocons');
+  await synchro(tab); await synchro(tel);
+  await tel.evaluate(() => { appData = {}; localStorage.removeItem(STORAGE_KEY); });
+  await synchro(tel, 'connexion');
+  assert.deepEqual((await journee(tel)).matin, ['Flocons']);
+  assert.deepEqual(await tel.evaluate(() => joursModifies()), {});
+}));
+
+test('synchro : une journée modifiée des deux côtés sans version commune garde les aliments des deux', () => deuxAppareils(async (tel, tab) => {
+  // La tablette envoie ses flocons ; le téléphone, jamais synchronisé avec
+  // cette version, avait noté une banane de son côté.
+  await noterAliment(tab, 'breakfast', 'Flocons');
+  await synchro(tab);
+  await noterAliment(tel, 'breakfast', 'Banane');
+  await synchro(tel); await synchro(tab);
+  assert.deepEqual((await journee(tel)).matin.sort(), ['Banane', 'Flocons']);
+  assert.deepEqual((await journee(tab)).matin.sort(), ['Banane', 'Flocons']);
+}));
+
 test('bibliothèque : classiques en tête puis l\'alphabet ; icônes d\'aliments ; objectifs du premier lancement', () => avecAppli({}, async ({ page }) => {
   const r = await page.evaluate(() => {
     const noms = () => [...document.querySelectorAll('#picker-liste-exercices .exo-ligne-nom')].map(n => n.firstChild.textContent.trim());
