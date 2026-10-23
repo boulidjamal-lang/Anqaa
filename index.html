@@ -5717,7 +5717,7 @@
     <div id="compte-anonyme">
       <div class="input-group">
         <label for="compte-email-input">Adresse email</label>
-        <input type="email" id="compte-email-input" placeholder="toi@exemple.com" autocomplete="email">
+        <input type="email" id="compte-email-input" placeholder="toi@exemple.com" autocomplete="username">
       </div>
       <div class="input-group">
         <label for="compte-mdp-input">Mot de passe</label>
@@ -5725,7 +5725,7 @@
       </div>
       <div class="input-group hidden" id="compte-pseudo-wrap">
         <label for="compte-pseudo-input">Nom d'utilisateur (nouveau compte)</label>
-        <input type="text" id="compte-pseudo-input" placeholder="ex : jamal.fit" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20">
+        <input type="text" id="compte-pseudo-input" placeholder="ex : jamal.fit" autocomplete="nickname" autocapitalize="none" spellcheck="false" maxlength="20">
         <small class="note" style="display:block; margin-top:6px;">3 à 20 caractères : minuscules, chiffres, point ou tiret bas. Tes gymbros te trouveront avec ce nom.</small>
       </div>
       <p class="note" id="note-compte"></p>
@@ -13048,16 +13048,22 @@ async function connexionOuCreerCompte() {
   // Nouveau compte probable (identifiants inconnus) : un nom d'utilisateur
   // est demandé AVANT la création — on ne peut pas savoir à coup sûr si
   // c'est un nouveau compte ou un mot de passe faux, d'où le message.
+  // Tant que la case est cachée, ce qu'elle contient ne compte pas : le
+  // remplissage automatique de Safari y mettait l'email, refusé comme nom
+  // d'utilisateur sans que la case apparaisse — impossible de créer un compte.
   const wrapPseudo = document.getElementById('compte-pseudo-wrap');
-  const pseudoSaisi = normaliserPseudo(document.getElementById('compte-pseudo-input').value);
+  const champPseudo = document.getElementById('compte-pseudo-input');
+  const caseCachee = wrapPseudo.classList.contains('hidden');
+  if (caseCachee || /@/.test(champPseudo.value)) champPseudo.value = '';
+  const pseudoSaisi = normaliserPseudo(champPseudo.value);
   if (!pseudoSaisi) {
     wrapPseudo.classList.remove('hidden');
     if (note) note.textContent = "Identifiants inconnus. Nouveau compte ? Choisis un nom d'utilisateur ci-dessus puis appuie à nouveau sur le bouton. Sinon, vérifie ton mot de passe.";
-    document.getElementById('compte-pseudo-input').focus();
+    champPseudo.focus();
     return;
   }
   const errPseudo = erreurFormatPseudo(pseudoSaisi);
-  if (errPseudo) { if (note) note.textContent = errPseudo; return; }
+  if (errPseudo) { if (note) note.textContent = errPseudo; champPseudo.focus(); return; }
   try {
     const { data: dispo, error: eDispo } = await supa.rpc('pseudo_disponible', { p: pseudoSaisi });
     if (!eDispo && dispo === false) { if (note) note.textContent = 'Ce nom d\'utilisateur est déjà pris : choisis-en un autre.'; return; }

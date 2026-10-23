@@ -1951,6 +1951,37 @@ test('synchro : une journée modifiée des deux côtés sans version commune gar
   assert.deepEqual((await journee(tab)).matin.sort(), ['Banane', 'Flocons']);
 }));
 
+test('compte : le remplissage automatique (email dans la case cachée du nom) ne bloque plus la création', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const appels = [];
+    supa = { auth: {
+      signInWithPassword: async () => ({ error: { message: 'Invalid login credentials' } }),
+      signUp: async o => { appels.push(o.email); return { data: { user: { identities: [{}] }, session: null }, error: null }; },
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) },
+      rpc: async () => ({ data: true, error: null }) };
+    const champ = id => document.getElementById(id);
+    const out = { autocompletes: [champ('compte-email-input').autocomplete, champ('compte-pseudo-input').autocomplete] };
+    champ('compte-email-input').value = 'nouveau@exemple.fr';
+    champ('compte-mdp-input').value = 'secret123';
+    champ('compte-pseudo-input').value = 'nouveau@exemple.fr';   // ce que Safari y mettait
+    await connexionOuCreerCompte();
+    out.caseVisible = !champ('compte-pseudo-wrap').classList.contains('hidden');
+    out.caseVidee = champ('compte-pseudo-input').value;
+    out.note1 = champ('note-compte').textContent;
+    champ('compte-pseudo-input').value = 'jamal.fit';
+    await connexionOuCreerCompte();
+    out.appels = appels;
+    out.note2 = champ('note-compte').textContent;
+    return out;
+  });
+  assert.deepEqual(r.autocompletes, ['username', 'nickname']);
+  assert.equal(r.caseVisible, true);
+  assert.equal(r.caseVidee, '');
+  assert.match(r.note1, /Choisis un nom d'utilisateur/);
+  assert.deepEqual(r.appels, ['nouveau@exemple.fr']);
+  assert.match(r.note2, /Compte créé/);
+}));
+
 test('bibliothèque : classiques en tête puis l\'alphabet ; icônes d\'aliments ; objectifs du premier lancement', () => avecAppli({}, async ({ page }) => {
   const r = await page.evaluate(() => {
     const noms = () => [...document.querySelectorAll('#picker-liste-exercices .exo-ligne-nom')].map(n => n.firstChild.textContent.trim());
