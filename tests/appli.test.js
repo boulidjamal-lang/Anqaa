@@ -2043,7 +2043,7 @@ test("eau : l'eau versée coule, monte avec le total, puis tout revient au calme
   assert.match(await page.textContent('#eau-texte'), /^1,25 \//);
 }));
 
-test("démarrage : le T se forme puis va se poser dans la barre du haut ; ensuite démarrage court ; simple fondu en mouvement réduit", async () => {
+test("démarrage : 2,5 s à chaque lancement — le T se forme puis va se poser dans la barre du haut ; simple fondu en mouvement réduit", async () => {
   // Horloge figée dès le départ : les étapes de l'écran de démarrage
   // (minuteries) n'avancent que quand le test le décide.
   async function lancer(ctx) {
@@ -2060,7 +2060,7 @@ test("démarrage : le T se forme puis va se poser dans la barre du haut ; ensuit
   }
   const etat = page => page.evaluate(() => {
     const s = document.getElementById('splash-screen'), logo = document.querySelector('.app-bar .logo-anqa');
-    return { affiche: getComputedStyle(s).display !== 'none', court: s.classList.contains('spl-court'), logo: logo.style.opacity, lettres: s.querySelectorAll('.spl-lettre').length };
+    return { affiche: getComputedStyle(s).display !== 'none', logo: logo.style.opacity, lettres: s.querySelectorAll('.spl-lettre').length };
   });
   const contexte = reducedMotion => navigateur.newContext({ viewport: { width: 390, height: 844 }, reducedMotion }).then(async ctx => {
     await ctx.route(/^https?:/, r => /\/npm\/chart\.js@/.test(r.request().url())
@@ -2071,12 +2071,12 @@ test("démarrage : le T se forme puis va se poser dans la barre du haut ; ensuit
 
   const ctx = await contexte('no-preference');
   try {
-    // Premier lancement : animation complète, le T reste jusqu'à 2,4 s.
+    // Animation complète : le T reste jusqu'à 1,9 s…
     const { page, erreurs } = await lancer(ctx);
-    await page.clock.runFor(2300);
-    assert.deepEqual(await etat(page), { affiche: true, court: false, logo: '', lettres: 7 });
-    // Puis il s'envole vers le logo de la barre (caché le temps du vol)…
-    await page.clock.runFor(200);
+    await page.clock.runFor(1850);
+    assert.deepEqual(await etat(page), { affiche: true, logo: '', lettres: 7 });
+    // … puis s'envole vers le logo de la barre (caché le temps du vol)…
+    await page.clock.runFor(100);
     assert.equal((await etat(page)).logo, '0');
     const arrivee = await page.evaluate(() => {
       const t = document.querySelector('#splash-screen .spl-t');
@@ -2086,19 +2086,20 @@ test("démarrage : le T se forme puis va se poser dans la barre du haut ; ensuit
       return [r.left - l.left, r.width - l.width, (r.top + r.height / 2) - (l.top + l.height / 2)].map(v => Math.round(Math.abs(v)));
     });
     assert.deepEqual(arrivee, [0, 0, 0], 'le T se pose exactement sur le logo de la barre');
-    // … et s'y pose : l'écran disparaît, le vrai logo reprend sa place.
-    await page.clock.runFor(1000);
-    assert.deepEqual(await etat(page), { affiche: false, court: false, logo: '', lettres: 7 });
+    // … et s'y pose : l'écran disparaît à 2,5 s, le vrai logo reprend sa place.
+    await page.clock.runFor(800);
+    assert.deepEqual(await etat(page), { affiche: false, logo: '', lettres: 7 });
     assert.deepEqual(erreurs, []);
 
-    // Lancement suivant (nouvel onglet, même appareil) : le T déjà formé, envol à ~0,4 s.
+    // Lancement suivant (nouvel onglet, même appareil) : la même animation, la même durée.
     const deux = await lancer(ctx);
-    assert.deepEqual(await etat(deux.page), { affiche: true, court: true, logo: '', lettres: 7 });
-    await deux.page.clock.runFor(500);
+    await deux.page.clock.runFor(1850);
+    assert.deepEqual(await etat(deux.page), { affiche: true, logo: '', lettres: 7 });
+    await deux.page.clock.runFor(100);
     assert.equal((await etat(deux.page)).logo, '0');
-    await deux.page.clock.runFor(1000);
-    assert.deepEqual(await etat(deux.page), { affiche: false, court: true, logo: '', lettres: 7 });
-    // Rechargé dans la même session : plus d'écran de démarrage du tout.
+    await deux.page.clock.runFor(800);
+    assert.deepEqual(await etat(deux.page), { affiche: false, logo: '', lettres: 7 });
+    // Rechargé dans la même session (mise à jour de l'appli) : pas d'écran de démarrage.
     await deux.page.reload({ waitUntil: 'load' });
     assert.equal((await etat(deux.page)).affiche, false);
     assert.deepEqual(deux.erreurs, []);
@@ -2106,15 +2107,14 @@ test("démarrage : le T se forme puis va se poser dans la barre du haut ; ensuit
     await ctx.close();
   }
 
-  // Mouvement réduit : rien ne bouge, l'écran fond simplement, sans envol.
+  // Mouvement réduit : rien ne bouge, l'écran fond simplement à 2,2 s, sans envol.
   const ctxReduit = await contexte('reduce');
   try {
     const { page, erreurs } = await lancer(ctxReduit);
-    assert.deepEqual(await etat(page), { affiche: true, court: true, logo: '', lettres: 7 });
-    await page.clock.runFor(750);
-    assert.equal((await etat(page)).logo, '');
-    await page.clock.runFor(400);
-    assert.deepEqual(await etat(page), { affiche: false, court: true, logo: '', lettres: 7 });
+    await page.clock.runFor(2150);
+    assert.deepEqual(await etat(page), { affiche: true, logo: '', lettres: 7 });
+    await page.clock.runFor(450);
+    assert.deepEqual(await etat(page), { affiche: false, logo: '', lettres: 7 });
     assert.deepEqual(erreurs, []);
   } finally {
     await ctxReduit.close();
