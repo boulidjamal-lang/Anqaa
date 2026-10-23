@@ -2532,6 +2532,9 @@
       color: var(--text-muted); font-family: inherit; font-size: 0.6rem; font-weight: 700; -webkit-tap-highlight-color: transparent; transition: color .2s, background .2s; }
     .onglet .icone-ui { width: 22px; height: 22px; }
     .onglet.actif { color: var(--text); background: var(--piste); }
+    /* Dégradé en coordonnées de l'icône (voir #grad-onglet) : calculé sur la
+       boîte de chaque trait, il effaçait les traits droits, comme le manche
+       de la fourchette de Repas. */
     .onglet.actif .icone-ui { stroke: url(#grad-onglet); }
     .onglet .pastille-gymbro { top: 2px; right: 18%; }
     .onglet-plus { position: relative; width: 54px; height: 54px; margin: auto; border: 0; border-radius: 19px; display: grid; place-items: center; cursor: pointer; color: #fff; isolation: isolate;
@@ -3656,25 +3659,27 @@
     html:root[data-theme="dark"] { --bg: #07080d; --verre: rgba(22,25,36,.66); --verre-fort: rgba(30,34,48,.8); --verre-creux: rgba(255,255,255,.055); --barre: rgba(7,8,13,.82);
       --ombre: inset 0 1px 0 rgba(255,255,255,.05), 0 20px 50px -22px rgba(0,0,0,.85); --ombre-haute: 0 26px 60px -18px rgba(0,0,0,.9); }
     html:root body { font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif; background: var(--bg); -webkit-font-smoothing: antialiased; }
-    /* Fond « studio » : uni, une grille fine qui s'efface vers le bas et un
-       léger grain (fixe : il ne défile pas). Plus de lueur en haut : sous la
-       bande unie du haut (voir .bord-haut), elle aurait été coupée net. */
-    html:root { --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); --grille: rgba(13,16,32,.05); }
+    /* Fond « studio » : uni, avec une grille fine qui s'efface vers le bas
+       (fixe : elle ne défile pas). Ni lueur ni grain en haut : sous la bande
+       unie du haut (voir .bord-haut), ils dessinaient un voile plus sombre. */
+    html:root { --grille: rgba(13,16,32,.05); --bord-haut-h: max(calc(env(safe-area-inset-top, 0px) + 8px), 12px); }
     html:root[data-theme="dark"] { --grille: rgba(255,255,255,.038); }
     html:root body::before { content: ''; display: block !important; position: fixed; inset: 0; z-index: 0; pointer-events: none; filter: none;
-      background: var(--grain), linear-gradient(180deg, transparent 0 22%, var(--bg) 78%),
+      background: linear-gradient(180deg, transparent 0 22%, var(--bg) 78%),
         linear-gradient(var(--grille) 1px, transparent 1px) 0 0/100% 32px, linear-gradient(90deg, var(--grille) 1px, transparent 1px) 0 0/32px 100%, var(--bg);
-      /* Grain et grille n'apparaissent que sous la bande du haut, en fondu :
-         elle se confond ainsi avec le fond uni juste en dessous. */
-      -webkit-mask-image: linear-gradient(transparent max(env(safe-area-inset-top, 0px), 12px), #000 calc(max(env(safe-area-inset-top, 0px), 12px) + 72px));
-      mask-image: linear-gradient(transparent max(env(safe-area-inset-top, 0px), 12px), #000 calc(max(env(safe-area-inset-top, 0px), 12px) + 72px)); }
+      /* La grille n'apparaît que sous la bande du haut, en fondu : la bande
+         se confond ainsi avec le fond uni juste en dessous. */
+      -webkit-mask-image: linear-gradient(transparent var(--bord-haut-h), #000 calc(var(--bord-haut-h) + 72px));
+      mask-image: linear-gradient(transparent var(--bord-haut-h), #000 calc(var(--bord-haut-h) + 72px)); }
     /* Bande unie en haut (iPhone) : dans l'appli installée, iOS 26/27 floute
        le haut de l'écran, sous l'heure et un peu au-delà, par-dessus le
        contenu (« Bonjour » et la date devenaient flous). Il y renonce quand
        un élément fixe d'une seule couleur unie tient ce bord : la barre
-       d'état prend alors cette couleur, celle du fond. Le Profil, dont la
+       d'état prend alors cette couleur, celle du fond. iOS le cherche 4 px
+       SOUS la zone de l'heure : la bande la dépasse donc de 8 px (elle
+       s'arrêtait pile dessous, et le flou restait). Le Profil, dont la
        photo floutée monte sous l'heure, garde le bord d'origine. */
-    .bord-haut { position: fixed; top: 0; left: 0; right: 0; z-index: 900; height: max(env(safe-area-inset-top, 0px), 12px);
+    .bord-haut { position: fixed; top: 0; left: 0; right: 0; z-index: 900; height: var(--bord-haut-h);
       background: var(--bg); pointer-events: none; }
     body.sur-reglages .bord-haut { display: none; }
     /* Pendant l'écran de démarrage : la couleur de son fond. */
@@ -3762,7 +3767,7 @@
     <linearGradient id="grad-c" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
     <linearGradient id="grad-f" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset="1" stop-color="#7c3aed"/></linearGradient>
     <linearGradient id="grad-eau" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#0284c7"/></linearGradient>
-    <linearGradient id="grad-onglet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+    <linearGradient id="grad-onglet" gradientUnits="userSpaceOnUse" x1="2" y1="2" x2="22" y2="22"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
   </defs>
 </svg>
 

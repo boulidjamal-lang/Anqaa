@@ -2145,9 +2145,29 @@ test("bande unie en haut (contre le flou d'iOS) : couleur du fond, absente du Pr
   await page.evaluate(() => allerA('repas'));
   const repas = await lire();
   assert.deepEqual({ ...repas, fond: undefined }, { affichee: true, fixe: true, haut: 0, pleineLargeur: true, assezHaute: true, memeFond: true, fond: undefined });
+  // Avec l'encoche (59 px), la bande dépasse l'heure de 8 px : iOS cherche
+  // l'élément fixe 4 px sous la zone de l'heure.
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setSafeAreaInsetsOverride', { insets: { top: 59, bottom: 34, left: 0, right: 0 } });
+  assert.equal(await page.evaluate(() => document.querySelector('.bord-haut').getBoundingClientRect().height), 67);
+  await cdp.send('Emulation.setSafeAreaInsetsOverride', { insets: { top: 0, bottom: 0, left: 0, right: 0 } });
   await page.evaluate(() => allerA('reglages'));
   assert.equal((await lire()).affichee, false);
   await page.evaluate(() => { allerA('repas'); document.documentElement.classList.add('spl-actif'); });
-  assert.equal((await lire()).fond, 'rgb(255, 255, 255)');
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('.bord-haut')).backgroundColor === 'rgb(255, 255, 255)', null, { timeout: 3000 });
   await page.evaluate(() => document.documentElement.classList.remove('spl-actif'));
+}));
+
+test("barre d'onglets : l'icône de l'onglet actif garde tous ses traits (manche de la fourchette de Repas)", () => avecAppli({}, async ({ page }) => {
+  // Un dégradé calculé sur la boîte de chaque trait ne peint pas un trait
+  // parfaitement droit (boîte de largeur nulle) : il doit être exprimé dans
+  // les coordonnées de l'icône.
+  const r = await page.evaluate(() => {
+    allerA('repas');
+    const g = document.getElementById('grad-onglet');
+    const icone = document.querySelector('#onglet-repas .icone-ui');
+    return { unites: g.getAttribute('gradientUnits'), actif: document.getElementById('onglet-repas').classList.contains('actif'),
+      manche: [...icone.querySelectorAll('path')].some(p => p.getAttribute('d') === 'M7 2v20'), trait: getComputedStyle(icone).stroke };
+  });
+  assert.deepEqual(r, { unites: 'userSpaceOnUse', actif: true, manche: true, trait: 'url("#grad-onglet")' });
 }));
