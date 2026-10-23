@@ -12853,6 +12853,7 @@ function initAuth() {
 
 function definirSessionUtilisateur(user) {
   const etaitConnecte = !!sessionUtilisateur;
+  const memeCompte = etaitConnecte && !!user && sessionUtilisateur.id === user.id;
   sessionUtilisateur = user ? { id: user.id, email: user.email } : null;
 
   // Téléphone partagé entre deux comptes : si les données encore en mémoire
@@ -12875,6 +12876,11 @@ function definirSessionUtilisateur(user) {
     connexionObligatoire = false;
     fermerModal('compte-modal');
     verifierStatutCompte();
+    // Même compte que juste avant (session relue au démarrage puis annoncée
+    // par Supabase, jeton rafraîchi) : tout est déjà chargé. Tout relancer
+    // faisait tourner plusieurs chargements à la fois, dont un qui
+    // redemandait le nom d'utilisateur qu'on venait d'enregistrer.
+    if (memeCompte) return;
     chargerMonPseudo();
     chargerMonProfil();
     chargerLiensGymbro().then(ouvrirInvitationGymbro);
@@ -13882,7 +13888,7 @@ async function chargerMonPseudo() {
     monPseudo = null;
     let attente = null;
     try { attente = localStorage.getItem(PSEUDO_ATTENTE_LS); } catch (e) {}
-    if (attente && await enregistrerPseudo(attente)) return;
+    if (attente && !(await enregistrerPseudo(attente))) return;
     majUIPseudo();
     // Compte sans nom d'utilisateur (créé avant cette fonction, ou nom
     // déjà pris entre-temps) : on le demande une fois connecté — mais

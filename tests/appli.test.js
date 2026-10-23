@@ -1982,6 +1982,50 @@ test('compte : le remplissage automatique (email dans la case cachée du nom) ne
   assert.match(r.note2, /Compte créé/);
 }));
 
+test('compte : le nom choisi à la création n\'est pas redemandé quand Supabase annonce la session plusieurs fois', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    // Faux Supabase : la table des noms répond de plus en plus lentement,
+    // comme des requêtes parties en même temps qui reviennent dans le désordre.
+    const pseudos = new Map();
+    let lectures = 0;
+    const requete = table => {
+      const q = { op: 'select', filtres: {} };
+      const api = {
+        select() { return api; }, eq(c, v) { q.filtres[c] = v; return api; }, gt() { return api; }, in() { return api; },
+        order() { return api; }, limit() { return api; }, range() { return api; }, not() { return api; }, is() { return api; },
+        maybeSingle() { q.un = true; return api; }, single() { q.un = true; return api; },
+        upsert(l) { q.op = 'upsert'; q.ligne = Array.isArray(l) ? l[0] : l; return api; },
+        update() { q.op = 'update'; return api; }, insert() { q.op = 'upsert'; return api; }, delete() { q.op = 'delete'; return api; },
+        then(ok, ko) {
+          if (table === 'pseudos' && q.op === 'upsert') { pseudos.set(q.ligne.utilisateur, q.ligne); return Promise.resolve({ data: null, error: null }).then(ok, ko); }
+          if (table === 'pseudos') {
+            const vu = pseudos.get(q.filtres.utilisateur) || null;   // lu tout de suite, rendu plus tard
+            const attente = 80 * ++lectures;
+            return new Promise(res => setTimeout(() => res({ data: vu, error: null }), attente)).then(ok, ko);
+          }
+          return Promise.resolve({ data: q.un ? null : [], error: null }).then(ok, ko);
+        }
+      };
+      return api;
+    };
+    supa = { from: requete, rpc: async () => ({ data: [], error: null }),
+      functions: { invoke: async () => ({ data: null, error: { context: { status: 404 } } }) },
+      storage: { from: () => ({ list: async () => ({ data: [], error: null }) }) },
+      auth: { onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) } };
+    sessionUtilisateur = null;
+    localStorage.setItem(PSEUDO_ATTENTE_LS, 'jamal.fit');
+    const u = { id: 'nouveau', email: 'nouveau@exemple.fr' };
+    // Session relue, puis annoncée deux fois par Supabase.
+    definirSessionUtilisateur(u); definirSessionUtilisateur(u); definirSessionUtilisateur(u);
+    await new Promise(res => setTimeout(res, 1200));
+    return { pseudo: monPseudo && monPseudo.pseudo, enregistre: (pseudos.get('nouveau') || {}).pseudo,
+      fenetre: document.getElementById('pseudo-modal').classList.contains('show') };
+  });
+  assert.equal(r.enregistre, 'jamal.fit');
+  assert.equal(r.pseudo, 'jamal.fit');
+  assert.equal(r.fenetre, false, 'le nom d\'utilisateur est redemandé');
+}));
+
 test('bibliothèque : classiques en tête puis l\'alphabet ; icônes d\'aliments ; objectifs du premier lancement', () => avecAppli({}, async ({ page }) => {
   const r = await page.evaluate(() => {
     const noms = () => [...document.querySelectorAll('#picker-liste-exercices .exo-ligne-nom')].map(n => n.firstChild.textContent.trim());
