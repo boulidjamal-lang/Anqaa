@@ -2119,3 +2119,35 @@ test("démarrage : le T se forme puis va se poser dans la barre du haut ; ensuit
     await ctxReduit.close();
   }
 });
+
+test("connexion : ouverte d'elle-même (lancement sans session), elle ne fait pas surgir le clavier ; ouverte à la main, le champ email prend le focus", () => avecAppli({}, async ({ page }) => {
+  const focus = () => page.evaluate(() => new Promise(r => setTimeout(() => r((document.activeElement && document.activeElement.id) || ''), 150)));
+  // Lancement sans session : la fenêtre de connexion s'ouvre seule, sans focus.
+  await page.evaluate(() => definirSessionUtilisateur(null));
+  assert.equal(await page.evaluate(() => document.getElementById('compte-modal').classList.contains('show')), true);
+  assert.equal(await focus(), '');
+  // Pendant l'écran de démarrage, aucune fenêtre ne prend le focus.
+  await page.evaluate(() => { connexionObligatoire = false; fermerModal('compte-modal'); document.getElementById('splash-screen').style.display = ''; ouvrirModal('compte-modal'); });
+  assert.equal(await focus(), '');
+  // Ouverte à la main, une fois l'appli affichée : le champ email est prêt.
+  await page.evaluate(() => { fermerModal('compte-modal'); document.getElementById('splash-screen').style.display = 'none'; ouvrirModal('compte-modal'); });
+  assert.equal(await focus(), 'compte-email-input');
+}));
+
+test("bande unie en haut (contre le flou d'iOS) : couleur du fond, absente du Profil, couleur de l'écran de démarrage tant qu'il est là", () => avecAppli({}, async ({ page }) => {
+  // Lu une image plus tard : en mouvement réduit, chaque changement de couleur
+  // passe par une transition de 0,01 ms.
+  const lire = () => page.evaluate(() => new Promise(fin => requestAnimationFrame(() => requestAnimationFrame(() => fin(0))))).then(() => page.evaluate(() => {
+    const b = document.querySelector('.bord-haut'), r = b.getBoundingClientRect(), cs = getComputedStyle(b);
+    return { affichee: cs.display !== 'none', fixe: cs.position === 'fixed', haut: r.top, pleineLargeur: r.width === innerWidth, assezHaute: r.height >= 12,
+      memeFond: cs.backgroundColor === getComputedStyle(document.body).backgroundColor, fond: cs.backgroundColor };
+  }));
+  await page.evaluate(() => allerA('repas'));
+  const repas = await lire();
+  assert.deepEqual({ ...repas, fond: undefined }, { affichee: true, fixe: true, haut: 0, pleineLargeur: true, assezHaute: true, memeFond: true, fond: undefined });
+  await page.evaluate(() => allerA('reglages'));
+  assert.equal((await lire()).affichee, false);
+  await page.evaluate(() => { allerA('repas'); document.documentElement.classList.add('spl-actif'); });
+  assert.equal((await lire()).fond, 'rgb(255, 255, 255)');
+  await page.evaluate(() => document.documentElement.classList.remove('spl-actif'));
+}));

@@ -3656,13 +3656,30 @@
     html:root[data-theme="dark"] { --bg: #07080d; --verre: rgba(22,25,36,.66); --verre-fort: rgba(30,34,48,.8); --verre-creux: rgba(255,255,255,.055); --barre: rgba(7,8,13,.82);
       --ombre: inset 0 1px 0 rgba(255,255,255,.05), 0 20px 50px -22px rgba(0,0,0,.85); --ombre-haute: 0 26px 60px -18px rgba(0,0,0,.9); }
     html:root body { font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif; background: var(--bg); -webkit-font-smoothing: antialiased; }
-    /* Fond « studio » : uni, une lueur en haut, une grille fine qui s'efface
-       vers le bas et un léger grain (fixe : il ne défile pas). */
-    html:root { --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); --lueur-haut: rgba(34,211,238,.22); --grille: rgba(13,16,32,.05); }
-    html:root[data-theme="dark"] { --lueur-haut: rgba(34,211,238,.15); --grille: rgba(255,255,255,.038); }
+    /* Fond « studio » : uni, une grille fine qui s'efface vers le bas et un
+       léger grain (fixe : il ne défile pas). Plus de lueur en haut : sous la
+       bande unie du haut (voir .bord-haut), elle aurait été coupée net. */
+    html:root { --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); --grille: rgba(13,16,32,.05); }
+    html:root[data-theme="dark"] { --grille: rgba(255,255,255,.038); }
     html:root body::before { content: ''; display: block !important; position: fixed; inset: 0; z-index: 0; pointer-events: none; filter: none;
-      background: var(--grain), linear-gradient(180deg, transparent 0 22%, var(--bg) 78%), radial-gradient(90% 34% at 50% -6%, var(--lueur-haut), transparent 72%),
-        linear-gradient(var(--grille) 1px, transparent 1px) 0 0/100% 32px, linear-gradient(90deg, var(--grille) 1px, transparent 1px) 0 0/32px 100%, var(--bg); }
+      background: var(--grain), linear-gradient(180deg, transparent 0 22%, var(--bg) 78%),
+        linear-gradient(var(--grille) 1px, transparent 1px) 0 0/100% 32px, linear-gradient(90deg, var(--grille) 1px, transparent 1px) 0 0/32px 100%, var(--bg);
+      /* Grain et grille n'apparaissent que sous la bande du haut, en fondu :
+         elle se confond ainsi avec le fond uni juste en dessous. */
+      -webkit-mask-image: linear-gradient(transparent max(env(safe-area-inset-top, 0px), 12px), #000 calc(max(env(safe-area-inset-top, 0px), 12px) + 72px));
+      mask-image: linear-gradient(transparent max(env(safe-area-inset-top, 0px), 12px), #000 calc(max(env(safe-area-inset-top, 0px), 12px) + 72px)); }
+    /* Bande unie en haut (iPhone) : dans l'appli installée, iOS 26/27 floute
+       le haut de l'écran, sous l'heure et un peu au-delà, par-dessus le
+       contenu (« Bonjour » et la date devenaient flous). Il y renonce quand
+       un élément fixe d'une seule couleur unie tient ce bord : la barre
+       d'état prend alors cette couleur, celle du fond. Le Profil, dont la
+       photo floutée monte sous l'heure, garde le bord d'origine. */
+    .bord-haut { position: fixed; top: 0; left: 0; right: 0; z-index: 900; height: max(env(safe-area-inset-top, 0px), 12px);
+      background: var(--bg); pointer-events: none; }
+    body.sur-reglages .bord-haut { display: none; }
+    /* Pendant l'écran de démarrage : la couleur de son fond. */
+    html.spl-actif .bord-haut { background: #fff; }
+    html.spl-actif[data-theme="dark"] .bord-haut { background: #06070a; }
     html:root .app-bar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
     html:root :is(.titre-ecran, .titre-section, .salut b, .anneaux-centre h1, .reste-kcal, .heros-puces b, .carte-stats-valeur b, .eau-texte, .meal-title, .meal-kcals, .cle-val, .feuille-titre, .modal-entete h3, .semaine-num b) {
       font-family: 'Manrope', 'Inter', sans-serif; }
@@ -3820,6 +3837,7 @@
       if (fini) return;
       fini = true;
       splash.style.display = 'none';
+      document.documentElement.classList.remove('spl-actif');
       if (logoCache) logoCache.style.opacity = '';
     }
     function fondre(duree) {
@@ -3879,6 +3897,7 @@
       }
     }
     if (dejaVu) { retirer(); return; }
+    document.documentElement.classList.add('spl-actif');
     if (court || reduit) splash.classList.add('spl-court');
     splash.addEventListener('click', function () { fondre(250); });
     // Sortie quand l'animation est jouée ET l'appli chargée (le gestionnaire
@@ -3892,6 +3911,8 @@
     setTimeout(sortie, court || reduit ? 2500 : 4500);
   })();
 </script>
+
+<div class="bord-haut" aria-hidden="true"></div>
 
 <!-- Halo d'ambiance : s'allume seulement près de l'objectif, puis au dépassement -->
 <div class="etat-bg" id="etat-bg" aria-hidden="true"></div>
@@ -8331,7 +8352,7 @@ function changerDate(delta) {
   renderApp();
 }
 
-function ouvrirModal(id) {
+function ouvrirModal(id, sansFocus) {
   const el = document.getElementById(id);
   if (!el) return;
   el.classList.add('show');
@@ -8341,6 +8362,10 @@ function ouvrirModal(id) {
   // au moment où la personne tente de toucher Homme/Femme, et sur certains
   // mobiles ce tap-là se perd dans la transition du clavier.
   if (id === 'modal-bienvenue' || id === 'modal-interets') return;
+  // Fenêtre ouverte d'elle-même (connexion au lancement, après une
+  // déconnexion) ou encore sous l'écran de démarrage : pas de focus, sinon
+  // le clavier de l'iPhone surgissait pendant le chargement.
+  if (sansFocus || ecranDemarrageAffiche()) return;
   /* La croix de fermeture arrive avant le champ dans le DOM : le sélecteur
      précédent lui donnait le focus, si bien qu'Entrée refermait la fenêtre
      au lieu de valider, et que le champ de recherche ne s'ouvrait jamais
@@ -8348,6 +8373,10 @@ function ouvrirModal(id) {
   const premier = el.querySelector('input:not([type="file"]):not([readonly]), select')
     || el.querySelector('.close-modal');
   if (premier) setTimeout(() => premier.focus(), 60);
+}
+function ecranDemarrageAffiche() {
+  const e = document.getElementById('splash-screen');
+  return !!(e && e.getClientRects().length);
 }
 /* bilanForce : le questionnaire d'accueil ne se ferme ni par Escape, ni
    par un clic a cote. Le laisser esquiver donnerait un objectif calcule
@@ -12441,7 +12470,7 @@ function definirSessionUtilisateur(user) {
     // se reverrouille immédiatement, sans exception.
     connexionObligatoire = true;
     monPseudo = null;
-    ouvrirModal('compte-modal');
+    ouvrirModal('compte-modal', true);
   }
   // Le changement d'identifiant ne rejoue pas automatiquement les données
   // déjà en mémoire : on relance juste une synchro vers/depuis le bon compte.
@@ -13455,7 +13484,7 @@ async function enregistrerPseudo(brut) {
 }
 function proposerPseudoQuandLibre(essai) {
   if (!sessionUtilisateur || monPseudo || monPseudoIndispo || essai > 40) return;
-  if (document.querySelector('.modal.show, .feuille.show') || (document.getElementById('tour-overlay') && !document.getElementById('tour-overlay').classList.contains('hidden'))) {
+  if (document.querySelector('.modal.show, .feuille.show') || ecranDemarrageAffiche() || (document.getElementById('tour-overlay') && !document.getElementById('tour-overlay').classList.contains('hidden'))) {
     setTimeout(() => proposerPseudoQuandLibre(essai + 1), 3000);
     return;
   }

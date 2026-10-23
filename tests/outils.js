@@ -66,6 +66,7 @@ async function preparer(page, theme) {
     informer = texte => { window.__noterDialogue(String(texte)); return Promise.resolve(true); };
     const sp = document.getElementById('splash-screen');
     if (sp) sp.style.display = 'none';
+    document.documentElement.classList.remove('spl-actif');
     document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
     document.body.classList.remove('couche-ouverte');
     if (theme) appliquerTheme(theme);
