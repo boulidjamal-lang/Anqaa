@@ -288,12 +288,15 @@
     }
 
     /* =====================================================================
-       ÉCRAN DE CHARGEMENT — « Anneaux »
-       Trois anneaux (cyan, violet, vert : les couleurs de l'appli) se
-       tracent autour du T de la marque, qui s'illumine ; puis le nom
-       « Askēsis » se grave lettre par lettre, et « Nutrition · Muscu · Cardio »
-       apparaît. Fond nuit en thème sombre, pastel en thème clair, comme les
-       bandeaux de l'appli. 2,8 s d'animation, puis 0,4 s de fondu.
+       ÉCRAN DE DÉMARRAGE — « Le T »
+       Fond blanc en thème clair, noir en sombre. La tige du T monte, la
+       visière se déploie depuis le centre puis un reflet la balaie ;
+       « Askēsis » se resserre lettre par lettre, puis « Nutrition · Muscu ·
+       Cardio » apparaît. À la sortie, le T rétrécit jusqu'à sa place dans la
+       barre du haut pendant que le fond s'efface (voir le script sous le
+       balisage). Rien que des transform et opacity sur des éléments HTML :
+       le navigateur les anime hors du fil principal, donc sans à-coups
+       pendant que le gros script de l'appli se charge.
        ===================================================================== */
     /* Le T de la marque (visière spartiate) en silhouette : un masque CSS que la
        barre du haut et l'écran de démarrage teintent avec la couleur du texte
@@ -302,79 +305,67 @@
     #splash-screen {
       position: fixed; inset: 0; z-index: 9999;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      overflow: hidden; isolation: isolate; color: var(--spl-t);
-      --spl-t: #f4f7fb; --spl-muet: rgba(244,247,251,.62); --spl-piste: rgba(255,255,255,.07); --spl-quadrillage: rgba(255,255,255,.05);
-      background: radial-gradient(70% 45% at 75% 30%, rgba(34,211,238,.28), transparent 70%), radial-gradient(60% 40% at 15% 80%, rgba(167,139,250,.28), transparent 70%), linear-gradient(180deg, #0b1020, #070a14);
-      animation: fadeOutCinematic 3.2s ease forwards;
+      overflow: hidden; isolation: isolate; color: var(--text);
+      touch-action: none; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none;
+      --spl-fond: #fff; --spl-muet: rgba(14,20,32,.5); --spl-reflet: rgba(255,255,255,.5);
+      /* Filet de sécurité : si le script ne prenait pas la main, l'écran s'efface seul. */
+      animation: spl-secours .4s 6s ease forwards;
     }
-    :root[data-theme="light"] #splash-screen {
-      --spl-t: #0d1020; --spl-muet: rgba(13,16,32,.58); --spl-piste: rgba(13,16,32,.06); --spl-quadrillage: rgba(13,16,32,.05);
-      background: radial-gradient(70% 45% at 75% 30%, rgba(34,211,238,.30), transparent 70%), radial-gradient(60% 40% at 15% 80%, rgba(167,139,250,.28), transparent 70%), linear-gradient(180deg, #e9f6ff, #f4f1ff);
+    :root[data-theme="dark"] #splash-screen { --spl-fond: #06070a; --spl-muet: rgba(244,247,251,.5); --spl-reflet: rgba(15,23,42,.3); }
+    @keyframes spl-secours { to { opacity: 0; visibility: hidden; } }
+    /* Le fond à part : il s'efface pendant que le T, lui, reste et s'envole. */
+    .spl-fond { position: absolute; inset: 0; z-index: -1; background: var(--spl-fond); }
+    /* Le T, au cadre exact du masque --logo-t (50,8 × 66,1). Pendant qu'il se
+       forme : la tige et la visière, découpées toutes deux par clip-path
+       (mêmes bords au pixel près), la tige pleine jusqu'aux deux tiers puis
+       estompée. Une fois formé : le masque lui-même (.spl-plein, le logo de
+       la barre du haut), sur lequel passe le reflet. */
+    .spl-t { position: relative; flex: none; width: 120px; aspect-ratio: 50.8 / 66.1; }
+    .spl-t span { position: absolute; inset: 0; display: block; }
+    .spl-pieces { animation: spl-pieces 1ms 1.1s both; }
+    @keyframes spl-pieces { from { opacity: 1; } to { opacity: 0; } }
+    .spl-tige { background: linear-gradient(currentColor 72.8%, transparent);
+      clip-path: polygon(38.19% 22.09%, 61.81% 22.09%, 61.81% 100%, 38.19% 100%);
+      transform-origin: 50% 100%; animation: spl-tige .6s .1s cubic-bezier(.2,.8,.25,1) both; }
+    @keyframes spl-tige { from { transform: scaleY(0); } }
+    .spl-ailes { background: currentColor;
+      clip-path: polygon(0.79% 0.91%, 41.73% 0.91%, 50% 19.82%, 58.27% 0.91%, 99.21% 0.91%, 99.21% 6.51%, 61.81% 17.55%, 61.81% 22.84%, 38.19% 22.84%, 38.19% 17.55%, 0.79% 6.51%);
+      animation: spl-ailes .56s .5s both; }
+    /* La visière s'ouvre depuis le haut de la tige, dépasse à peine, revient. */
+    @keyframes spl-ailes {
+      0% { opacity: 0; transform: scaleX(.24); animation-timing-function: cubic-bezier(.25,.7,.3,1); }
+      16% { opacity: 1; }
+      70% { transform: scaleX(1.035); animation-timing-function: ease-in-out; }
+      100% { opacity: 1; transform: none; }
     }
-    .spl-grille { position: absolute; inset: 0; z-index: -1; opacity: .5; pointer-events: none;
-      background: linear-gradient(var(--spl-quadrillage) 1px, transparent 1px) 0 0/100% 28px, linear-gradient(90deg, var(--spl-quadrillage) 1px, transparent 1px) 0 0/28px 100%;
-      -webkit-mask: radial-gradient(60% 45% at 50% 45%, #000, transparent); mask: radial-gradient(60% 45% at 50% 45%, #000, transparent); }
-    .spl-scene { position: relative; width: 220px; height: 220px; display: grid; place-items: center;
-      animation: spl-sortie 3.2s ease both; }
-    @keyframes spl-sortie { 0%, 87.5% { transform: scale(1); } 100% { transform: scale(1.12); } }
-    .spl-anneaux { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
-    .spl-anneaux circle { fill: none; stroke-width: 9; stroke-linecap: round; }
-    .spl-anneaux .spl-piste { stroke: var(--spl-piste); }
-    .spl-r1 { stroke: #22d3ee; stroke-dasharray: 597 597; animation: spl-trace1 1.3s .15s cubic-bezier(.6,0,.2,1) both; }
-    .spl-r2 { stroke: #a78bfa; stroke-dasharray: 484 484; animation: spl-trace2 1.3s .3s cubic-bezier(.6,0,.2,1) both; }
-    .spl-r3 { stroke: #34d399; stroke-dasharray: 383 383; animation: spl-trace3 1.3s .45s cubic-bezier(.6,0,.2,1) both; }
-    @keyframes spl-trace1 { from { stroke-dashoffset: 597; } to { stroke-dashoffset: 0; } }
-    @keyframes spl-trace2 { from { stroke-dashoffset: 484; } to { stroke-dashoffset: 0; } }
-    @keyframes spl-trace3 { from { stroke-dashoffset: 383; } to { stroke-dashoffset: 0; } }
-
-/* ---- LE LOGO ----
-     Le T de la visière spartiate, en silhouette teintée par la couleur du
-     texte de l'écran, au centre des anneaux. */
-  .spl-logo {
-    display:block; width:74px; height:96px;
-    background-color:var(--spl-t);
-    -webkit-mask:var(--logo-t) center / contain no-repeat; mask:var(--logo-t) center / contain no-repeat;
-    animation:spl-logo-vie 2.8s ease both;
-  }
-  /* Le T se pose, puis s'illumine quand les anneaux se referment. */
-  @keyframes spl-logo-vie {
-    0%   { opacity:0; transform:translateY(10px) scale(.86); }
-    25%  { opacity:1; transform:none; }
-    62%  { filter:drop-shadow(0 0 0 rgba(34,211,238,0)); }
-    72%  { filter:drop-shadow(0 0 16px rgba(34,211,238,.75)); }
-    100% { opacity:1; transform:none; filter:drop-shadow(0 0 6px rgba(34,211,238,.35)); }
-  }
-
-/* ---- LA SIGNATURE ----
-   Le nom « Askēsis » en capitales romaines (Cinzel), gravé trait par trait
-   juste après que le T s'est posé : chaque lettre se dessine (stroke-dashoffset, via
-   l'API Web Animations plutot que des transitions CSS, pour un declenchement
-   fiable y compris sur les navigateurs embarques), puis se remplit. Le minutage
-   (voir le script plus bas) est cale pour que l'encre soit posee juste avant
-   que le fondu de sortie ne commence (2,6 s). */
-  .spl-signature {
-    width:min(62vw,236px); height:auto; margin-top:24px; overflow:visible;
-  }
-  .spl-lettre {
-    fill:none; stroke:var(--spl-t); stroke-width:10;
-    stroke-linecap:round; stroke-linejoin:round;
-  }
-  .spl-sous { margin-top:10px; font:700 11px 'Inter', sans-serif; letter-spacing:.32em; text-transform:uppercase; color:var(--spl-muet); opacity:0; }
-
-
-    @keyframes fadeOutCinematic {
-      0% { opacity: 1; visibility: visible; }
-      87.5% { opacity: 1; visibility: visible; } /* 87,5 % de 3,2 s = 2,8 s : l'animation est finie, on peut fondre */
-      100% { opacity: 0; visibility: hidden; }
-    }
+    .spl-plein, .spl-reflet { -webkit-mask: var(--logo-t) center / contain no-repeat; mask: var(--logo-t) center / contain no-repeat; }
+    .spl-plein { background: currentColor; animation: spl-plein 1ms 1.1s both; }
+    @keyframes spl-plein { from { opacity: 0; } to { opacity: 1; } }
+    .spl-reflet { overflow: hidden; }
+    .spl-reflet::before { content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 60%;
+      background: linear-gradient(100deg, transparent 20%, var(--spl-reflet) 50%, transparent 80%);
+      animation: spl-reflet .9s 1s cubic-bezier(.45,0,.3,1) both; }
+    @keyframes spl-reflet { from { transform: translateX(0); } to { transform: translateX(267%); } }
+    /* Le nom : une lettre par <svg> (tracés Cinzel), qui se resserrent depuis
+       le centre (--o : rang depuis le Ē ; --dx : décalage de départ). */
+    .spl-signature { position: relative; flex: none; width: min(56vw, 212px); aspect-ratio: 2089.1 / 357.6; margin-top: 22px; }
+    .spl-signature svg { position: absolute; overflow: visible; fill: currentColor;
+      animation: spl-lettre .75s calc(.95s + var(--o) * 75ms) cubic-bezier(.2,.75,.25,1) both; }
+    @keyframes spl-lettre { from { opacity: 0; transform: translateX(var(--dx)); } }
+    .spl-sous { margin-top: 13px; padding-left: .34em; font: 700 10.5px 'Inter', sans-serif; letter-spacing: .34em; text-transform: uppercase;
+      color: var(--spl-muet); animation: spl-sous .6s 1.4s cubic-bezier(.2,.8,.25,1) both; }
+    @keyframes spl-sous { from { opacity: 0; transform: translateY(6px); } }
+    /* Lancements suivants : le T et le nom déjà formés, il ne reste que l'envol. */
+    #splash-screen.spl-court .spl-plein, #splash-screen.spl-court .spl-signature svg,
+    #splash-screen.spl-court .spl-sous { animation: none !important; }
+    #splash-screen.spl-court .spl-pieces, #splash-screen.spl-court .spl-reflet { display: none; }
 
     @media (prefers-reduced-motion: reduce) {
-      #splash-screen, .etat-bg::before,
-      .spl-scene, .spl-logo, .spl-anneaux circle
+      .etat-bg::before,
+      .spl-plein, .spl-signature svg, .spl-sous
         { animation: none !important; }
-      /* Sans animation : anneaux fermés, T illuminé, nom écrit. */
-      .spl-logo { opacity: 1; filter:drop-shadow(0 0 12px rgba(34,211,238,.6)); }
-      .spl-sous { opacity: 1; }
+      /* Sans animation : le T et le nom déjà formés, sans reflet. */
+      .spl-pieces, .spl-reflet { display: none; }
       * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
     }
 
@@ -3644,10 +3635,6 @@
     html:root .dialogue-boutons .btn { flex: 1; min-height: 48px; margin: 0; }
     html:root .dialogue-boutons .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 12px 26px -12px rgba(220,38,38,.7); border: 0; }
 
-    /* Démarrage court (lancements suivants) : le logo déjà formé, sans animation. */
-    #splash-screen.spl-court, #splash-screen.spl-court * { animation-duration: 1ms !important; animation-delay: 0s !important; }
-    #splash-screen.spl-court * { transition: none !important; }
-    #splash-screen.spl-court .spl-scene { animation: none !important; }
 
     /* Fenêtres longues (cardio, mesures) : « Enregistrer » reste visible en bas. */
     html:root .modal-content .fen-enregistrer { position: sticky; bottom: 8px; z-index: 5;
@@ -3762,26 +3749,20 @@
   </defs>
 </svg>
 
-<!-- Écran de démarrage : le T de la visière, puis le nom « Askēsis » gravé lettre par lettre. -->
-<div id="splash-screen">
-  <div class="spl-grille" aria-hidden="true"></div>
-  <div class="spl-scene" aria-hidden="true">
-    <svg class="spl-anneaux" viewBox="0 0 220 220" focusable="false">
-      <circle class="spl-piste" cx="110" cy="110" r="95"/><circle class="spl-piste" cx="110" cy="110" r="77"/><circle class="spl-piste" cx="110" cy="110" r="61"/>
-      <circle class="spl-r1" cx="110" cy="110" r="95"/><circle class="spl-r2" cx="110" cy="110" r="77"/><circle class="spl-r3" cx="110" cy="110" r="61"/>
-    </svg>
-    <span class="spl-logo" aria-hidden="true"></span>
+<!-- Écran de démarrage : le T se forme, puis le nom ; à la sortie, le T va se poser dans la barre du haut. -->
+<div id="splash-screen" aria-hidden="true">
+  <div class="spl-fond"></div>
+  <div class="spl-t"><span class="spl-pieces"><span class="spl-tige"></span><span class="spl-ailes"></span></span><span class="spl-plein"></span><span class="spl-reflet"></span></div>
+  <div class="spl-signature">
+    <svg viewBox="-2 -289.6 320 289.6" style="left:0%;top:17.45%;width:15.32%;height:80.98%;--o:3;--dx:-27px" focusable="false"><path class="spl-lettre" d="M154.4 -289.6 282 -24.8Q288 -14.4 296 -10Q305.6 -4 314.8 -4H318V0H166.4V-4H170Q178 -4 184.2 -10.6Q190.4 -17.2 185.2 -29.2H185.6L170 -66.4H84.4L68 -29.2H68.4Q64.8 -21.2 66.8 -15.6Q68.8 -10 73.8 -7Q78.8 -4 83.6 -4H87.2V0H-2V-4H1.6Q10.8 -4 20.8 -10Q28.4 -14.4 34 -23.6L128 -230Q130 -233.6 133.4 -241.4Q136.8 -249.2 140.6 -258.4Q144.4 -267.6 147.4 -276Q150.4 -284.4 150.8 -289.6ZM128 -166.8 93.2 -86.4H161.6Z"/></svg>
+    <svg viewBox="363.88 -285.6 224.39 291.2" style="left:17.51%;top:18.57%;width:10.74%;height:81.43%;--o:2;--dx:-18px" focusable="false"><path class="spl-lettre" d="M463.6 -285.6Q472.4 -285.6 487.2 -284.8Q502 -284 518 -282.8Q523.6 -282 528.8 -281.6H562.4L561.2 -273.2L553.6 -216.4H549.6Q549.6 -238.4 532.6 -252Q515.6 -265.6 486 -265.6Q461.6 -265.6 447.2 -256.2Q432.8 -246.8 431.6 -232Q430.4 -217.6 441.4 -209.6Q452.4 -201.6 467.2 -194.8L542 -160Q564.4 -150 577.2 -130.8Q590 -111.6 588 -82.4Q585.2 -39.6 552.2 -17Q519.2 5.6 462.4 5.6Q439.2 5.6 420.4 2Q401.6 -1.6 388.2 -7.4Q374.8 -13.2 367.6 -20.4Q363.2 -30.4 364 -44.8Q364.8 -59.2 369.4 -73.4Q374 -87.6 380.4 -96H384Q382.8 -75.2 392.8 -56.4Q402.8 -37.6 422.8 -26Q442.8 -14.4 470.8 -14.4Q499.6 -14.4 513.4 -26.4Q527.2 -38.4 527.2 -53.6Q527.2 -66.4 517.4 -76.8Q507.6 -87.2 484.8 -97.6L419.6 -128Q392 -140.8 379.4 -163.2Q366.8 -185.6 370.4 -214Q373.2 -237.2 385.2 -253.2Q397.2 -269.2 417 -277.4Q436.8 -285.6 463.6 -285.6Z"/></svg>
+    <svg viewBox="660 -280 327.2 280" style="left:31.69%;top:20.13%;width:15.66%;height:78.3%;--o:1;--dx:-9px" focusable="false"><path class="spl-lettre" d="M690.8 -29.2V-250.8Q690.4 -261.2 683 -268.6Q675.6 -276 665.2 -276H660V-280H803.6V-276H798.4Q788 -276 780.6 -268.6Q773.2 -261.2 772.8 -250.8V-29.2Q773.2 -18.8 780.6 -11.4Q788 -4 798.4 -4H803.6V0H660V-4H665.2Q675.6 -4 683 -11.4Q690.4 -18.8 690.8 -29.2ZM964 -280V-276.4H962.4Q949.2 -276.4 938 -271.2Q928 -266.4 920.8 -259.2L851.2 -175.2L944.4 -34.4Q954 -19.6 964.4 -12Q974.8 -4.4 987.2 -4V0H944Q939.6 0 927.6 -0.4Q915.6 -0.8 900 -4Q884.4 -7.2 868.6 -15.6Q852.8 -24 841.2 -40Q838 -44.4 832.8 -52.2Q827.6 -60 821.4 -69.8Q815.2 -79.6 808.8 -89.6Q802.4 -99.6 797.2 -108Q792 -116.4 788.8 -122L785.6 -127.2L881.2 -257.6Q886 -264.4 883 -270.4Q880 -276.4 871.6 -276.4H867.6V-280Z"/></svg>
+    <svg viewBox="1032.8 -352 249.2 352" style="left:49.53%;top:0%;width:11.93%;height:98.43%;--o:0;--dx:0px" focusable="false"><path class="spl-lettre" d="M1282 -92.8 1266.8 0H1032.8V-4H1038Q1048.4 -4 1055.8 -11.4Q1063.2 -18.8 1063.6 -29.2V-250.8Q1063.2 -261.2 1055.8 -268.6Q1048.4 -276 1038 -276H1032.8V-280H1208.8Q1217.6 -280 1227.4 -281.2Q1237.2 -282.4 1245.6 -284Q1254 -285.6 1257.6 -287.2V-204.8H1253.6V-208Q1253.6 -232 1240 -246Q1228.4 -257.6 1208.8 -259.6H1145.6V-148H1189.2Q1208 -148.4 1220.4 -160.8Q1232.8 -173.2 1232.4 -192V-193.6H1236.4V-82.4H1232.4V-84.4Q1232.4 -103.2 1220.2 -115.4Q1208 -127.6 1189.2 -128H1145.6V-20.4H1194.8Q1214 -20.4 1230.6 -29Q1247.2 -37.6 1259.6 -53.8Q1272 -70 1278 -92.8ZM1099.6 -352H1215.6V-318H1099.6Z"/></svg>
+    <svg viewBox="1349.48 -285.6 224.39 291.2" style="left:64.69%;top:18.57%;width:10.74%;height:81.43%;--o:1;--dx:9px" focusable="false"><path class="spl-lettre" d="M1449.2 -285.6Q1458 -285.6 1472.8 -284.8Q1487.6 -284 1503.6 -282.8Q1509.2 -282 1514.4 -281.6H1548L1546.8 -273.2L1539.2 -216.4H1535.2Q1535.2 -238.4 1518.2 -252Q1501.2 -265.6 1471.6 -265.6Q1447.2 -265.6 1432.8 -256.2Q1418.4 -246.8 1417.2 -232Q1416 -217.6 1427 -209.6Q1438 -201.6 1452.8 -194.8L1527.6 -160Q1550 -150 1562.8 -130.8Q1575.6 -111.6 1573.6 -82.4Q1570.8 -39.6 1537.8 -17Q1504.8 5.6 1448 5.6Q1424.8 5.6 1406 2Q1387.2 -1.6 1373.8 -7.4Q1360.4 -13.2 1353.2 -20.4Q1348.8 -30.4 1349.6 -44.8Q1350.4 -59.2 1355 -73.4Q1359.6 -87.6 1366 -96H1369.6Q1368.4 -75.2 1378.4 -56.4Q1388.4 -37.6 1408.4 -26Q1428.4 -14.4 1456.4 -14.4Q1485.2 -14.4 1499 -26.4Q1512.8 -38.4 1512.8 -53.6Q1512.8 -66.4 1503 -76.8Q1493.2 -87.2 1470.4 -97.6L1405.2 -128Q1377.6 -140.8 1365 -163.2Q1352.4 -185.6 1356 -214Q1358.8 -237.2 1370.8 -253.2Q1382.8 -269.2 1402.6 -277.4Q1422.4 -285.6 1449.2 -285.6Z"/></svg>
+    <svg viewBox="1645.6 -280 143.6 280" style="left:78.87%;top:20.13%;width:6.87%;height:78.3%;--o:2;--dx:18px" focusable="false"><path class="spl-lettre" d="M1676.4 -29.2V-250.8Q1676 -261.2 1668.6 -268.6Q1661.2 -276 1650.8 -276H1645.6V-280H1789.2V-276H1784Q1773.6 -276 1766.2 -268.6Q1758.8 -261.2 1758.4 -250.8V-29.2Q1758.8 -18.8 1766.2 -11.4Q1773.6 -4 1784 -4H1789.2V0H1645.6V-4H1650.8Q1661.2 -4 1668.6 -11.4Q1676 -18.8 1676.4 -29.2Z"/></svg>
+    <svg viewBox="1862.68 -285.6 224.39 291.2" style="left:89.26%;top:18.57%;width:10.74%;height:81.43%;--o:3;--dx:27px" focusable="false"><path class="spl-lettre" d="M1962.4 -285.6Q1971.2 -285.6 1986 -284.8Q2000.8 -284 2016.8 -282.8Q2022.4 -282 2027.6 -281.6H2061.2L2060 -273.2L2052.4 -216.4H2048.4Q2048.4 -238.4 2031.4 -252Q2014.4 -265.6 1984.8 -265.6Q1960.4 -265.6 1946 -256.2Q1931.6 -246.8 1930.4 -232Q1929.2 -217.6 1940.2 -209.6Q1951.2 -201.6 1966 -194.8L2040.8 -160Q2063.2 -150 2076 -130.8Q2088.8 -111.6 2086.8 -82.4Q2084 -39.6 2051 -17Q2018 5.6 1961.2 5.6Q1938 5.6 1919.2 2Q1900.4 -1.6 1887 -7.4Q1873.6 -13.2 1866.4 -20.4Q1862 -30.4 1862.8 -44.8Q1863.6 -59.2 1868.2 -73.4Q1872.8 -87.6 1879.2 -96H1882.8Q1881.6 -75.2 1891.6 -56.4Q1901.6 -37.6 1921.6 -26Q1941.6 -14.4 1969.6 -14.4Q1998.4 -14.4 2012.2 -26.4Q2026 -38.4 2026 -53.6Q2026 -66.4 2016.2 -76.8Q2006.4 -87.2 1983.6 -97.6L1918.4 -128Q1890.8 -140.8 1878.2 -163.2Q1865.6 -185.6 1869.2 -214Q1872 -237.2 1884 -253.2Q1896 -269.2 1915.8 -277.4Q1935.6 -285.6 1962.4 -285.6Z"/></svg>
   </div>
-  <svg class="spl-signature" viewBox="0 -366 2117 386" aria-hidden="true" focusable="false">
-    <path class="spl-lettre" d="M154.4 -289.6 282 -24.8Q288 -14.4 296 -10Q305.6 -4 314.8 -4H318V0H166.4V-4H170Q178 -4 184.2 -10.6Q190.4 -17.2 185.2 -29.2H185.6L170 -66.4H84.4L68 -29.2H68.4Q64.8 -21.2 66.8 -15.6Q68.8 -10 73.8 -7Q78.8 -4 83.6 -4H87.2V0H-2V-4H1.6Q10.8 -4 20.8 -10Q28.4 -14.4 34 -23.6L128 -230Q130 -233.6 133.4 -241.4Q136.8 -249.2 140.6 -258.4Q144.4 -267.6 147.4 -276Q150.4 -284.4 150.8 -289.6ZM128 -166.8 93.2 -86.4H161.6Z"/>
-    <path class="spl-lettre" d="M463.6 -285.6Q472.4 -285.6 487.2 -284.8Q502 -284 518 -282.8Q523.6 -282 528.8 -281.6H562.4L561.2 -273.2L553.6 -216.4H549.6Q549.6 -238.4 532.6 -252Q515.6 -265.6 486 -265.6Q461.6 -265.6 447.2 -256.2Q432.8 -246.8 431.6 -232Q430.4 -217.6 441.4 -209.6Q452.4 -201.6 467.2 -194.8L542 -160Q564.4 -150 577.2 -130.8Q590 -111.6 588 -82.4Q585.2 -39.6 552.2 -17Q519.2 5.6 462.4 5.6Q439.2 5.6 420.4 2Q401.6 -1.6 388.2 -7.4Q374.8 -13.2 367.6 -20.4Q363.2 -30.4 364 -44.8Q364.8 -59.2 369.4 -73.4Q374 -87.6 380.4 -96H384Q382.8 -75.2 392.8 -56.4Q402.8 -37.6 422.8 -26Q442.8 -14.4 470.8 -14.4Q499.6 -14.4 513.4 -26.4Q527.2 -38.4 527.2 -53.6Q527.2 -66.4 517.4 -76.8Q507.6 -87.2 484.8 -97.6L419.6 -128Q392 -140.8 379.4 -163.2Q366.8 -185.6 370.4 -214Q373.2 -237.2 385.2 -253.2Q397.2 -269.2 417 -277.4Q436.8 -285.6 463.6 -285.6Z"/>
-    <path class="spl-lettre" d="M690.8 -29.2V-250.8Q690.4 -261.2 683 -268.6Q675.6 -276 665.2 -276H660V-280H803.6V-276H798.4Q788 -276 780.6 -268.6Q773.2 -261.2 772.8 -250.8V-29.2Q773.2 -18.8 780.6 -11.4Q788 -4 798.4 -4H803.6V0H660V-4H665.2Q675.6 -4 683 -11.4Q690.4 -18.8 690.8 -29.2ZM964 -280V-276.4H962.4Q949.2 -276.4 938 -271.2Q928 -266.4 920.8 -259.2L851.2 -175.2L944.4 -34.4Q954 -19.6 964.4 -12Q974.8 -4.4 987.2 -4V0H944Q939.6 0 927.6 -0.4Q915.6 -0.8 900 -4Q884.4 -7.2 868.6 -15.6Q852.8 -24 841.2 -40Q838 -44.4 832.8 -52.2Q827.6 -60 821.4 -69.8Q815.2 -79.6 808.8 -89.6Q802.4 -99.6 797.2 -108Q792 -116.4 788.8 -122L785.6 -127.2L881.2 -257.6Q886 -264.4 883 -270.4Q880 -276.4 871.6 -276.4H867.6V-280Z"/>
-    <path class="spl-lettre" d="M1282 -92.8 1266.8 0H1032.8V-4H1038Q1048.4 -4 1055.8 -11.4Q1063.2 -18.8 1063.6 -29.2V-250.8Q1063.2 -261.2 1055.8 -268.6Q1048.4 -276 1038 -276H1032.8V-280H1208.8Q1217.6 -280 1227.4 -281.2Q1237.2 -282.4 1245.6 -284Q1254 -285.6 1257.6 -287.2V-204.8H1253.6V-208Q1253.6 -232 1240 -246Q1228.4 -257.6 1208.8 -259.6H1145.6V-148H1189.2Q1208 -148.4 1220.4 -160.8Q1232.8 -173.2 1232.4 -192V-193.6H1236.4V-82.4H1232.4V-84.4Q1232.4 -103.2 1220.2 -115.4Q1208 -127.6 1189.2 -128H1145.6V-20.4H1194.8Q1214 -20.4 1230.6 -29Q1247.2 -37.6 1259.6 -53.8Q1272 -70 1278 -92.8ZM1099.6 -352H1215.6V-318H1099.6Z"/>
-    <path class="spl-lettre" d="M1449.2 -285.6Q1458 -285.6 1472.8 -284.8Q1487.6 -284 1503.6 -282.8Q1509.2 -282 1514.4 -281.6H1548L1546.8 -273.2L1539.2 -216.4H1535.2Q1535.2 -238.4 1518.2 -252Q1501.2 -265.6 1471.6 -265.6Q1447.2 -265.6 1432.8 -256.2Q1418.4 -246.8 1417.2 -232Q1416 -217.6 1427 -209.6Q1438 -201.6 1452.8 -194.8L1527.6 -160Q1550 -150 1562.8 -130.8Q1575.6 -111.6 1573.6 -82.4Q1570.8 -39.6 1537.8 -17Q1504.8 5.6 1448 5.6Q1424.8 5.6 1406 2Q1387.2 -1.6 1373.8 -7.4Q1360.4 -13.2 1353.2 -20.4Q1348.8 -30.4 1349.6 -44.8Q1350.4 -59.2 1355 -73.4Q1359.6 -87.6 1366 -96H1369.6Q1368.4 -75.2 1378.4 -56.4Q1388.4 -37.6 1408.4 -26Q1428.4 -14.4 1456.4 -14.4Q1485.2 -14.4 1499 -26.4Q1512.8 -38.4 1512.8 -53.6Q1512.8 -66.4 1503 -76.8Q1493.2 -87.2 1470.4 -97.6L1405.2 -128Q1377.6 -140.8 1365 -163.2Q1352.4 -185.6 1356 -214Q1358.8 -237.2 1370.8 -253.2Q1382.8 -269.2 1402.6 -277.4Q1422.4 -285.6 1449.2 -285.6Z"/>
-    <path class="spl-lettre" d="M1676.4 -29.2V-250.8Q1676 -261.2 1668.6 -268.6Q1661.2 -276 1650.8 -276H1645.6V-280H1789.2V-276H1784Q1773.6 -276 1766.2 -268.6Q1758.8 -261.2 1758.4 -250.8V-29.2Q1758.8 -18.8 1766.2 -11.4Q1773.6 -4 1784 -4H1789.2V0H1645.6V-4H1650.8Q1661.2 -4 1668.6 -11.4Q1676 -18.8 1676.4 -29.2Z"/>
-    <path class="spl-lettre" d="M1962.4 -285.6Q1971.2 -285.6 1986 -284.8Q2000.8 -284 2016.8 -282.8Q2022.4 -282 2027.6 -281.6H2061.2L2060 -273.2L2052.4 -216.4H2048.4Q2048.4 -238.4 2031.4 -252Q2014.4 -265.6 1984.8 -265.6Q1960.4 -265.6 1946 -256.2Q1931.6 -246.8 1930.4 -232Q1929.2 -217.6 1940.2 -209.6Q1951.2 -201.6 1966 -194.8L2040.8 -160Q2063.2 -150 2076 -130.8Q2088.8 -111.6 2086.8 -82.4Q2084 -39.6 2051 -17Q2018 5.6 1961.2 5.6Q1938 5.6 1919.2 2Q1900.4 -1.6 1887 -7.4Q1873.6 -13.2 1866.4 -20.4Q1862 -30.4 1862.8 -44.8Q1863.6 -59.2 1868.2 -73.4Q1872.8 -87.6 1879.2 -96H1882.8Q1881.6 -75.2 1891.6 -56.4Q1901.6 -37.6 1921.6 -26Q1941.6 -14.4 1969.6 -14.4Q1998.4 -14.4 2012.2 -26.4Q2026 -38.4 2026 -53.6Q2026 -66.4 2016.2 -76.8Q2006.4 -87.2 1983.6 -97.6L1918.4 -128Q1890.8 -140.8 1878.2 -163.2Q1865.6 -185.6 1869.2 -214Q1872 -237.2 1884 -253.2Q1896 -269.2 1915.8 -277.4Q1935.6 -285.6 1962.4 -285.6Z"/>
-  </svg>
-  <div class="spl-sous" aria-hidden="true">Nutrition · Muscu · Cardio</div>
+  <div class="spl-sous">Nutrition · Muscu · Cardio</div>
 </div>
 <script>
   /* Le theme est applique AVANT le premier rendu : sans cela, l'app clignotait
@@ -3822,79 +3803,93 @@
     // (la session Supabase reste ouverte d'un lancement à l'autre).
     try { localStorage.removeItem('mc_identifiants_sauvegardes'); } catch (e) {}
 
+    /* Écran de démarrage. Au tout premier lancement, l'animation complète (le
+       T se forme, puis le nom) ; aux suivants, le T déjà formé. Dès que
+       l'appli est prête (chargée, et pas avant la fin de l'animation), le T
+       rétrécit jusqu'à sa place dans la barre du haut pendant que le fond
+       s'efface : l'écran de démarrage devient l'appli. Une seconde ouverture
+       dans la même session passe directement ; toucher l'écran le fait
+       disparaître ; en mouvement réduit, simple fondu. */
     var splash = document.getElementById('splash-screen');
     if (!splash) return;
-    function hideSplash() {
-      if (!splash || splash.dataset.hidden) return;
-      splash.dataset.hidden = '1';
-      splash.style.transition = 'opacity 0.4s ease';
-      splash.style.opacity = '0';
-      setTimeout(function () { splash.style.display = 'none'; }, 420);
-    }
-    /* Animation complète (3,2 s : 2,8 s + 0,4 s de fondu, cf.
-       fadeOutCinematic) au tout premier lancement seulement. Ensuite, le
-       logo s'affiche déjà formé ~0,8 s ; une seconde ouverture dans la même
-       session passe directement, et toucher l'écran le fait disparaître. */
-    var dejaVu = false, court = false;
+    var dejaVu = false, court = false, parti = false, fini = false, logoCache = null;
+    var reduit = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
     try { dejaVu = sessionStorage.getItem('elite_splash') === '1'; sessionStorage.setItem('elite_splash', '1'); } catch (e) {}
     try { court = !dejaVu && localStorage.getItem('anqaa_splash_vu') === '1'; localStorage.setItem('anqaa_splash_vu', '1'); } catch (e) {}
-    if (dejaVu) { splash.style.animation = 'none'; hideSplash(); }
-    else if (court) { splash.classList.add('spl-court'); splash.style.animation = 'none'; setTimeout(hideSplash, 450); }
-    else { setTimeout(hideSplash, 3200); }
-    splash.addEventListener('click', hideSplash);
-
-    /* La signature « Askēsis » se trace lettre par lettre (longueur du tracé SVG,
-       API Web Animations) puis se remplit. Calee pour finir juste avant le
-       debut du fondu de sortie (2,6 s) : 0,7 s de pause apres l'arrivée
-       du T, ~1,1 s pour tracer, ~0,5 s pour l'encre qui se pose. Sans
-       interet si l'ecran passe sans animation (seconde ouverture, mouvement
-       reduit) : les lettres apparaissent alors directement remplies. */
-    try {
-      var lettres = splash.querySelectorAll('.spl-lettre');
-      var sous = splash.querySelector('.spl-sous');
-      var encre = getComputedStyle(splash).getPropertyValue('--spl-t').trim() || '#f4f7fb';
-      var reduitMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (dejaVu || court || reduitMotion) {
-        for (var li = 0; li < lettres.length; li++) {
-          lettres[li].style.fill = encre;
-          lettres[li].style.strokeWidth = '2';
-        }
-        if (sous) sous.style.opacity = '1';
-      } else {
-        // Les anneaux se referment vers 1,4 s : le nom s'écrit à partir de
-        // 0,9 s, l'encre se pose vers 2 s, la ligne du dessous à 1,9 s.
-        var DEBUT_SIGNATURE = 900;
-        var DUREE_TRAIT = 1000;
-        var longueurs = [];
-        var total = 0;
-        for (var i = 0; i < lettres.length; i++) {
-          var l = lettres[i].getTotalLength();
-          longueurs.push(l);
-          total += l;
-        }
-        var cumule = 0;
-        for (var j = 0; j < lettres.length; j++) {
-          (function (p, len) {
-            p.style.strokeDasharray = len;
-            var debutLettre = DEBUT_SIGNATURE + (cumule / total) * DUREE_TRAIT * 0.75;
-            var dureeLettre = Math.max(160, (len / total) * DUREE_TRAIT * 1.6);
-            p.animate(
-              [{ strokeDashoffset: len }, { strokeDashoffset: 0 }],
-              { duration: dureeLettre, delay: debutLettre, easing: 'cubic-bezier(.45,0,.2,1)', fill: 'both' }
-            );
-            p.animate(
-              [{ fill: 'transparent', strokeWidth: 10 }, { fill: encre, strokeWidth: 2 }],
-              { duration: 350, delay: DEBUT_SIGNATURE + DUREE_TRAIT + 100, easing: 'ease-out', fill: 'both' }
-            );
-          })(lettres[j], longueurs[j]);
-          cumule += longueurs[j];
-        }
-        if (sous) sous.animate(
-          [{ opacity: 0, letterSpacing: '.6em' }, { opacity: 1, letterSpacing: '.32em' }],
-          { duration: 500, delay: 1900, easing: 'ease-out', fill: 'both' }
-        );
+    function retirer() {
+      if (fini) return;
+      fini = true;
+      splash.style.display = 'none';
+      if (logoCache) logoCache.style.opacity = '';
+    }
+    function fondre(duree) {
+      if (parti) return;
+      parti = true;
+      splash.style.pointerEvents = 'none';
+      if (splash.animate) splash.animate([{ opacity: 1 }, { opacity: 0 }], { duration: duree, easing: 'ease', fill: 'forwards' });
+      else splash.style.opacity = '0';
+      setTimeout(retirer, duree);
+    }
+    function sortie() {
+      if (parti) return;
+      // Déjà caché par ailleurs : rien à animer.
+      if (!splash.getClientRects().length) { parti = true; retirer(); return; }
+      var t = splash.querySelector('.spl-t');
+      var cible = document.querySelector('.app-bar .logo-anqa');
+      var r1 = cible && cible.getBoundingClientRect();
+      // Pas d'envol si le logo n'est pas à l'écran (autre onglet, fenêtre de
+      // connexion encore ouverte…) : l'écran fond simplement.
+      if (reduit || !t || !t.animate || !r1 || !r1.width || r1.top < 0 || r1.bottom > innerHeight
+          || document.querySelector('.modal.show') || document.body.classList.contains('couche-ouverte')) {
+        fondre(reduit ? 300 : 450);
+        return;
       }
-    } catch (e) {}
+      parti = true;
+      splash.style.pointerEvents = 'none';
+      try {
+        // Cadre du T dans la case du logo (masque en « contain », centré).
+        var r0 = t.getBoundingClientRect();
+        var a = 50.8 / 66.1, x = r1.left, y = r1.top, w = r1.width, h = r1.height;
+        if (w / h > a) { x += (w - h * a) / 2; w = h * a; } else { y += (h - w / a) / 2; h = w / a; }
+        var DUREE = 640;
+        logoCache = cible;
+        cible.style.opacity = '0';
+        t.style.transformOrigin = '0 0';
+        var vol = t.animate([{ transform: 'none' }, { transform: 'translate(' + (x - r0.left) + 'px,' + (y - r0.top) + 'px) scale(' + (w / r0.width) + ')' }],
+          { duration: DUREE, easing: 'cubic-bezier(.6,0,.2,1)', fill: 'forwards' });
+        [splash.querySelector('.spl-signature'), splash.querySelector('.spl-sous')].forEach(function (el, i) {
+          if (el) el.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(-10px)' }], { duration: 220, delay: i * 40, easing: 'ease-in', fill: 'forwards' });
+        });
+        splash.querySelector('.spl-fond').animate([{ opacity: 1 }, { opacity: 0 }], { duration: 480, delay: 120, easing: 'ease-in-out', fill: 'forwards' });
+        // La salutation sort du T quand il se pose, et les blocs de Repas
+        // du jour remontent pendant que le fond s'efface.
+        var salut = document.querySelector('.app-bar .salut');
+        if (salut) salut.animate([{ opacity: 0, transform: 'translateX(-8px)' }, { opacity: 1, transform: 'none' }],
+          { duration: 420, delay: DUREE - 140, easing: 'cubic-bezier(.2,.8,.25,1)', fill: 'backwards' });
+        var blocs = document.querySelectorAll('body.sur-repas #ecran-repas > :is(.summary-card, .coach-carte, #cartes-stats-repas, #bloc-eau, #meals-container)');
+        blocs.forEach(function (b) { b.style.animation = 'none'; });
+        if (blocs.length) void blocs[0].offsetWidth;
+        blocs.forEach(function (b) { b.style.animation = ''; });
+        // Posé : le vrai logo prend le relais (au plus tard un peu après, si
+        // la fin de l'animation n'était pas signalée).
+        if (vol.finished) vol.finished.then(retirer, retirer);
+        setTimeout(retirer, DUREE + 250);
+      } catch (e) {
+        retirer();
+      }
+    }
+    if (dejaVu) { retirer(); return; }
+    if (court || reduit) splash.classList.add('spl-court');
+    splash.addEventListener('click', function () { fondre(250); });
+    // Sortie quand l'animation est jouée ET l'appli chargée (le gestionnaire
+    // « load » de l'appli dessine l'écran et rouvre la session) ; au plus
+    // tard après 4,5 s (2,5 s pour le démarrage court), chargée ou non.
+    var minimum = false, pret = false;
+    function tenter() { if (minimum && pret) sortie(); }
+    setTimeout(function () { minimum = true; tenter(); }, reduit ? 700 : court ? 420 : 2400);
+    function charge() { setTimeout(function () { pret = true; tenter(); }, 150); }
+    if (document.readyState === 'complete') charge(); else window.addEventListener('load', charge);
+    setTimeout(sortie, court || reduit ? 2500 : 4500);
   })();
 </script>
 
@@ -21880,14 +21875,15 @@ async function genererImagePartage() {
     if (x.roundRect) x.roundRect(80, 92, 108, 108, 24); else x.rect(80, 92, 108, 108);
     x.clip(); x.drawImage(logo, 80, 92, 108, 108); x.restore();
   }
-  // Le nom gravé de l'écran de démarrage (tracés Cinzel déjà dans la page) :
-  // la police de la marque, même sans réseau.
+  // Le nom gravé de l'écran de démarrage (tracés Cinzel déjà dans la page,
+  // tous dans le même repère : y de -352 à 5,6, centre à -173,2) : la police
+  // de la marque, même sans réseau.
   x.fillStyle = '#ffffff'; x.textBaseline = 'middle';
-  const signature = document.querySelector('#splash-screen .spl-signature');
-  if (signature && window.Path2D) {
-    const vb = signature.viewBox.baseVal, k = 0.165;
-    x.save(); x.translate(logo ? 216 : 80, 146 - (vb.y + vb.height / 2) * k); x.scale(k, k);
-    signature.querySelectorAll('.spl-lettre').forEach(p => x.fill(new Path2D(p.getAttribute('d'))));
+  const lettres = document.querySelectorAll('#splash-screen .spl-lettre');
+  if (lettres.length && window.Path2D) {
+    const k = 0.165;
+    x.save(); x.translate(logo ? 216 : 80, 146 + 173.2 * k); x.scale(k, k);
+    lettres.forEach(p => x.fill(new Path2D(p.getAttribute('d'))));
     x.restore();
   } else {
     x.font = f(64, 800); x.fillText('Askēsis', logo ? 216 : 80, 146);

@@ -2041,3 +2041,81 @@ test("eau : l'eau versée coule, monte avec le total, puis tout revient au calme
   await page.waitForFunction(() => !gourdeAnim, null, { timeout: 5000 });
   assert.match(await page.textContent('#eau-texte'), /^1,25 \//);
 }));
+
+test("démarrage : le T se forme puis va se poser dans la barre du haut ; ensuite démarrage court ; simple fondu en mouvement réduit", async () => {
+  // Horloge figée dès le départ : les étapes de l'écran de démarrage
+  // (minuteries) n'avancent que quand le test le décide.
+  async function lancer(ctx) {
+    const page = await ctx.newPage();
+    const erreurs = [];
+    page.on('pageerror', e => erreurs.push(e.message));
+    await page.clock.install({ time: new Date('2026-10-23T08:00:00') });
+    await page.clock.pauseAt(new Date('2026-10-23T08:00:01'));
+    await page.goto('file://' + path.join(RACINE, 'index.html'), { waitUntil: 'load' });
+    await page.waitForFunction(() => typeof allerA === 'function' && typeof Chart !== 'undefined');
+    // Compte « connecté » : la fenêtre de connexion fermée, Repas du jour affiché.
+    await page.evaluate(() => { connexionObligatoire = false; document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show')); document.body.classList.remove('couche-ouverte'); });
+    return { page, erreurs };
+  }
+  const etat = page => page.evaluate(() => {
+    const s = document.getElementById('splash-screen'), logo = document.querySelector('.app-bar .logo-anqa');
+    return { affiche: getComputedStyle(s).display !== 'none', court: s.classList.contains('spl-court'), logo: logo.style.opacity, lettres: s.querySelectorAll('.spl-lettre').length };
+  });
+  const contexte = reducedMotion => navigateur.newContext({ viewport: { width: 390, height: 844 }, reducedMotion }).then(async ctx => {
+    await ctx.route(/^https?:/, r => /\/npm\/chart\.js@/.test(r.request().url())
+      ? r.fulfill({ path: path.join(RACINE, 'node_modules', 'chart.js', 'dist', 'chart.umd.min.js'), contentType: 'application/javascript' }) : r.abort());
+    await ctx.addInitScript(() => { try { localStorage.setItem('installPopupVu', String(Date.now())); } catch (e) {} });
+    return ctx;
+  });
+
+  const ctx = await contexte('no-preference');
+  try {
+    // Premier lancement : animation complète, le T reste jusqu'à 2,4 s.
+    const { page, erreurs } = await lancer(ctx);
+    await page.clock.runFor(2300);
+    assert.deepEqual(await etat(page), { affiche: true, court: false, logo: '', lettres: 7 });
+    // Puis il s'envole vers le logo de la barre (caché le temps du vol)…
+    await page.clock.runFor(200);
+    assert.equal((await etat(page)).logo, '0');
+    const arrivee = await page.evaluate(() => {
+      const t = document.querySelector('#splash-screen .spl-t');
+      t.getAnimations().forEach(a => a.finish());
+      const r = t.getBoundingClientRect(), l = document.querySelector('.app-bar .logo-anqa').getBoundingClientRect();
+      // Le masque du logo est en « contain » dans sa case : même largeur, centré en hauteur.
+      return [r.left - l.left, r.width - l.width, (r.top + r.height / 2) - (l.top + l.height / 2)].map(v => Math.round(Math.abs(v)));
+    });
+    assert.deepEqual(arrivee, [0, 0, 0], 'le T se pose exactement sur le logo de la barre');
+    // … et s'y pose : l'écran disparaît, le vrai logo reprend sa place.
+    await page.clock.runFor(1000);
+    assert.deepEqual(await etat(page), { affiche: false, court: false, logo: '', lettres: 7 });
+    assert.deepEqual(erreurs, []);
+
+    // Lancement suivant (nouvel onglet, même appareil) : le T déjà formé, envol à ~0,4 s.
+    const deux = await lancer(ctx);
+    assert.deepEqual(await etat(deux.page), { affiche: true, court: true, logo: '', lettres: 7 });
+    await deux.page.clock.runFor(500);
+    assert.equal((await etat(deux.page)).logo, '0');
+    await deux.page.clock.runFor(1000);
+    assert.deepEqual(await etat(deux.page), { affiche: false, court: true, logo: '', lettres: 7 });
+    // Rechargé dans la même session : plus d'écran de démarrage du tout.
+    await deux.page.reload({ waitUntil: 'load' });
+    assert.equal((await etat(deux.page)).affiche, false);
+    assert.deepEqual(deux.erreurs, []);
+  } finally {
+    await ctx.close();
+  }
+
+  // Mouvement réduit : rien ne bouge, l'écran fond simplement, sans envol.
+  const ctxReduit = await contexte('reduce');
+  try {
+    const { page, erreurs } = await lancer(ctxReduit);
+    assert.deepEqual(await etat(page), { affiche: true, court: true, logo: '', lettres: 7 });
+    await page.clock.runFor(750);
+    assert.equal((await etat(page)).logo, '');
+    await page.clock.runFor(400);
+    assert.deepEqual(await etat(page), { affiche: false, court: true, logo: '', lettres: 7 });
+    assert.deepEqual(erreurs, []);
+  } finally {
+    await ctxReduit.close();
+  }
+});
