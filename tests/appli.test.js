@@ -1247,7 +1247,8 @@ test('Repas du jour refait : anneaux, semaine, série de jours, coach', () => av
       jours: document.querySelectorAll('#semaine-jours .semaine-jour:not(.futur)').length, actif: document.querySelector('#semaine-jours .semaine-jour.actif b').textContent,
       dernier: [...document.querySelectorAll('#semaine-jours .semaine-jour:not(.futur)')].pop().dataset.date === t,
       futurs: [...document.querySelectorAll('#semaine-jours .semaine-jour.futur')].map(b => [b.dataset.date > t, b.disabled, b.getAttribute('aria-hidden')].join()),
-      dimanche: new Date([...document.querySelectorAll('#semaine-jours .semaine-jour')].pop().dataset.date + 'T12:00:00').getDay(),
+      // Dernier jour : le dimanche de la semaine, ou aujourd'hui + 3 si c'est plus tard.
+      dernierFutur: [...document.querySelectorAll('#semaine-jours .semaine-jour')].pop().dataset.date === [shiftDate(t, (7 - new Date(t + 'T12:00:00').getDay()) % 7), shiftDate(t, 3)].sort().pop(),
       serie: document.getElementById('serie-jours').textContent.trim(), coach: document.getElementById('coach-jour').textContent };
     // Dépassement : l'anneau passe à l'orange-rouge.
     getDay(t).meals[MEALS[1]].push({ name: 'Pizza', grams: 600, kcal: cible, p: 60, c: 200, f: 80 }); saveData(t); renderApp();
@@ -1257,12 +1258,12 @@ test('Repas du jour refait : anneaux, semaine, série de jours, coach', () => av
   assert.equal(r.part, r.attendu);
   assert.equal(r.trop, 'url(#grad-kcal)');
   // Roulette : 180 jours d'historique jusqu'à aujourd'hui, aujourd'hui au centre ; les jours
-  // à venir de la semaine (3 au moins) suivent, grisés et inactifs, jusqu'au dimanche.
+  // à venir de la semaine (3 au moins) suivent, grisés et inactifs, jusqu'au dimanche (au-delà s'il en manque).
   assert.equal(r.jours, 181);
   assert.equal(r.dernier, true);
   assert.ok(r.futurs.length >= 3 && r.futurs.length <= 9, String(r.futurs.length));
   assert.ok(r.futurs.every(f => f === 'true,true,true'), r.futurs.join(' '));
-  assert.equal(r.dimanche, 0);
+  assert.equal(r.dernierFutur, true);
   assert.equal(r.actif, String(new Date().getDate()));
   assert.equal(r.serie, '3');
   assert.match(r.coach, /Coach du jour/);
@@ -2014,4 +2015,29 @@ test('accessibilité : zoom permis, champs à 16 px, pas de bouton dans un bouto
   await page.click('#programmes-liste-container .pc b');
   await page.focus('#programmes-liste-container .pc .carte-action'); await page.keyboard.press('Enter');
   assert.equal(await page.evaluate(() => window.__apercus), 2);
+}));
+
+test("eau : l'eau versée coule, monte avec le total, puis tout revient au calme dans l'état final", () => avecAppli({ animations: true }, async ({ page }) => {
+  await page.evaluate(() => { getDay(currentDate).eauMl = 1000; saveData(currentDate); allerA('repas'); renderApp(); document.getElementById('bloc-eau').scrollIntoView(); });
+  await page.waitForTimeout(1300);
+  // Deux appuis rapprochés : un seul filet, la pastille cumule.
+  await page.evaluate(() => { ajouterEau(250); ajouterEau(250); });
+  await page.waitForFunction(() => document.getElementById('gourde-filet-eau').getAttribute('d'), null, { timeout: 3000 });
+  const pendant = await page.evaluate(() => ({ anime: !!gourdeAnim, pastille: document.getElementById('eau-ajout').textContent,
+    ouverte: document.getElementById('gourde').classList.contains('ouverte'), donnee: getDay(currentDate).eauMl }));
+  assert.deepEqual(pendant, { anime: true, pastille: '+500 ml', ouverte: true, donnee: 1500 });
+  await page.waitForFunction(() => !gourdeAnim, null, { timeout: 8000 });
+  const fin = await page.evaluate(() => {
+    const quota = quotaEauSuggere(currentDate);
+    return { texte: document.getElementById('eau-texte').textContent === `${texteLitres(1500)} / ${texteLitres(quota)} L`,
+      niveau: document.getElementById('eau-vague').style.transform === `translateY(${((1 - partGourde(1500, quota)) * GOURDE_COURSE).toFixed(1)}px)`,
+      particules: document.getElementById('gourde-particules').childElementCount, filet: document.getElementById('gourde-filet-eau').getAttribute('d'),
+      calme: document.getElementById('gourde-surface').getAttribute('transform'), ouverte: document.getElementById('gourde').classList.contains('ouverte') };
+  });
+  assert.deepEqual(fin, { texte: true, niveau: true, particules: 0, filet: '', calme: null, ouverte: false });
+  // Retrait : le niveau baisse sans filet, et l'animation s'arrête aussi.
+  await page.evaluate(() => retirerEau());
+  assert.equal(await page.evaluate(() => !!gourdeAnim && !document.getElementById('gourde').classList.contains('ouverte')), true);
+  await page.waitForFunction(() => !gourdeAnim, null, { timeout: 5000 });
+  assert.match(await page.textContent('#eau-texte'), /^1,25 \//);
 }));

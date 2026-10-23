@@ -2441,33 +2441,44 @@
     .gourde-verre { fill: rgba(56,189,248,.10); stroke: rgba(56,189,248,.45); stroke-width: 1.5; transition: stroke .4s; }
     .gourde-bouchon { fill: #38bdf8; } :root[data-theme="dark"] .gourde-bouchon { fill: #0ea5e9; }
     .gourde-niveau { transition: transform 1.1s cubic-bezier(.34,1.45,.5,1); }
-    .gourde-v1 { animation: gourde-vague 5.5s linear infinite reverse; opacity: .45; }
-    .gourde-v2 { animation: gourde-vague 3.2s linear infinite; }
-    @keyframes gourde-vague { to { transform: translateX(-64px); } }
-    .gourde-houle { transform-origin: 50% 0; transform-box: fill-box; }
-    .gourde.verse .gourde-houle { animation: gourde-houle 1.4s ease-out; }
-    @keyframes gourde-houle { 0% { transform: scaleY(1); } 25% { transform: scaleY(2.6); } 60% { transform: scaleY(1.5); } 100% { transform: scaleY(1); } }
+    /* Au repos : deux vagues de longueurs différentes qui glissent en sens
+       contraires ; un liseré clair marque la surface. */
+    .gourde-v1 { animation: gourde-vague1 6s linear infinite reverse; opacity: .45; }
+    .gourde-v2 { animation: gourde-vague2 3.6s linear infinite; stroke: rgba(255,255,255,.65); stroke-width: .7; }
+    @keyframes gourde-vague1 { to { transform: translateX(-64px); } }
+    @keyframes gourde-vague2 { to { transform: translateX(-48px); } }
     .gourde-bulle { fill: rgba(255,255,255,.75); opacity: 0; animation: gourde-bulle 3s ease-in infinite; }
     .gourde-bulle:nth-of-type(2) { animation-delay: 1s; } .gourde-bulle:nth-of-type(3) { animation-delay: 2s; }
     @keyframes gourde-bulle { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(-46px); opacity: 0; } }
     .gourde.vide .gourde-bulle { display: none; }
-    .gourde-jet { fill: url(#gourde-jet); opacity: 0; transform-origin: 50% 0; transform-box: fill-box; }
-    .gourde.verse.ajout .gourde-jet { animation: gourde-jet .9s ease-out; }
-    @keyframes gourde-jet { 0% { opacity: 0; transform: scaleY(0); } 15% { opacity: 1; transform: scaleY(1); } 70% { opacity: 1; transform: scaleY(1); } 100% { opacity: 0; transform: scaleY(1) translateY(6px); } }
-    .gourde-goutte { fill: #38bdf8; opacity: 0; }
-    .gourde.verse.ajout .gourde-goutte { animation: gourde-goutte .7s .35s ease-out; }
-    .gourde.verse.ajout .gourde-goutte--d { animation-delay: .45s; }
-    @keyframes gourde-goutte { 0% { opacity: 1; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(var(--dx), -12px); } }
+    /* Versement (voir verserGourde) : bouchon qui bascule, filet, gouttes,
+       ronds et bulles dessinés image par image le temps de l'animation. */
+    .gourde-capuchon { transform-box: view-box; transform-origin: 42px 14px; transition: transform .32s cubic-bezier(.34,1.5,.6,1); }
+    .gourde.ouverte .gourde-capuchon { transform: rotate(100deg); }
+    .gourde-filet-eau { fill: url(#gourde-filet-grad); }
+    .gourde-filet-lumiere { fill: none; stroke: rgba(255,255,255,.85); stroke-width: .55; stroke-linecap: round; stroke-dasharray: 2.5 4; }
+    .gourde-goutte { fill: #38bdf8; } :root[data-theme="dark"] .gourde-goutte { fill: #7dd3fc; }
+    .gourde-rond { fill: none; stroke: rgba(255,255,255,.9); stroke-width: .6; }
+    .gourde-bulle-v { fill: rgba(255,255,255,.82); }
+    .gourde-reflet { fill: none; stroke: rgba(255,255,255,.6); stroke-width: 2.2; stroke-linecap: round; }
+    .gourde-reflet--petit { stroke-width: 1.6; stroke: rgba(255,255,255,.45); }
+    :root[data-theme="dark"] .gourde-reflet { stroke: rgba(255,255,255,.28); }
+    /* Objectif atteint : un éclat de lumière traverse la gourde. */
+    .gourde-eclat { opacity: 0; transform: skewX(-18deg); }
+    .gourde.brille .gourde-eclat { animation: gourde-eclat 1.1s .1s ease-in-out; }
+    @keyframes gourde-eclat { 0% { opacity: 0; transform: skewX(-18deg) translateX(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: skewX(-18deg) translateX(118px); } }
     .gourde-grad { stroke: rgba(2,132,199,.35); stroke-width: 1.4; stroke-linecap: round; }
     :root[data-theme="dark"] .gourde-grad { stroke: rgba(255,255,255,.5); }
-    .gourde-plus { position: absolute; left: 50%; top: 22px; z-index: 1; transform: translateX(-50%); font: 800 .74rem 'Inter', sans-serif; color: #0284c7; opacity: 0; white-space: nowrap; pointer-events: none; text-shadow: 0 0 4px var(--carte-plein), 0 0 8px var(--carte-plein); }
-    :root[data-theme="dark"] .gourde-plus { color: #7dd3fc; }
-    .gourde.verse .gourde-plus { animation: gourde-plus 1.3s ease-out; }
-    @keyframes gourde-plus { 0% { opacity: 0; transform: translate(-50%, 6px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -18px); } }
     .gourde-ok { opacity: 0; transform: scale(.4); transform-origin: 54px 84px; transition: opacity .3s, transform .45s cubic-bezier(.34,1.6,.5,1); }
     .gourde.atteint .gourde-ok { opacity: 1; transform: none; }
     .gourde.atteint .gourde-verre { stroke: #10b981; }
-    .eau-corps { flex: 1; min-width: 0; }
+    .eau-corps { position: relative; flex: 1; min-width: 0; }
+    /* « +250 ml » à droite du titre, le temps que l'eau coule. */
+    .eau-ajout { position: absolute; right: 0; top: -3px; padding: 3px 9px; border-radius: 99px; background: rgba(56,189,248,.16); color: #0369a1;
+      font: 800 .72rem 'Inter', sans-serif; white-space: nowrap; opacity: 0; pointer-events: none; }
+    :root[data-theme="dark"] .eau-ajout { color: #7dd3fc; background: rgba(56,189,248,.18); }
+    .eau-ajout.visible { animation: eau-ajout 1.6s ease-out; }
+    @keyframes eau-ajout { 0% { opacity: 0; transform: translateY(6px) scale(.85); } 14% { opacity: 1; transform: none; } 78% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-5px); } }
     #bloc-eau h3 { margin: 0 !important; font-size: 0.68rem !important; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--text-muted); }
     .eau-texte { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.035em; margin-top: 2px; }
     .eau-texte em { font-style: normal; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0; }
@@ -3976,27 +3987,35 @@
     <!-- Hydratation : une gourde qui se remplit (vague animée), la quantité
          et les boutons d'ajout. Voir majJaugeEau. -->
     <div class="bloc-verre" id="bloc-eau">
-      <div class="gourde" id="gourde" aria-hidden="true"><span class="gourde-plus" id="gourde-plus"></span>
+      <div class="gourde" id="gourde" aria-hidden="true">
         <svg viewBox="0 0 64 92">
           <defs><clipPath id="gourde-forme"><path d="M20 14 h24 v6 q14 4 14 18 v40 q0 12 -12 12 h-28 q-12 0 -12 -12 v-40 q0 -14 14 -18z"/></clipPath>
-            <linearGradient id="gourde-jet" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bae6fd"/><stop offset="1" stop-color="#38bdf8"/></linearGradient></defs>
-          <rect class="gourde-bouchon" x="22" y="4" width="20" height="10" rx="4"/>
+            <!-- Plus claire en surface, plus profonde au fond : le dégradé suit le niveau. -->
+            <linearGradient id="gourde-eau" gradientUnits="userSpaceOnUse" x1="0" y1="16" x2="0" y2="96"><stop offset="0" stop-color="#9ee1fd"/><stop offset=".42" stop-color="#38bdf8"/><stop offset="1" stop-color="#0369a1"/></linearGradient>
+            <linearGradient id="gourde-filet-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bae6fd" stop-opacity="0"/><stop offset=".22" stop-color="#7dd3fc"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
+            <linearGradient id="gourde-eclat-grad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
           <path class="gourde-verre" d="M20 14 h24 v6 q14 4 14 18 v40 q0 12 -12 12 h-28 q-12 0 -12 -12 v-40 q0 -14 14 -18z"/>
           <g clip-path="url(#gourde-forme)">
-            <rect class="gourde-jet" id="gourde-jet" x="29.5" y="14" width="5" height="40" rx="2.5"/>
             <g class="gourde-niveau" id="eau-vague">
-              <g class="gourde-houle"><path class="gourde-v1" d="M0 18 q8 -6 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 V200 H0Z" fill="url(#grad-eau)"/></g>
-              <g class="gourde-houle"><path class="gourde-v2" d="M0 20 q8 -5 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 V200 H0Z" fill="url(#grad-eau)"/></g>
+              <g id="gourde-surface">
+                <path class="gourde-v1" d="M-64 19 q8 -4 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 V200 H-64Z" fill="url(#gourde-eau)"/>
+                <path class="gourde-v2" d="M-48 20 q6 -3.4 12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 V200 H-48Z" fill="url(#gourde-eau)"/>
+              </g>
               <circle class="gourde-bulle" cx="22" cy="80" r="1.8"/><circle class="gourde-bulle" cx="38" cy="84" r="1.3"/><circle class="gourde-bulle" cx="30" cy="82" r="1.5"/>
-              <circle class="gourde-goutte" cx="30" cy="20" r="1.6" style="--dx:-8px"/><circle class="gourde-goutte gourde-goutte--d" cx="34" cy="20" r="1.4" style="--dx:8px"/>
             </g>
+            <g id="gourde-particules"></g>
+            <rect class="gourde-eclat" x="-26" y="-6" width="16" height="104" fill="url(#gourde-eclat-grad)"/>
             <line class="gourde-grad" x1="50" x2="54" y1="38" y2="38"/><line class="gourde-grad" x1="50" x2="54" y1="56" y2="56"/><line class="gourde-grad" x1="50" x2="54" y1="74" y2="74"/>
           </g>
+          <path class="gourde-filet-eau" id="gourde-filet-eau" d=""/><path class="gourde-filet-lumiere" id="gourde-filet-lumiere" d=""/>
+          <path class="gourde-reflet" d="M11.5 46 V72"/><path class="gourde-reflet gourde-reflet--petit" d="M15 33.5 q2 -3.5 5.5 -5"/>
+          <g class="gourde-capuchon"><rect class="gourde-bouchon" x="22" y="4" width="20" height="10" rx="4"/></g>
           <g class="gourde-ok"><circle cx="54" cy="84" r="8" fill="#10b981"/><path d="M50.5 84 l2.5 2.5 5 -5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
         </svg></div>
       <div class="eau-corps">
         <h3>Hydratation</h3>
         <div class="eau-texte" id="eau-texte">0 / 2,0 L</div>
+        <span class="eau-ajout" id="eau-ajout" aria-hidden="true"></span>
         <div class="eau-boutons">
           <button class="btn-icone" onclick="ajouterEau(250)">+250 ml</button>
           <button class="btn-icone" onclick="ajouterEau(500)">+500 ml</button>
@@ -7774,41 +7793,247 @@ function majMacro(cle, valeur, cible) {
    nom proche, d'où des identifiants distincts (eauMl / eauPct). */
 function majJaugeEau(day) {
   day = day || getDay(currentDate);
+  // Autre jour affiché pendant un versement : il s'arrête net.
+  if (gourdeAnim && gourdeAnim.date !== currentDate) arreterGourde();
+  // Versement en cours : il affichera lui-même l'état final en terminant.
+  if (gourdeAnim) return;
   const bu = Math.max(0, Number(day.eauMl) || 0);
   const quota = quotaEauSuggere(currentDate);
-  const litres = v => (Math.round(v / 10) / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 });
   const texte = document.getElementById('eau-texte');
-  if (texte) texte.innerHTML = `${litres(bu)}<em> / ${litres(quota)} L</em>`;
+  if (texte) texte.innerHTML = `${texteLitres(bu)}<em> / ${texteLitres(quota)} L</em>`;
   // L'eau monte avec ce qui a été bu (un fond reste visible à vide).
-  const part = Math.max(0.04, Math.min(1, pourcent(bu, quota) / 100));
   const niveau = document.getElementById('eau-vague');
-  if (niveau) niveau.style.transform = `translateY(${((1 - part) * 72).toFixed(1)}px)`;
-  const jet = document.getElementById('gourde-jet');
-  if (jet) jet.setAttribute('height', ((1 - part) * 72 + 6).toFixed(1));
+  if (niveau) niveau.style.transform = `translateY(${((1 - partGourde(bu, quota)) * GOURDE_COURSE).toFixed(1)}px)`;
   const gourde = document.getElementById('gourde');
   if (gourde) { gourde.classList.toggle('atteint', bu >= quota); gourde.classList.toggle('vide', bu <= 0); }
   const bloc = document.getElementById('bloc-eau');
   if (bloc) bloc.classList.toggle('atteint', bu >= quota);
 }
-/* Ajout : un filet d'eau tombe du goulot, la surface remue et « +250 ml »
-   s'envole. Retrait : seulement la surface qui remue. */
-function animerGourde(ml) {
+
+/* ---------- Gourde : l'eau qu'on verse ----------
+   Ajout : le bouchon bascule, un filet tombe en accélérant et touche la
+   surface (gouttes, ronds, bulles qui plongent puis remontent) ; le niveau
+   monte et le total défile tant que l'eau coule, puis la surface se balance
+   et s'apaise, et le bouchon se referme. Retrait : le niveau baisse et la
+   surface se balance. Le calcul image par image ne tourne que pendant
+   l'animation (au repos, les vagues sont en CSS). Un nouvel appui pendant
+   que l'eau coule prolonge le même filet. Coordonnées : celles du dessin
+   (viewBox 64 × 92). */
+const GOURDE_SURFACE = 19, GOURDE_COURSE = 72, GOURDE_X = 32, GOURDE_SOURCE = -12, GOURDE_G = 0.0016, GOURDE_FOND = 87;
+let gourdeAnim = null;
+function partGourde(ml, quota) { return Math.max(0.04, Math.min(1, pourcent(ml, quota) / 100)); }
+function texteLitres(ml) { return (Math.round(ml / 10) / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 }); }
+function texteQuantiteEau(ml) { const v = Math.abs(ml); return (ml < 0 ? '−' : '+') + (v >= 1000 && v % 1000 === 0 ? v / 1000 + ' L' : v + ' ml'); }
+function dureeVersement(ml) { return Math.min(1400, 380 + 0.75 * Math.abs(ml)); }
+function adoucirGourde(x) { x = Math.max(0, Math.min(1, x)); return x < .5 ? 2 * x * x : 1 - Math.pow(2 - 2 * x, 2) / 2; }
+function etiquetteGourde(ml) {
+  const e = document.getElementById('eau-ajout');
+  if (!e) return;
+  e.textContent = texteQuantiteEau(ml);
+  e.classList.remove('visible'); void e.offsetWidth; e.classList.add('visible');
+}
+function verserGourde(avantMl, apresMl) {
   const g = document.getElementById('gourde');
-  if (!g) return;
-  const plus = document.getElementById('gourde-plus');
-  if (plus) plus.textContent = (ml > 0 ? '+' : '−') + (Math.abs(ml) >= 1000 && Math.abs(ml) % 1000 === 0 ? Math.abs(ml) / 1000 + ' L' : Math.abs(ml) + ' ml');
-  g.classList.remove('verse', 'ajout');
-  void g.offsetWidth;
-  g.classList.add('verse');
-  if (ml > 0) g.classList.add('ajout');
+  if (!g || avantMl === apresMl || !g.getClientRects().length) return;
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const quota = quotaEauSuggere(currentDate), now = performance.now(), ajout = apresMl > avantMl;
+  const a = gourdeAnim;
+  if (a && a.ajout && ajout && a.date === currentDate && a.queue == null) {
+    // Appui pendant que l'eau coule : même filet, jusqu'au nouveau total.
+    a.cumul += apresMl - avantMl;
+    a.vers = partGourde(apresMl, quota); a.mlVers = apresMl;
+    if (a.impact != null) {
+      a.depuis = a.part; a.mlDepuis = a.mlAffiche; a.debutMontee = now;
+      a.finVersement = Math.max(a.finVersement, now) + dureeVersement(apresMl - avantMl) * 0.8;
+    }
+    etiquetteGourde(a.cumul);
+    return;
+  }
+  const depuis = a ? a.part : partGourde(avantMl, quota), mlDepuis = a ? a.mlAffiche : avantMl;
+  if (a) arreterGourde();
+  gourdeAnim = {
+    date: currentDate, ajout, t0: now, quota, atteintAvant: avantMl >= quota,
+    depuis, vers: partGourde(apresMl, quota), part: depuis, mlDepuis, mlVers: apresMl, mlAffiche: mlDepuis, cumul: apresMl - avantMl,
+    impact: ajout ? null : now, debutMontee: ajout ? null : now, finVersement: ajout ? null : now + 560,
+    tete: GOURDE_SOURCE, queue: null, finQueue: null, balance: ajout ? null : now,
+    amplitude: ajout ? 2 + Math.min(3, (apresMl - avantMl) / 250) : 3.2,
+    particules: [], prochain: { rond: 0, goutte: 0, bulle: 0 }, texte: '', dernier: 0, raf: 0
+  };
+  const niveau = document.getElementById('eau-vague');
+  if (niveau) niveau.style.transition = 'none';
+  g.classList.remove('brille');
+  g.classList.toggle('ouverte', ajout);
+  etiquetteGourde(apresMl - avantMl);
+  gourdeAnim.raf = requestAnimationFrame(etapeGourde);
+}
+function etapeGourde(now) {
+  const a = gourdeAnim;
+  if (!a) return;
+  const g = document.getElementById('gourde'), niveau = document.getElementById('eau-vague'), surface = document.getElementById('gourde-surface');
+  if (!g || !niveau || !surface) { arreterGourde(); return; }
+  let ySurf = GOURDE_SURFACE + (1 - a.part) * GOURDE_COURSE;
+  // 1. Le filet : sa tête tombe en accélérant jusqu'à la surface ; quand
+  //    l'eau s'arrête, sa queue tombe à son tour.
+  if (a.ajout) {
+    if (a.impact == null) {
+      const t = Math.max(0, now - a.t0 - 140);
+      a.tete = GOURDE_SOURCE + 0.5 * GOURDE_G * t * t;
+      if (a.tete >= ySurf) {
+        a.impact = a.debutMontee = now;
+        a.finVersement = now + dureeVersement(a.cumul);
+        eclabousserGourde(a, ySurf, 5, now);
+      }
+    }
+    if (a.finVersement != null && now >= a.finVersement && a.queue == null) { a.queue = GOURDE_SOURCE; a.debutQueue = now; }
+    if (a.queue != null && a.finQueue == null) {
+      const t = now - a.debutQueue;
+      a.queue = GOURDE_SOURCE + 0.5 * GOURDE_G * t * t;
+      if (a.queue >= ySurf) { a.finQueue = a.balance = now; g.classList.remove('ouverte'); recompenseGourde(a); }
+    }
+  }
+  // 2. Le niveau suit l'eau versée (ou retirée), et le total défile avec.
+  if (a.debutMontee != null) {
+    const k = adoucirGourde((now - a.debutMontee) / Math.max(1, a.finVersement - a.debutMontee));
+    a.part = a.depuis + (a.vers - a.depuis) * k;
+    a.mlAffiche = a.mlDepuis + (a.mlVers - a.mlDepuis) * k;
+  }
+  if (!a.ajout && now >= a.finVersement) recompenseGourde(a);
+  ySurf = GOURDE_SURFACE + (1 - a.part) * GOURDE_COURSE;
+  niveau.style.transform = `translateY(${((1 - a.part) * GOURDE_COURSE).toFixed(2)}px)`;
+  const total = texteLitres(a.mlAffiche);
+  if (total !== a.texte) {
+    a.texte = total;
+    const t = document.getElementById('eau-texte');
+    if (t) t.innerHTML = `${total}<em> / ${texteLitres(a.quota)} L</em>`;
+  }
+  // 3. La surface : agitée sous le filet, puis un balancement qui s'amortit.
+  const coule = a.ajout && a.impact != null && a.finQueue == null;
+  let angle = 0, houle = 1;
+  if (coule) { angle = 0.8 * Math.sin((now - a.impact) / 70); houle = 1.45; }
+  if (a.balance != null) {
+    const t = now - a.balance;
+    angle += a.amplitude * Math.exp(-t / 650) * Math.sin(t / 1000 * 2 * Math.PI * 1.25);
+    houle = Math.max(houle, 1 + 0.45 * Math.exp(-t / 500));
+  }
+  surface.setAttribute('transform', `rotate(${angle.toFixed(2)} ${GOURDE_X} ${GOURDE_SURFACE}) translate(0 ${GOURDE_SURFACE}) scale(1 ${houle.toFixed(3)}) translate(0 ${-GOURDE_SURFACE})`);
+  // 4. Sous le filet : ronds, gouttes qui rebondissent, bulles.
+  if (coule) {
+    if (now >= a.prochain.rond) { particuleGourde(a, 'ellipse', 'gourde-rond', { type: 'rond', x: GOURDE_X + (Math.random() - .5) * 1.5, t: now, vie: 620 }); a.prochain.rond = now + 170; }
+    if (now >= a.prochain.goutte) { eclabousserGourde(a, ySurf, 1, now); a.prochain.goutte = now + 95; }
+    if (now >= a.prochain.bulle) {
+      particuleGourde(a, 'circle', 'gourde-bulle-v', { type: 'bulle', r: 0.6 + Math.random() * 0.9, x: GOURDE_X + (Math.random() - .5) * 5, y: ySurf + 1.5, vy: 0.035 + Math.random() * 0.03, t: now, vie: 2600, phase: Math.random() * 6 });
+      a.prochain.bulle = now + 75;
+    }
+  }
+  animerParticulesGourde(a, ySurf, now);
+  dessinerFiletGourde(a, ySurf, now);
+  // 5. Fin : l'eau ne coule plus, la surface est calme, plus rien ne bouge.
+  if (a.balance != null && now - a.balance > 1900 && !a.particules.length && (!a.ajout || a.finQueue != null)) { terminerGourde(); return; }
+  a.raf = requestAnimationFrame(etapeGourde);
+}
+function particuleGourde(a, balise, classe, p) {
+  const zone = document.getElementById('gourde-particules');
+  if (!zone) return;
+  p.el = document.createElementNS('http://www.w3.org/2000/svg', balise);
+  p.el.setAttribute('class', classe);
+  if (p.r) p.el.setAttribute('r', p.r.toFixed(2));
+  zone.appendChild(p.el);
+  a.particules.push(p);
+}
+function eclabousserGourde(a, ySurf, n, now) {
+  for (let i = 0; i < n; i++) {
+    particuleGourde(a, 'circle', 'gourde-goutte', { type: 'goutte', r: 0.7 + Math.random() * 0.7, x: GOURDE_X + (Math.random() - .5) * 2, y: ySurf - 0.5,
+      vx: (Math.random() - .5) * 0.05, vy: -(0.045 + Math.random() * 0.035), t: now, vie: 800 });
+  }
+}
+function animerParticulesGourde(a, ySurf, now) {
+  const dt = a.dernier ? Math.min(40, now - a.dernier) : 16;
+  a.dernier = now;
+  a.particules = a.particules.filter(p => {
+    const age = now - p.t;
+    if (p.type === 'goutte') {
+      // Lancée vers le haut, retombe (pesanteur) et disparaît dans l'eau.
+      p.vy += 0.00028 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+      if ((p.vy > 0 && p.y > ySurf) || age > p.vie) { p.el.remove(); return false; }
+      p.el.setAttribute('cx', p.x.toFixed(2)); p.el.setAttribute('cy', p.y.toFixed(2));
+    } else if (p.type === 'rond') {
+      const k = age / p.vie;
+      if (k >= 1) { p.el.remove(); return false; }
+      p.el.setAttribute('cx', p.x.toFixed(2)); p.el.setAttribute('cy', (ySurf + 0.6).toFixed(2));
+      p.el.setAttribute('rx', (1.5 + 10 * k).toFixed(2)); p.el.setAttribute('ry', (0.5 + 1.6 * k).toFixed(2));
+      p.el.style.opacity = (1 - k).toFixed(2);
+    } else {
+      // Bulle : plonge sous le choc, freine, puis remonte en ondulant.
+      p.vy = Math.max(-0.03, p.vy - 0.00009 * dt); p.y += p.vy * dt;
+      if (p.y > GOURDE_FOND) { p.y = GOURDE_FOND; p.vy = Math.min(p.vy, 0); }
+      if ((p.vy < 0 && p.y < ySurf + 0.4) || age > p.vie) { p.el.remove(); return false; }
+      p.el.setAttribute('cx', (p.x + 0.6 * Math.sin(age / 160 + p.phase)).toFixed(2)); p.el.setAttribute('cy', p.y.toFixed(2));
+    }
+    return true;
+  });
+}
+function dessinerFiletGourde(a, ySurf, now) {
+  const eau = document.getElementById('gourde-filet-eau'), lumiere = document.getElementById('gourde-filet-lumiere');
+  if (!eau || !lumiere) return;
+  const haut = a.queue != null ? a.queue : GOURDE_SOURCE;
+  const bas = Math.min(a.impact != null ? Infinity : a.tete, ySurf + 1.2);
+  if (!a.ajout || now - a.t0 < 140 || a.finQueue != null || bas - haut < 0.6) { eau.setAttribute('d', ''); lumiere.setAttribute('d', ''); return; }
+  // Plus fin en bas (il accélère), et il ondule un peu en tombant.
+  const largeur = y => 3.4 - 1.1 * Math.min(1, Math.max(0, (y - GOURDE_SOURCE) / 90));
+  const centre = y => GOURDE_X + 0.35 * Math.sin(now / 60 + y * 0.4) * Math.min(1, Math.max(0, (y - GOURDE_SOURCE) / 30));
+  const gauche = [], droite = [], reflet = [];
+  for (let y = haut; y < bas; y += 3) {
+    gauche.push(`${(centre(y) - largeur(y) / 2).toFixed(2)} ${y.toFixed(2)}`);
+    droite.unshift(`${(centre(y) + largeur(y) / 2).toFixed(2)} ${y.toFixed(2)}`);
+    if (y > haut + 1.5 && y < bas - 1) reflet.push(`${(centre(y) - largeur(y) * 0.18).toFixed(2)} ${y.toFixed(2)}`);
+  }
+  const lb = largeur(bas), xb = centre(bas);
+  eau.setAttribute('d', `M${gauche.join(' L')} L${(xb - lb / 2).toFixed(2)} ${bas.toFixed(2)} Q${xb.toFixed(2)} ${(bas + lb * 0.75).toFixed(2)} ${(xb + lb / 2).toFixed(2)} ${bas.toFixed(2)} L${droite.join(' L')}Z`);
+  lumiere.setAttribute('d', reflet.length > 1 ? 'M' + reflet.join(' L') : '');
+  lumiere.style.strokeDashoffset = (-(now - a.t0) * 0.05).toFixed(2);
+}
+function arreterGourde() {
+  const a = gourdeAnim;
+  if (!a) return;
+  cancelAnimationFrame(a.raf);
+  a.particules.forEach(p => p.el.remove());
+  gourdeAnim = null;
+  const g = document.getElementById('gourde');
+  if (g) g.classList.remove('ouverte');
+  const surface = document.getElementById('gourde-surface');
+  if (surface) surface.removeAttribute('transform');
+  ['gourde-filet-eau', 'gourde-filet-lumiere'].forEach(id => { const e = document.getElementById(id); if (e) e.setAttribute('d', ''); });
+  const niveau = document.getElementById('eau-vague');
+  if (niveau) {
+    niveau.style.transform = `translateY(${((1 - a.part) * GOURDE_COURSE).toFixed(2)}px)`;
+    void niveau.getBoundingClientRect();
+    niveau.style.transition = '';
+  }
+}
+/* Dès que l'eau a fini de couler (sans attendre que la surface se calme) :
+   couleurs de l'objectif, et un éclat qui traverse la gourde s'il vient
+   d'être atteint. */
+function recompenseGourde(a) {
+  if (a.recompense) return;
+  a.recompense = true;
+  const atteint = a.mlVers >= a.quota;
+  const g = document.getElementById('gourde'), bloc = document.getElementById('bloc-eau');
+  if (g) { g.classList.toggle('atteint', atteint); g.classList.toggle('vide', a.mlVers <= 0); }
+  if (bloc) bloc.classList.toggle('atteint', atteint);
+  if (g && atteint && !a.atteintAvant) { g.classList.remove('brille'); void g.offsetWidth; g.classList.add('brille'); }
+}
+function terminerGourde() {
+  arreterGourde();
+  majJaugeEau();
 }
 
 function ajouterEau(ml) {
   const day = getDay(currentDate);
-  day.eauMl = Math.max(0, (Number(day.eauMl) || 0) + ml);
+  const avant = Math.max(0, Number(day.eauMl) || 0);
+  day.eauMl = Math.max(0, avant + ml);
+  verserGourde(avant, day.eauMl);
   saveData(currentDate);
   majJaugeEau(day);
-  animerGourde(ml);
 }
 
 /* Une boisson notée en ml compte aussi pour l'hydratation du jour, sauf
@@ -7837,9 +8062,9 @@ function retirerEau() {
   const day = getDay(currentDate);
   const avant = Number(day.eauMl) || 0;
   day.eauMl = Math.max(0, avant - 250);
+  verserGourde(avant, day.eauMl);
   saveData(currentDate);
   majJaugeEau(day);
-  if (avant > 0) animerGourde(-Math.min(250, avant));
 }
 
 /* Besoin en EAU BUE du jour — calculé automatiquement, jamais un réglage :
