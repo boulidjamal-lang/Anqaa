@@ -2026,6 +2026,21 @@ test('compte : le nom choisi à la création n\'est pas redemandé quand Supabas
   assert.equal(r.fenetre, false, 'le nom d\'utilisateur est redemandé');
 }));
 
+test('accueil : « Bonjour » suit le nom d\'utilisateur, jamais le début de l\'adresse email', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    supa = { from: () => ({ upsert: () => ({ then: ok => Promise.resolve({ data: null, error: null }).then(ok) }) }) };
+    sessionUtilisateur = { id: 'u1', email: 'boulid.jamal@gmail.com' };
+    monPseudo = null; renderApp();
+    const salut = () => document.getElementById('salut-nom').textContent.replace(/^Bonsoir/, 'Bonjour');
+    const sansNom = salut();
+    await enregistrerPseudo('jamal.fit');
+    return { sansNom, avecNom: salut(), fiche: document.querySelector('#vitrine-profil .pf-id h3').textContent };
+  });
+  assert.equal(r.sansNom, 'Bonjour');
+  assert.equal(r.avecNom, 'Bonjour Jamal.fit');
+  assert.match(r.fiche, /^@jamal\.fit/);
+}));
+
 test('bibliothèque : classiques en tête puis l\'alphabet ; icônes d\'aliments ; objectifs du premier lancement', () => avecAppli({}, async ({ page }) => {
   const r = await page.evaluate(() => {
     const noms = () => [...document.querySelectorAll('#picker-liste-exercices .exo-ligne-nom')].map(n => n.firstChild.textContent.trim());

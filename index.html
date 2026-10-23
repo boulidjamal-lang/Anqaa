@@ -7337,7 +7337,9 @@ function majSalut() {
   const n = document.getElementById('salut-nom');
   if (n) {
     const h = new Date().getHours();
-    const qui = sessionUtilisateur ? (monPseudo ? monPseudo.pseudo : (sessionUtilisateur.email || '').split('@')[0]) : '';
+    // Le nom d'utilisateur, jamais le début de l'adresse email : sans nom
+    // (pas encore chargé ou pas encore choisi), « Bonjour » tout court.
+    const qui = sessionUtilisateur && monPseudo ? monPseudo.pseudo : '';
     n.textContent = (h >= 18 || h < 4 ? 'Bonsoir' : 'Bonjour') + (qui ? ' ' + qui.charAt(0).toUpperCase() + qui.slice(1) : '');
   }
   const serie = joursDAffilee();
@@ -13956,6 +13958,8 @@ async function basculerPartageSeances(actif) {
   majUIPseudo();
 }
 function majUIPseudo() {
+  majSalut();
+  renderVitrineProfil();
   const v = document.getElementById('profil-pseudo');
   const partage = document.getElementById('profil-partage');
   const note = document.getElementById('profil-pseudo-note');
