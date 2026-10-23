@@ -1679,7 +1679,8 @@ test('thème « Auto » : suit le réglage clair/sombre du téléphone, même en
     actif: document.querySelector('#segment-theme [aria-pressed="true"], #segment-theme .actif')?.textContent.trim() || null }));
   const sombre = await lire();
   await page.emulateMedia({ colorScheme: 'light' });
-  await page.waitForTimeout(50);
+  // Le navigateur signale le changement à la prochaine image : on l'attend.
+  await page.waitForFunction(() => document.documentElement.dataset.theme === 'light', null, { timeout: 3000 }).catch(() => {});
   const clair = await lire();
   assert.deepEqual([sombre.theme, sombre.pref, clair.theme, clair.pref], ['dark', 'auto', 'light', 'auto']);
   assert.equal(clair.actif, 'Auto');
@@ -1687,8 +1688,8 @@ test('thème « Auto » : suit le réglage clair/sombre du téléphone, même en
   await page.evaluate(() => choisirTheme('dark'));
   await page.emulateMedia({ colorScheme: 'light' });
   assert.equal((await lire()).theme, 'dark');
-  // Flou : présent d'ordinaire, coupé avec « réduire la transparence » ou peu de mémoire.
-  const flou = () => page.evaluate(() => getComputedStyle(document.getElementById('onglets')).backdropFilter);
+  // Flou derrière les fenêtres : présent d'ordinaire, coupé avec « réduire la transparence » ou peu de mémoire.
+  const flou = () => page.evaluate(() => getComputedStyle(document.querySelector('.modal')).backdropFilter);
   // Un changement de thème retire le flou une image (deux fois, à 80 ms d'écart) pour forcer le repeint.
   await page.waitForFunction(() => !document.documentElement.classList.contains('theme-repaint'));
   await page.waitForTimeout(200);
@@ -2159,15 +2160,65 @@ test("bande unie en haut (contre le flou d'iOS) : couleur du fond, absente du Pr
 }));
 
 test("barre d'onglets : l'icône de l'onglet actif garde tous ses traits (manche de la fourchette de Repas)", () => avecAppli({}, async ({ page }) => {
-  // Un dégradé calculé sur la boîte de chaque trait ne peint pas un trait
-  // parfaitement droit (boîte de largeur nulle) : il doit être exprimé dans
-  // les coordonnées de l'icône.
+  // L'onglet actif se dessine d'une couleur unie, celle du texte : tous les
+  // traits sont peints. (Un dégradé calculé sur la boîte de chaque trait ne
+  // peindrait pas un trait parfaitement droit, de largeur nulle : celui qui
+  // reste défini l'est dans les coordonnées de l'icône.)
   const r = await page.evaluate(() => {
     allerA('repas');
     const g = document.getElementById('grad-onglet');
     const icone = document.querySelector('#onglet-repas .icone-ui');
+    const temoin = document.createElement('i');
+    temoin.style.color = 'var(--text)';
+    document.body.appendChild(temoin);
+    const texte = getComputedStyle(temoin).color;
+    temoin.remove();
     return { unites: g.getAttribute('gradientUnits'), actif: document.getElementById('onglet-repas').classList.contains('actif'),
-      manche: [...icone.querySelectorAll('path')].some(p => p.getAttribute('d') === 'M7 2v20'), trait: getComputedStyle(icone).stroke };
+      manche: [...icone.querySelectorAll('path')].some(p => p.getAttribute('d') === 'M7 2v20'), trait: getComputedStyle(icone).stroke === texte };
   });
-  assert.deepEqual(r, { unites: 'userSpaceOnUse', actif: true, manche: true, trait: 'url("#grad-onglet")' });
+  assert.deepEqual(r, { unites: 'userSpaceOnUse', actif: true, manche: true, trait: true });
+}));
+
+test('habillage sobre : accent noir (blanc en sombre), silhouettes en couleur avec les muscles travaillés en rose', () => avecAppli({ theme: 'light' }, async ({ page }) => {
+  const lire = () => page.evaluate(() => {
+    const fill = el => el ? getComputedStyle(el).fill : null;
+    const vise = sel => document.querySelector(`${sel} path[fill="var(--corps-cible)"]`);
+    const neutre = document.querySelector('.sdj-corps path[fill="var(--corps-neutre)"]');
+    return { primaire: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+      sdj: fill(vise('.sdj-corps')), programme: fill(vise('.pc-corps')), neutre: fill(neutre) };
+  });
+  await page.evaluate(() => {
+    const exo = toutesLesExercices().find(e => e.nom === 'Développé couché avec barre');
+    musculationProgrammes.push({ id: 'pc', nom: 'Push', exercices: [{ exerciceId: exo.id, series: [{ poids: 60, reps: 8 }] }], maj: Date.now() });
+    allerA('seance'); choisirModeSeance('muscu');
+  });
+  const clair = await lire();
+  await page.evaluate(() => choisirTheme('dark'));
+  const sombre = await lire();
+  assert.deepEqual(clair, { primaire: '#0b0b0c', sdj: 'rgb(219, 39, 119)', programme: 'rgb(219, 39, 119)', neutre: 'rgb(212, 212, 218)' });
+  assert.deepEqual(sombre, { primaire: '#f5f5f7', sdj: 'rgb(244, 114, 182)', programme: 'rgb(244, 114, 182)', neutre: 'rgb(46, 46, 51)' });
+}));
+
+test("image de partage : noir et blanc quel que soit le thème (barres blanches sur fond noir, grille fine)", () => avecAppli({ theme: 'light' }, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const exo = toutesLesExercices().find(e => e.nom === 'Développé couché avec barre');
+    musculationHistorique.push({ id: 'h1', date: todayStr(), programmeNom: 'Push', dureeMin: 50,
+      exercices: [{ exerciceId: exo.id, series: [{ poids: 60, reps: 8, fait: true }, { poids: 60, reps: 8, fait: true }] }] });
+    allerA('stats');
+    ouvrirPartageStats();
+    const img = document.getElementById('partage-stats-img');
+    for (let i = 0; i < 100 && !(img.src || '').startsWith('data:image/png'); i++) await new Promise(r => setTimeout(r, 50));
+    await img.decode();
+    const cv = document.createElement('canvas');
+    cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+    const x = cv.getContext('2d');
+    x.drawImage(img, 0, 0);
+    const px = (a, b) => [...x.getImageData(a, b, 1, 1).data.slice(0, 3)];
+    // Fond hors grille ; première barre (muscle le plus travaillé, pleine largeur).
+    return { taille: [cv.width, cv.height], fond: px(30, 30), grille: px(61, 30), barre: px(540, 977) };
+  });
+  assert.deepEqual(r.taille, [1080, 1920]);
+  assert.deepEqual(r.fond, [10, 10, 11]);
+  assert.ok(r.grille[0] > 15 && r.grille[0] < 40, `grille visible mais discrète : ${r.grille}`);
+  assert.deepEqual(r.barre, [245, 245, 247]);
 }));

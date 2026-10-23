@@ -20,7 +20,7 @@
        désormais le thème choisi DANS l'appli (clair par défaut, sombre
        explicitement), pas le thème du système — voir le script tout en bas
        du <head> et appliquerTheme(), qui la tiennent synchronisées. -->
-  <meta name="theme-color" id="meta-theme-color" content="#eaeef5">
+  <meta name="theme-color" id="meta-theme-color" content="#f2f2f4">
   <meta name="apple-mobile-web-app-title" content="Askēsis">
   <!-- apple-mobile-web-app-capable : lancée depuis l'écran d'accueil sur iOS,
        l'appli s'ouvre en plein écran (sans barre Safari) plutôt que dans un
@@ -32,12 +32,11 @@
   <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAACNklEQVR42u1WzU4aURS+v6ihuql2w6bS8hQsnNi9fQJ8grZPYFM2PoF9AvsuLGEBNtqdC7WJBFwAcu/562LEmAJhhkC66ZdJJpncOd/5zs89R4uIWieMWjP+E/x7ArfEP/MKT2s94+PM0yIy8/QS0Av7QCYwxqSsAEDEIswiwswiTOScKxaL0265mb6fn/+4u7tVSgMCEyFSCEEbXf9Wv76+Pj09NUbHCIhAxMaYbrd7+OHw68kJEVlrF+eg2Wz+urra3ds1xhIRADDz/f19p9PpdDrtdnt7+xUAikiM8fHxcTAYJEkyMxi2Xq9Pi3i7X1Zad7vdh4c+EXvvrbUhhBDj5eVlv9/zvhBCGA6HxWKxWq1++vzl6Ojj5saG9y5rDkSpu9vfzVaz0Wj8vLiIMTjnx+MxM8cYR6NRqVQ6OEiSJHlfqWxtbSoR5+x0DuZWETOnWR2HeHNz8/3srNVqee+JsNfr146Pa7XjnZ0da7QIW2v/Cv2CRtNaW2u11sxstHpX3i+Xy8PhgIgQCSBWKpU3e6+1YudsoVCYZ31xoxljrLUiAgAxAgAgIhEjolLKe7+wXTJ1ciolxggARESE2dsw61WBiBP3CZGEecUELPxMwMxKrVqBsAAgIjIzEWW2n0OBECFRKoBXf10L83N81kKQRmYJApN9yPALqMzLTj4CeRoCkr2KcszkdOyk7+xVZHJZf4l1KXiyLqtXkD753M+lQNTE7Vzb8jIhUutI8stYzduxZuIP0pvZWiDErxMAAAAASUVORK5CYII=">
   <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAV0ElEQVR42u2dW3MbR3bHz+keEBeCBElQEinJEimCF0eqTVWcjbOuyiapytpOthI7b+u8JPkIfnRVtrKfYPNtnJRr4/WtIkqWrZsleiWKuhRJrWWRpk0CJGem++ShZwY9NxCkZJCa6WMXNQBBYND9m/+59cwgEYExY0nGzBAYM3AYM3AYM3AYM3AYM3AYM3AYM3AYM3AYM3AYM3AYM2bgMGbgMGbgMGbgMGbgMGbgMGbgMGbgMGbgMGbgMGbMwGHMwGHMwGHMwGHMwGHMwGHMwGHMwGHMwGHMwGHMmIHDmIHDmIHDmIHDmIHDmIHDmIHDmIHDmIHDmIHDmIHDmDEDhzEDh7HnYJYZgoNZz24ogIiH9R3xqN01ocf7s+fQP/v+HPgd4vvWY1AOGY7uP/357uee4x77uITPJyL1N/TjsxvfyDIc+ufG94HoRx3zboebiNS++T8hAkOHwaPgZV1+j2B39JAQERkGO6n/zCYcwSdKKcPjTonDve9RThl6hCgNjHUacbVjjDFvrwKVwJRpfS6DowQJkYgYopQkhEBERPB3s3d89BoO/eN67EGJCBCllGr0GWOO7ai5R2wjokkFuq7bbDaFcAnAtm0pJZF0bCcgGwBcIYQrAGhndxcBHMcVQgSSAwC2bQOQ67qO4wCgbe9KqT5CEoEQQgihXkYkpZSO7RBAoWB9++3TN958489fecW2HcaYj0jv+DicbIWIHMfZ2NhQQ+m4DhHZtk1EJMlxbCJSBw0A2bYDAEII27YRQQhp2zYCuEKoSbJtGxFdx7EdBxH9USYpJWMohFCz4jgOEUkpXFe4rvOrd955+eU523Y44wAYdhbe9nvvvbe5uVnprwCREFJKyRhzXdfXC0IEIiAixpiUQomI6zqMccaYej0RqdlUDwFASsG5pfhgjEspOWcAIIQsFCwpiXM+Pz+/vd06c+alV/7sFSEFMgBigIge5L04rqzey4YQwrKsu3cX33333bNnz0oppZTqkFU/1aQqVVOjYFmcSA0lk5IQAZEREec8+EMAQmRqMtRYqymUUnLOGUMpiTHGGLt48eLg4AAQ/Mevf01EQgrGGJI6ItUeyr6+wtd/+MMHH3zw2ms/U1JBpHZNqgOdiIQQ6uOkFESgNMl/HiPPKCYUdeqt1AsU3/pDtf9PnjwZGzvBORdCkCQpiTFCQvKjkmBwsgBHINdqgIRw7969++qrrxaLfVJKqRw8Mtd1OedKIRhD1xUqOFBaooYYEYWQAISISiEA1AR4bGkjTkII13XVvEpJhYI1MFAFgJXVlfv3709NTTmODQDIGCMV8aCQAqDwv7/7XaVS3tzcevLkCedMTXQwf4EFYau/HfqyWpySEIIr4dH9rHqvQqGghEdIKYSQUjLJJEhgwIApgrWjIktuJRgYgOXl5VKpKIRsJ4eYGJySlikEcRL5r9QDBdL/PHgmeMHODg4O1h4/Xt3a2rp+43qj0XBdUUAEAOm5c0JE13V///uP6vXRVmu7UCgAACLpWGhvG3r/OBk6Lh3SNO3gISVIAECShJRCSiYlR0ZEhNCzSM3quWx446EOQcuyGOMK/3g+m8ZHaPCjcxOdMyJSUaZ6vZSyXC5JSbZt37xx4/XX3+QMhZAcENB7abFYvH3r9tLS0szMzMbGdwq+OBZJH9o9GaFMIDEtUFGO+imlZIiA5CVOPQHkEHorKjUlX5+V2vvemXx/rD/pPfS9fuiV4YcdTD/osVKpbG01l5eXHz64zzhXKYNyRMIVDPHDDz9kDBHbcUMQsQYcJGkVxR2oBgpp5ZNoKSV+LKEf2ah9kN7HhLnLBhzteoYXc0g9t4/4cX+4Qw+1YzU6C9rP9gf5MxohAxzHqdVqrVar1WzduHkTkbnB4SklANi28/HHH42OHmu1tv1EJvom2gakK0dUQmLiQbGSm/Ykgn64qO/XyybD4SlHGAUtpIgyoU9E2EEleHkdFB8R0I97lS6VSiUp5a69e/vWra2tLQBQdAghisXiwsLC0tL9oaGhnZ0dRIy/SczDRSaeEmNwfeLDetH+jSpj+N4QXddVsgHUm7rx4cER4V1VohBROY44KDFEQD8sE/mIHMphSkh7hsrlUrPZfPx49dHDh5xbQghJ5LqiULA++ugjvyAhNWRDiIQ3IqFlKiiJ2zoWrutub29vbm4iosrD/e9PQRiWTTj0obFt27bt9fU1x7E5t/yiUDjyCyESFfVgZMNKH4pJdSwCWQIAx3EHBgabzWar1frq1k2VGwshAKHZ2v74k49HR0dbrZZ/EEP8DcMbemTaIeyIiwf5FU+ybbvZ3Go2W7Ztu647PDx84sRxx3W8srkKQfH5FuuPZIVU5Snlcumrr25VKpV6vT46OjowMGBZXMXn4R5GqOmVlLMEcwCJ2YouPOp/KYVKoW3b/nphodVsqrC0XC7fuXPnwf0HjUZjY2NDm84IZ8nKkVTkSN1QOZoQrm07ruuqQpllWcPDI2fOnJmdnZ2ammo0ZqSUyNhhsNFbONSByBnf3d2dm5v77W//6/33379x48ajR4+Wl5cHBwePHRsdHh6pVCqIKKXwVR1TKgKdU9lI/BivXEGpVNraaq6uPn7w8MHMzOz29natNvTpp5+qwpJf7Y5ioaOQVt6IxaEUL3bZtu04jkpGELG/v39s7ESjMT03Nzs5eW785KmRer1ULBIRR4Za861nbanDUA4EVUv4h1/+8q9+/vOF2wsXL/7f/KX5xbuLd+7cLRaLw8ND9fporVYrFvtUayoW1aeJR7wwFU00giPedd2BgYGnT9e2W63bt2/Pzb4MRK1W69NPPqnX69vb25pPobhfSA2J05VD1fcCqVCRpmVZ9Xp9YuLs7MxsY3r69Jkzo/XRSqWfc4Z+q4G1227gtwiz1Xjzy72AhIhMkmg1mwzZT/70J+cvXHj77X++efPGxYsXr179cnl55Ztvvunv7x8eHqnX69Vq1bIslUzE84KOZCRnK2HP4u7a9tcLC5u/2CyXy3fv3Lm3uDjVmNrY+D4xRIino2maodV80W8QOrpUVCqVsbETjUZjdnZ2YvLc2Nj44GDNKhTQD4EZt7jFOWe+IfNb9pmNORARCBhDy7JcV9i27bpisFb767/527/82WsryytffvnFpUvzt27dWllZXllZGRwcrNdHhoeHy+Wyan5qNZLEkBAS65iJnqVcLrdazT/+8fH9+0s//elffPbZZ+CnCSphSUOki8K592VVs951HSE8qRgdrZ89e3ZmZmaq0Th9+kx99Fi5XGbIAAiBuMcDZ5xxzrjq8HrdehbkNT0Qj96t5wgGzutgkZRCqsKkEMIVwnVcIGKcc863traWlpYuX770xZUri4uLW1tbhb6+oVptZGSkVqv19fWpTptqxaXAkVCz0vpkXqnUcZz19bWXTr/0d794/Vfv/Mu//9u/bm7+UCqVdnZ2uumkJJIRSIXjOI7jeRBE7O+vjI2NT097UnH8+ImBgcFCX5+SMtZWCM88MnxUlHb0cknHoSgHeMtrGHI/l0ZEhqhw2XXdvr6+CxcunD9/4a233l64fXt+/uK1a1dXVlaePv22XK4MDQ8PDw1Vq1XOOZFUR2QiIpFt7aHnWYrFohByZ3fn0aOHN2/eePjwweTkxPff/5CYp6Q187QEBNQSIZWOqmipUCiMjtYnJibm5uYa0zOnT780NDxSLpXQXwyiZl9VfTwEWJsHteUv9OnpYp+ergTTDzgpiUB1UEj1pjUj6beqOePcshzHWVlZvn7t6vz8/MLC7bW1NQCsVqvDw8O1Wq1cLiOien241xVBJOpZiKRlFdbW1jhnFy5cYNz6/NKlk6dObWxsqL5ox2ZbtC2ilh3Ztq0nIOPjY9PT07Ozc5Pnzh0/MVatVi2/oqO0wcOijQb6P9B/jIwxz6kwAGA9C0gPZ5mgv7YFCCT5bSUfDJLeM21KAIBzzhhvNrfuLS5evnzpiy+u3Lu31Gw2C4VCrVYbGhqqVquFQgHAW7KlZ7lx/QgMEVxXrK2tXbhw/tq1aydPnlJJZqJXijiXYLWAkopgHaFl9dXrIxMTZ+fm5hqNxqnTLw2P1EvFUrACw4sxvQqxmv42Ez4niMhUDsu8RcY9lY1DhKMdJMqgryTbbVZPUDREVLaCiJZVIIK1p09v3f7q0vz89evXVldXHccplcqDg4O1Wq1SKXNu6Y20SNihz7SUslAorK6ujo+PraysTk5ObmxsBN2NyEIDDSkvqtjd3VUeJJCKkyfHp6enZ2dnJyYmj58Yrw4MWJyrb+67Ch8HH4JAPNrAIKgXBDzkbvV5u/EGoS6c1yTX+VC4SBXFSpKScW5Zlm07KyvL165enb908euFhfW1dQKoVCq1Wq1arZZKRVUXjyzf8gXAW5lnWdbm5uZ3362r4soPP/yg1hQmrtvwpcLZ2dlVeamKKkZGRs5NTs69PDc11Th56vTwyEipWEYEIIJAKtTU6x7E+8//x3MwkaXE2lYezluJl7Ha8R1oIUkgJBFWJEkhhVTuxmKMNZtbi4uLVz6/fOXK50tLS1tbzUKh0N/fPzg4WKlUVJkkMXkJKtn37t2bnZ1xHFctY46s/FMvU1HF7u6u4ziBVJw6OT49MzM3Nzcxee7Y8RP9/VVPKoAQmR5s6lLhew/0eYnIRKjSdShkwOGe8ZZQ6SS/Qw+hJToycDte/ErB+nK1UgoQC4WClLS29vTWV19dujx//dq1x48fO45TLJaq1erIyAjnPFFC1Arkzc3N0dHRzc3NeIQRbKvl8kSyr6+vXh+ZnJyYm5ubnp4dP3lqaHikWCyqBKRTVOGLR6pUeLEFQLjedShnzB6h0yETO1htjyOpneaE3Y0KSQJ3w7nlOPajR4+ufvnl559fXli4vb7+3czMDCLqcETyl2q1atu21omNVkoQcXV1tVAonD//J1NTU41G4+zE5LFjJwYGBzlnqiLarmYGusCZCibCUsHCiWmqVMChnkh9yGfZB988iPKCKrt/pgISECEQSgULY0TEpJTEmK4lanm4FEKd9jI5OTk5ee4f/+mt//nv93/zm/+MT7kuDKpgpScp2m/buyel7OvrGx0dfePNvx8fP1Uo9CFTtQoNC5YSVQTOIywVoJ1SdYge5CjC0R0lAASEXBeS4GQFYiSJeXioM1tIkpBCCsdx+/v7J89NadkHpXgN2N5uxQskAAn6sb6+XipVSuWy49gWWNyyeLS4GZIK35MAMvSqfQBHUyqOKBwdKAma9p6QoApNiIiQEUliRMQ84ZCMSXWah2DqZBQh3KCyEl6HEWmaQHw7sVPPvXgTLG5ZFudBa0x1QfzQwscD2xaTCtQWaBwdJo4uHBFKkoUEQVFC5LkdImIMlLuRiJIxgZKALMuyLA4A/umpad0WSIwzIuLht1sRGXLGJAD3LGiBMIaMsyADURLBMNxqx/CinSOIxVGHoyt3A0gYiluVlEuhzq+UnHOGTJtsGWubdVhWnvBbJVkMGWcMETy94Jp+MJaSgBxd9/GiwrG3uwGlIQgIkohQeicuC5Rccs4YZwDJbbO05m0ckXZK5V+zRUkHZ5xZnLNAOyJVi8OvVeQCjlR3A0je2e7EEaVkhCQBOJCUXrU61ipLgCOtFx8/qwCAVEBB6PkXzttk+LrxQkrFCw9HZ3fDGBABMCZBKpEHVN4kURg6rNKINuXDnw6MMQkQxJ4BGV5L5MWUiozAEReS0HwQaDkCpEgCRdYXdl7Co4uHVrkKRRftYOMFxyIjcMSFJD55ANA5pEhcq5FGRhDuIEEQcwbLf7OBRabgiFFCSFr62B0csMcp86FPQRVz6G1TDOFo4HgxgOmQjCShkCoe8cgjMyKRWziSlSN2QgPEfhVfJQQ9PZHZwPHjOxoAgOCyY93BkeZWckRGXpQjUiGNw7HnBTYS3YqBI2NupbM8JFzuLfKHBo6cxBx7SEXsV2jgyCIZAEQSgHWAY88njXJkOOiA8NUMUz1IejSqBbkGjmykKo7jxHsraVeTTbwyZOSnlNJxXQSUZOB4wU0IGS+ApgORyod+swd1gSijHBlLZTtdXKXLyzWZmCN7+iE4511eXjhxwz+vyVRIs6gcEf3ooBkHkA3SLnDXg/sZGDh+FD66dhzRaw5nuMGWXzgIOsUZiRee7nCHA+zx1R4NHL3Uji4dRxIWSXfoM3Bko+SRBkeXfJgKacbD0f0ykfTQwJGPgHRf2zkUj9y4FYJu3ArsdTdkA0c22cDwxUhiN8HYw7OQX8rA9m0kDRwZciudQ4ouog3jVvIUc3T/UN0d0sCRcfHoUhhSKCFTBMsgGcF96vflO/RTIP0NoxzZlY0DIGJS2bzEHB2mfy9oDBxZJANSTi/okpKIZzFwZC/moI4ikUhJ+8mUe6obOLLgUBKChkSFSKtnhF2SgSNbkHhXEEuZ2z1BCfuUXJRIcxqQdqQkTTnApLJZlQ3ocA2FDqXxWIWU8oNHTuBAf9FvVx3XzikrYl5qpDlJZVOu69UVKBC7iDFAPlpwOXIr3TiR7n5rYo7MeBT/aoJpyrFnLz5YCKalKmjgyIJeOK7bZckrJg+5XgaWeeUgAHAdJ60Iti/x0NIWcwmGbLmVyDqMbpZ1pbfv0WQr2ctZqJuspItQlPybGhs4skKGXv/uckFoYvAhpXRdkYcOrVEO2C8xYC77lG3l2FdKor8yVys68tGyh32cspauHxjcIjKomnqvz+hZCzm5muBzqGcQgXZvR6McWXQr+y1wBa9XYBBJP+ow6zmyFY12uUI4DSBE75pgJiDNlO3pCPanKGi6shnRjNT082AdeETTeMuOaLRReJb1GNoyQXM6ZAYD0n0zoaWoFNwtLj/Vjhw03g7uiZJhMm4lX9a9u1HVDpOtGBpSk2LTss8gDc++QJi8ModxK9nC41mYgORCCBo4TCDSzlaITG8lW0nswWjoFHOYgDRn2gDdre0w91vJfkB6wPijXYw31yE1AWkkTyEiIWROrlJrAtL94UVERBLz0ZVlZs670QzlTbSLVZo6R0YMD0BDkmy0z7k1AWluc5bkcFVVOLyurIEjI7qBadnKftMWAmC+VzFuxWQrMc6UW8mJcpiAdL8+iHITjxo4DqhAaODIgrmu+7zTWjKNN2MJAWy7zmHK57lPaJPTGZPKZiuX3ZuArtJaLSA1vZVsCsOztN9M+TxLwhEC4lnrHMF7msZbFkzK59gM8e4ra+ocWQo5nhsduVoJZopgBxMQUwR70YPQ9rFOz/ld8fmEtyYgPUpR6QGzm8jz5qSm3OW33chQvixHl2AAwH2VQTtEuKa3kskgJO83QjABaTTQQMTEG9n3LIIxcOQgrEVUPgXz0ZU1cBjtyDUc+CO8YS66KzmAA5/PLObwpsM56K14JyM9+6SSFnuYi9RmLY890N9QTDlyM2S5unhL+I7UBwQGwdzLPnOIHOx+wZSybXorWfYsB48Z8uNW/h//IiyT1RdsHgAAAABJRU5ErkJggg==">
 
-  <!-- Importation d'une police haut de gamme (Outfit) -->
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet">
-  <!-- Cinzel : réservée à la marque (nom "Askēsis" dans la barre du haut et
-       l'écran de démarrage) — gravée/impériale, très différente d'Outfit qui
-       reste la police de tout le reste de l'appli. -->
+  <!-- Police de l'appli : celle du téléphone (San Francisco sur iPhone) ; Inter
+       seulement là où elle manque (Windows, Android). -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <!-- Cinzel : réservée à la marque (nom "Askēsis") — gravée/impériale, à
+       côté de la police du téléphone qui sert à tout le reste de l'appli. -->
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;900&amp;display=swap" rel="stylesheet">
   
   <!-- Version figée (2.3.8) : sans numéro de version, unpkg sert toujours la
@@ -311,7 +310,7 @@
       /* Filet de sécurité : si le script ne prenait pas la main, l'écran s'efface seul. */
       animation: spl-secours .4s 6s ease forwards;
     }
-    :root[data-theme="dark"] #splash-screen { --spl-fond: #06070a; --spl-muet: rgba(244,247,251,.5); --spl-reflet: rgba(15,23,42,.3); }
+    :root[data-theme="dark"] #splash-screen { --spl-fond: #0a0a0b; --spl-muet: rgba(244,247,251,.5); --spl-reflet: rgba(15,23,42,.3); }
     @keyframes spl-secours { to { opacity: 0; visibility: hidden; } }
     /* Le fond à part : il s'efface pendant que le T, lui, reste et s'envole. */
     .spl-fond { position: absolute; inset: 0; z-index: -1; background: var(--spl-fond); }
@@ -3684,7 +3683,7 @@
     body.sur-reglages .bord-haut { display: none; }
     /* Pendant l'écran de démarrage : la couleur de son fond. */
     html.spl-actif .bord-haut { background: #fff; }
-    html.spl-actif[data-theme="dark"] .bord-haut { background: #06070a; }
+    html.spl-actif[data-theme="dark"] .bord-haut { background: #0a0a0b; }
     html:root .app-bar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
     html:root :is(.titre-ecran, .titre-section, .salut b, .anneaux-centre h1, .reste-kcal, .heros-puces b, .carte-stats-valeur b, .eau-texte, .meal-title, .meal-kcals, .cle-val, .feuille-titre, .modal-entete h3, .semaine-num b) {
       font-family: 'Manrope', 'Inter', sans-serif; }
@@ -3756,6 +3755,321 @@
       html:root body.sur-repas #ecran-repas > * { animation: none !important; }
     }
 
+
+    /* =====================================================================
+       HABILLAGE SOBRE — noir, blanc et gris, comme le logo
+       Une seule police (celle du téléphone), des surfaces unies, un seul
+       style d'icônes. La couleur ne sert plus qu'aux données : calories
+       (blanc en sombre, noir en clair), protéines, glucides, lipides, eau,
+       zones des muscles, muscles travaillés (rose), bon / mauvais. La
+       grille fine du fond reste.
+       Posée en dernier : elle reprend la main sur les couches précédentes
+       (verre, néon, dégradés), d'où les !important.
+       ===================================================================== */
+    /* Jetons communs aux deux thèmes (même poids que les thèmes d'origine,
+       placés après eux) : l'accent devient la couleur du texte. */
+    html:root, html:root[data-theme] {
+      --police: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', Roboto, sans-serif;
+      --primary: var(--text); --primary-txt: var(--sur-inv); --primary-glow: transparent;
+      --accent: var(--text-muted); --ai-color: var(--text); --ai-solide: var(--inv); --danger: var(--alerte); --icone: var(--text);
+      --fx-fiche: var(--corps-cible);
+      --verre: var(--s1); --verre-fort: var(--s1); --verre-creux: var(--s2); --verre-brd: var(--ligne); --verre-brd-vive: var(--ligne);
+      --verre-hi: transparent; --lentille-rim: none;
+      --piste: var(--s2); --carte-plein: var(--s1); --trait: var(--ligne); --barre: var(--bg);
+      --ombre: var(--ombre-carte);
+      --pg-bon: var(--ok-t); --pg-mauvais: var(--attention-t);
+      --ambiance: none;
+    }
+    html:root, html:root[data-theme="light"] {
+      --bg: #f2f2f4;
+      --s1: #ffffff; --s2: #efeff2; --s3: #e1e1e6; --s-fen: #ffffff;
+      --ligne: rgba(0,0,0,.075);
+      --text: #0b0b0c; --text-muted: #6b6b72; --t3: #a1a1a8;
+      --inv: #0b0b0c; --sur-inv: #ffffff;
+      --protein: #ef4136; --carbs: #e3940c; --fat: #6c63f0; --eau: #0a84ff;
+      --ok: #1e9e4a; --alerte: #e03a2f; --attention: #d97706;
+      --ok-t: #157a3a; --alerte-t: #c42a1f; --attention-t: #b45309;
+      --verre-lo: rgba(0,0,0,.04);
+      --ombre-carte: 0 1px 2px rgba(0,0,0,.04), 0 6px 20px -10px rgba(0,0,0,.12);
+      --ombre-haute: 0 18px 44px -16px rgba(0,0,0,.28);
+      --grille: rgba(0,0,0,.045);
+      --corps-cible: #db2777; --corps-neutre: #d4d4da; --corps-contour: #e8e8ec; --record: #a16207;
+    }
+    html:root[data-theme="dark"] {
+      --bg: #0a0a0b;
+      --s1: #161618; --s2: #222225; --s3: #2e2e33; --s-fen: #1c1c1f;
+      --ligne: rgba(255,255,255,.075);
+      --text: #f5f5f7; --text-muted: #9b9ba2; --t3: #62626a;
+      --inv: #f5f5f7; --sur-inv: #0a0a0b;
+      --protein: #ff6b5e; --carbs: #f5b53d; --fat: #9b93ff; --eau: #5ac8fa;
+      --ok: #32d74b; --alerte: #ff453a; --attention: #ff9f0a;
+      --ok-t: #32d74b; --alerte-t: #ff6961; --attention-t: #ffb340;
+      --verre-lo: rgba(255,255,255,.04);
+      --ombre-carte: inset 0 0 0 1px var(--ligne);
+      --ombre-haute: 0 18px 44px -16px rgba(0,0,0,.8);
+      --grille: rgba(255,255,255,.04);
+      --corps-cible: #f472b6; --corps-neutre: #2e2e33; --corps-contour: #1c1c1f; --record: #f5b83d;
+    }
+
+    /* Une seule police ; chiffres alignés. Le code (Administration) reste en chasse fixe. */
+    html:root body { font-family: var(--police) !important; background: var(--bg) !important; color: var(--text); }
+    html:root body *:not(.marque-anqa) { font-family: inherit !important; }
+    html:root body :is(code, pre, kbd, samp, .bloc-sql) { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace !important; }
+    html:root body :is(b, strong, h1, .reste-kcal, .eau-texte, .meal-kcals, .carte-stats-valeur b, .heros-puces b, .hx-geant, .cle-val, .bt-n, .stats-valeur, .bilan-geant b, .bilan-tuile b, .serie-ligne input, .repos-chrono) { font-variant-numeric: tabular-nums; }
+
+    /* Ni halo d'ambiance, ni lentilles de verre. */
+    .etat-bg { display: none !important; }
+    html:root body :is(.verre, .app-bar, .btn, .feuille-action)::before { display: none !important; }
+
+    /* Titres */
+    html:root body .titre-ecran { font-weight: 700 !important; letter-spacing: -.035em !important; }
+    html:root body .titre-section { font-weight: 700 !important; letter-spacing: -.02em !important; }
+    html:root body .titre-section > .icone-ui { display: none !important; }
+    html:root body :is(.modal-entete h3, .feuille-entete .feuille-titre, .feuille-titre, .hd-titre, .sdj h4, .bilan-heros h4, .hx-titre, .pg-heros h3) { font-weight: 700 !important; }
+
+    /* Petits libellés : en minuscules, gris, sans espacement de lettres. */
+    html:root body :is(.summary-card span.libelle, .heros-droite .libelle, .macro-lbl, .anneaux-centre small, .heros-puces div, .coach-carte small, .carte-stats-titre,
+      #bloc-eau h3, .hx-k, .bt-k, .sdj small, .cg small, .cle-lbl, .pg-heros small, .pg-tuile small, .pg-maint small, #ecran-stats .cle-lbl, #muscu-stats-totaux small,
+      .input-group label, .profil-perso-titre, .fiche-kpis small, .fiche-bloc-titre, .fiche-faisceaux-titre, .hd-surtitre, .picker-titre-bloc, .cardio-champ-l,
+      .cardio-record span, .plage-bornes small, .tempo-ligne label, .tempo-phases small, .zones-reglage-entete, .pave-champ > small, .prog-heros small,
+      .onb-etapes-n, .bilan-heros small, .bilan-tuile span, .sh-etat, .ia-prog-tete, .ia-prog-recap-bloc small, .faisceaux-figures figcaption, .serie-entete span,
+      .apercu-lbl, .niveau-s, .exo-groupe, .carte-stats-ligne, .cardio-pastille, .pc .tag, #btn-aujourdhui, .titre-section, .fitness-card h3, .analysis-card h3,
+      .tour-compteur, .feuille-titre, .onb-cible-lbl, .stats-grille small, .trio > div label, .off-section, .session-superset-titre,
+      [style*="text-transform:uppercase"], [style*="text-transform: uppercase"]) {
+      text-transform: none !important; letter-spacing: 0 !important; }
+    html:root body :is(.summary-card span.libelle, .heros-droite .libelle, .heros-puces div, .coach-carte small, .carte-stats-titre, #bloc-eau h3, .hx-k, .bt-k,
+      .sdj small, .cg small, .cle-lbl, .pg-heros small, .pg-tuile small, .pg-maint small, #ecran-stats .cle-lbl, #muscu-stats-totaux small, .input-group label,
+      .profil-perso-titre, .fiche-kpis small, .fiche-bloc-titre, .hd-surtitre, .picker-titre-bloc, .cardio-champ-l, .onb-etapes-n, .bilan-heros small, .sh-etat) {
+      font-size: .78rem !important; font-weight: 600 !important; color: var(--text-muted) !important; opacity: 1 !important; }
+
+    /* Surfaces : cartes unies, un rayon, ni verre ni lueur. */
+    html:root body :is(.summary-card, .fitness-card, .analysis-card, .meal-card, .bloc-verre, .carte-stats, .cle, .niveau, .cg, .carte-badges, .carte-objectifs,
+      .carte-liste, .session-exo-bloc, .exo-en-programme, .verre, .action-tuile, .coach-carte, .sdj, .pc, .pg-heros, .pg-tuile, .pg-carte, .pg-constat, .seance-heros,
+      .bilan-heros, .hd-resume, .prog-heros, .bt, .celebration-carte) {
+      background: var(--s1) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+      box-shadow: var(--ombre-carte) !important; border: 0 !important; color: var(--text) !important; }
+    html:root body :is(.cle, .pg-heros, .sdj, .seance-heros, .bilan-heros, .hd-resume, .prog-heros, .hx, .hx--cardio, .coach-carte)::after,
+    html:root body :is(.pg-heros, .hx, .hx--cardio, .coach-carte)::before { display: none !important; }
+    html:root body .session-superset-bloc .session-exo-bloc { box-shadow: none !important; background: transparent !important; }
+    /* Dans une fenêtre, les blocs se posent en gris sur la fenêtre. */
+    html:root body :is(.modal-content, .feuille-contenu) :is(.bloc-verre, .fitness-card, .verre) { background: var(--s2) !important; box-shadow: none !important; }
+
+    /* Tuiles d'icônes : gris neutre, glyphe dans la couleur du texte. */
+    html:root body :is(.tuile-icone, .repas-icone, .coach-icone, .action-ic, .feuille-action .ic, .modal-entete h3 > .icone-ui, .feuille-entete .feuille-titre > .icone-ui,
+      .interet-ico, .onb-etape h3 > .icone-ui, .pg-photos-ic, .exo-ligne-action--ajout, .celebration-ic, .bilan-trophee, .onb-ic, .obj-ic, .fen-heros-ic) {
+      background: var(--s2) !important; color: var(--text) !important; box-shadow: none !important; transform: none !important; }
+    html:root body :is(.tuile-icone, .repas-icone, .coach-icone, .action-ic, .feuille-action .ic, .interet-ico, .pg-photos-ic, .celebration-ic, .bilan-trophee, .onb-ic, .obj-ic, .fen-heros-ic) :is(.icone-ui, svg) {
+      color: var(--text) !important; transform: none !important; }
+    html:root body :is(.modal-content, .feuille-contenu) :is(.feuille-action .ic, .modal-entete h3 > .icone-ui) { background: var(--s3) !important; }
+
+    /* Boutons : l'action principale en négatif (blanc en sombre, noir en clair). */
+    html:root body .btn-primary, html:root body .pave-valider { background: var(--inv) !important; color: var(--sur-inv) !important; box-shadow: none !important; border: 0 !important; }
+    html:root body :is(.btn-primary, .pave-valider) :is(.icone-ui, svg) { color: var(--sur-inv) !important; }
+    html:root body :is(.btn-secondaire, .btn-icone, .pilule, .tuile-plus, .repas-ajouter, .btn-analysis, .btn-barcode, .pc-options, .pf-modif, .btn-engrenage) {
+      background: var(--s2) !important; color: var(--text) !important; box-shadow: none !important; border: 0 !important; }
+    html:root body :is(.btn-secondaire, .btn-icone, .pilule, .tuile-plus, .repas-ajouter, .btn-analysis, .btn-barcode) .icone-ui { color: var(--text) !important; }
+    html:root body :is(.modal-content, .feuille-contenu) :is(.btn-secondaire, .btn-icone, .pilule) { background: var(--s3) !important; }
+    html:root body .btn-danger { background: var(--alerte) !important; color: #fff !important; box-shadow: none !important; border: 0 !important; }
+    html:root body .segment { background: var(--s2) !important; box-shadow: none !important; }
+    html:root body .segment button[aria-pressed="true"] { background: var(--s1) !important; color: var(--text) !important; box-shadow: 0 1px 3px rgba(0,0,0,.12) !important; }
+    html:root[data-theme="dark"] body .segment button[aria-pressed="true"] { background: var(--s3) !important; }
+    html:root body :is(.input-group input, .input-group select, .input-group textarea, #modal-cardio input, .serie-ligne input) {
+      background: var(--s2) !important; border: 1px solid var(--ligne) !important; box-shadow: none !important; color: var(--text) !important; }
+    html:root body :is(.modal-content, .feuille-contenu) :is(.input-group input, .input-group select, .input-group textarea, #modal-cardio input) { background: var(--s3) !important; }
+    html:root body :is(.input-group input, .input-group select, .input-group textarea, .serie-ligne input):focus { border-color: var(--text) !important; box-shadow: none !important; }
+    html:root body input[type="checkbox"]:checked { background-color: var(--inv) !important; border-color: var(--inv) !important; background-image: none; }
+    html:root body :is(a, .pg-lien, .lien) { color: var(--text); }
+
+    /* Fenêtres et feuilles : unies, sans liseré d'aurore. */
+    html:root body :is(.modal-content, .feuille-contenu) { background: var(--s-fen) !important; background-image: none !important; box-shadow: var(--ombre-haute) !important; }
+    html:root body :is(.close-modal, .feuille-fermer) { background: var(--s2) !important; color: var(--text) !important; }
+    html:root body .feuille-action { background: var(--s2) !important; box-shadow: none !important; border: 0 !important; }
+    html:root body .feuille-action:focus-visible { outline: 2px solid var(--text) !important; outline-offset: 2px; }
+
+    /* ---------- En-tête de Repas du jour ---------- */
+    html:root body .salut small { color: var(--text-muted) !important; font-weight: 500 !important; font-size: .8rem !important; }
+    html:root body .salut b { font-size: 1.55rem !important; font-weight: 700 !important; letter-spacing: -.025em !important; }
+    html:root body .moi-halo { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--halo) !important; animation: none !important; }
+    html:root body .serie-jours { background: var(--s2) !important; color: var(--text) !important; box-shadow: none !important; }
+    html:root body .serie-jours .icone-ui { color: var(--text-muted) !important; }
+
+    /* Semaine : anneaux blancs (noirs en clair), le jour choisi en négatif. */
+    html:root body .semaine-jour .anneau-val { stroke: var(--text) !important; filter: none !important; }
+    html:root body .semaine-jour .anneau-piste { stroke: var(--s3) !important; }
+    html:root body .semaine-jour.actif { background: var(--inv) !important; box-shadow: none !important; }
+    html:root body .semaine-jour.actif .anneau-val { stroke: var(--sur-inv) !important; }
+    html:root body .semaine-jour.actif .anneau-piste { stroke: color-mix(in srgb, var(--sur-inv) 22%, transparent) !important; }
+    html:root body .semaine-jour.actif :is(.semaine-num b, span, small, b) { color: var(--sur-inv) !important; }
+
+    /* Dégradés des anneaux : couleurs pleines. */
+    #grad-kcal stop { stop-color: var(--text); }
+    #grad-kcal-trop stop { stop-color: var(--alerte); }
+    #grad-p stop { stop-color: var(--protein); }
+    #grad-c stop { stop-color: var(--carbs); }
+    #grad-f stop { stop-color: var(--fat); }
+    #grad-eau stop:first-child { stop-color: color-mix(in srgb, var(--eau) 70%, #fff); }
+    #grad-eau stop:last-child { stop-color: var(--eau); }
+
+    /* ---------- Résumé du jour : une carte comme les autres ---------- */
+    html:root body #ecran-repas .summary-card { margin: 0 0 12px !important; padding: 18px 16px 16px !important; border-radius: 24px !important; }
+    html:root body .anneaux .anneau-val { filter: none !important; }
+    html:root body .anneaux .anneau-piste { stroke: var(--s2) !important; }
+    html:root body #ecran-repas .anneaux-centre h1 { font-weight: 700 !important; letter-spacing: -.03em !important; }
+    html:root body #ecran-repas .reste-kcal { background: none !important; -webkit-text-fill-color: var(--text) !important; color: var(--text) !important; font-weight: 700 !important; letter-spacing: -.04em !important; }
+    html:root body #ecran-repas .reste-kcal em { -webkit-text-fill-color: var(--text-muted) !important; }
+    html:root body #ecran-repas .reste-kcal.depasse { -webkit-text-fill-color: var(--alerte) !important; }
+    html:root body #ecran-repas .heros-droite .macro-item { white-space: nowrap; }
+    html:root body #ecran-repas .heros-puces { border-top: 0 !important; }
+    html:root body #ecran-repas .heros-puces div { background: var(--s2) !important; box-shadow: none !important; border-radius: 14px !important; }
+    html:root body #ecran-repas .heros-puces b { color: var(--text) !important; font-weight: 700 !important; }
+
+    /* Coach du jour */
+    html:root body .coach-carte small { background: none !important; -webkit-text-fill-color: var(--text-muted) !important; }
+
+    /* Tuiles Poids / Nutrition : courbe dans la couleur du texte. */
+    html:root body .tuile-graph path[stroke] { stroke: var(--text) !important; }
+    html:root body .tuile-graph path[fill^="url"] { fill: color-mix(in srgb, var(--text) 9%, transparent) !important; }
+    html:root body .tuile-graph circle { fill: var(--text) !important; stroke: var(--s1) !important; }
+    html:root body .tuile-graph rect { fill: var(--s3) !important; }
+    html:root body .tuile-graph line { stroke: var(--t3) !important; }
+    html:root body .carte-stats-titre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    html:root body .carte-stats-ligne { background: var(--s2) !important; color: var(--text-muted) !important; box-shadow: none !important; }
+
+    /* Hydratation : seule l'eau garde sa couleur. */
+    html:root body #ecran-repas .eau-boutons .btn-icone { background: var(--s2) !important; color: var(--text) !important; box-shadow: none !important; border: 0 !important; padding: 0 9px !important; }
+    html:root body #ecran-repas .eau-boutons { flex-wrap: nowrap !important; }
+
+    /* Repas : croix de suppression discrètes. */
+    html:root body .btn-delete { color: var(--t3) !important; background: none !important; }
+    html:root body #ecran-repas .meal-card--vide { background: transparent !important; box-shadow: inset 0 0 0 1px var(--ligne) !important; }
+    html:root body .meal-title { font-weight: 700 !important; }
+
+    /* ---------- Barre d'onglets : pleine, sans halo ; le + en négatif ---------- */
+    html:root body .onglets { background: var(--s1) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+      box-shadow: 0 0 0 1px var(--ligne), 0 12px 32px -14px rgba(0,0,0,.45) !important; border: 0 !important; }
+    html:root body .onglet { color: var(--t3) !important; }
+    html:root body .onglet.actif { background: transparent !important; color: var(--text) !important; }
+    html:root body .onglet.actif .icone-ui { stroke: currentColor !important; }
+    html:root body .onglet-plus { background: var(--inv) !important; color: var(--sur-inv) !important; box-shadow: none !important; border-radius: 50% !important; width: 52px !important; height: 52px !important; }
+    html:root body .onglet-plus::before { display: none !important; }
+    html:root body .onglet-plus .icone-ui { stroke: currentColor !important; color: var(--sur-inv) !important; }
+    html:root body .onglet-plus:disabled { background: var(--s2) !important; color: var(--t3) !important; }
+    html:root body .onglet-plus:disabled .icone-ui { color: var(--t3) !important; opacity: 1 !important; }
+
+    /* ---------- Activité ---------- */
+    html:root body :is(.hx, .hx--cardio) { background: none !important; color: var(--text) !important; --hx-t: var(--text) !important; }
+    /* Les silhouettes gardent leurs couleurs (zones, muscles travaillés), sans halo. */
+    html:root body :is(.hx-corps svg, .sh-corps .corps-svg, .sdj-corps svg, .pc-corps svg, .bilan-corps svg, .prog-heros-corps svg) { filter: none !important; }
+    html:root body .hx-puce { background: var(--s2) !important; box-shadow: none !important; color: var(--text) !important; }
+    html:root body .hx-puce i { box-shadow: none !important; }
+    html:root body :is(.sdj-puce, .pc .tag) { background: var(--s2) !important; color: var(--text-muted) !important; }
+    html:root body .sdj small { background: none !important; padding: 0 !important; }
+    html:root body .semaine-barres i { background: var(--text) !important; box-shadow: none !important; }
+    html:root body .semaine-barres i.vide { background: var(--s2) !important; }
+    html:root body .arc-val { filter: none !important; }
+
+    /* ---------- Séance en cours ---------- */
+    html:root body .serie-check.faite { background: var(--ok) !important; color: #fff !important; box-shadow: none !important; }
+    html:root body .serie-ligne:has(.serie-check.faite) { background: color-mix(in srgb, var(--ok) 10%, transparent) !important; }
+    html:root body .serie-check.pop::after { border-color: var(--ok) !important; }
+    html:root body .repos-barre { background: var(--s2) !important; }
+    html:root body .repos-val { stroke: var(--text) !important; }
+    html:root body .serie-record { background: var(--inv) !important; color: var(--sur-inv) !important; box-shadow: none !important; }
+    html:root body .serie-pave { background: var(--s-fen) !important; box-shadow: var(--ombre-haute) !important; }
+
+    /* ---------- Bilan de séance ---------- */
+    html:root body .bilan-records > div { background: var(--s2) !important; }
+    html:root body .bilan-ecart { background: var(--s2) !important; color: var(--text) !important; }
+
+    /* ---------- Progrès ---------- */
+    html:root body .pg-heros { --pgh-trait: var(--text) !important; --pgh-point: color-mix(in srgb, var(--text) 35%, transparent) !important; }
+
+    /* ---------- Profil ---------- */
+    html:root body .pf-haut .couv::before { background: var(--couv-photo, linear-gradient(160deg, #2c2c30, #0a0a0b)) center 35% / cover !important; }
+    html:root body .pf-av { background: var(--s3) !important; box-shadow: none !important; }
+    html:root body .pf-av .avatar { background: var(--s2) !important; color: var(--text) !important; }
+    html:root body .xp i { background: var(--text) !important; box-shadow: none !important; }
+    html:root body .badge .med { background: var(--inv) !important; color: var(--sur-inv) !important; box-shadow: none !important; transform: none !important; border-radius: 18px !important; }
+    html:root body .badge .med :is(svg, .icone-ui) { color: var(--sur-inv) !important; transform: none !important; }
+    html:root body .badge.verrou .med { background: var(--s2) !important; color: var(--t3) !important; }
+    html:root body .badge.verrou .med :is(svg, .icone-ui) { color: var(--t3) !important; }
+
+    /* ---------- Premier lancement ---------- */
+    html:root body #modal-bienvenue .modal-content { background: var(--s-fen) !important; }
+    html:root body #onb-cible { background: none !important; -webkit-text-fill-color: var(--text) !important; color: var(--text) !important; }
+
+    /* Célébration */
+    html:root body .celebration-ic { background: var(--inv) !important; }
+    html:root body .celebration-ic .icone-ui { color: var(--sur-inv) !important; }
+
+    /* Sens : bon en vert, mauvais en orange ou rouge — en texte lisible. */
+    html:root body :is(.cle-evol.hausse, .cle-val.pos) { color: var(--ok-t) !important; }
+    html:root body .cle-evol.baisse { color: var(--attention-t) !important; }
+    html:root body .cle-val.neg { color: var(--alerte-t) !important; }
+    html:root body .moi-entete[data-sync="ok"] .moi-halo { --halo: var(--ok); }
+    html:root body .puce-sync[data-etat="ok"] { color: var(--ok-t); }
+
+    /* Résumé du jour : il faut l'identifiant pour passer devant l'ancien héros. */
+    html:root[data-theme] body #ecran-repas .summary-card { background: var(--s1) !important; box-shadow: var(--ombre-carte) !important; }
+
+    /* Séance en cours : en-tête en carte unie, texte dans la couleur du thème. */
+    html:root body :is(.seance-heros, #titre-session-modal, .sh-corps) { color: var(--text) !important; }
+    html:root body .sh-prog-b { background: var(--s3) !important; }
+    html:root body .sh-prog-b i { background: var(--text) !important; }
+    html:root body .sh-corps .corps-svg text { fill: var(--text-muted) !important; }
+
+    /* Séance du jour : bouton lecture en négatif. */
+    html:root body .sdj-play { background: var(--inv) !important; color: var(--sur-inv) !important; box-shadow: none !important; }
+    html:root body .sdj-play :is(svg, .icone-ui) { color: var(--sur-inv) !important; fill: currentColor; }
+
+    /* Cardio : l'arc de la semaine en couleur du texte. */
+    #grad-arc stop { stop-color: var(--text); }
+
+    /* Fenêtre d'ajout d'aliment : en-tête collant de la couleur de la fenêtre. */
+    html:root body #manual-modal .modal-entete { background: var(--s-fen) !important; }
+
+    /* Restes repérés par l'audit des écrans et des fenêtres */
+    /* Records : un or discret, seule couleur des exploits. */
+    html:root body :is(.hd-table .top, .hd-badge) { color: var(--record) !important; }
+    html:root body .hd-badge { border-color: color-mix(in srgb, var(--record) 55%, transparent) !important; }
+    html:root body .hd-superset { color: var(--text-muted) !important; }
+    html:root body .fiche-bloc-titre svg { color: currentColor !important; }
+    /* Résumé d'une séance de l'historique */
+    html:root body .hd-resume-ligne { border-bottom-color: var(--ligne) !important; }
+    html:root body .hd-resume-ligne > span { color: var(--text-muted) !important; }
+    /* En-têtes des fenêtres (programme, cardio, exercice perso) */
+    html:root body .prog-heros-puces span { background: var(--s2) !important; color: var(--text) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    html:root body .fen-heros-ic { box-shadow: none !important; }
+    html:root body .fen-barre { background: var(--s2) !important; }
+    html:root body .fen-barre i { background: var(--text) !important; }
+    html:root body #modal-cardio .cardio-chip[aria-pressed="true"] { background: var(--inv) !important; border-color: var(--inv) !important; color: var(--sur-inv) !important; box-shadow: none !important; }
+    /* Premier lancement, intérêts, objectif : la sélection se marque en noir (blanc en sombre). */
+    html:root body .onb-barre { background: var(--text) !important; box-shadow: none !important; }
+    html:root body :is(.onb-option.choisi, .interet[aria-pressed="true"], .obj-tuile.on) { box-shadow: 0 0 0 2px var(--text) !important; }
+    html:root body .onb-option.choisi::after { background-color: var(--inv) !important; }
+    html:root[data-theme="dark"] body .onb-option.choisi::after {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a0a0b' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6 9 17l-5-5'/></svg>") !important; }
+    html:root body .interet[aria-pressed="true"] .interet-case { background: var(--inv) !important; border-color: var(--inv) !important; color: var(--sur-inv) !important; }
+    /* Pastilles de couleur : sans lueur. */
+    html:root body :is(.macro-point, .puce-groupe i) { box-shadow: none !important; }
+    /* Régularité : repas en couleur du texte, séances en rose comme les muscles. */
+    html:root body :is(.pg-cal i.r, .pg-legende i.r) { background: var(--text) !important; }
+    html:root body :is(.pg-cal i.m, .pg-legende i.m) { background: var(--corps-cible) !important; }
+    html:root body .pg-cal i.rm { background: linear-gradient(135deg, var(--text) 50%, var(--corps-cible) 50%) !important; }
+    /* Profil sans photo, en clair : une couverture claire et des textes en noir. */
+    html:root[data-theme="light"] body .pf-haut .couv:not(.couv--photo)::before { background: linear-gradient(160deg, #e1e1e6, #f2f2f4) !important; }
+    html:root[data-theme="light"] body .pf-haut .couv:not(.couv--photo)::after { display: none !important; }
+    html:root[data-theme="light"] body .pf-haut:has(.couv:not(.couv--photo)) .pf h3 { color: var(--text) !important; text-shadow: none !important; }
+    html:root[data-theme="light"] body .pf-haut:has(.couv:not(.couv--photo)) .pf p { color: var(--text-muted) !important; }
+    html:root[data-theme="light"] body .pf-haut:has(.couv:not(.couv--photo)) .pf-modif,
+    html:root[data-theme="light"] body.sur-reglages:has(.couv:not(.couv--photo)) .profil-entete .btn-icone {
+      background: var(--s1) !important; color: var(--text) !important; box-shadow: var(--ombre-carte) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    html:root[data-theme="light"] body.sur-reglages:has(.couv:not(.couv--photo)) .profil-entete .btn-icone .icone-ui { color: var(--text) !important; }
+    html:root[data-theme="light"] body.sur-reglages:has(.couv:not(.couv--photo)) .profil-entete .titre-ecran { color: var(--text) !important; text-shadow: none !important; }
+    /* Voile derrière les fenêtres et les feuilles : neutre, sans teinte bleue. */
+    html:root body :is(.modal, .feuille) { background-color: rgba(0,0,0,.55) !important; }
+    html:root[data-theme="light"] body :is(.modal, .feuille) { background-color: rgba(20,20,22,.28) !important; }
+
   </style>
 </head>
 <body>
@@ -3801,7 +4115,7 @@
       // oublie les choix enregistrés.
       ['anqaa_style', 'elite_densite', 'elite_couleurs_perso_v1'].forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
       var mtc = document.getElementById('meta-theme-color');
-      if (mtc) mtc.setAttribute('content', t === 'dark' ? '#06070a' : '#eaeef5');
+      if (mtc) mtc.setAttribute('content', t === 'dark' ? '#0a0a0b' : '#f2f2f4');
       // Pareil pour le manifest (ses propres background_color/theme_color,
       // lus par le système au lancement d'une icône ajoutée à l'écran
       // d'accueil) : le remettre à jour ici aussi, pas seulement au bascule
@@ -3812,7 +4126,7 @@
       var mManifest = lienManifest && /^data:application\/manifest\+json;base64,(.+)$/.exec(lienManifest.getAttribute('href') || '');
       if (mManifest) {
         var manifeste = JSON.parse(decodeURIComponent(escape(atob(mManifest[1]))));
-        var couleur = t === 'dark' ? '#06070a' : '#eaeef5';
+        var couleur = t === 'dark' ? '#0a0a0b' : '#f2f2f4';
         manifeste.background_color = couleur;
         manifeste.theme_color = couleur;
         lienManifest.setAttribute('href', 'data:application/manifest+json;base64,' + btoa(unescape(encodeURIComponent(JSON.stringify(manifeste)))));
@@ -7201,14 +7515,16 @@ function resumeSeanceCardio(w, sansAllure, sansDistance) {
   if (a) morceaux.push(a.texte);
   return morceaux.join(' · ');
 }
+// Intensités en niveaux de gris : plus c'est intense, plus c'est franc
+// (blanc en thème sombre, noir en thème clair).
 function couleurIntensite(n) {
   const sombre = !themeClairActif();
-  return (sombre ? { 1: '#2f4fb8', 2: '#4f7cff', 3: '#a9c0ff' } : { 1: '#9fbaff', 2: '#3a5fe0', 3: '#1d3a9e' })[n];
+  return (sombre ? { 1: '#4a4a50', 2: '#8e8e95', 3: '#f5f5f7' } : { 1: '#cfcfd5', 2: '#7c7c83', 3: '#0b0b0c' })[n];
 }
 function couleurTexteIntensite(n) {
   const sombre = !themeClairActif();
-  if (sombre) return n >= 2 ? '#0e1420' : '#fff';
-  return n === 1 ? '#0e1420' : '#fff';
+  if (sombre) return n >= 2 ? '#0a0a0b' : '#f5f5f7';
+  return n === 1 ? '#0b0b0c' : '#fff';
 }
 function bilanSemaineCardio(lundi) {
   const dimanche = shiftDate(lundi, 6);
@@ -7472,7 +7788,7 @@ function renderStatsCardio() {
     borderRadius: rayonPileBarres(i, 3, 5), borderSkipped: false, maxBarThickness: 26
   }));
   jeux.push({ type: 'line', label: 'Objectif', data: semaines.map(() => OBJECTIF_CARDIO.cible), stack: 'objectif',
-    borderColor: couleurTexteZone('mev'), borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0, fill: false });
+    borderColor: paletteGraphique().texte, borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0, fill: false });
   if (cardioSemainesChartInstance) cardioSemainesChartInstance.destroy();
   cardioSemainesChartInstance = new Chart(document.getElementById('cardioSemainesChart'), {
     type: 'bar',
@@ -7514,7 +7830,7 @@ function renderStatsCardio() {
     data: {
       labels: pts.map(x => new Date(x.date + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })),
       datasets: [{ label: pts.length ? (enMin ? 'Allure' : 'Vitesse') : '', data: pts.map(x => x.a.valeur),
-        borderColor: couleurIntensite(2), backgroundColor: 'rgba(79,124,255,0.14)', fill: pts.length ? { value: enMin ? Math.max(...pts.map(x => x.a.valeur)) : Math.min(...pts.map(x => x.a.valeur)) } : false, tension: 0.3,
+        borderColor: couleurIntensite(3), backgroundColor: couleurAlpha(couleurIntensite(3), 0.12), fill: pts.length ? { value: enMin ? Math.max(...pts.map(x => x.a.valeur)) : Math.min(...pts.map(x => x.a.valeur)) } : false, tension: 0.3,
         pointRadius: 3, pointHoverRadius: 5, borderWidth: 2 }]
     },
     options: Object.assign({}, optsA, {
@@ -11158,8 +11474,8 @@ function installerStyleGraphiques() {
       const clair = themeClairActif();
       const tt = o.plugins && o.plugins.tooltip;
       if (tt) Object.assign(tt, {
-        backgroundColor: clair ? 'rgba(255,255,255,0.88)' : 'rgba(16,20,30,0.82)',
-        borderColor: couleurAlpha(getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#14b566', 0.45),
+        backgroundColor: clair ? 'rgba(255,255,255,0.97)' : 'rgba(28,28,31,0.97)',
+        borderColor: clair ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.10)',
         borderWidth: 1, cornerRadius: 12, padding: 11, caretSize: 0, caretPadding: 10
       });
     },
@@ -11176,45 +11492,14 @@ function installerStyleGraphiques() {
           const base = ds._couleurNeon || (ds._couleurNeon = ds.borderColor);
           if (typeof base !== 'string') return;
           const g = ctx.createLinearGradient(0, zone.top, 0, zone.bottom);
-          g.addColorStop(0, couleurAlpha(base, themeClairActif() ? 0.26 : 0.34));
-          g.addColorStop(0.65, couleurAlpha(base, 0.06));
+          g.addColorStop(0, couleurAlpha(base, themeClairActif() ? 0.12 : 0.16));
           g.addColorStop(1, couleurAlpha(base, 0));
           meta.dataset && meta.dataset.options && (meta.dataset.options.backgroundColor = g);
-        } else if (type === 'bar') {
-          const base = ds._couleurNeon || (ds._couleurNeon = ds.backgroundColor);
-          if (typeof base !== 'string') return;
-          // Un seul dégradé par série, sur toute la hauteur (les options des
-          // barres d'une même série peuvent être partagées par Chart.js).
-          const g = ctx.createLinearGradient(0, zone.top, 0, zone.bottom);
-          g.addColorStop(0, couleurAlpha(base, 1));
-          g.addColorStop(1, couleurAlpha(base, 0.4));
-          meta.data.forEach(el => { if (el && el.options) el.options.backgroundColor = g; });
         }
       });
     },
-    // Halo de la couleur de chaque courbe (plus discret en thème clair).
-    beforeDatasetDraw(chart, args) {
-      const meta = args.meta;
-      if (!meta || (meta.type !== 'line' && meta.type !== 'bar')) return;
-      const ds = chart.data.datasets[args.index];
-      const couleur = meta.type === 'line' ? (ds._couleurNeon || ds.borderColor) : (ds._couleurNeon || ds.backgroundColor);
-      if (typeof couleur !== 'string' || couleur === 'transparent') return;
-      const ctx = chart.ctx;
-      ctx.save();
-      ctx.shadowColor = couleurAlpha(couleur, meta.type === 'line' ? (themeClairActif() ? 0.35 : 0.7) : 0.35);
-      ctx.shadowBlur = meta.type === 'line' ? (themeClairActif() ? 8 : 14) : 10;
-      ctx.shadowOffsetY = meta.type === 'line' ? 3 : 0;
-    },
-    afterDatasetDraw(chart, args) {
-      const meta = args.meta;
-      if (!meta || (meta.type !== 'line' && meta.type !== 'bar')) return;
-      const ds = chart.data.datasets[args.index];
-      const couleur = meta.type === 'line' ? (ds._couleurNeon || ds.borderColor) : (ds._couleurNeon || ds.backgroundColor);
-      if (typeof couleur !== 'string' || couleur === 'transparent') return;
-      chart.ctx.restore();
-    },
-    // Ligne verticale lumineuse à la position survolée (graphiques en courbes),
-    // et un point lumineux sur la dernière valeur de chaque courbe.
+    // Repère vertical à la position survolée (graphiques en courbes), et un
+    // point plein sur la dernière valeur de chaque courbe.
     afterDatasetsDraw(chart) {
       if (chart.config.type === 'line') chart.data.datasets.forEach((ds, i) => {
         const meta = chart.getDatasetMeta(i);
@@ -11225,21 +11510,16 @@ function installerStyleGraphiques() {
         if (k < 0) return;
         const { x, y } = meta.data[k], ctx = chart.ctx;
         ctx.save();
-        ctx.fillStyle = couleurAlpha(couleur, 0.22); ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = couleur; ctx.strokeStyle = themeClairActif() ? '#ffffff' : '#0b1020'; ctx.lineWidth = 2.5;
+        ctx.fillStyle = couleur; ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--s1').trim() || '#161618'; ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
         ctx.restore();
       });
       const actifs = chart.tooltip && chart.tooltip.getActiveElements ? chart.tooltip.getActiveElements() : [];
       if (!actifs.length || chart.config.type !== 'line') return;
       const x = actifs[0].element.x, zone = chart.chartArea, ctx = chart.ctx;
-      const couleur = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#14b566';
-      const g = ctx.createLinearGradient(0, zone.top, 0, zone.bottom);
-      g.addColorStop(0, couleurAlpha(couleur, 0));
-      g.addColorStop(0.5, couleurAlpha(couleur, 0.55));
-      g.addColorStop(1, couleurAlpha(couleur, 0));
+      const couleur = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#f5f5f7';
       ctx.save();
-      ctx.strokeStyle = g; ctx.lineWidth = 1.5;
+      ctx.strokeStyle = couleurAlpha(couleur, 0.3); ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(x, zone.top); ctx.lineTo(x, zone.bottom); ctx.stroke();
       ctx.restore();
     }
@@ -11255,11 +11535,12 @@ function paletteGraphique() {
     clair,
     texte: lire('--text-muted', '#94a3b8'),
     texteFort: lire('--text', '#f4f7fb'),
-    grille: clair ? 'rgba(14,20,32,0.08)' : 'rgba(255,255,255,0.06)',
-    fond: clair ? 'rgba(255,255,255,0.97)' : 'rgba(24,28,38,0.97)',
-    bordure: clair ? 'rgba(14,20,32,0.10)' : 'rgba(255,255,255,0.12)',
+    grille: clair ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.07)',
+    fond: clair ? 'rgba(255,255,255,0.97)' : 'rgba(28,28,31,0.97)',
+    bordure: clair ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.10)',
     primaire: lire('--primary', '#14b566'),
     accent: lire('--accent', '#2979ff'),
+    eau: lire('--eau', '#0a84ff'),
     protein: lire('--protein', '#ff5252'),
     carbs: lire('--carbs', '#ffab40'),
     fat: lire('--fat', '#7c4dff')
@@ -11341,9 +11622,9 @@ function renderChartsPoids(s, e) {
     data: {
       labels,
       datasets: [
-        { label: 'Tendance 7 j', data: lissePoids, borderColor: cAccent, backgroundColor: 'transparent',
+        { label: 'Tendance 7 j', data: lissePoids, borderColor: cPrimaire, backgroundColor: 'transparent',
           tension: 0.4, pointRadius: 0, borderWidth: 2.5, spanGaps: true },
-        { label: 'Pesées', data: brutPoids, borderColor: 'transparent', backgroundColor: cPrimaire,
+        { label: 'Pesées', data: brutPoids, borderColor: 'transparent', backgroundColor: cAccent,
           pointRadius: 3, pointHoverRadius: 5, showLine: false, spanGaps: true }
       ]
     },
@@ -11423,7 +11704,7 @@ function renderChartsNutrition(s, e) {
     data: { labels, datasets: [
       // spanGaps: false — la ligne se coupe sur un jour non renseigné plutôt
       // que de tracer un trait droit qui laisserait croire à une saisie.
-      { label: 'Consommées', data: globalMasterConsumed.slice(s, e + 1), borderColor: cPrimaire, backgroundColor: 'rgba(0,200,120,0.14)', tension: 0.35, fill: true, pointRadius: 0, borderWidth: 2, spanGaps: false },
+      { label: 'Consommées', data: globalMasterConsumed.slice(s, e + 1), borderColor: cPrimaire, backgroundColor: couleurAlpha(cPrimaire, 0.14), tension: 0.35, fill: true, pointRadius: 0, borderWidth: 2, spanGaps: false },
       { label: 'Objectif', data: globalMasterTarget.slice(s, e + 1), borderColor: cAccent, borderDash: [5, 5], tension: 0.35, pointRadius: 0, fill: false, borderWidth: 2, spanGaps: false }
     ] }, options: avecWeekEnds(optionsGraphiqueBase(p, { avecLegende: true }), s, e), plugins: [pluginWeekEnds]
   });
@@ -11452,7 +11733,7 @@ function renderChartsNutrition(s, e) {
   stepsChartInstance = new Chart(document.getElementById('stepsChart'), {
     type: 'line',
     data: { labels, datasets: [
-      { label: 'Pas', data: globalMasterSteps.slice(s, e + 1), borderColor: cPrimaire, backgroundColor: 'rgba(0,200,120,0.14)', tension: 0.35, fill: true, pointRadius: 0, borderWidth: 2, spanGaps: false }
+      { label: 'Pas', data: globalMasterSteps.slice(s, e + 1), borderColor: cPrimaire, backgroundColor: couleurAlpha(cPrimaire, 0.14), tension: 0.35, fill: true, pointRadius: 0, borderWidth: 2, spanGaps: false }
     ] }, options: baseOpts
   });
 
@@ -11463,7 +11744,7 @@ function renderChartsNutrition(s, e) {
   eauChartInstance = new Chart(document.getElementById('eauChart'), {
     type: 'line',
     data: { labels, datasets: [
-      { label: 'Eau bue', data: globalMasterEauBue.slice(s, e + 1), borderColor: cPrimaire, backgroundColor: 'rgba(0,200,120,0.14)', tension: 0.35, fill: true, pointRadius: 0, borderWidth: 2, spanGaps: false },
+      { label: 'Eau bue', data: globalMasterEauBue.slice(s, e + 1), borderColor: p.eau, backgroundColor: couleurAlpha(p.eau, 0.14), tension: 0.35, fill: true, pointRadius: 0, borderWidth: 2, spanGaps: false },
       { label: 'Objectif', data: globalMasterEauObjectif.slice(s, e + 1), borderColor: cAccent, borderDash: [5, 5], tension: 0.35, pointRadius: 0, fill: false, borderWidth: 2 }
     ] }, options: avecWeekEnds(optionsGraphiqueBase(p, { avecLegende: true }), s, e), plugins: [pluginWeekEnds]
   });
@@ -11834,7 +12115,7 @@ function majManifestTheme(t) {
   if (!m) return;
   try {
     const manifeste = JSON.parse(base64VersTexte(m[1]));
-    const couleur = t === 'dark' ? '#06070a' : '#eaeef5';
+    const couleur = t === 'dark' ? '#0a0a0b' : '#f2f2f4';
     manifeste.background_color = couleur;
     manifeste.theme_color = couleur;
     lien.setAttribute('href', 'data:application/manifest+json;base64,' + texteVersBase64(JSON.stringify(manifeste)));
@@ -11851,7 +12132,7 @@ function appliquerTheme(choix) {
   // query CSS sur la balise <meta> ; elle suit maintenant ce même choix
   // explicite, pour ne plus jamais désynchroniser barre et contenu.
   const mtc = document.getElementById('meta-theme-color');
-  if (mtc) mtc.setAttribute('content', t === 'dark' ? '#06070a' : '#eaeef5');
+  if (mtc) mtc.setAttribute('content', t === 'dark' ? '#0a0a0b' : '#f2f2f4');
   majManifestTheme(t);
   majSegment('segment-theme', ['light', 'dark', 'auto'], pref);
   // Les graphiques sont dessines en pixels : leurs couleurs ne suivent pas le
@@ -14092,8 +14373,7 @@ function silhouetteSeanceFil(d) {
   });
   let dos = 0, face = 0;
   const couleurs = {};
-  const rose = themeClairActif() ? '#db2777' : '#f472b6';
-  Object.keys(series).forEach(g => { couleurs[g] = rose; if (GROUPES_VUE_DOS.includes(g)) dos += series[g]; else face += series[g]; });
+  Object.keys(series).forEach(g => { couleurs[g] = 'var(--corps-cible)'; if (GROUPES_VUE_DOS.includes(g)) dos += series[g]; else face += series[g]; });
   return silhouetteSVG(dos > face ? 'dos' : 'face', couleurs);
 }
 function poidsFr(p) { return String(Math.round(p * 10) / 10).replace('.', ','); }
@@ -15717,7 +15997,7 @@ function filtrerStatsCompte() {
   adminCaloriesChartInstance = new Chart(document.getElementById('adminCaloriesChart'), {
     type: 'line',
     data: { labels, datasets: [
-      { label: 'Consommées', data: cal, borderColor: cPrimaire, backgroundColor: 'rgba(0,200,120,0.14)', tension: 0.35, fill: true, pointRadius: 0, borderWidth: 2, spanGaps: true },
+      { label: 'Consommées', data: cal, borderColor: cPrimaire, backgroundColor: couleurAlpha(cPrimaire, 0.14), tension: 0.35, fill: true, pointRadius: 0, borderWidth: 2, spanGaps: true },
       { label: 'Objectif', data: cible, borderColor: cAccent, borderDash: [5, 5], backgroundColor: 'transparent', tension: 0.1, pointRadius: 0, borderWidth: 2 }
     ] },
     options: optionsGraphiqueBase(p, { avecLegende: true })
@@ -15726,7 +16006,7 @@ function filtrerStatsCompte() {
   if (adminPoidsChartInstance) adminPoidsChartInstance.destroy();
   adminPoidsChartInstance = new Chart(document.getElementById('adminPoidsChart'), {
     type: 'line',
-    data: { labels, datasets: [{ data: poids, borderColor: cAccent, backgroundColor: 'transparent', tension: 0.3, pointRadius: 2, spanGaps: true }] },
+    data: { labels, datasets: [{ data: poids, borderColor: cPrimaire, backgroundColor: 'transparent', tension: 0.3, pointRadius: 2, spanGaps: true }] },
     options: optionsGraphiqueBase(p, { avecLegende: false, beginAtZero: false })
   });
 
@@ -15736,7 +16016,7 @@ function filtrerStatsCompte() {
   if (adminPasChartInstance) adminPasChartInstance.destroy();
   adminPasChartInstance = new Chart(document.getElementById('adminPasChart'), {
     type: 'line',
-    data: { labels, datasets: [{ label: 'Pas', data: pas, borderColor: cAccent, backgroundColor: 'rgba(38,111,255,0.14)', tension: 0.35, fill: true, pointRadius: 0, borderWidth: 2, spanGaps: true }] },
+    data: { labels, datasets: [{ label: 'Pas', data: pas, borderColor: cPrimaire, backgroundColor: couleurAlpha(cPrimaire, 0.14), tension: 0.35, fill: true, pointRadius: 0, borderWidth: 2, spanGaps: true }] },
     options: baseOpts
   });
 
@@ -19423,7 +19703,7 @@ function renderChartProgressionExercice(historique, exerciceId, idCanvas, nomIns
       labels: points.map(p => formatDateDisplay(p.date)),
       datasets: [{
         label: 'Meilleure série (kg)', data: points.map(p => p.poids),
-        borderColor: c.primaire, backgroundColor: 'rgba(0,200,120,0.14)', fill: true,
+        borderColor: c.primaire, backgroundColor: couleurAlpha(c.primaire, 0.14), fill: true,
         tension: 0.3, pointRadius: 3, pointHoverRadius: 5, pointBackgroundColor: c.primaire, borderWidth: 2
       }]
     },
@@ -19482,7 +19762,7 @@ function voirDetailProgramme(cle) {
   document.getElementById('titre-programme-detail').textContent = 'Programme';
   document.getElementById('programme-detail-resume').innerHTML = herosFenetreHTML({
     fond: prog ? teinteProgramme(prog.id) : TEINTES_PROGRAMMES[5],
-    illustration: silhouetteGroupesBlanche(groupes),
+    illustration: silhouetteGroupesVises(groupes),
     surtitre: `Fait ${n} fois`,
     titre: derniere.programmeNom || cle,
     sous: 'Dernière fois ' + escapeHtml(formatDateDisplay(derniere.date).toLowerCase()),
@@ -19658,7 +19938,7 @@ function tableSeriesHTML(e) {
       <td class="num">${vol > 0 ? formatNombreFr(vol, 0) : '–'}</td>
     </tr>`;
   }).join('');
-  return `<table class="hd-table"><thead><tr><th>SÉRIE</th><th>KG × RÉP.</th><th class="num" title="Charge maximale estimée sur une répétition">1RM EST.</th><th class="num">VOLUME</th></tr></thead><tbody>${lignes}</tbody></table>`;
+  return `<table class="hd-table"><thead><tr><th>Série</th><th>kg × rép.</th><th class="num" title="Charge maximale estimée sur une répétition">1RM est.</th><th class="num">Volume</th></tr></thead><tbody>${lignes}</tbody></table>`;
 }
 function libelleExerciceHistorique(e) {
   const exo = trouverExercice(e.exerciceId);
@@ -19699,7 +19979,7 @@ function voirDetailHistorique(id) {
         <div class="hd-resume-ligne"><span>Temps</span><b>${h.dureeMin ? h.dureeMin + ' min' : '—'}</b></div>
         <div class="hd-resume-ligne"><span>Séries</span><b>${nbSeries}</b></div>
         <div class="hd-resume-ligne"><span>Volume total</span><b>${formatNombreFr(volumeSeance(h), 0)} kg</b></div>
-        <div class="hd-resume-ligne"><span>Records</span><b style="color:#f5b83d;">${nbRecords ? `<span class="hd-badge" style="border:0; padding:0; font-size:0.8rem;">${ICONE_RECORD} ${nbRecords}</span>` : '0'}</b></div>
+        <div class="hd-resume-ligne"><span>Records</span><b style="color:var(--record);">${nbRecords ? `<span class="hd-badge" style="border:0; padding:0; font-size:0.8rem;">${ICONE_RECORD} ${nbRecords}</span>` : '0'}</b></div>
       </div>
       <div>${corpsSVG(couleursSeance(groupes), 'Muscles travaillés pendant cette séance')}</div>
     </div>`;
@@ -19775,12 +20055,12 @@ function renderHerosProgramme() {
   const p = programmeEnEdition;
   const idx = p.id ? Math.max(0, musculationProgrammes.findIndex(x => x.id === p.id)) : musculationProgrammes.length;
   const g = groupesProgramme(p), cles = Object.keys(g);
-  const blanc = {}; cles.forEach(k => { blanc[k] = 'rgba(255,255,255,.95)'; });
+  const vises = {}; cles.forEach(k => { vises[k] = 'var(--corps-cible)'; });
   const series = p.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
   const minutes = Math.round(series * 2.5);
   const noms = cles.sort((a, b) => g[b] - g[a]).slice(0, 4).map(k => GROUPES_MUSCULAIRES[k] || k).join(', ');
   c.innerHTML = `<div class="prog-heros" style="background:${TEINTES_PROGRAMMES[idx % TEINTES_PROGRAMMES.length]}">
-    <span class="prog-heros-corps">${silhouetteSVG('face', blanc, { vb: CADRES_SILHOUETTE.buste, neutre: 'rgba(255,255,255,.13)', contour: 'rgba(255,255,255,.06)' })}</span>
+    <span class="prog-heros-corps">${silhouetteSVG('face', vises, { vb: CADRES_SILHOUETTE.buste })}</span>
     <small>${p.id ? 'Programme' : 'Nouveau programme'}</small>
     <b id="programme-heros-nom">${escapeHtml((p.nom || '').trim() || 'Sans nom')}</b>
     <p>${noms ? escapeHtml(noms) : 'Ajoute des exercices : les muscles travaillés s’allument.'}</p>
@@ -21457,7 +21737,7 @@ function apercuProgramme(programmeId) {
   const series = programme.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
   document.getElementById('apercu-programme-heros').innerHTML = herosFenetreHTML({
     fond: teinteProgramme(programme.id),
-    illustration: silhouetteGroupesBlanche(cles),
+    illustration: silhouetteGroupesVises(cles),
     surtitre: derniere ? 'Dernière fois ' + formatDateDisplay(derniere.date).toLowerCase() : 'Première fois',
     titre: programme.nom,
     sous: escapeHtml(cles.slice(0, 4).map(k => GROUPES_MUSCULAIRES[k] || k).join(', ')),
@@ -21889,19 +22169,15 @@ async function genererImagePartage() {
   cv.width = W; cv.height = H;
   const x = cv.getContext('2d');
   const police = getComputedStyle(document.body).fontFamily || 'sans-serif';
-  const primaire = (getComputedStyle(document.documentElement).getPropertyValue('--primary') || '#14b566').trim();
-  // Le canvas normalise la couleur (« #rrggbb ») : on peut y ajouter une opacité.
-  x.fillStyle = primaire; const primaireHex = /^#[0-9a-f]{6}$/i.test(x.fillStyle) ? x.fillStyle : '#14b566';
-  // Version éclaircie pour le texte coloré, lisible sur le fond sombre.
-  const clair = '#' + [1, 3, 5].map(i => Math.round(parseInt(primaireHex.slice(i, i + 2), 16) * 0.55 + 255 * 0.45).toString(16).padStart(2, '0')).join('');
+  // Noir et blanc comme le logo, quel que soit le thème de l'appli ; l'or
+  // ne marque que les records.
+  const BLANC = '#f5f5f7', OR = '#f5b83d';
   const f = (taille, poids) => `${poids || 700} ${taille}px ${police}`;
-  // Fond
-  const fond = x.createLinearGradient(0, 0, W, H);
-  fond.addColorStop(0, '#0d1117'); fond.addColorStop(1, '#151b26');
-  x.fillStyle = fond; x.fillRect(0, 0, W, H);
-  const halo = x.createRadialGradient(W * 0.85, 140, 20, W * 0.85, 140, 700);
-  halo.addColorStop(0, primaireHex + '55'); halo.addColorStop(1, 'transparent');
-  x.fillStyle = halo; x.fillRect(0, 0, W, H);
+  // Fond noir et la grille fine de l'appli
+  x.fillStyle = '#0a0a0b'; x.fillRect(0, 0, W, H);
+  x.fillStyle = 'rgba(255,255,255,0.045)';
+  for (let g = 0; g <= W; g += 60) x.fillRect(g, 0, 2, H);
+  for (let g = 0; g <= H; g += 60) x.fillRect(0, g, W, 2);
   // En-tête
   const logo = await chargerLogoPartage();
   if (logo) {
@@ -21912,7 +22188,7 @@ async function genererImagePartage() {
   // Le nom gravé de l'écran de démarrage (tracés Cinzel déjà dans la page,
   // tous dans le même repère : y de -352 à 5,6, centre à -173,2) : la police
   // de la marque, même sans réseau.
-  x.fillStyle = '#ffffff'; x.textBaseline = 'middle';
+  x.fillStyle = BLANC; x.textBaseline = 'middle';
   const lettres = document.querySelectorAll('#splash-screen .spl-lettre');
   if (lettres.length && window.Path2D) {
     const k = 0.165;
@@ -21924,7 +22200,7 @@ async function genererImagePartage() {
   }
   x.fillStyle = 'rgba(255,255,255,0.6)'; x.font = f(34, 600);
   x.fillText('Mon bilan musculation', 80, 270);
-  x.fillStyle = '#ffffff'; x.font = f(40, 800);
+  x.fillStyle = BLANC; x.font = f(40, 800);
   x.fillText(d.periode.replace(/\s*\(.*\)$/, ''), 80, 326);
   // Totaux (2 × 2)
   const cartes = [
@@ -21936,36 +22212,36 @@ async function genererImagePartage() {
   const rond = (rx, ry, rw, rh, r) => { x.beginPath(); x.moveTo(rx + r, ry); x.arcTo(rx + rw, ry, rx + rw, ry + rh, r); x.arcTo(rx + rw, ry + rh, rx, ry + rh, r); x.arcTo(rx, ry + rh, rx, ry, r); x.arcTo(rx, ry, rx + rw, ry, r); x.closePath(); };
   cartes.forEach(([lbl, val], i) => {
     const cx = 80 + (i % 2) * 470, cy = 400 + Math.floor(i / 2) * 230;
-    x.fillStyle = 'rgba(255,255,255,0.06)'; rond(cx, cy, 450, 200, 36); x.fill();
-    x.fillStyle = 'rgba(255,255,255,0.55)'; x.font = f(30, 700); x.fillText(lbl.toUpperCase(), cx + 40, cy + 58);
-    x.fillStyle = '#ffffff'; x.font = f(val.length > 9 ? 56 : 72, 800); x.fillText(val, cx + 40, cy + 135);
+    x.fillStyle = '#161618'; rond(cx, cy, 450, 200, 36); x.fill();
+    x.fillStyle = 'rgba(255,255,255,0.55)'; x.font = f(32, 600); x.fillText(lbl, cx + 40, cy + 58);
+    x.fillStyle = BLANC; x.font = f(val.length > 9 ? 56 : 72, 800); x.fillText(val, cx + 40, cy + 135);
   });
   // Muscles les plus travaillés
   let y = 880;
-  x.fillStyle = 'rgba(255,255,255,0.55)'; x.font = f(30, 800);
-  x.fillText('MUSCLES LES PLUS TRAVAILLÉS', 80, y);
+  x.fillStyle = 'rgba(255,255,255,0.55)'; x.font = f(32, 600);
+  x.fillText('Muscles les plus travaillés', 80, y);
   y += 58;
   const max = Math.max(1, ...d.muscles.map(m => m.n));
   if (!d.muscles.length) { x.fillStyle = 'rgba(255,255,255,0.5)'; x.font = f(34, 600); x.fillText('Pas encore de séance sur la période', 80, y + 10); y += 80; }
   d.muscles.forEach(m => {
-    x.fillStyle = '#ffffff'; x.font = f(36, 700); x.fillText(GROUPES_MUSCULAIRES[m.g], 80, y);
+    x.fillStyle = BLANC; x.font = f(36, 700); x.fillText(GROUPES_MUSCULAIRES[m.g], 80, y);
     x.textAlign = 'right'; x.fillStyle = 'rgba(255,255,255,0.7)'; x.fillText(formatSeries(m.n) + ' séries', W - 80, y); x.textAlign = 'left';
-    x.fillStyle = 'rgba(255,255,255,0.08)'; rond(80, y + 30, W - 160, 18, 9); x.fill();
-    x.fillStyle = primaire; rond(80, y + 30, Math.max(18, (W - 160) * m.n / max), 18, 9); x.fill();
+    x.fillStyle = '#222225'; rond(80, y + 30, W - 160, 18, 9); x.fill();
+    x.fillStyle = BLANC; rond(80, y + 30, Math.max(18, (W - 160) * m.n / max), 18, 9); x.fill();
     y += 92;
   });
   // Records
   y += 30;
-  x.fillStyle = 'rgba(255,255,255,0.55)'; x.font = f(30, 800);
-  x.fillText(d.records.some(r => r.record) ? 'RECORDS DE LA PÉRIODE' : 'MEILLEURES SÉRIES', 80, y);
+  x.fillStyle = 'rgba(255,255,255,0.55)'; x.font = f(32, 600);
+  x.fillText(d.records.some(r => r.record) ? 'Records de la période' : 'Meilleures séries', 80, y);
   y += 40;
   d.records.forEach(r => {
     if (y + 124 > H - 130) return; // plus de place : on s'arrête avant le pied
-    x.fillStyle = 'rgba(255,255,255,0.06)'; rond(80, y, W - 160, 124, 30); x.fill();
-    x.fillStyle = '#ffffff'; x.font = f(34, 700);
+    x.fillStyle = '#161618'; rond(80, y, W - 160, 124, 30); x.fill();
+    x.fillStyle = BLANC; x.font = f(34, 700);
     let nom = r.nom; while (x.measureText(nom).width > W - 260 && nom.length > 4) nom = nom.slice(0, -2);
     x.fillText(nom === r.nom ? nom : nom + '…', 120, y + 48);
-    x.fillStyle = r.record ? clair : 'rgba(255,255,255,0.65)'; x.font = f(30, 800);
+    x.fillStyle = r.record ? OR : 'rgba(255,255,255,0.65)'; x.font = f(30, 800);
     const detail = masquer
       ? (r.record ? (r.gain != null ? `Record battu · +${Math.round(r.gain)} %` : 'Premier record') : 'Meilleure série')
       : `${formatSeries(r.poids)} kg × ${r.reps}` + (r.record ? (r.gain != null ? `  ·  record +${Math.round(r.gain)} %` : '  ·  premier record') : '');
@@ -22177,11 +22453,11 @@ function figureCorpsSVG(vue, c, femme, x) {
   // (« m »), les mettre bout à bout les décalerait.
   const muscles = planche[vue].map(([slug, traces]) => {
     const g = GROUPE_PAR_SLUG[slug];
-    const fill = g ? c(g) : (slug === 'hair' ? '#2f3035' : '#3a3b40');
+    const fill = g ? c(g) : 'var(--corps-neutre)';
     return traces.map(d => `<path d="${d}" fill="${fill}"/>`).join('');
   }).join('');
   return `<svg x="${x}" y="0" width="205" height="440" viewBox="${planche.vb[vue]}">
-    <path d="${planche.contour[vue]}" fill="#1b1c1f" stroke="#111113" stroke-width="1.2" vector-effect="non-scaling-stroke"/>${muscles}</svg>`;
+    <path d="${planche.contour[vue]}" fill="var(--corps-contour)"/>${muscles}</svg>`;
 }
 /* Faisceaux sur le mannequin. Chaque pièce : [faisceau, n° du muscle dans
    MANNEQUIN[sexe][vue], n° du tracé, rectangle de découpe ou null]. Les
@@ -22198,7 +22474,7 @@ let compteurDecoupeFaisceaux = 0;
 function figureFaisceauxSVG(vue, couleur, femme, cadre, hauteur) {
   const sexe = femme ? 'femme' : 'homme';
   const planche = MANNEQUIN[sexe];
-  const base = planche[vue].map(([slug, traces]) => traces.map(d => `<path d="${d}" fill="${slug === 'hair' ? '#2f3035' : '#3a3b40'}"/>`).join('')).join('');
+  const base = planche[vue].map(([, traces]) => traces.map(d => `<path d="${d}" fill="var(--corps-neutre)"/>`).join('')).join('');
   let decoupes = '', dessus = '';
   MANNEQUIN_FAISCEAUX.pieces[sexe][vue].forEach(([f, si, pi, rect]) => {
     const c = couleur(f);
@@ -22214,7 +22490,7 @@ function figureFaisceauxSVG(vue, couleur, femme, cadre, hauteur) {
   const vb = cadre || planche.vb[vue].split(' ').map(Number);
   const largeur = Math.round(hauteur * vb[2] / vb[3]);
   return `<svg class="figure-faisceaux" width="${largeur}" height="${hauteur}" viewBox="${vb.join(' ')}" aria-hidden="true"><defs>${decoupes}</defs>
-    <path d="${planche.contour[vue]}" fill="#1b1c1f" stroke="#111113" stroke-width="1.2" vector-effect="non-scaling-stroke"/>${base}${dessus}</svg>`;
+    <path d="${planche.contour[vue]}" fill="var(--corps-contour)"/>${base}${dessus}</svg>`;
 }
 /* Zone à montrer pour ces groupes dans une vue (null si aucun n'y figure),
    avec une marge et au moins un peu de hauteur pour garder le contexte. */
@@ -22245,8 +22521,7 @@ function figuresFaisceauxHTML(groupes, couleur, hauteur, seulementColores) {
 /* La silhouette suit le sexe choisi à la création du compte (Profil) :
    femme -> mannequin féminin, sinon masculin. */
 function corpsSVG(couleurs, libelle) {
-  const neutre = '#5a5b61';
-  const c = g => (couleurs && couleurs[g]) || neutre;
+  const c = g => (couleurs && couleurs[g]) || 'var(--corps-neutre)';
   const femme = typeof userProfile !== 'undefined' && userProfile && userProfile.gender === 'f';
   return `<svg class="corps-svg" viewBox="0 0 420 466" role="img" aria-label="${escapeHtml(libelle || 'Répartition musculaire')}">
     ${figureCorpsSVG('face', c, femme, 0)}
@@ -22292,13 +22567,13 @@ const ICO_V = {
 const svgV = (k, w, taille) => `<svg class="icone-ui" ${taille ? `width="${taille}" height="${taille}"` : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w || 2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO_V[k]}</svg>`;
 
 /* Silhouette (face ou dos), muscles colorés par groupe ; viewBox pour
-   cadrer (torse, jambes…). Couleurs neutres selon le thème ou imposées. */
+   cadrer (torse, jambes…). Couleurs neutres du thème (--corps-neutre,
+   --corps-contour) ou imposées. */
 function silhouetteSVG(vue, couleurs, opts) {
   opts = opts || {};
   const planche = MANNEQUIN[femmeProfil() ? 'femme' : 'homme'];
-  const sombre = !themeClairActif();
-  const neutre = opts.neutre || (sombre ? '#252c3d' : '#cdd5e3');
-  const contour = opts.contour || (sombre ? '#121827' : '#e3e8f1');
+  const neutre = opts.neutre || 'var(--corps-neutre)';
+  const contour = opts.contour || 'var(--corps-contour)';
   const muscles = planche[vue].map(([slug, traces]) => {
     const g = GROUPE_PAR_SLUG[slug];
     const f = (g && couleurs[g]) || neutre;
@@ -22340,7 +22615,7 @@ const GROUPES_BAS = ['quadriceps', 'ischios', 'fessiers', 'mollets', 'adducteurs
 const GROUPES_DOS = ['dos', 'trapezes', 'lombaires'];
 function vignetteProgramme(p, i) {
   const g = groupesProgramme(p), cles = Object.keys(g);
-  const blanc = {}; cles.forEach(k => { blanc[k] = 'rgba(255,255,255,.95)'; });
+  const vises = {}; cles.forEach(k => { vises[k] = 'var(--corps-cible)'; });
   const bas = cles.filter(k => GROUPES_BAS.includes(k)).length, dos = cles.filter(k => GROUPES_DOS.includes(k)).length;
   const vue = dos > bas && dos >= cles.length / 3 ? 'dos' : 'face';
   const vb = bas > cles.length / 2 ? CADRES_SILHOUETTE.jambes : vue === 'dos' ? CADRES_SILHOUETTE.dos : CADRES_SILHOUETTE.torse;
@@ -22349,7 +22624,7 @@ function vignetteProgramme(p, i) {
     <button type="button" class="carte-action" aria-label="${escapeHtml(p.nom)} : voir et démarrer"></button>
     <button type="button" class="pc-options btn-options-programme" onclick="event.stopPropagation(); ouvrirMenuProgramme(this, ${argJs(p.id)})" title="Modifier, dupliquer, supprimer" aria-label="Options de ${escapeHtml(p.nom)}">⋯</button>
     <span class="tag">${p.exercices.length} exercice${p.exercices.length > 1 ? 's' : ''}</span>
-    <span class="pc-corps${vb === CADRES_SILHOUETTE.jambes ? ' pc-corps--jambes' : ''}">${silhouetteSVG(vue, blanc, { vb, neutre: 'rgba(255,255,255,.14)', contour: 'rgba(255,255,255,.08)' })}</span>
+    <span class="pc-corps${vb === CADRES_SILHOUETTE.jambes ? ' pc-corps--jambes' : ''}">${silhouetteSVG(vue, vises, { vb })}</span>
     <b>${escapeHtml(p.nom)}</b><small>${der ? 'Dernière : ' + escapeHtml(formatDateDisplay(der.date).toLowerCase()) : 'Jamais faite'}</small></div>`;
 }
 function renderVitrineMuscu() {
@@ -22367,10 +22642,10 @@ function renderVitrineMuscu() {
   let sdj;
   if (sug) {
     const g = groupesProgramme(sug.p), noms = Object.keys(g).sort((a, b) => g[b] - g[a]).slice(0, 3).map(k => GROUPES_MUSCULAIRES[k] || k);
-    const rose = {}; Object.keys(g).forEach(k => { rose[k] = '#f9a8d4'; });
+    const vises = {}; Object.keys(g).forEach(k => { vises[k] = 'var(--corps-cible)'; });
     const nbSeries = sug.p.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
     sdj = `<div class="sdj" onclick="apercuProgramme(${argJs(sug.p.id)})"><button type="button" class="carte-action" aria-label="Séance du jour, ${escapeHtml(sug.p.nom)} : voir et démarrer"></button>
-      <div class="sdj-corps">${silhouetteSVG('face', rose, { vb: CADRES_SILHOUETTE.buste, neutre: 'rgba(255,255,255,.12)', contour: 'rgba(255,255,255,.06)' })}</div>
+      <div class="sdj-corps">${silhouetteSVG('face', vises, { vb: CADRES_SILHOUETTE.buste })}</div>
       <small>Séance du jour</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(noms.join(', '))} · ${sug.p.exercices.length} exercice${sug.p.exercices.length > 1 ? 's' : ''}</p>
       <div class="sdj-bas"><span class="sdj-puce">${nbSeries} séries</span><span class="sdj-puce">${sug.d ? escapeHtml(formatDateDisplay(sug.d)) : 'Jamais faite'}</span><button type="button" class="sdj-play" onclick="event.stopPropagation(); demarrerSeance(${argJs(sug.p.id)})" aria-label="Commencer ${escapeHtml(sug.p.nom)} maintenant">${svgV('play')}</button></div></div>`;
   } else {
@@ -22430,9 +22705,9 @@ function heroCardioHTML(b, phrase) {
     <div class="arc"><svg viewBox="0 0 320 170" aria-hidden="true"><defs><linearGradient id="grad-arc" x1="0" x2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset=".5" stop-color="#22d3ee"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs>
       <path d="M20,160 A${r},${r} 0 0 1 300,160" fill="none" stroke="rgba(127,127,127,.18)" stroke-width="22" stroke-linecap="round"/>
       <path class="arc-val" d="M20,160 A${r},${r} 0 0 1 300,160" fill="none" stroke="url(#grad-arc)" stroke-width="22" stroke-linecap="round" style="--plein:${demi};stroke-dasharray:${demi};stroke-dashoffset:${demi * (1 - part)}"/>
-      <circle cx="${rx.toFixed(1)}" cy="${ry.toFixed(1)}" r="5" fill="#34d399" stroke="#fff" stroke-width="2"/></svg>
+      <circle cx="${rx.toFixed(1)}" cy="${ry.toFixed(1)}" r="5" fill="var(--bg)" stroke="var(--text)" stroke-width="2.5"/></svg>
       <div class="arc-c"><b class="cardio-gros" data-compte="${Math.round(b.equiv)}">${Math.round(b.equiv)}<small>min</small></b><small>sur ${OBJECTIF_CARDIO.cible} à ${OBJECTIF_CARDIO.haut} min conseillées</small></div></div>
-    <div class="hx-puces">${[1, 2, 3].map(n => `<span class="hx-puce"><i style="background:${['', '#a78bfa', '#22d3ee', '#34d399'][n]};color:${['', '#a78bfa', '#22d3ee', '#34d399'][n]}"></i>${NOMS_INTENSITE[n]} <b>${b.parInt[n]}</b></span>`).join('')}</div>
+    <div class="hx-puces">${[1, 2, 3].map(n => `<span class="hx-puce"><i style="background:${couleurIntensite(n)};color:${couleurIntensite(n)}"></i>${NOMS_INTENSITE[n]} <b>${b.parInt[n]}</b></span>`).join('')}</div>
     ${phrase ? `<p class="hx-phrase">${escapeHtml(phrase)}</p>` : ''}
   </div>`;
 }
@@ -22630,12 +22905,12 @@ function ouvrirFeuilleActivite() {
     btn.classList.toggle('hidden', !sug);
     if (sug) {
       const g = groupesProgramme(sug.p), cles = Object.keys(g).sort((a, b) => g[b] - g[a]);
-      const rose = {}; cles.forEach(k => { rose[k] = '#f9a8d4'; });
+      const vises = {}; cles.forEach(k => { vises[k] = 'var(--corps-cible)'; });
       const nbSeries = sug.p.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
       btn.className = 'sdj';
       btn.style.background = teinteProgramme(sug.p.id);
       btn.setAttribute('aria-label', 'Séance du jour : ' + sug.p.nom);
-      btn.innerHTML = `<span class="sdj-corps" aria-hidden="true">${silhouetteSVG('face', rose, { vb: CADRES_SILHOUETTE.buste, neutre: 'rgba(255,255,255,.12)', contour: 'rgba(255,255,255,.06)' })}</span>
+      btn.innerHTML = `<span class="sdj-corps" aria-hidden="true">${silhouetteSVG('face', vises, { vb: CADRES_SILHOUETTE.buste })}</span>
         <small>Séance du jour</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(cles.slice(0, 3).map(k => GROUPES_MUSCULAIRES[k] || k).join(', '))}</p>
         <span class="sdj-bas"><span class="sdj-puce">${nbSeries} séries</span><span class="sdj-puce">${sug.d ? escapeHtml(formatDateDisplay(sug.d)) : 'Jamais faite'}</span><span class="sdj-play" role="button" aria-label="Commencer maintenant" onclick="event.stopPropagation(); fermerFeuilles(); demarrerSeance(${argJs(sug.p.id)})">${svgV('play')}</span></span>`;
     }
@@ -23106,23 +23381,23 @@ function renderResumeProgres() {
   const tuiles = [
     pgTuile({ titre: 'Poids', valeur: b.poidsFin != null ? nombreFr(Math.round(b.poidsFin * 10) / 10) : '—', unite: b.poidsFin != null ? 'kg' : '',
       evol: b.deltaPoids != null ? (b.deltaPoids < 0 ? '↘ ' : b.deltaPoids > 0 ? '↗ ' : '') + escapeHtml(fmtSigne(b.deltaPoids, ' kg')) : 'pas de tendance', evolCls: bonSens(b.deltaPoids),
-      dessin: pgSpark(lisse, '#0ea5e9'), onglet: 'poids' }),
+      dessin: pgSpark(lisse, 'var(--text)'), onglet: 'poids' }),
     pgTuile({ titre: 'Calories / jour', valeur: b.joursRemplis ? nombreFr(b.moyConso, 0) : '—', unite: b.joursRemplis ? 'kcal' : '',
       evol: b.joursRemplis ? `objectif moyen ${nombreFr(b.moyCible, 0)}${b.moyCible ? ' · ' + escapeHtml(fmtSigne((b.moyConso - b.moyCible) / b.moyCible * 100, ' %', 0)) : ''}` : 'aucun repas noté',
-      dessin: b.joursRemplis ? pgJauge(b.moyConso, b.moyCible, '#f59e0b') : '', onglet: 'nutrition' }),
+      dessin: b.joursRemplis ? pgJauge(b.moyConso, b.moyCible, 'var(--text)') : '', onglet: 'nutrition' }),
     pgTuile({ titre: 'Volume muscu', valeur: volume >= 1000 ? nombreFr(Math.round(volume / 100) / 10) : nombreFr(Math.round(volume), 0), unite: volume >= 1000 ? 't' : 'kg',
       evol: pctVol != null ? (pctVol >= 0 ? '↗ +' : '↘ −') + Math.abs(pctVol) + ' %' : `${m.seances.length} séance${m.seances.length > 1 ? 's' : ''}`, evolCls: pctVol == null ? '' : pctVol >= 0 ? 'bon' : 'mauvais',
-      dessin: pgBarres(volSem, '#6366f1'), onglet: 'muscu' }),
+      dessin: pgBarres(volSem, 'var(--text)'), onglet: 'muscu' }),
     pgTuile({ titre: 'Cardio / semaine', valeur: nombreFr(cardioMoy, 0), unite: 'min',
       evol: `objectif ${OBJECTIF_CARDIO.cible} min`, evolCls: cardioMoy >= OBJECTIF_CARDIO.cible ? 'bon' : 'mauvais',
-      dessin: pgBarres(cardioSem, '#ef4444', OBJECTIF_CARDIO.cible), onglet: 'activite' })
+      dessin: pgBarres(cardioSem, 'var(--text)', OBJECTIF_CARDIO.cible), onglet: 'activite' })
   ].join('');
 
   // Maintenance réelle
   const mt = maintenanceReelle(s, e);
   const maint = mt.kcal
-    ? `<div class="pg-carte pg-maint">${pgAnneau(mt.moyConso / mt.kcal, '#f59e0b', Math.round(mt.moyConso / mt.kcal * 100) + ' %')}<div><small>Ta maintenance réelle</small><b>${nombreFr(mt.kcal, 0)} kcal</b><p>Calculée sur tes pesées et ce que tu as noté, pas sur une formule. Tu manges ${Math.round(mt.moyConso / mt.kcal * 100)} % de ta maintenance${b.rythmeSemaine != null ? ' → ' + escapeHtml(fmtSigne(b.rythmeSemaine, ' kg par semaine', 1)) : ''}.</p></div></div>`
-    : `<div class="pg-carte pg-maint pg-maint--vide">${pgAnneau(0, '#f59e0b', '…')}<div><small>Ta maintenance réelle</small><b>Bientôt</b><p>Encore ${mt.manque || 'quelques'} jour${mt.manque > 1 ? 's' : ''} avec tes repas notés et ${MAINTENANCE_PESEES_MIN} pesées au moins sur la période : on calculera les calories qui te font garder ton poids, d'après ta balance.</p></div></div>`;
+    ? `<div class="pg-carte pg-maint">${pgAnneau(mt.moyConso / mt.kcal, 'var(--text)', Math.round(mt.moyConso / mt.kcal * 100) + ' %')}<div><small>Ta maintenance réelle</small><b>${nombreFr(mt.kcal, 0)} kcal</b><p>Calculée sur tes pesées et ce que tu as noté, pas sur une formule. Tu manges ${Math.round(mt.moyConso / mt.kcal * 100)} % de ta maintenance${b.rythmeSemaine != null ? ' → ' + escapeHtml(fmtSigne(b.rythmeSemaine, ' kg par semaine', 1)) : ''}.</p></div></div>`
+    : `<div class="pg-carte pg-maint pg-maint--vide">${pgAnneau(0, 'var(--text)', '…')}<div><small>Ta maintenance réelle</small><b>Bientôt</b><p>Encore ${mt.manque || 'quelques'} jour${mt.manque > 1 ? 's' : ''} avec tes repas notés et ${MAINTENANCE_PESEES_MIN} pesées au moins sur la période : on calculera les calories qui te font garder ton poids, d'après ta balance.</p></div></div>`;
 
   // Ce qui a bougé
   const faits = [];
@@ -23314,7 +23589,7 @@ function renderExtrasCardio() {
   const conseil = reste <= 0 ? 'Objectif de la semaine atteint. Tout ce que tu ajoutes est du bonus.'
     : reste <= 40 ? `Encore ${reste} min : une sortie suffit.`
     : `Encore ${reste} min : par exemple ${Math.ceil(reste / 40)} sorties de 40 min, ou moitié moins en intense (une minute intense compte double).`;
-  if (c) c.innerHTML = `<div class="pg-maint">${pgAnneau(sem.equiv / obj, '#ef4444', Math.round(sem.equiv / obj * 100) + ' %')}<div><small>Cette semaine</small><b>${nombreFr(Math.round(sem.equiv), 0)} <span class="pg-sur">/ ${obj} min</span></b><p>${escapeHtml(conseil)}</p></div></div>`;
+  if (c) c.innerHTML = `<div class="pg-maint">${pgAnneau(sem.equiv / obj, 'var(--text)', Math.round(sem.equiv / obj * 100) + ' %')}<div><small>Cette semaine</small><b>${nombreFr(Math.round(sem.equiv), 0)} <span class="pg-sur">/ ${obj} min</span></b><p>${escapeHtml(conseil)}</p></div></div>`;
   if (t) {
     const { debut, fin } = bornesMuscuIso();
     const { s, e } = bornesPlage();
@@ -23351,7 +23626,7 @@ function renderForceProgres(idCible, seances, avant) {
     const pct = best && ref && ref.valeur > 0 ? Math.round((best.valeur - ref.valeur) / ref.valeur * 100) : null;
     return `<div class="pg-lift" role="button" tabindex="0" onclick="afficherFicheExerciceBiblio(${argJs(id)})" onkeydown="if(event.key==='Enter')this.click()">
       <div><b>${escapeHtml(nom)}</b><span>meilleure série ${nombreFr(best.poids)} kg × ${best.reps}</span></div>
-      ${pgSpark(parSeance.map(x => x.valeur), '#6366f1') || '<span class="pg-mini"></span>'}
+      ${pgSpark(parSeance.map(x => x.valeur), 'var(--text)') || '<span class="pg-mini"></span>'}
       <em>${nombreFr(Math.round(best.valeur))} kg${pct != null ? `<i class="${pct > 0 ? 'bon' : pct < 0 ? 'mauvais' : ''}">${pct > 0 ? '↗ +' : pct < 0 ? '↘ −' : '= '}${Math.abs(pct)} %</i>` : ''}</em>
     </div>`;
   }).join('') + '<p class="pg-legende-note">1RM estimé : la charge que tu pourrais soulever une fois, calculée sur tes séries.</p>';
@@ -23411,10 +23686,10 @@ function teinteProgramme(id) {
   const i = Math.max(0, musculationProgrammes.findIndex(p => p.id === id));
   return TEINTES_PROGRAMMES[i % TEINTES_PROGRAMMES.length];
 }
-function silhouetteGroupesBlanche(groupes) {
-  const blanc = {};
-  groupes.forEach(k => { blanc[k] = 'rgba(255,255,255,.95)'; });
-  return `<span class="prog-heros-corps fen-heros-ill" aria-hidden="true">${silhouetteSVG('face', blanc, { vb: CADRES_SILHOUETTE.buste, neutre: 'rgba(255,255,255,.13)', contour: 'rgba(255,255,255,.06)' })}</span>`;
+function silhouetteGroupesVises(groupes) {
+  const vises = {};
+  groupes.forEach(k => { vises[k] = 'var(--corps-cible)'; });
+  return `<span class="prog-heros-corps fen-heros-ill" aria-hidden="true">${silhouetteSVG('face', vises, { vb: CADRES_SILHOUETTE.buste })}</span>`;
 }
 const TEINTES_CARDIO = {
   course: 'linear-gradient(150deg,#ea580c,#db2777)', cyclisme: 'linear-gradient(150deg,#2563eb,#0891b2)', natation: 'linear-gradient(150deg,#0e7490,#2563eb)',
@@ -23450,13 +23725,13 @@ function majHerosExercicePerso() {
   const nom = (document.getElementById('perso-nom').value || '').trim();
   const g = document.getElementById('perso-groupe').value;
   const m = document.getElementById('perso-materiel').value;
-  const coul = {}; if (g) coul[g] = 'rgba(255,255,255,.95)';
+  const coul = {}; if (g) coul[g] = 'var(--corps-cible)';
   c.innerHTML = herosFenetreHTML({
     fond: 'linear-gradient(150deg,#0f766e,#2563eb 60%,#7c3aed)',
     surtitre: 'Nouvel exercice', titre: nom || 'Sans nom',
     sous: escapeHtml([GROUPES_MUSCULAIRES[g], MATERIELS[m] && MATERIELS[m].label].filter(Boolean).join(' · ')),
     // Muscle du dos (dos, trapèzes, lombaires, ischios, fessiers…) : silhouette vue de dos.
-    illustration: `<span class="prog-heros-corps fen-heros-ill" aria-hidden="true">${silhouetteSVG(['dos', 'trapezes', 'lombaires', 'ischios', 'fessiers', 'triceps', 'mollets'].includes(g) ? 'dos' : 'face', coul, { neutre: 'rgba(255,255,255,.13)', contour: 'rgba(255,255,255,.06)' })}</span>`,
+    illustration: `<span class="prog-heros-corps fen-heros-ill" aria-hidden="true">${silhouetteSVG(['dos', 'trapezes', 'lombaires', 'ischios', 'fessiers', 'triceps', 'mollets'].includes(g) ? 'dos' : 'face', coul)}</span>`,
     puces: ['Visible dans ta bibliothèque']
   });
 }
@@ -23476,7 +23751,7 @@ function couleursSeance(seriesParGroupe) {
   const out = {};
   Object.keys(seriesParGroupe).forEach(g => {
     const n = seriesParGroupe[g];
-    if (n > 0) out[g] = `color-mix(in srgb, var(--primary) ${Math.round(45 + 55 * Math.min(1, n / 6))}%, #5a5b61)`;
+    if (n > 0) out[g] = `color-mix(in srgb, var(--corps-cible) ${Math.round(45 + 55 * Math.min(1, n / 6))}%, var(--corps-neutre))`;
   });
   return out;
 }
@@ -24746,7 +25021,7 @@ function recapSeanceHTML(entree, dureeMin) {
   const groupes = {};
   entree.exercices.forEach(e => {
     const exo = trouverExercice(e.exerciceId);
-    if (exo && faites(e).length) groupes[exo.groupe] = '#f9a8d4';
+    if (exo && faites(e).length) groupes[exo.groupe] = 'var(--corps-cible)';
     const meilleur = faites(e).reduce((b, s) => { const v = unRmEstime(Number(s.poids), Number(s.reps)); return v > (b ? b.v : 0) ? { v, s } : b; }, null);
     const avant = meilleur1RM(e.exerciceId, musculationHistorique);
     if (meilleur && avant && meilleur.v > avant.valeur) records.push({ nom: exo ? libelleExercice(exo) : e.nom, s: meilleur.s });
@@ -24757,7 +25032,7 @@ function recapSeanceHTML(entree, dureeMin) {
   const t = tonnage >= 10000 ? { v: Math.round(tonnage / 100) / 10, dec: 1, u: 't' } : { v: Math.round(tonnage), dec: 0, u: 'kg' };
   const tuile = (k, v, u, dec) => `<div class="bilan-tuile"><b data-compte="${v}"${dec ? ` data-dec="${dec}"` : ''}>${nombreFr(v, dec || 0)}</b><small>${u}</small><span>${k}</span></div>`;
   return `<div class="bilan-heros">
-      <div class="bilan-corps">${silhouetteSVG('face', groupes, { neutre: 'rgba(255,255,255,.12)', contour: 'rgba(255,255,255,.05)' })}${silhouetteSVG('dos', groupes, { neutre: 'rgba(255,255,255,.12)', contour: 'rgba(255,255,255,.05)' })}</div>
+      <div class="bilan-corps">${silhouetteSVG('face', groupes)}${silhouetteSVG('dos', groupes)}</div>
       <small>Séance terminée</small>
       <h4>${escapeHtml(entree.programmeNom || 'Séance libre')}</h4>
       <div class="bilan-geant"><b data-compte="${t.v}"${t.dec ? ' data-dec="1"' : ''}>${nombreFr(t.v, t.dec)}</b><span>${t.u} soulevés</span></div>
