@@ -3800,6 +3800,27 @@
     .reglages-legal a { color: var(--text-muted); }
 
     /* =====================================================================
+       CORPS QUI PIVOTE (Activité › Musculation) : le corps reçoit le doigt,
+       sous les textes de la vitrine (qui ouvrent le détail) ; le bouton
+       « Dos / Face » en haut à droite.
+       ===================================================================== */
+    .corps-pivot { position: relative; width: 100%; height: 100%; touch-action: pan-y; cursor: grab; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; outline: none; }
+    .corps-pivot:active { cursor: grabbing; }
+    .corps-pivot .cp-vue { position: absolute; inset: 0 0 10px; width: 100%; height: calc(100% - 10px); transform-origin: 50% 50%; will-change: transform, opacity; }
+    .corps-pivot .cp-dos { opacity: 0; }
+    .corps-pivot .cp-sol { position: absolute; left: 22%; right: 22%; bottom: 4px; height: 14px; border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(0,0,0,.42), transparent); transform-origin: 50% 50%; pointer-events: none; }
+    :root[data-theme="light"] .corps-pivot .cp-sol { background: radial-gradient(closest-side, rgba(0,0,0,.16), transparent); }
+    .corps-pivot:focus-visible { box-shadow: 0 0 0 2px var(--text); border-radius: 18px; }
+    .cp-bouton { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px 7px 10px; border: 0; border-radius: 99px;
+      background: var(--s2); color: var(--text); font: inherit; font-size: .74rem; font-weight: 700; cursor: pointer; }
+    .cp-bouton svg { width: 14px; height: 14px; }
+    .hx--pivot .hx-corps { pointer-events: auto; z-index: 0; }
+    /* Les lignes de texte font toute la largeur : elles laissent passer le doigt (au corps, ou à la carte qui ouvre le détail). */
+    .hx--pivot > :is(.hx-k, .hx-titre, .hx-geant, .hx-unite, .hx-puces, .hx-legende, .hx-phrase) { position: relative; z-index: 1; pointer-events: none; }
+    .hx--pivot > .cp-bouton { position: absolute; top: 16px; right: 14px; z-index: 2; }
+
+    /* =====================================================================
        HABILLAGE SOBRE — noir, blanc et gris, comme le logo
        Une seule police (celle du téléphone), des surfaces unies, un seul
        style d'icônes. La couleur ne sert plus qu'aux données : calories
@@ -22789,6 +22810,149 @@ function silhouetteSVG(vue, couleurs, opts) {
 // Cadrages (homme et femme partagent la même planche de coordonnées)
 const CADRES_SILHOUETTE = { torse: '120 150 520 760', dos: '840 150 520 760', jambes: '120 650 520 760', buste: '100 160 560 720' };
 
+/* =====================================================================
+   CORPS QUI PIVOTE (Activité › Musculation) — les planches face et dos du
+   mannequin, superposées, tournent autour de l'axe vertical : glisser au
+   doigt pour le faire pivoter, toucher (ou le bouton « Dos ») pour un
+   demi-tour. La silhouette s'affine de profil, le côté qui s'éloigne
+   s'assombrit et l'ombre au sol reste : ça se lit comme un corps qui
+   tourne sur lui-même, avec tout le détail des muscles.
+   ===================================================================== */
+var compteurCorpsPivot = 0;
+var corpsPivotVue = 'face';   // gardée quand la vitrine se redessine
+const CORPS_PIVOT_INDICE_LS = 'askesis_corps_pivot_vu';
+
+function corpsPivotHTML(couleurs) {
+  const planche = MANNEQUIN[femmeProfil() ? 'femme' : 'homme'];
+  const id = 'cp' + (++compteurCorpsPivot);
+  const vue = v => {
+    const muscles = planche[v].map(([slug, traces]) => {
+      const g = GROUPE_PAR_SLUG[slug];
+      const f = (g && couleurs[g]) || 'var(--corps-neutre)';
+      return traces.map(d => `<path d="${d}" fill="${f}"/>`).join('');
+    }).join('');
+    const [x, y, w, h] = planche.vb[v].split(' ').map(Number);
+    return `<svg class="cp-vue cp-${v}" viewBox="${planche.vb[v]}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <defs>
+        <clipPath id="${id}-${v}-c"><path d="${planche.contour[v]}"/></clipPath>
+        <linearGradient id="${id}-${v}-o" gradientUnits="userSpaceOnUse" x1="${x + w * 0.18}" y1="0" x2="${x + w * 0.82}" y2="0">
+          <stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset=".5" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${planche.contour[v]}" fill="var(--corps-contour)"/>${muscles}
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#${id}-${v}-o)" clip-path="url(#${id}-${v}-c)"/>
+    </svg>`;
+  };
+  return `<div class="corps-pivot" role="button" tabindex="0" aria-label="Corps vu de face : touche pour voir le dos, ou fais-le pivoter du doigt">
+    <span class="cp-sol" aria-hidden="true"></span>${vue('face')}${vue('dos')}
+  </div>`;
+}
+/* Le bouton qui accompagne le corps : « Dos » quand on le voit de face, « Face » de dos. */
+function boutonCorpsPivotHTML() {
+  return `<button type="button" class="cp-bouton" aria-label="Voir le dos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg><b>Dos</b></button>`;
+}
+
+function activerCorpsPivot(el, opts) {
+  if (!el || el.dataset.pivotActif) return;
+  opts = opts || {};
+  el.dataset.pivotActif = '1';
+  const face = el.querySelector('.cp-face'), dos = el.querySelector('.cp-dos');
+  const sol = el.querySelector('.cp-sol'), bouton = opts.bouton || null;
+  const stops = svg => [...svg.querySelectorAll('stop')];
+  const sf = stops(face), sd = stops(dos);
+  const reduit = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  let angle = corpsPivotVue === 'dos' ? 180 : 0, vitesse = 0, cible = null, raf = 0, glisse = null, vueAffichee = null;
+
+  function dessiner() {
+    const r = angle * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
+    // De profil, un corps garde à peu près 40 % de sa largeur de face.
+    const k = 0.4 + 0.6 * Math.abs(c);
+    const of = Math.min(1, Math.max(0, (c + 0.07) / 0.14));
+    face.style.transform = dos.style.transform = `scaleX(${k.toFixed(4)})`;
+    face.style.opacity = of.toFixed(3);
+    dos.style.opacity = (1 - of).toFixed(3);
+    sol.style.transform = `scaleX(${(0.75 + 0.25 * Math.abs(c)).toFixed(3)})`;
+    // Le côté qui s'éloigne s'assombrit (le dos tourne dans l'autre sens).
+    const a = 0.58, g = Math.max(0, s) * a, d = Math.max(0, -s) * a;
+    sf[0].setAttribute('stop-opacity', g.toFixed(3)); sf[2].setAttribute('stop-opacity', d.toFixed(3));
+    sd[0].setAttribute('stop-opacity', d.toFixed(3)); sd[2].setAttribute('stop-opacity', g.toFixed(3));
+    const v = c >= 0 ? 'face' : 'dos';
+    if (v !== vueAffichee) {
+      vueAffichee = v;
+      el.dataset.vue = v;
+      if (bouton) { bouton.querySelector('b').textContent = v === 'face' ? 'Dos' : 'Face'; bouton.setAttribute('aria-label', v === 'face' ? 'Voir le dos' : "Voir l'avant"); }
+      el.setAttribute('aria-label', `Corps vu ${v === 'face' ? 'de face' : 'de dos'} : touche pour voir ${v === 'face' ? 'le dos' : "l'avant"}, ou fais-le pivoter du doigt`);
+    }
+  }
+  function boucle() {
+    raf = 0;
+    if (glisse) return;
+    if (cible === null) {
+      // Lancé : l'élan retombe, puis il se cale sur la face ou le dos le plus proche.
+      angle += vitesse; vitesse *= 0.9;
+      if (Math.abs(vitesse) < 0.6) cible = Math.round(angle / 180) * 180;
+    } else {
+      const e = cible - angle;
+      angle += e * (reduit ? 1 : 0.14);
+      if (Math.abs(e) < 0.15) {
+        angle = cible; cible = null; vitesse = 0; dessiner();
+        corpsPivotVue = vueAffichee;
+        return;
+      }
+    }
+    dessiner();
+    raf = requestAnimationFrame(boucle);
+  }
+  function relancer() { if (!raf) raf = requestAnimationFrame(boucle); }
+  function demiTour() { cible = Math.round(angle / 180) * 180 + 180; relancer(); }
+
+  el.addEventListener('pointerdown', e => {
+    glisse = { x: e.clientX, a: angle, dx: 0, dernier: e.clientX, dt: e.timeStamp };
+    cible = null; vitesse = 0;
+  });
+  el.addEventListener('pointermove', e => {
+    if (!glisse) return;
+    glisse.dx = e.clientX - glisse.x;
+    angle = glisse.a + glisse.dx * 0.9;
+    vitesse = (e.clientX - glisse.dernier) * 0.9 / Math.max(1, e.timeStamp - glisse.dt) * 16;
+    glisse.dernier = e.clientX; glisse.dt = e.timeStamp;
+    dessiner();
+  });
+  el.addEventListener('pointerup', () => {
+    if (!glisse) return;
+    const touche = Math.abs(glisse.dx) < 6;
+    glisse = null;
+    if (touche) demiTour(); else relancer();
+  });
+  // Le doigt part faire défiler la page : on se recale, sans demi-tour.
+  el.addEventListener('pointercancel', () => { if (glisse) { glisse = null; vitesse = 0; relancer(); } });
+  // Le corps ne déclenche pas l'action de la carte qui le porte.
+  el.addEventListener('click', e => e.stopPropagation());
+  el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); demiTour(); } });
+  if (bouton) bouton.addEventListener('click', e => { e.stopPropagation(); demiTour(); });
+  el.corpsPivot = { regler(a) { angle = a; cible = null; vitesse = 0; dessiner(); }, demiTour, get angle() { return angle; } };
+  dessiner();
+
+  // Une seule fois sur l'appareil, dès qu'il est vraiment à l'écran : il se
+  // retourne tout seul puis revient, pour montrer qu'il pivote.
+  let vu = false;
+  try { vu = localStorage.getItem(CORPS_PIVOT_INDICE_LS) === '1'; } catch (e) {}
+  if (opts.indice && !vu && !reduit && angle === 0 && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entrees => {
+      if (!entrees.some(x => x.isIntersecting)) return;
+      io.disconnect();
+      try { if (localStorage.getItem(CORPS_PIVOT_INDICE_LS) === '1') return; localStorage.setItem(CORPS_PIVOT_INDICE_LS, '1'); } catch (e) {}
+      setTimeout(() => {
+        if (glisse || angle !== 0) return;
+        cible = 180; relancer();
+        setTimeout(() => { if (!glisse && cible === null && angle === 180) { cible = 360; relancer(); } }, 1900);
+      }, 700);
+    }, { threshold: 0.6 });
+    io.observe(el);
+  }
+}
+
+
 // Couleurs « zone » de la semaine pour la silhouette.
 function couleursSemaine() {
   const series = seriesSemaine(lundiDeLaSemaine(todayStr()), true);
@@ -22871,8 +23035,9 @@ function renderVitrineMuscu() {
   const parJour = lettres.map((l, i) => { const d = decalerJours(lundi, i); return [l, musculationHistorique.filter(h => h.date === d).length, d === auj]; });
   const recTexte = meilleurRec ? escapeHtml(libelleExercice(trouverExercice(meilleurRec.id)) || '') + ' · ' + nombreFr(meilleurRec.b.poids) + ' kg × ' + meilleurRec.b.reps : 'Bats une charge pour en voir un ici';
   c.innerHTML = `
-    <div class="hx" role="button" tabindex="0" onclick="ouvrirStats('muscu')" onkeydown="if(event.key==='Enter')this.click()" aria-label="Ta semaine de musculation : voir le détail">
-      <div class="hx-corps">${silhouetteSVG('face', couleurs)}</div>
+    <div class="hx hx--pivot" onclick="ouvrirStats('muscu')">
+      <button type="button" class="carte-action" aria-label="Ta semaine de musculation : voir le détail"></button>
+      <div class="hx-corps">${corpsPivotHTML(couleurs)}</div>${boutonCorpsPivotHTML()}
       <div class="hx-k">${libelleSemaine(auj)} · Musculation</div><div class="hx-titre">Ta semaine</div>
       <div class="hx-geant" data-compte="${total}">${total}</div><div class="hx-unite">série${total > 1 ? 's' : ''} · ${seancesSem.length} séance${seancesSem.length > 1 ? 's' : ''}</div>
       <div class="hx-puces">${total ? `<span class="hx-puce"><i style="background:${ZONES_INFO.mav.couleur};color:${ZONES_INFO.mav.couleur}"></i><b>${ideal}</b> en zone idéale</span><span class="hx-puce"><i style="background:${ZONES_INFO.sous.couleur};color:${ZONES_INFO.sous.couleur}"></i><b>${aTravailler}</b> à travailler</span>` : `<span class="hx-puce">Ta semaine démarre à ta première série : le corps s'allume au fil des séances.</span>`}</div>
@@ -22884,6 +23049,7 @@ function renderVitrineMuscu() {
       <div class="bt"><span class="bt-glow" style="background:#f59e0b"></span><span class="bt-k">Records ce mois</span><div class="bt-n" data-compte="${records}">${records}</div><div class="bt-s">${recTexte}</div><span class="bt-deco" style="color:#f59e0b">${svgV('trophee', 1.6, 86)}</span></div>
       <div class="bt large"><span class="bt-k">Séances par jour</span><div class="semaine-barres">${parJour.map(([l, n, a]) => `<div class="${a ? 'auj' : ''}"><i class="${n ? '' : 'vide'}" style="height:${n ? 18 + 24 * Math.min(2, n) : 8}px"></i>${l}</div>`).join('')}</div></div>
     </div>`;
+  activerCorpsPivot(c.querySelector('.corps-pivot'), { bouton: c.querySelector('.cp-bouton'), indice: true });
   animerComptes(c);
   verifierTrophees();
 }

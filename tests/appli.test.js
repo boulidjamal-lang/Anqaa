@@ -697,7 +697,8 @@ test('cartes de stats : poids et nutrition sur Repas du jour, bandeaux cardio et
   await page.evaluate(() => choisirModeSeance('muscu'));
   assert.equal(await page.$('#carte-stats-muscu-carte'), null);
   assert.match(await page.textContent('#vitrine-muscu .hx-unite'), /1 séance/);
-  await page.click('#vitrine-muscu .hx');
+  // Le corps, au centre, pivote : on touche la carte à gauche, sur ses textes.
+  await page.click('#vitrine-muscu .hx', { position: { x: 40, y: 40 } });
   r = await page.evaluate(() => ({ ecran: ecranActif, onglet: categorieStatsActive(), grille: !!document.getElementById('pg-grille-muscu').offsetHeight }));
   assert.deepEqual(r, { ecran: 'stats', onglet: 'muscu', grille: true });
   // Plus de bouton « Retour » : la barre d'onglets suffit (seule la période est en haut).
@@ -2039,6 +2040,40 @@ test('accueil : « Bonjour » suit le nom d\'utilisateur, jamais le début de l\
   assert.equal(r.sansNom, 'Bonjour');
   assert.equal(r.avecNom, 'Bonjour Jamal.fit');
   assert.match(r.fiche, /^@jamal\.fit/);
+}));
+
+test('Activité : le corps de la semaine pivote (face ↔ dos) sans ouvrir le détail', () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => { allerA('seance'); choisirModeSeance('muscu'); window.scrollTo(0, 0); });
+  const etat = () => page.evaluate(() => {
+    const el = document.querySelector('#vitrine-muscu .corps-pivot');
+    return { vue: el.dataset.vue, bouton: document.querySelector('#vitrine-muscu .cp-bouton b').textContent, ecran: ecranActif,
+      vues: el.querySelectorAll('.cp-face, .cp-dos').length };
+  });
+  const attendre = () => page.waitForTimeout(250);
+  assert.deepEqual(await etat(), { vue: 'face', bouton: 'Dos', ecran: 'seance', vues: 2 });
+  // Toucher le corps : demi-tour, et le détail de la semaine ne s'ouvre pas.
+  await page.click('#vitrine-muscu .corps-pivot');
+  await attendre();
+  assert.deepEqual(await etat(), { vue: 'dos', bouton: 'Face', ecran: 'seance', vues: 2 });
+  // Le bouton le remet de face ; la vitrine redessinée garde la vue choisie.
+  await page.click('#vitrine-muscu .cp-bouton');
+  await attendre();
+  assert.equal((await etat()).vue, 'face');
+  // Glisser du doigt vers la gauche : il pivote et se cale de dos.
+  const b = await page.locator('#vitrine-muscu .corps-pivot').boundingBox();
+  await page.mouse.move(b.x + b.width / 2 + 60, b.y + b.height / 2);
+  await page.mouse.down();
+  for (let i = 1; i <= 10; i++) await page.mouse.move(b.x + b.width / 2 + 60 - i * 15, b.y + b.height / 2);
+  await page.mouse.up();
+  await page.waitForTimeout(900);
+  assert.equal((await etat()).vue, 'dos');
+  await page.evaluate(() => renderVitrineMuscu());
+  assert.deepEqual(await etat(), { vue: 'dos', bouton: 'Face', ecran: 'seance', vues: 2 });
+  // Le titre, lui, ouvre toujours le détail de la semaine.
+  const t = await page.locator('#vitrine-muscu .hx-titre').boundingBox();
+  await page.mouse.click(t.x + 20, t.y + t.height / 2);
+  assert.equal(await page.evaluate(() => ecranActif), 'stats');
+  await page.evaluate(() => { corpsPivotVue = 'face'; });
 }));
 
 test('bibliothèque : classiques en tête puis l\'alphabet ; icônes d\'aliments ; objectifs du premier lancement', () => avecAppli({}, async ({ page }) => {
