@@ -1625,8 +1625,17 @@
     #programme-exercices-container.reordre .exo-swipe { transition: transform 0.18s ease; }
     #programme-exercices-container.reordre .exo-swipe-fond { display: none; }
     #programme-exercices-container .exo-swipe.reordre-tenu { transition: none; z-index: 5; }
-    #programme-exercices-container .exo-swipe.reordre-tenu > .exo-en-programme { box-shadow: 0 10px 28px rgba(14, 20, 32, 0.22); transform: scale(1.02); background-color: var(--bg); background-image: linear-gradient(var(--verre-creux), var(--verre-creux)); }
+    #programme-exercices-container .exo-swipe.reordre-tenu > .exo-en-programme { box-shadow: 0 0 0 2px var(--text), 0 10px 28px rgba(14, 20, 32, 0.22) !important; transform: scale(1.02); background-color: var(--bg); background-image: linear-gradient(var(--verre-creux), var(--verre-creux)); }
     #programme-exercices-container.reordre .exo-poignee { opacity: 1; color: var(--primary); }
+    /* Séance en cours : le même déplacement par appui long sur l'en-tête. */
+    .session-exo-entete { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+    #session-exercices-container.reordre .session-exo-bloc > :not(.session-exo-entete) { display: none; }
+    #session-exercices-container.reordre .session-exo-entete { margin-bottom: 0; }
+    #session-exercices-container.reordre .session-superset-titre { display: none; }
+    #session-exercices-container.reordre .exo-swipe { transition: transform 0.18s ease; }
+    #session-exercices-container.reordre .exo-swipe-fond { display: none; }
+    #session-exercices-container .exo-swipe.reordre-tenu { transition: none; z-index: 5; }
+    #session-exercices-container .exo-swipe.reordre-tenu > .session-exo-bloc { box-shadow: 0 0 0 2px var(--text), 0 10px 28px rgba(14, 20, 32, 0.22) !important; transform: scale(1.02); }
     /* --- Liste de séries pendant une séance / dans un programme ---
        Des lignes en grille (pas un <table>) : un glisser vers la gauche
        doit pouvoir faire coulisser toute la ligne pour révéler la
@@ -20627,47 +20636,55 @@ function retirerExerciceProgramme(i) {
     renderProgrammeExercicesEnEdition();
   });
 }
-/* Réorganiser un programme : appui long sur l'en-tête d'un exercice. Tous
-   les exercices se replient (nom seul), celui qu'on tient suit le doigt,
-   les autres s'écartent pour lui faire de la place ; on lâche pour le
-   poser. Un mouvement avant la fin de l'appui (défilement, glissement
-   gauche/droite pour retirer ou remplacer) annule l'appui long. */
+/* Réorganiser par appui long sur l'en-tête d'un exercice (éditeur de
+   programme, séance en cours) : tous les exercices se replient (nom seul),
+   celui qu'on tient suit le doigt, les autres s'écartent pour lui faire de
+   la place ; on lâche pour le poser. Un mouvement avant la fin de l'appui
+   (défilement, glissement gauche/droite pour retirer ou remplacer) annule
+   l'appui long. `o` : l'en-tête qui se tient, le nombre d'exercices et
+   l'action qui déplace (position, décalage). */
 const APPUI_LONG_MS = 450;
-let reordreProg = null;          // déplacement en cours
-let reordreProgVientDeFinir = false;
-function initReordreProgramme() {
-  const c = document.getElementById('programme-exercices-container');
+let reordreEnCours = null;          // déplacement en cours
+let reordreVientDeFinir = false;
+function initReordre(c, o) {
   if (!c || c.dataset.reordreInit) return;
   c.dataset.reordreInit = '1';
   let attente = null;
   const annuler = () => { if (attente) { clearTimeout(attente.timer); attente = null; } };
   c.addEventListener('pointerdown', e => {
-    const entete = e.target.closest('.exo-en-programme-entete');
-    if (!entete || e.button > 0) return;
+    const entete = e.target.closest(o.entete);
+    if (!entete || e.button > 0 || e.target.closest('input, textarea')) return;
     const zone = entete.closest('.exo-swipe');
     const x0 = e.clientX, y0 = e.clientY;
-    attente = { x0, y0, timer: setTimeout(() => { attente = null; demarrerReordre(c, zone, e.pointerId, y0); }, APPUI_LONG_MS) };
+    attente = { x0, y0, timer: setTimeout(() => { attente = null; demarrerReordre(c, o, zone, e.pointerId, y0); }, APPUI_LONG_MS) };
   });
   c.addEventListener('pointermove', e => {
     if (attente && Math.hypot(e.clientX - attente.x0, e.clientY - attente.y0) > 8) annuler();
-    if (reordreProg && e.pointerId === reordreProg.pointerId) suivreReordre(e.clientY);
+    if (reordreEnCours && e.pointerId === reordreEnCours.pointerId) suivreReordre(e.clientY);
   });
   const fin = e => {
     annuler();
-    if (reordreProg && e.pointerId === reordreProg.pointerId) terminerReordre(e.type === 'pointerup');
+    if (reordreEnCours && e.pointerId === reordreEnCours.pointerId) terminerReordre(e.type === 'pointerup');
   };
   c.addEventListener('pointerup', fin);
   c.addEventListener('pointercancel', fin);
   // Pendant le déplacement, le doigt ne doit pas faire défiler la page.
-  c.addEventListener('touchmove', e => { if (reordreProg) e.preventDefault(); }, { passive: false });
+  c.addEventListener('touchmove', e => { if (reordreEnCours) e.preventDefault(); }, { passive: false });
   // Le relâchement d'un appui long n'ouvre pas la fiche de l'exercice.
-  c.addEventListener('click', e => { if (reordreProgVientDeFinir) { e.stopPropagation(); e.preventDefault(); } }, true);
-  c.addEventListener('contextmenu', e => { if (e.target.closest('.exo-en-programme-entete')) e.preventDefault(); });
+  c.addEventListener('click', e => { if (reordreVientDeFinir) { e.stopPropagation(); e.preventDefault(); } }, true);
+  c.addEventListener('contextmenu', e => { if (e.target.closest(o.entete)) e.preventDefault(); });
 }
-function demarrerReordre(c, zone, pointerId, y) {
-  if (!zone || !document.body.contains(zone) || programmeEnEdition.exercices.length < 2) return;
+function initReordreProgramme() {
+  initReordre(document.getElementById('programme-exercices-container'), {
+    entete: '.exo-en-programme-entete',
+    nombre: () => programmeEnEdition ? programmeEnEdition.exercices.length : 0,
+    deplacer: deplacerExerciceProgramme
+  });
+}
+function demarrerReordre(c, o, zone, pointerId, y) {
+  if (!zone || !document.body.contains(zone) || o.nombre() < 2) return;
   if (typeof swipeExo !== 'undefined') swipeExo = null;
-  const zones = [...c.querySelectorAll(':scope > .exo-swipe')];
+  const zones = [...c.querySelectorAll('.exo-swipe')];
   const from = zones.indexOf(zone);
   if (from < 0) return;
   c.classList.add('reordre');
@@ -20679,12 +20696,13 @@ function demarrerReordre(c, zone, pointerId, y) {
   const r = zone.getBoundingClientRect();
   window.scrollBy(0, (r.top + r.height / 2) - y);
   const rects = zones.map(z => z.getBoundingClientRect());
-  const pas = rects.length > 1 ? rects[1].top - rects[0].top : r.height + 8;
-  reordreProg = { c, zones, from, cible: from, pointerId, y0: y, pas, centres: rects.map(x => x.top + x.height / 2) };
+  // La place qu'il libère : sa hauteur et l'écart jusqu'à son voisin.
+  const ecart = from + 1 < rects.length ? rects[from + 1].top - rects[from].bottom : from > 0 ? rects[from].top - rects[from - 1].bottom : 8;
+  reordreEnCours = { c, o, zones, from, cible: from, pointerId, y0: y, pas: rects[from].height + Math.max(0, ecart), centres: rects.map(x => x.top + x.height / 2) };
   suivreReordre(y);
 }
 function suivreReordre(y) {
-  const st = reordreProg;
+  const st = reordreEnCours;
   const dy = y - st.y0;
   st.zones[st.from].style.transform = `translateY(${dy}px)`;
   const centre = st.centres[st.from] + dy;
@@ -20701,13 +20719,13 @@ function suivreReordre(y) {
   });
 }
 function terminerReordre(poser) {
-  const st = reordreProg;
-  reordreProg = null;
-  reordreProgVientDeFinir = true;
-  setTimeout(() => { reordreProgVientDeFinir = false; }, 80);
+  const st = reordreEnCours;
+  reordreEnCours = null;
+  reordreVientDeFinir = true;
+  setTimeout(() => { reordreVientDeFinir = false; }, 80);
   st.c.classList.remove('reordre');
   st.zones.forEach(z => { z.style.transform = ''; z.classList.remove('reordre-tenu'); });
-  if (poser && st.cible !== st.from) deplacerExerciceProgramme(st.from, st.cible - st.from);
+  if (poser && st.cible !== st.from) st.o.deplacer(st.from, st.cible - st.from);
 }
 function deplacerExerciceProgramme(i, delta) {
   const j = i + delta;
@@ -24803,6 +24821,41 @@ function renderSessionModal() {
   prechargerVideosExercices(s.exercices.map(e => e.exerciceId));
   initSwipeSeries('session-exercices-container');
   initSwipeExercices('session-exercices-container');
+  initReordre(c, {
+    entete: '.session-exo-entete',
+    nombre: () => musculationSessionActive ? musculationSessionActive.exercices.length : 0,
+    deplacer: deplacerExerciceSession
+  });
+}
+/* Déplacer un exercice pendant la séance (appui long sur son en-tête, voir
+   initReordre). Il quitte son superset ; posé au milieu d'un superset, il
+   le rejoint. Les minuteurs de repos et les paliers ouverts, rangés par
+   position (ei_si), suivent chacun leur exercice. */
+function deplacerExerciceSession(i, delta) {
+  const s = musculationSessionActive;
+  const j = i + delta;
+  if (!s || j === i || j < 0 || j >= s.exercices.length) return;
+  const liste = s.exercices;
+  const precedent = liste[i - 1];
+  if (precedent) precedent.supersetSuivant = false;
+  const [x] = liste.splice(i, 1);
+  x.supersetSuivant = false;
+  liste.splice(j, 0, x);
+  const avant = liste[j - 1];
+  if (avant && avant.supersetSuivant && j + 1 < liste.length) x.supersetSuivant = true;
+  liste[liste.length - 1].supersetSuivant = false;
+  const position = e => e === i ? j : i < j && e > i && e <= j ? e - 1 : j < i && e >= j && e < i ? e + 1 : e;
+  const suivre = objet => {
+    const suivant = {};
+    Object.keys(objet).forEach(clef => { const [e, si] = clef.split('_').map(Number); suivant[position(e) + '_' + si] = objet[clef]; });
+    return suivant;
+  };
+  reposActifs = suivre(reposActifs);
+  palierOuvert = suivre(palierOuvert);
+  reposSignales = suivre(reposSignales);
+  if (rirDemande) rirDemande = { ei: position(rirDemande.ei), si: rirDemande.si };
+  sauvegarderSessionActive();
+  renderSessionModal();
 }
 /* Carte du corps de la séance en cours : chaque série cochée colore le
    muscle travaillé (plein pour le groupe principal, à moitié pour les
@@ -25311,7 +25364,7 @@ function initSwipeExercices(conteneurId, options) {
   c.addEventListener('pointermove', (e) => {
     const st = swipeExo;
     if (!st || e.pointerId !== st.pointerId) return;
-    if (typeof reordreProg !== 'undefined' && reordreProg) { swipeExo = null; return; }
+    if (reordreEnCours) { swipeExo = null; return; }
     const dx = e.clientX - st.x0, dy = e.clientY - st.y0;
     if (!st.horizontal) {
       if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;

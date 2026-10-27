@@ -168,6 +168,48 @@ test('éditeur de programme : appui long pour déplacer un exercice', () => avec
   assert.equal(await page.locator('#programme-exercices-container .exo-en-programme-reordre').count(), 0, 'plus de flèches');
 }));
 
+test('séance en cours : appui long sur un exercice pour le déplacer', () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => {
+    allerA('seance'); choisirModeSeance('muscu');
+    musculationSessionActive = { programmeId: null, programmeNom: null, debut: Date.now(), notes: '',
+      exercices: toutesLesExercices().slice(0, 4).map(e => ({ exerciceId: e.id, nom: e.nom, series: [{ poids: 40, reps: 10, fait: true }, { poids: 40, reps: 10 }] })) };
+    // Les deux derniers en superset ; un repos en cours sur le premier.
+    musculationSessionActive.exercices[2].supersetSuivant = true;
+    reposActifs = { '0_0': Date.now() };
+    sauvegarderSessionActive(); renderSeance();
+  });
+  const avant = await page.evaluate(() => musculationSessionActive.exercices.map(e => e.exerciceId));
+  const entete = page.locator('#session-exercices-container .session-exo-entete').first();
+  await entete.evaluate(el => el.scrollIntoView({ block: 'start' }));
+  await page.evaluate(() => window.scrollBy(0, -120));
+  const b = await page.locator('#session-exercices-container .session-exo-nom').first().boundingBox();
+  const x = b.x + 20, y = b.y + b.height / 2;
+  await page.mouse.move(x, y); await page.mouse.down();
+  await page.waitForTimeout(600);
+  assert.ok(await page.evaluate(() => document.getElementById('session-exercices-container').classList.contains('reordre')), 'les exercices se replient');
+  const pas = await page.evaluate(() => { const z = document.querySelectorAll('#session-exercices-container .exo-swipe'); return z[1].getBoundingClientRect().top - z[0].getBoundingClientRect().top; });
+  for (let k = 1; k <= 10; k++) await page.mouse.move(x, y + k * pas * 0.25);
+  await page.mouse.up(); await page.waitForTimeout(300);
+  const r = await page.evaluate(() => ({
+    ordre: musculationSessionActive.exercices.map(e => e.exerciceId),
+    supersets: musculationSessionActive.exercices.map(e => !!e.supersetSuivant),
+    repos: Object.keys(reposActifs),
+    replie: document.getElementById('session-exercices-container').classList.contains('reordre'),
+    fiche: !!document.querySelector('#fiche-exercice-modal.show'),
+    garde: JSON.parse(localStorage.getItem(MUSCU_SESSION_KEY)).exercices.map(e => e.exerciceId)
+  }));
+  // Posé au milieu du superset, il le rejoint ; son repos le suit.
+  assert.deepEqual(r.ordre, [avant[1], avant[2], avant[0], avant[3]]);
+  assert.deepEqual(r.supersets, [false, true, true, false]);
+  assert.deepEqual(r.repos, ['2_0']);
+  assert.equal(r.replie, false);
+  assert.equal(r.fiche, false, "l'appui long n'ouvre pas la fiche");
+  assert.deepEqual(r.garde, r.ordre, 'la séance enregistrée suit');
+  // Un simple toucher sur le nom ouvre toujours la fiche.
+  await page.locator('#session-exercices-container .session-exo-nom').first().click();
+  assert.equal(await page.evaluate(() => !!document.querySelector('#fiche-exercice-modal.show')), true);
+}));
+
 test('remplacer un exercice propose des exercices similaires', () => avecAppli({}, async ({ page }) => {
   const r = await page.evaluate(() => {
     const squat = toutesLesExercices().find(e => /^squat avec barre$/i.test(e.nom)) || toutesLesExercices().find(e => /squat/i.test(e.nom));
