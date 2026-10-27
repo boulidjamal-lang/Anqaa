@@ -2468,9 +2468,9 @@ test("démarrage : 2,5 s à chaque lancement — le T se forme puis va se poser 
 
   const ctx = await contexte('no-preference');
   try {
-    // Animation complète : le T reste jusqu'à 1,9 s…
+    // Animation complète : le T reste jusqu'à 1,8 s…
     const { page, erreurs } = await lancer(ctx);
-    await page.clock.runFor(1850);
+    await page.clock.runFor(1750);
     assert.deepEqual(await etat(page), { affiche: true, logo: '', lettres: 7 });
     // … puis s'envole vers le logo de la barre (caché le temps du vol)…
     await page.clock.runFor(100);
@@ -2490,7 +2490,7 @@ test("démarrage : 2,5 s à chaque lancement — le T se forme puis va se poser 
 
     // Lancement suivant (nouvel onglet, même appareil) : la même animation, la même durée.
     const deux = await lancer(ctx);
-    await deux.page.clock.runFor(1850);
+    await deux.page.clock.runFor(1750);
     assert.deepEqual(await etat(deux.page), { affiche: true, logo: '', lettres: 7 });
     await deux.page.clock.runFor(100);
     assert.equal((await etat(deux.page)).logo, '0');
