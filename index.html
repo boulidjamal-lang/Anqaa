@@ -3123,6 +3123,9 @@
     .toast-annuler.visible { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
     .toast-annuler span { flex: 1; min-width: 0; font-size: .84rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .toast-annuler button { flex: none; min-height: 38px; padding: 0 14px; border: 0; border-radius: 12px; cursor: pointer; font: inherit; font-weight: 800; color: #0f172a; background: #34d399; }
+    .toast-annuler .toast-fermer { min-width: 38px; padding: 0; margin-left: -8px; font-size: 1.35rem; font-weight: 600; color: rgba(255,255,255,.7); background: none; }
+    .toast-maj { width: min(92vw, 420px); }
+    .toast-maj span { white-space: normal; line-height: 1.25; }
     .off-favori { flex: none; width: 40px; height: 40px; border: 0; border-radius: 12px; background: none; cursor: pointer; font-size: 1.15rem; color: var(--text-muted); }
     .off-favori.on { color: #f59e0b; }
     .food-initiale--icone { font-size: 1.05rem; background: var(--piste); }
@@ -17926,15 +17929,15 @@ const EXERCICES_BASE = [
   {"id": "e417", "nom": "Curl au pupitre à la machine", "nomEn": "Machine Preacher Curl", "groupe": "biceps", "secondaires": ["avant_bras"], "materiel": "machine"},
   {"id": "e303", "nom": "Curl au pupitre avec câble", "nomEn": "Cable Preacher Curl", "groupe": "biceps", "secondaires": ["avant_bras"], "materiel": "poulie"},
   {"id": "e336", "nom": "Curl alterné des biceps", "nomEn": "Alternate Biceps Curl", "groupe": "biceps", "secondaires": [], "materiel": "haltere"},
-  {"id": "sw-tirage-vertical-a-un-bras", "nom": "Tirage vertical à un bras", "nomEn": "One-Arm Lat Pulldown", "groupe": "dos", "secondaires": ["epaules", "triceps"], "materiel": "poulie"},
+  {"id": "sw-tirage-vertical-a-un-bras", "nom": "Tirage vertical à un bras", "nomEn": "One-Arm Lat Pulldown", "groupe": "dos", "secondaires": ["epaules", "triceps", "biceps"], "materiel": "poulie"},
   {"id": "e20", "nom": "Traction", "nomEn": "Pull-Up", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules", "triceps"], "materiel": "poids_corps"},
   {"id": "sw-traction-a-la-barre-fixe-avec-prise-neutre-et-charge-additionnelle", "nom": "Traction à la barre fixe avec prise neutre et charge additionnelle", "nomEn": "Neutral Grip Weighted Pull-Up", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules", "triceps"], "materiel": "poids_corps"},
-  {"id": "e153", "nom": "Tractions lestées", "nomEn": "Weighted Pull-Up", "groupe": "dos", "secondaires": ["epaules", "triceps"], "materiel": "poids_corps"},
+  {"id": "e153", "nom": "Tractions lestées", "nomEn": "Weighted Pull-Up", "groupe": "dos", "secondaires": ["epaules", "triceps", "biceps"], "materiel": "poids_corps"},
   {"id": "sw-rowing-unilateral-avec-haltere-en-appui-sur-scapula-en-flexion-du-tronc", "nom": "Rowing unilatéral avec haltère en appui sur scapula en flexion du tronc", "nomEn": "One-Arm Dumbbell Bent Over Scapula Row", "groupe": "trapezes", "secondaires": [], "materiel": "haltere"},
   {"id": "sw-traction-en-prise-serree", "nom": "Traction en prise serrée", "nomEn": "Close Grip Pull Up", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules", "triceps"], "materiel": "poids_corps"},
-  {"id": "e24", "nom": "Rowing barre buste penché", "nomEn": "Barbell Bent Over Row", "groupe": "dos", "secondaires": ["avant_bras", "epaules", "triceps"], "materiel": "barre"},
+  {"id": "e24", "nom": "Rowing barre buste penché", "nomEn": "Barbell Bent Over Row", "groupe": "dos", "secondaires": ["avant_bras", "epaules", "triceps", "biceps"], "materiel": "barre"},
   {"id": "sw-tirage-bas-a-un-bras-a-la-poulie", "nom": "Tirage bas à un bras à la poulie", "nomEn": "One-Arm Cable Low Row", "groupe": "dos", "secondaires": ["biceps"], "materiel": "poulie"},
-  {"id": "e151", "nom": "Rowing assis à la poulie prise large", "nomEn": "Seated Cable Wide Grip Row", "groupe": "dos", "secondaires": ["avant_bras", "epaules"], "materiel": "poulie"},
+  {"id": "e151", "nom": "Rowing assis à la poulie prise large", "nomEn": "Seated Cable Wide Grip Row", "groupe": "dos", "secondaires": ["avant_bras", "epaules", "biceps"], "materiel": "poulie"},
   {"id": "e27", "nom": "Rowing assis à la poulie", "nomEn": "Seated Cable Row", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "poulie"},
   {"id": "sw-tirage-a-la-corde-bras-tendus", "nom": "Tirage à la corde bras tendus", "nomEn": "Rope Straight-Arm Lat Pulldown", "groupe": "dos", "secondaires": ["epaules", "triceps"], "materiel": "poulie"},
   {"id": "sw-tirage-a-la-cable-prise-large-derriere-la-nuque", "nom": "Tirage au câble prise large derrière la nuque", "nomEn": "Cable Wide Grip Behind Neck Pulldown", "groupe": "dos", "secondaires": ["biceps", "avant_bras"], "materiel": "poulie"},
@@ -17942,10 +17945,10 @@ const EXERCICES_BASE = [
   {"id": "e21", "nom": "Traction en supination", "nomEn": "Chin-Up", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "poids_corps"},
   {"id": "sw-tractions-prise-large", "nom": "Tractions prise large", "nomEn": "Pull-Up Wide Grip", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "triceps"], "materiel": "poids_corps"},
   {"id": "sw-rangee-en-suspension", "nom": "Rangée en suspension", "nomEn": "Suspension Row", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "autre"},
-  {"id": "sw-rowing-barre-penche-depuis-pin", "nom": "Rowing barre penché depuis pin", "nomEn": "Barbell Bent Over Row From Pin", "groupe": "dos", "secondaires": [], "materiel": "barre"},
+  {"id": "sw-rowing-barre-penche-depuis-pin", "nom": "Rowing barre penché depuis pin", "nomEn": "Barbell Bent Over Row From Pin", "groupe": "dos", "secondaires": ["biceps"], "materiel": "barre"},
   {"id": "sw-tirage-vertical-unilateral-a-la-poulie", "nom": "Tirage vertical unilatéral bras tendu", "nomEn": "One-Arm Straight-Arm Cable Lat Pulldown", "groupe": "dos", "secondaires": ["epaules", "triceps"], "materiel": "poulie"},
   {"id": "sw-haussements-d-x27-epaules-kelso-avec-halteres", "nom": "Haussements d'épaules Kelso avec haltères", "nomEn": "Dumbbell Kelso Shrugs", "groupe": "trapezes", "secondaires": [], "materiel": "haltere"},
-  {"id": "sw-tirage-a-un-bras-sur-machine-avec-support-pour-la-poitrine", "nom": "Tirage à un bras sur machine avec support pour la poitrine", "nomEn": "One-Arm Chest Supported Row Machine", "groupe": "dos", "secondaires": [], "materiel": "machine"},
+  {"id": "sw-tirage-a-un-bras-sur-machine-avec-support-pour-la-poitrine", "nom": "Tirage à un bras sur machine avec support pour la poitrine", "nomEn": "One-Arm Chest Supported Row Machine", "groupe": "dos", "secondaires": ["biceps"], "materiel": "machine"},
   {"id": "e22", "nom": "Tirage vertical à la poulie avec prise neutre large", "nomEn": "Cable Wide Neutral Grip Lat Pulldown", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "poulie"},
   {"id": "sw-rowing-assis-a-un-bras-avec-poulie-basse", "nom": "Rowing assis à un bras avec poulie basse", "nomEn": "One-Arm Low Cable Seated Row", "groupe": "dos", "secondaires": ["biceps", "epaules"], "materiel": "poulie"},
   {"id": "sw-traction-en-levier-avant", "nom": "Traction en levier avant", "nomEn": "Front Lever Pull-Up", "groupe": "dos", "secondaires": ["abdos", "biceps", "avant_bras", "quadriceps", "epaules", "triceps"], "materiel": "machine"},
@@ -17953,26 +17956,26 @@ const EXERCICES_BASE = [
   {"id": "sw-tirage-vertical-a-la-poulie", "nom": "Tirage vertical à la poulie", "nomEn": "Cable Lat Pulldown", "groupe": "dos", "secondaires": ["biceps", "avant_bras"], "materiel": "poulie"},
   {"id": "sw-rowing-penche-avec-kettlebell", "nom": "Rowing penché avec kettlebell", "nomEn": "Bent Over Kettlebell Row", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules", "triceps"], "materiel": "kettlebell"},
   {"id": "e130", "nom": "Haussements d'épaules à la machine", "nomEn": "Machine Shrugs", "groupe": "trapezes", "secondaires": [], "materiel": "machine"},
-  {"id": "sw-rowing-a-prise-large-sur-banc-incline", "nom": "Rowing poitrine appuyée à prise large", "nomEn": "Wide Grip Chest Supported Row", "groupe": "dos", "secondaires": ["epaules"], "materiel": "poids_corps"},
+  {"id": "sw-rowing-a-prise-large-sur-banc-incline", "nom": "Rowing poitrine appuyée à prise large", "nomEn": "Wide Grip Chest Supported Row", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "poids_corps"},
   {"id": "sw-rowing-gorilla", "nom": "Rowing gorilla", "nomEn": "Gorilla Row", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "poids_corps"},
-  {"id": "sw-tirage-lateral-avec-bande-en-position-penchee", "nom": "Tirage vertical penché avec élastique", "nomEn": "Band Bent Over Lat Pulldown", "groupe": "dos", "secondaires": ["epaules"], "materiel": "elastique"},
-  {"id": "sw-rangee-inversee-en-suspension", "nom": "Rangée inversée en suspension", "nomEn": "Suspension Inverted Row", "groupe": "dos", "secondaires": ["epaules"], "materiel": "autre"},
+  {"id": "sw-tirage-lateral-avec-bande-en-position-penchee", "nom": "Tirage vertical penché avec élastique", "nomEn": "Band Bent Over Lat Pulldown", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "elastique"},
+  {"id": "sw-rangee-inversee-en-suspension", "nom": "Rangée inversée en suspension", "nomEn": "Suspension Inverted Row", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "autre"},
   {"id": "sw-rameur-a-la-barre-en-t-penche", "nom": "Rameur à la barre en T penché", "nomEn": "T-Bar Bent Over Row", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "barre"},
-  {"id": "sw-rowing-large-incline-avec-halteres", "nom": "Rowing large incliné avec haltères", "nomEn": "Incline Bench Dumbbell Wide Row", "groupe": "dos", "secondaires": ["epaules"], "materiel": "haltere"},
+  {"id": "sw-rowing-large-incline-avec-halteres", "nom": "Rowing large incliné avec haltères", "nomEn": "Incline Bench Dumbbell Wide Row", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "haltere"},
   {"id": "e262", "nom": "Haussement d'épaules avec barre derrière le dos", "nomEn": "Barbell Shrug Behind The Back", "groupe": "trapezes", "secondaires": ["avant_bras", "dos"], "materiel": "barre"},
-  {"id": "e275", "nom": "Rowing unilatéral avec haltère", "nomEn": "Dumbbell Bent Over Row", "groupe": "dos", "secondaires": ["avant_bras", "epaules", "triceps"], "materiel": "haltere"},
+  {"id": "e275", "nom": "Rowing unilatéral avec haltère", "nomEn": "Dumbbell Bent Over Row", "groupe": "dos", "secondaires": ["avant_bras", "epaules", "triceps", "biceps"], "materiel": "haltere"},
   {"id": "sw-pull-over-a-la-machine", "nom": "Pull-over à la machine", "nomEn": "Machine Pullover", "groupe": "dos", "secondaires": ["pectoraux", "epaules", "triceps"], "materiel": "machine"},
-  {"id": "sw-rowing-t-bar-avec-appui-poitrine", "nom": "Rowing T-bar poitrine appuyée", "nomEn": "Chest Supported T-Bar Row", "groupe": "dos", "secondaires": ["epaules"], "materiel": "barre"},
+  {"id": "sw-rowing-t-bar-avec-appui-poitrine", "nom": "Rowing T-bar poitrine appuyée", "nomEn": "Chest Supported T-Bar Row", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "barre"},
   {"id": "sw-tirage-poitrine-verticale-barre", "nom": "Tirage poitrine verticale barre", "nomEn": "Wide Grip Lat Pulldown", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules", "triceps"], "materiel": "poulie"},
-  {"id": "sw-rowing-halteres-sur-banc-incline", "nom": "Seal row avec haltères", "nomEn": "Dumbbell Seal Row", "groupe": "dos", "secondaires": ["epaules"], "materiel": "haltere"},
+  {"id": "sw-rowing-halteres-sur-banc-incline", "nom": "Seal row avec haltères", "nomEn": "Dumbbell Seal Row", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "haltere"},
   {"id": "sw-haussements-d-x27-epaules-avec-halteres", "nom": "Haussements d'épaules avec haltères", "nomEn": "Dumbbell Shoulder Shrugs", "groupe": "trapezes", "secondaires": [], "materiel": "haltere"},
   {"id": "sw-haussements-d-x27-epaules-avec-halteres-en-position-assise", "nom": "Haussements d'épaules avec haltères en position assise", "nomEn": "Seated Dumbbell Shrugs", "groupe": "trapezes", "secondaires": [], "materiel": "haltere"},
   {"id": "sw-etirement-lateral-debout", "nom": "Étirement latéral debout", "nomEn": "Standing Side Lat Stretch", "groupe": "dos", "secondaires": ["abdos"], "materiel": "poids_corps"},
   {"id": "sw-tirage-circulaire", "nom": "Tirage circulaire", "nomEn": "Pull Around", "groupe": "dos", "secondaires": [], "materiel": "poids_corps"},
   {"id": "sw-rameur-kayak-thibaudeau-a-cable", "nom": "Rameur kayak thibaudeau à câble", "nomEn": "Cable Thibaudeau Kayak Row", "groupe": "dos", "secondaires": ["abdos", "pectoraux", "epaules", "triceps"], "materiel": "poulie"},
-  {"id": "sw-rowing-a-un-bras-avec-barre-fixee-au-sol-en-position-penchee", "nom": "Rowing à un bras avec barre fixée au sol en position penchée", "nomEn": "One-Arm Landmine Bent Over Row", "groupe": "dos", "secondaires": ["avant_bras", "epaules"], "materiel": "barre"},
-  {"id": "sw-tirage-a-la-poulie-unilateral-en-demi-genou", "nom": "Tirage à la poulie unilatéral en demi-genou", "nomEn": "One-Arm Cable Half-Kneeling Lat Pulldown", "groupe": "dos", "secondaires": ["avant_bras", "epaules"], "materiel": "poulie"},
-  {"id": "sw-tirage-vertical-a-un-bras-avec-bande-elastique", "nom": "Tirage vertical à un bras avec bande élastique", "nomEn": "One-Arm Band Kneeling Lat Pulldown", "groupe": "dos", "secondaires": ["epaules"], "materiel": "elastique"},
+  {"id": "sw-rowing-a-un-bras-avec-barre-fixee-au-sol-en-position-penchee", "nom": "Rowing à un bras avec barre fixée au sol en position penchée", "nomEn": "One-Arm Landmine Bent Over Row", "groupe": "dos", "secondaires": ["avant_bras", "epaules", "biceps"], "materiel": "barre"},
+  {"id": "sw-tirage-a-la-poulie-unilateral-en-demi-genou", "nom": "Tirage à la poulie unilatéral en demi-genou", "nomEn": "One-Arm Cable Half-Kneeling Lat Pulldown", "groupe": "dos", "secondaires": ["avant_bras", "epaules", "biceps"], "materiel": "poulie"},
+  {"id": "sw-tirage-vertical-a-un-bras-avec-bande-elastique", "nom": "Tirage vertical à un bras avec bande élastique", "nomEn": "One-Arm Band Kneeling Lat Pulldown", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "elastique"},
   {"id": "sw-traction-australienne-prise-supination", "nom": "Traction australienne prise supination", "nomEn": "Australian Pull-Up Underhand Grip", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "poids_corps"},
   {"id": "sw-tirage-bas-avec-levier", "nom": "Tirage bas avec levier", "nomEn": "Lever Low Row", "groupe": "dos", "secondaires": ["biceps", "epaules"], "materiel": "machine"},
   {"id": "sw-traction-en-prise-neutre", "nom": "Traction en prise neutre", "nomEn": "Neutral-Grip Pull-Up", "groupe": "dos", "secondaires": ["biceps", "avant_bras"], "materiel": "poids_corps"},
@@ -17980,53 +17983,53 @@ const EXERCICES_BASE = [
   {"id": "sw-haussement-d-x27-epaules-a-la-smith-machine", "nom": "Haussement d'épaules à la Smith machine", "nomEn": "Smith Shoulder Shrug", "groupe": "trapezes", "secondaires": [], "materiel": "machine"},
   {"id": "sw-haussements-d-x27-epaules-en-dips", "nom": "Haussements d'épaules en dips", "nomEn": "Dip Shrugs", "groupe": "trapezes", "secondaires": [], "materiel": "poids_corps"},
   {"id": "e159", "nom": "Rowing poitrine appuyée à la machine", "nomEn": "Chest Supported Machine Row", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "machine"},
-  {"id": "sw-tirage-a-la-bande-derriere-la-nuque", "nom": "Tirage à la bande derrière la nuque", "nomEn": "Band Pulldown Behind Neck", "groupe": "dos", "secondaires": [], "materiel": "elastique"},
+  {"id": "sw-tirage-a-la-bande-derriere-la-nuque", "nom": "Tirage à la bande derrière la nuque", "nomEn": "Band Pulldown Behind Neck", "groupe": "dos", "secondaires": ["biceps"], "materiel": "elastique"},
   {"id": "sw-traction-aux-anneaux", "nom": "Traction aux anneaux", "nomEn": "Rings Pull-Up", "groupe": "dos", "secondaires": ["abdos", "biceps", "avant_bras", "epaules", "triceps"], "materiel": "autre"},
   {"id": "e131", "nom": "Rameur", "nomEn": "Rowing Machine", "groupe": "dos", "secondaires": ["abdos", "ischios", "biceps", "avant_bras", "fessiers", "quadriceps", "epaules", "triceps"], "materiel": "machine"},
   {"id": "e150", "nom": "Rameur seal", "nomEn": "Seal Row", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "machine"},
   {"id": "sw-rangee-alternee-en-position-de-planche", "nom": "Rangée alternée en position de planche", "nomEn": "Alternate Renegade Row", "groupe": "dos", "secondaires": ["abdos", "biceps", "avant_bras", "pectoraux", "fessiers", "quadriceps", "epaules"], "materiel": "poids_corps"},
-  {"id": "sw-tirage-haut-unilateral-a-la-cable", "nom": "Tirage haut unilatéral au câble", "nomEn": "One-Arm High Row Cable", "groupe": "dos", "secondaires": [], "materiel": "poulie"},
+  {"id": "sw-tirage-haut-unilateral-a-la-cable", "nom": "Tirage haut unilatéral au câble", "nomEn": "One-Arm High Row Cable", "groupe": "dos", "secondaires": ["biceps"], "materiel": "poulie"},
   {"id": "sw-flexion-du-cou", "nom": "Flexion du cou", "nomEn": "Neck Curl", "groupe": "trapezes", "secondaires": [], "materiel": "poids_corps"},
-  {"id": "e37", "nom": "Rameur Yates", "nomEn": "Yates Row", "groupe": "dos", "secondaires": ["epaules"], "materiel": "barre"},
+  {"id": "e37", "nom": "Rameur Yates", "nomEn": "Yates Row", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "barre"},
   {"id": "sw-ergometre-de-ski", "nom": "Ergomètre de ski", "nomEn": "Ski Ergometer", "groupe": "dos", "secondaires": ["abdos", "epaules", "triceps"], "materiel": "poids_corps"},
-  {"id": "sw-rowing-incline-avec-halteres-prise-neutre", "nom": "Rowing incliné avec haltères prise neutre", "nomEn": "Dumbbell Neutral Grip Incline Bench Row", "groupe": "dos", "secondaires": ["epaules"], "materiel": "haltere"},
+  {"id": "sw-rowing-incline-avec-halteres-prise-neutre", "nom": "Rowing incliné avec haltères prise neutre", "nomEn": "Dumbbell Neutral Grip Incline Bench Row", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "haltere"},
   {"id": "e23", "nom": "Tirage vertical à la poulie avec prise serrée", "nomEn": "Cable Close Grip Lat Pulldown", "groupe": "dos", "secondaires": ["biceps", "avant_bras"], "materiel": "poulie"},
   {"id": "sw-haussement-d-x27-epaules-avec-barre", "nom": "Haussement d'épaules avec barre", "nomEn": "Barbell Shoulder Shrug", "groupe": "trapezes", "secondaires": [], "materiel": "barre"},
   {"id": "sw-drapeau", "nom": "Drapeau", "nomEn": "Flag", "groupe": "dos", "secondaires": ["abdos", "adducteurs", "biceps", "avant_bras", "pectoraux", "fessiers", "quadriceps", "epaules", "triceps"], "materiel": "poids_corps"},
   {"id": "sw-rowing-a-la-barre-en-pronation-inversee-penche-en-avant", "nom": "Rowing à la barre en pronation inversée penché en avant", "nomEn": "Barbell Reverse Grip Bent Over Row", "groupe": "dos", "secondaires": ["biceps", "epaules", "triceps"], "materiel": "barre"},
   {"id": "e1266", "nom": "Tirage vertical à la machine", "nomEn": "Lat Pulldown Machine", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules", "triceps"], "materiel": "machine"},
-  {"id": "sw-tirage-large-avec-bande-ancree-en-hauteur", "nom": "Tirage large avec bande ancrée en hauteur", "nomEn": "Band High Anchor Wide Row", "groupe": "dos", "secondaires": ["epaules"], "materiel": "elastique"},
+  {"id": "sw-tirage-large-avec-bande-ancree-en-hauteur", "nom": "Tirage large avec bande ancrée en hauteur", "nomEn": "Band High Anchor Wide Row", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "elastique"},
   {"id": "sw-tirage-a-la-poulie-haute-prise-inversee", "nom": "Tirage à la poulie haute prise inversée", "nomEn": "Cable Reverse Grip Pulldown", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "poulie"},
-  {"id": "sw-rowing-incline-avec-barre-poitrine-soutenue", "nom": "Rowing poitrine appuyée à la barre", "nomEn": "Incline Chest Supported Barbell Row", "groupe": "dos", "secondaires": ["avant_bras", "epaules", "triceps"], "materiel": "barre"},
-  {"id": "sw-rameur-renegat-avec-kettlebell", "nom": "Rameur renégat avec kettlebell", "nomEn": "Kettlebel Renegade Row", "groupe": "dos", "secondaires": ["abdos", "pectoraux", "fessiers", "triceps"], "materiel": "poids_corps"},
+  {"id": "sw-rowing-incline-avec-barre-poitrine-soutenue", "nom": "Rowing poitrine appuyée à la barre", "nomEn": "Incline Chest Supported Barbell Row", "groupe": "dos", "secondaires": ["avant_bras", "epaules", "triceps", "biceps"], "materiel": "barre"},
+  {"id": "sw-rameur-renegat-avec-kettlebell", "nom": "Rameur renégat avec kettlebell", "nomEn": "Kettlebel Renegade Row", "groupe": "dos", "secondaires": ["abdos", "pectoraux", "fessiers", "triceps", "biceps"], "materiel": "poids_corps"},
   {"id": "e154", "nom": "Tractions assistées", "nomEn": "Assisted Pull-Up", "groupe": "dos", "secondaires": ["biceps", "avant_bras"], "materiel": "machine"},
-  {"id": "e258", "nom": "Rowing barre arrière épaules", "nomEn": "Barbell Rear Delt Row", "groupe": "dos", "secondaires": ["epaules"], "materiel": "barre"},
-  {"id": "sw-tirage-assis-a-la-poulie-avec-prise-neutre", "nom": "Rowing assis à la poulie prise neutre", "nomEn": "Cable Seated Row Neutral Grip", "groupe": "dos", "secondaires": ["avant_bras", "epaules"], "materiel": "poulie"},
+  {"id": "e258", "nom": "Rowing barre arrière épaules", "nomEn": "Barbell Rear Delt Row", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "barre"},
+  {"id": "sw-tirage-assis-a-la-poulie-avec-prise-neutre", "nom": "Rowing assis à la poulie prise neutre", "nomEn": "Cable Seated Row Neutral Grip", "groupe": "dos", "secondaires": ["avant_bras", "epaules", "biceps"], "materiel": "poulie"},
   {"id": "sw-tirage-unilateral-a-la-poulie", "nom": "Tirage unilatéral à la poulie", "nomEn": "One-Arm Cable Row", "groupe": "dos", "secondaires": ["biceps", "epaules"], "materiel": "poulie"},
-  {"id": "sw-tirage-haut-a-la-machine", "nom": "Tirage haut à la machine", "nomEn": "Lever High Row", "groupe": "dos", "secondaires": ["epaules"], "materiel": "machine"},
+  {"id": "sw-tirage-haut-a-la-machine", "nom": "Tirage haut à la machine", "nomEn": "Lever High Row", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "machine"},
   {"id": "sw-haussements-d-x27-epaules-avec-barre-hexagonale", "nom": "Haussements d'épaules avec barre hexagonale", "nomEn": "Trap Bar Shrugs", "groupe": "trapezes", "secondaires": [], "materiel": "barre"},
   {"id": "e155", "nom": "Variante en australian chin-up", "nomEn": "Inverted Row", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "poids_corps"},
   {"id": "e149", "nom": "Rowing Pendlay", "nomEn": "Pendlay Row", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "barre"},
-  {"id": "sw-tirage-bas-assis-a-la-poulie-avec-prise-neutre", "nom": "Rowing assis à la poulie basse prise neutre", "nomEn": "Seated Cable Low Row Neutral Grip", "groupe": "dos", "secondaires": ["avant_bras", "epaules"], "materiel": "poulie"},
+  {"id": "sw-tirage-bas-assis-a-la-poulie-avec-prise-neutre", "nom": "Rowing assis à la poulie basse prise neutre", "nomEn": "Seated Cable Low Row Neutral Grip", "groupe": "dos", "secondaires": ["avant_bras", "epaules", "biceps"], "materiel": "poulie"},
   {"id": "sw-extension-dorsale-sur-machine", "nom": "Extension dorsale sur machine", "nomEn": "Lever Back Extension", "groupe": "lombaires", "secondaires": ["fessiers"], "materiel": "machine"},
   {"id": "sw-pull-over-avec-halteres-et-jambes-elevees", "nom": "Pull-over avec haltères et jambes élevées", "nomEn": "Dumbbell Pullover with Legs Raised", "groupe": "dos", "secondaires": ["pectoraux", "triceps"], "materiel": "haltere"},
   {"id": "sw-tirage-assis-a-la-poulie-avec-prise-supine", "nom": "Tirage assis à la poulie avec prise supine", "nomEn": "Cable Seated Supine Grip Row", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "poulie"},
   {"id": "sw-tirage-vertical-bras-tendus", "nom": "Tirage vertical bras tendus", "nomEn": "Straight-Arm Lat Pulldown", "groupe": "dos", "secondaires": ["epaules", "triceps"], "materiel": "poulie"},
   {"id": "sw-tirage-vertical-a-la-poulie-prise-neutre", "nom": "Tirage vertical à la poulie prise neutre", "nomEn": "Cable Neutral Grip Lat Pulldown", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules", "triceps"], "materiel": "poulie"},
-  {"id": "sw-tirage-vertical-a-genoux-a-la-poulie", "nom": "Tirage vertical à genoux à la poulie", "nomEn": "Kneeling Cable Lat Pulldown", "groupe": "dos", "secondaires": ["avant_bras"], "materiel": "poulie"},
+  {"id": "sw-tirage-vertical-a-genoux-a-la-poulie", "nom": "Tirage vertical à genoux à la poulie", "nomEn": "Kneeling Cable Lat Pulldown", "groupe": "dos", "secondaires": ["avant_bras", "biceps"], "materiel": "poulie"},
   {"id": "sw-traction-australienne-a-prise-etroite-avec-anneaux", "nom": "Traction australienne à prise étroite avec anneaux", "nomEn": "Narrow Grip Australian Pull-Up With Rings", "groupe": "dos", "secondaires": ["biceps", "epaules"], "materiel": "autre"},
-  {"id": "sw-rameur-a-prise-serree-avec-barre-au-sol", "nom": "Rameur à prise serrée avec barre au sol", "nomEn": "Close Grip Landmine Row", "groupe": "dos", "secondaires": [], "materiel": "barre"},
+  {"id": "sw-rameur-a-prise-serree-avec-barre-au-sol", "nom": "Rameur à prise serrée avec barre au sol", "nomEn": "Close Grip Landmine Row", "groupe": "dos", "secondaires": ["biceps"], "materiel": "barre"},
   {"id": "e1005", "nom": "Planche arrière", "nomEn": "Back Lever", "groupe": "dos", "secondaires": ["abdos", "ischios", "pectoraux", "fessiers", "epaules"], "materiel": "poids_corps"},
-  {"id": "sw-tirage-assis-a-un-bras", "nom": "Tirage assis à un bras", "nomEn": "One-Arm Seated Row", "groupe": "dos", "secondaires": ["epaules"], "materiel": "poids_corps"},
+  {"id": "sw-tirage-assis-a-un-bras", "nom": "Tirage assis à un bras", "nomEn": "One-Arm Seated Row", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "poids_corps"},
   {"id": "e311", "nom": "Haussement d'épaules à la poulie", "nomEn": "Cable Shrug", "groupe": "trapezes", "secondaires": [], "materiel": "poulie"},
-  {"id": "sw-rowing-barre-incline-prise-large", "nom": "Rowing barre incliné prise large", "nomEn": "Barbell Incline Wide Grip Row", "groupe": "dos", "secondaires": ["epaules"], "materiel": "barre"},
+  {"id": "sw-rowing-barre-incline-prise-large", "nom": "Rowing barre incliné prise large", "nomEn": "Barbell Incline Wide Grip Row", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "barre"},
   {"id": "sw-traction-assistee-par-bande-elastique", "nom": "Traction assistée par bande élastique", "nomEn": "Band Assisted Pull Up", "groupe": "dos", "secondaires": ["biceps", "avant_bras"], "materiel": "elastique"},
   {"id": "sw-haussement-d-x27-epaules-inverse", "nom": "Haussement d'épaules inversé", "nomEn": "Inverted Shrug", "groupe": "trapezes", "secondaires": [], "materiel": "poids_corps"},
   {"id": "e9", "nom": "Pull-over avec haltère", "nomEn": "Dumbbell Pullover", "groupe": "dos", "secondaires": ["pectoraux", "triceps"], "materiel": "haltere"},
   {"id": "sw-rameur-assis-a-la-poulie-en-flexion", "nom": "Rameur assis à la poulie en flexion", "nomEn": "Seated Cable Flexion Row", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "poulie"},
   {"id": "sw-elevations-laterales-incline-avec-support-pour-la-poitrine-et-halteres", "nom": "Élévations latérales incliné avec support pour la poitrine et haltères", "nomEn": "Dumbbell Incline Chest Supported Lateral Raises", "groupe": "dos", "secondaires": ["epaules"], "materiel": "haltere"},
   {"id": "e1074", "nom": "Lever avant", "nomEn": "Front Lever", "groupe": "dos", "secondaires": ["abdos", "biceps", "quadriceps", "epaules"], "materiel": "poids_corps"},
-  {"id": "sw-tirage-haut-a-un-bras-avec-levier", "nom": "Tirage haut à un bras avec levier", "nomEn": "One-Arm Lever High Row", "groupe": "dos", "secondaires": ["epaules"], "materiel": "machine"},
+  {"id": "sw-tirage-haut-a-un-bras-avec-levier", "nom": "Tirage haut à un bras avec levier", "nomEn": "One-Arm Lever High Row", "groupe": "dos", "secondaires": ["epaules", "biceps"], "materiel": "machine"},
   {"id": "e160", "nom": "Tractions négatives", "nomEn": "Negative Pull-Up", "groupe": "dos", "secondaires": ["biceps", "epaules"], "materiel": "poids_corps"},
   {"id": "sw-rowing-penche-a-la-barre-guidee", "nom": "Rowing penché à la Smith machine", "nomEn": "Smith Machine Bent Over Row", "groupe": "dos", "secondaires": ["biceps", "avant_bras", "epaules"], "materiel": "machine"},
   {"id": "sw-rowing-buste-penche-avec-halteres", "nom": "Rowing buste penché avec haltères", "nomEn": "Double Dumbbell Bent Over Row", "groupe": "dos", "secondaires": ["biceps", "avant_bras"], "materiel": "haltere"},
@@ -18041,8 +18044,8 @@ const EXERCICES_BASE = [
   {"id": "sw-elevation-laterale-assise-avec-halteres", "nom": "Élévation latérale assise avec haltères", "nomEn": "Seated Dumbbell Lateral Raise", "groupe": "epaules", "secondaires": [], "materiel": "haltere"},
   {"id": "e1129", "nom": "Développé poussé avec barre", "nomEn": "Barbell Push Press", "groupe": "quadriceps", "secondaires": ["abdos", "pectoraux", "mollets", "fessiers", "epaules", "triceps"], "materiel": "barre"},
   {"id": "sw-planche-ecartee", "nom": "Planche écartée", "nomEn": "Straddle Planche", "groupe": "dos", "secondaires": ["abdos", "ischios", "biceps", "avant_bras", "pectoraux", "fessiers", "epaules", "triceps"], "materiel": "poids_corps"},
-  {"id": "sw-press-cubain-assis", "nom": "Press cubain assis", "nomEn": "Seated Cuban Press", "groupe": "epaules", "secondaires": ["trapezes"], "materiel": "poids_corps"},
-  {"id": "sw-developpe-epaules-a-un-bras-avec-haltere", "nom": "Développé épaules à un bras avec haltère", "nomEn": "One-Arm Shoulder Press Dumbbell", "groupe": "epaules", "secondaires": [], "materiel": "haltere"},
+  {"id": "sw-press-cubain-assis", "nom": "Press cubain assis", "nomEn": "Seated Cuban Press", "groupe": "epaules", "secondaires": ["trapezes", "triceps"], "materiel": "poids_corps"},
+  {"id": "sw-developpe-epaules-a-un-bras-avec-haltere", "nom": "Développé épaules à un bras avec haltère", "nomEn": "One-Arm Shoulder Press Dumbbell", "groupe": "epaules", "secondaires": ["triceps"], "materiel": "haltere"},
   {"id": "sw-rotation-externe-en-decubitus-lateral", "nom": "Rotation externe en décubitus latéral", "nomEn": "Side Lying External Rotation", "groupe": "epaules", "secondaires": [], "materiel": "poids_corps"},
   {"id": "sw-elevation-frontale-a-la-corde-avec-un-bras", "nom": "Élévation frontale à la corde avec un bras", "nomEn": "One-Arm Cable Front Raise", "groupe": "epaules", "secondaires": [], "materiel": "poulie"},
   {"id": "e163", "nom": "Delt flys arrière", "nomEn": "Bent Over Dumbbell Lateral Raise", "groupe": "dos", "secondaires": ["epaules"], "materiel": "haltere"},
@@ -18063,7 +18066,7 @@ const EXERCICES_BASE = [
   {"id": "sw-pompe-en-pike-entre-des-chaises", "nom": "Pompe en pike entre des chaises", "nomEn": "Pike Push-Up Between Chairs", "groupe": "epaules", "secondaires": ["pectoraux", "triceps"], "materiel": "poids_corps"},
   {"id": "e33", "nom": "Face pull à la poulie", "nomEn": "Cable Face Pull", "groupe": "epaules", "secondaires": ["dos"], "materiel": "poulie"},
   {"id": "sw-tirage-vertical-a-la-barre-avec-prise-large", "nom": "Rowing menton à la barre prise large", "nomEn": "Barbell Wide Grip Upright Row", "groupe": "epaules", "secondaires": [], "materiel": "barre"},
-  {"id": "e40", "nom": "Développé épaules avec haltères", "nomEn": "Seated Dumbbell Shoulder Press", "groupe": "epaules", "secondaires": [], "materiel": "haltere"},
+  {"id": "e40", "nom": "Développé épaules avec haltères", "nomEn": "Seated Dumbbell Shoulder Press", "groupe": "epaules", "secondaires": ["triceps"], "materiel": "haltere"},
   {"id": "sw-butterfly-inverse", "nom": "Butterfly inversé", "nomEn": "Machine Reverse Flyes", "groupe": "dos", "secondaires": ["epaules"], "materiel": "machine"},
   {"id": "sw-developpe-epaules-a-un-bras-avec-landmine-en-position-debout", "nom": "Développé épaules à un bras avec landmine en position debout", "nomEn": "One-Arm Landmine Standing Shoulder Press", "groupe": "epaules", "secondaires": ["pectoraux", "triceps"], "materiel": "barre"},
   {"id": "sw-developpe-epaules-avec-halteres-en-position-demi-genouillee", "nom": "Développé épaules avec haltères en position demi-genouillée", "nomEn": "Dumbbell Half Kneeling Shoulder Press", "groupe": "epaules", "secondaires": ["triceps"], "materiel": "haltere"},
@@ -18091,7 +18094,7 @@ const EXERCICES_BASE = [
   {"id": "e45", "nom": "Élévation frontale avec barre", "nomEn": "Barbell Front Raise", "groupe": "epaules", "secondaires": [], "materiel": "barre"},
   {"id": "e41", "nom": "Presse Arnold assise avec haltères", "nomEn": "Seated Arnold Dumbbell Press", "groupe": "epaules", "secondaires": ["triceps"], "materiel": "haltere"},
   {"id": "sw-elevation-laterale-avec-bande", "nom": "Élévation latérale avec bande", "nomEn": "Band Lateral Raise", "groupe": "epaules", "secondaires": [], "materiel": "elastique"},
-  {"id": "sw-developpe-alterne-debout-avec-halteres", "nom": "Développé alterné debout avec haltères", "nomEn": "Dumbbell Standing Alternate Press", "groupe": "epaules", "secondaires": [], "materiel": "haltere"},
+  {"id": "sw-developpe-alterne-debout-avec-halteres", "nom": "Développé alterné debout avec haltères", "nomEn": "Dumbbell Standing Alternate Press", "groupe": "epaules", "secondaires": ["triceps"], "materiel": "haltere"},
   {"id": "e165", "nom": "Élévation latérale avec barre à pivot", "nomEn": "Landmine Lateral Raise", "groupe": "epaules", "secondaires": ["dos", "pectoraux"], "materiel": "barre"},
   {"id": "sw-tirage-visage-avec-bande-elastique", "nom": "Tirage visage avec bande élastique", "nomEn": "Banded Face Pull", "groupe": "epaules", "secondaires": ["trapezes"], "materiel": "elastique"},
   {"id": "e52", "nom": "Pompe en équilibre sur les mains", "nomEn": "Handstand Push-Up", "groupe": "epaules", "secondaires": ["abdos", "dos", "pectoraux", "triceps"], "materiel": "poids_corps"},
@@ -18216,7 +18219,7 @@ const EXERCICES_BASE = [
   {"id": "e211", "nom": "Vélo", "nomEn": "Stationary Bike", "groupe": "quadriceps", "secondaires": ["ischios", "fessiers"], "materiel": "machine"},
   {"id": "sw-posture-du-papillon-couche", "nom": "Posture du papillon couché", "nomEn": "Lying Butterfly Pose", "groupe": "adducteurs", "secondaires": ["quadriceps"], "materiel": "poids_corps"},
   {"id": "e29", "nom": "Soulevé de terre", "nomEn": "Deadlift", "groupe": "quadriceps", "secondaires": ["abdos", "adducteurs", "dos", "ischios", "avant_bras", "mollets", "fessiers", "epaules"], "materiel": "barre"},
-  {"id": "sw-montee-sur-banc-avec-barre", "nom": "Montée sur banc avec barre", "nomEn": "Barbell Step-up", "groupe": "quadriceps", "secondaires": [], "materiel": "barre"},
+  {"id": "sw-montee-sur-banc-avec-barre", "nom": "Montée sur banc avec barre", "nomEn": "Barbell Step-up", "groupe": "quadriceps", "secondaires": ["fessiers"], "materiel": "barre"},
   {"id": "sw-elevations-unilaterales-avec-haltere", "nom": "Élévations unilatérales avec haltère", "nomEn": "Single-Leg Calf Raise with Dumbbell", "groupe": "mollets", "secondaires": [], "materiel": "haltere"},
   {"id": "sw-squat-avec-barre-basse", "nom": "Squat avec barre basse", "nomEn": "Lowbar Squat", "groupe": "quadriceps", "secondaires": ["abdos", "adducteurs", "ischios", "mollets", "lombaires", "fessiers"], "materiel": "poids_corps"},
   {"id": "sw-squat-a-la-machine-avec-ceinture", "nom": "Squat à la machine avec ceinture", "nomEn": "Machine Belt Squat", "groupe": "quadriceps", "secondaires": ["fessiers"], "materiel": "machine"},
@@ -18244,7 +18247,7 @@ const EXERCICES_BASE = [
   {"id": "sw-curl-des-ischio-jambiers-debout", "nom": "Curl des ischio-jambiers debout", "nomEn": "Standing Leg Curl", "groupe": "ischios", "secondaires": [], "materiel": "machine"},
   {"id": "e1018", "nom": "Extension terminale du genou", "nomEn": "Terminal Knee Extension", "groupe": "quadriceps", "secondaires": [], "materiel": "elastique"},
   {"id": "sw-fente-bulgare-a-la-smith-machine", "nom": "Fente bulgare à la Smith machine", "nomEn": "Bulgarian Squat Smith", "groupe": "quadriceps", "secondaires": ["fessiers"], "materiel": "machine"},
-  {"id": "e182", "nom": "Presse à cuisses à une jambe", "nomEn": "Single Leg Press", "groupe": "quadriceps", "secondaires": ["ischios"], "materiel": "machine"},
+  {"id": "e182", "nom": "Presse à cuisses à une jambe", "nomEn": "Single Leg Press", "groupe": "quadriceps", "secondaires": ["ischios", "fessiers"], "materiel": "machine"},
   {"id": "e134", "nom": "Corde à sauter", "nomEn": "Jump Rope", "groupe": "mollets", "secondaires": ["abdos", "ischios", "fessiers", "quadriceps"], "materiel": "autre"},
   {"id": "sw-montee-sur-tapis-roulant", "nom": "Montée sur tapis roulant", "nomEn": "Treadmill Climbing", "groupe": "quadriceps", "secondaires": ["adducteurs", "ischios", "mollets", "fessiers"], "materiel": "poids_corps"},
   {"id": "e80", "nom": "Squat avant", "nomEn": "Front Squat", "groupe": "quadriceps", "secondaires": ["abdos", "adducteurs", "ischios", "lombaires", "fessiers"], "materiel": "barre"},
@@ -18299,7 +18302,7 @@ const EXERCICES_BASE = [
   {"id": "sw-squat-sumo", "nom": "Squat sumo", "nomEn": "Sumo Squat", "groupe": "quadriceps", "secondaires": ["adducteurs", "mollets", "fessiers"], "materiel": "poids_corps"},
   {"id": "sw-elevation-ischio-jambiers-gluteaux-1-2", "nom": "Élévation ischio-jambiers-glutéaux 1/2", "nomEn": "Glute-Ham Raise 1/2", "groupe": "ischios", "secondaires": ["abdos", "mollets", "lombaires", "fessiers"], "materiel": "poids_corps"},
   {"id": "e87", "nom": "Extension des jambes", "nomEn": "Seated Leg Extension Machine", "groupe": "quadriceps", "secondaires": [], "materiel": "machine"},
-  {"id": "sw-fente-laterale-plyometrique", "nom": "Fente latérale plyométrique", "nomEn": "Plyo side lunge", "groupe": "quadriceps", "secondaires": ["abdos", "adducteurs"], "materiel": "poids_corps"},
+  {"id": "sw-fente-laterale-plyometrique", "nom": "Fente latérale plyométrique", "nomEn": "Plyo side lunge", "groupe": "quadriceps", "secondaires": ["abdos", "adducteurs", "fessiers"], "materiel": "poids_corps"},
   {"id": "sw-arrache-avec-kettlebell", "nom": "Arraché avec kettlebell", "nomEn": "Kettelbell Clean", "groupe": "dos", "secondaires": ["abdos", "adducteurs", "ischios", "biceps", "avant_bras", "mollets", "fessiers", "quadriceps", "epaules"], "materiel": "poids_corps"},
   {"id": "sw-curl-ischio-jambiers-assis-a-une-jambe", "nom": "Curl ischio-jambiers assis à une jambe", "nomEn": "Seated Single Leg Curl", "groupe": "ischios", "secondaires": [], "materiel": "machine"},
   {"id": "sw-marche-monstre-avant-avec-bande", "nom": "Marche monstre avant avec bande", "nomEn": "Forward Band Monster Walk", "groupe": "quadriceps", "secondaires": ["fessiers"], "materiel": "elastique"},
@@ -18379,17 +18382,17 @@ const EXERCICES_BASE = [
   {"id": "sw-elevation-des-mollets-unilaterale-a-la-smith-machine", "nom": "Élévation des mollets unilatérale à la Smith machine", "nomEn": "Single Leg Smith Calf Raise", "groupe": "mollets", "secondaires": [], "materiel": "machine"},
   {"id": "sw-etirement-papillon-incline-vers-l-x27-avant", "nom": "Étirement papillon incliné vers l'avant", "nomEn": "Butterfly Lean Forward Stretch", "groupe": "quadriceps", "secondaires": [], "materiel": "poids_corps"},
   {"id": "e1139", "nom": "Course à pied", "nomEn": "Running", "groupe": "quadriceps", "secondaires": ["abdos", "adducteurs", "ischios", "mollets", "lombaires", "fessiers"], "materiel": "poids_corps"},
-  {"id": "e1116", "nom": "Squat avec barre au-dessus de la tête", "nomEn": "Barbell Overhead Squat", "groupe": "quadriceps", "secondaires": [], "materiel": "barre"},
+  {"id": "e1116", "nom": "Squat avec barre au-dessus de la tête", "nomEn": "Barbell Overhead Squat", "groupe": "quadriceps", "secondaires": ["fessiers"], "materiel": "barre"},
   {"id": "e1014", "nom": "Squat avec bande élastique", "nomEn": "Band Squat", "groupe": "quadriceps", "secondaires": ["adducteurs", "ischios", "mollets", "fessiers"], "materiel": "elastique"},
   {"id": "sw-squat-bulgare-avec-barre", "nom": "Squat bulgare avec barre", "nomEn": "Barbell Bulgarian Squat", "groupe": "quadriceps", "secondaires": ["abdos", "adducteurs", "ischios", "lombaires", "fessiers"], "materiel": "barre"},
   {"id": "sw-ecartes-a-la-poulie", "nom": "Écartés à la poulie", "nomEn": "High Low Cable Chest Fly", "groupe": "pectoraux", "secondaires": [], "materiel": "poulie"},
   {"id": "sw-pompes-completes-sur-les-poignets", "nom": "Pompes complètes sur les poignets", "nomEn": "Reverse Wrist Push-Up", "groupe": "pectoraux", "secondaires": ["abdos", "avant_bras", "epaules", "triceps"], "materiel": "poids_corps"},
-  {"id": "e1073", "nom": "Développé couché au sol avec barre", "nomEn": "Barbell Floor Press", "groupe": "pectoraux", "secondaires": ["avant_bras", "triceps"], "materiel": "barre"},
+  {"id": "e1073", "nom": "Développé couché au sol avec barre", "nomEn": "Barbell Floor Press", "groupe": "pectoraux", "secondaires": ["avant_bras", "triceps", "epaules"], "materiel": "barre"},
   {"id": "sw-presse-a-la-poitrine-basse-avec-cable-en-position-debout", "nom": "Presse à la poitrine basse avec câble en position debout", "nomEn": "Standing Cable Low Chest Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poulie"},
   {"id": "e2", "nom": "Développé couché incliné", "nomEn": "Incline Barbell Bench Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "barre"},
   {"id": "sw-pompe-superman", "nom": "Pompe Superman", "nomEn": "Superman Push-Up", "groupe": "pectoraux", "secondaires": ["abdos", "dos", "epaules", "triceps"], "materiel": "poids_corps"},
   {"id": "sw-dips-coreens", "nom": "Dips coréens", "nomEn": "Korean Dip", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poids_corps"},
-  {"id": "sw-developpe-incline-a-la-poulie-basse", "nom": "Développé incliné à la poulie basse", "nomEn": "Low Cable Incline Bench Press", "groupe": "pectoraux", "secondaires": ["avant_bras", "triceps"], "materiel": "poulie"},
+  {"id": "sw-developpe-incline-a-la-poulie-basse", "nom": "Développé incliné à la poulie basse", "nomEn": "Low Cable Incline Bench Press", "groupe": "pectoraux", "secondaires": ["avant_bras", "triceps", "epaules"], "materiel": "poulie"},
   {"id": "sw-developpe-debout-a-la-poulie-pour-les-pectoraux", "nom": "Développé debout à la poulie pour les pectoraux", "nomEn": "Standing Cable Chest Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poulie"},
   {"id": "sw-pompe-sur-les-jointures", "nom": "Pompe sur les jointures", "nomEn": "Knuckle Push-Up", "groupe": "pectoraux", "secondaires": ["abdos", "epaules", "triceps"], "materiel": "poids_corps"},
   {"id": "sw-ecarte-a-la-poulie-haute-a-basse-a-genoux", "nom": "Écarté à la poulie haute à basse à genoux", "nomEn": "Cable Kneeling High To Low Fly", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poulie"},
@@ -18404,25 +18407,25 @@ const EXERCICES_BASE = [
   {"id": "e1165", "nom": "Dips à la barre", "nomEn": "Straight Bar Dips", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poids_corps"},
   {"id": "sw-pompes-scapulaires", "nom": "Pompes scapulaires", "nomEn": "Scapula Push-Up", "groupe": "pectoraux", "secondaires": ["trapezes"], "materiel": "poids_corps"},
   {"id": "sw-ecarte-a-un-bras-avec-haltere-en-position-basse", "nom": "Écarté à un bras avec haltère en position basse", "nomEn": "One-Arm Low Fly Dumbbell", "groupe": "pectoraux", "secondaires": ["biceps", "epaules"], "materiel": "haltere"},
-  {"id": "e322", "nom": "Développé couché avec haltères prise serrée", "nomEn": "Close Grip Dumbbell Press", "groupe": "pectoraux", "secondaires": ["triceps"], "materiel": "haltere"},
+  {"id": "e322", "nom": "Développé couché avec haltères prise serrée", "nomEn": "Close Grip Dumbbell Press", "groupe": "pectoraux", "secondaires": ["triceps", "epaules"], "materiel": "haltere"},
   {"id": "sw-ecarte-a-la-corde-pour-le-milieu-de-la-poitrine", "nom": "Écarté à la corde pour le milieu de la poitrine", "nomEn": "Cable Middle Chest Fly", "groupe": "pectoraux", "secondaires": ["epaules"], "materiel": "poulie"},
   {"id": "e1169", "nom": "Développé Svend", "nomEn": "Svend Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "autre"},
   {"id": "sw-developpe-couche-au-sol-avec-halteres", "nom": "Développé couché au sol avec haltères", "nomEn": "Floor Dumbbell Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "haltere"},
   {"id": "e15", "nom": "Pompes en déclinaison", "nomEn": "Decline Push-Up", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poids_corps"},
-  {"id": "sw-developpe-couche-a-la-smith-machine", "nom": "Développé couché à la Smith machine", "nomEn": "Smith Bench Press", "groupe": "pectoraux", "secondaires": [], "materiel": "machine"},
+  {"id": "sw-developpe-couche-a-la-smith-machine", "nom": "Développé couché à la Smith machine", "nomEn": "Smith Bench Press", "groupe": "pectoraux", "secondaires": ["triceps", "epaules"], "materiel": "machine"},
   {"id": "sw-developpe-larsen-avec-halteres", "nom": "Développé Larsen avec haltères", "nomEn": "Dumbbell Larsen Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "haltere"},
-  {"id": "sw-pompe-negative", "nom": "Pompe négative", "nomEn": "Negative Push-Up", "groupe": "pectoraux", "secondaires": ["triceps"], "materiel": "poids_corps"},
+  {"id": "sw-pompe-negative", "nom": "Pompe négative", "nomEn": "Negative Push-Up", "groupe": "pectoraux", "secondaires": ["triceps", "epaules"], "materiel": "poids_corps"},
   {"id": "e5", "nom": "Développé incliné avec haltères", "nomEn": "Incline Dumbbell Bench Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "haltere"},
   {"id": "sw-ecarte-couche-au-sol-avec-halteres", "nom": "Écarté couché au sol avec haltères", "nomEn": "Dumbbell Floor Chest Fly", "groupe": "pectoraux", "secondaires": ["biceps", "epaules"], "materiel": "haltere"},
   {"id": "sw-pullover-avec-barre", "nom": "Pullover avec barre", "nomEn": "Barbell Pullover", "groupe": "dos", "secondaires": ["pectoraux", "triceps"], "materiel": "barre"},
   {"id": "sw-ecarte-a-la-machine-pec-deck", "nom": "Écarté à la machine pec deck", "nomEn": "Pec Deck Chest Fly", "groupe": "pectoraux", "secondaires": ["epaules"], "materiel": "machine"},
-  {"id": "sw-developpe-couche-avec-halteres-en-prise-marteau", "nom": "Développé couché avec haltères en prise marteau", "nomEn": "Hammer Grip Dumbbell Bench Press", "groupe": "pectoraux", "secondaires": ["triceps"], "materiel": "haltere"},
+  {"id": "sw-developpe-couche-avec-halteres-en-prise-marteau", "nom": "Développé couché avec haltères en prise marteau", "nomEn": "Hammer Grip Dumbbell Bench Press", "groupe": "pectoraux", "secondaires": ["triceps", "epaules"], "materiel": "haltere"},
   {"id": "sw-developpe-poliquin-avec-halteres", "nom": "Développé Poliquin avec haltères", "nomEn": "Dumbbell Poliquin Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "haltere"},
-  {"id": "e3", "nom": "Développé couché incliné avec barre", "nomEn": "Decline Barbell Bench Press", "groupe": "pectoraux", "secondaires": ["triceps"], "materiel": "barre"},
+  {"id": "e3", "nom": "Développé couché incliné avec barre", "nomEn": "Decline Barbell Bench Press", "groupe": "pectoraux", "secondaires": ["triceps", "epaules"], "materiel": "barre"},
   {"id": "e13", "nom": "Pompe", "nomEn": "Push-Up", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poids_corps"},
   {"id": "sw-ecarte-a-la-poulie-assis", "nom": "Écarté à la poulie assis", "nomEn": "Seated Cable Fly", "groupe": "pectoraux", "secondaires": ["epaules"], "materiel": "poulie"},
   {"id": "sw-developpe-couche-avec-bande", "nom": "Développé couché avec bande", "nomEn": "Band Bench Chest Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "elastique"},
-  {"id": "sw-developpe-incline-avec-halteres-en-prise-neutre", "nom": "Développé incliné avec haltères en prise neutre", "nomEn": "Incline Neutral Grip Dumbbell Press", "groupe": "pectoraux", "secondaires": ["triceps"], "materiel": "haltere"},
+  {"id": "sw-developpe-incline-avec-halteres-en-prise-neutre", "nom": "Développé incliné avec haltères en prise neutre", "nomEn": "Incline Neutral Grip Dumbbell Press", "groupe": "pectoraux", "secondaires": ["triceps", "epaules"], "materiel": "haltere"},
   {"id": "sw-pompes-aux-anneaux-a-genoux", "nom": "Pompes aux anneaux à genoux", "nomEn": "Kneeling Ring Push-Up", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "autre"},
   {"id": "sw-ecarte-avec-bande-elastique", "nom": "Écarté avec bande élastique", "nomEn": "Band Chest Fly", "groupe": "pectoraux", "secondaires": [], "materiel": "elastique"},
   {"id": "sw-developpe-couche-decline-a-la-poulie", "nom": "Développé couché décliné à la poulie", "nomEn": "Decline Cable Chest Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poulie"},
@@ -18447,9 +18450,9 @@ const EXERCICES_BASE = [
   {"id": "e4", "nom": "Développé couché avec haltères", "nomEn": "Dumbbell Bench Press", "groupe": "pectoraux", "secondaires": ["abdos", "epaules", "triceps"], "materiel": "haltere"},
   {"id": "sw-developpe-incline-marteau", "nom": "Développé incliné marteau", "nomEn": "Incline Hammer Chest Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poids_corps"},
   {"id": "sw-planche-inclinee", "nom": "Planche inclinée", "nomEn": "Lean Planche", "groupe": "pectoraux", "secondaires": ["abdos", "dos", "biceps", "avant_bras", "epaules", "triceps"], "materiel": "poids_corps"},
-  {"id": "sw-developpe-unilateral-en-travers-du-corps", "nom": "Développé unilatéral en travers du corps", "nomEn": "Cross Body One-Arm Strength Press", "groupe": "pectoraux", "secondaires": ["triceps"], "materiel": "poids_corps"},
+  {"id": "sw-developpe-unilateral-en-travers-du-corps", "nom": "Développé unilatéral en travers du corps", "nomEn": "Cross Body One-Arm Strength Press", "groupe": "pectoraux", "secondaires": ["triceps", "epaules"], "materiel": "poids_corps"},
   {"id": "e16", "nom": "Dips pour les pectoraux", "nomEn": "Chest Dips", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poids_corps"},
-  {"id": "e1111", "nom": "Développé couché au sol à un bras avec kettlebell", "nomEn": "Kettlebell One Arm Floor Press", "groupe": "pectoraux", "secondaires": [], "materiel": "kettlebell"},
+  {"id": "e1111", "nom": "Développé couché au sol à un bras avec kettlebell", "nomEn": "Kettlebell One Arm Floor Press", "groupe": "pectoraux", "secondaires": ["triceps", "epaules"], "materiel": "kettlebell"},
   {"id": "sw-pression-debout-circulaire", "nom": "Press around à la poulie", "nomEn": "Cable Press Around", "groupe": "pectoraux", "secondaires": ["triceps"], "materiel": "poulie"},
   {"id": "sw-etirement-de-la-poitrine-avec-les-coudes-ecartes", "nom": "Étirement de la poitrine avec les coudes écartés", "nomEn": "Elbow Out Chest Stretch", "groupe": "pectoraux", "secondaires": [], "materiel": "poids_corps"},
   {"id": "sw-developpe-couche-prise-marteau", "nom": "Développé couché à la machine", "nomEn": "Lying Chest Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poids_corps"},
@@ -18458,12 +18461,12 @@ const EXERCICES_BASE = [
   {"id": "e145", "nom": "Pompes aux anneaux", "nomEn": "Ring Push-Up", "groupe": "pectoraux", "secondaires": ["abdos", "epaules", "triceps"], "materiel": "poids_corps"},
   {"id": "sw-developpe-couche-a-un-bras-avec-haltere", "nom": "Développé couché à un bras avec haltère", "nomEn": "One-Arm Dumbbell Bench Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "haltere"},
   {"id": "sw-pompes-larges-a-genoux", "nom": "Pompes larges à genoux", "nomEn": "Kneeling Wide Push-Up", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poids_corps"},
-  {"id": "e6", "nom": "Développé couché décliné avec haltères", "nomEn": "Decline Dumbbell Bench Press", "groupe": "pectoraux", "secondaires": ["triceps"], "materiel": "haltere"},
+  {"id": "e6", "nom": "Développé couché décliné avec haltères", "nomEn": "Decline Dumbbell Bench Press", "groupe": "pectoraux", "secondaires": ["triceps", "epaules"], "materiel": "haltere"},
   {"id": "sw-pompes-mains-larges", "nom": "Pompes mains larges", "nomEn": "Wide Push-Up", "groupe": "pectoraux", "secondaires": ["abdos", "epaules", "triceps"], "materiel": "poids_corps"},
   {"id": "sw-pompes-sur-poignees", "nom": "Pompes sur poignées", "nomEn": "Push-Up on Parallel Bars", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poids_corps"},
   {"id": "sw-developpe-couche-avec-bande-de-resistance", "nom": "Développé couché avec bande de résistance", "nomEn": "Bench Press With Resistance Band", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "elastique"},
   {"id": "sw-developpe-couche-avec-arret", "nom": "Développé couché avec arrêt", "nomEn": "Pin Bench Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poids_corps"},
-  {"id": "sw-presse-a-pectoraux-a-prise-marteau-sur-machine", "nom": "Presse à pectoraux à prise marteau sur machine", "nomEn": "Machine Chest Press Hammer Grip", "groupe": "pectoraux", "secondaires": [], "materiel": "machine"},
+  {"id": "sw-presse-a-pectoraux-a-prise-marteau-sur-machine", "nom": "Presse à pectoraux à prise marteau sur machine", "nomEn": "Machine Chest Press Hammer Grip", "groupe": "pectoraux", "secondaires": ["triceps", "epaules"], "materiel": "machine"},
   {"id": "e333", "nom": "Développé couché décliné à la Smith machine", "nomEn": "Decline Smith Bench Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "machine"},
   {"id": "sw-ouverture-de-la-poitrine-en-position-debout", "nom": "Ouverture de la poitrine en position debout", "nomEn": "Standing Chest Opener", "groupe": "pectoraux", "secondaires": [], "materiel": "poids_corps"},
   {"id": "sw-coquille-thoracique-assise", "nom": "Coquille thoracique assise", "nomEn": "Seated Chest Clam", "groupe": "pectoraux", "secondaires": [], "materiel": "poids_corps"},
@@ -18472,25 +18475,25 @@ const EXERCICES_BASE = [
   {"id": "e1", "nom": "Développé couché avec barre", "nomEn": "Barbell Bench Press", "groupe": "pectoraux", "secondaires": ["triceps", "epaules"], "materiel": "barre"},
   {"id": "sw-ecarte-avec-halteres-de-bas-en-haut", "nom": "Écarté avec haltères de bas en haut", "nomEn": "Dumbbell Low to High Fly", "groupe": "pectoraux", "secondaires": ["epaules"], "materiel": "haltere"},
   {"id": "sw-etirement-de-la-poitrine-avec-bras-flechis", "nom": "Étirement de la poitrine avec bras fléchis", "nomEn": "Bent Arm Chest Stretch", "groupe": "pectoraux", "secondaires": [], "materiel": "poids_corps"},
-  {"id": "sw-pompes-sur-les-genoux", "nom": "Pompes sur les genoux", "nomEn": "Knee Push-Up", "groupe": "pectoraux", "secondaires": ["triceps"], "materiel": "poids_corps"},
+  {"id": "sw-pompes-sur-les-genoux", "nom": "Pompes sur les genoux", "nomEn": "Knee Push-Up", "groupe": "pectoraux", "secondaires": ["triceps", "epaules"], "materiel": "poids_corps"},
   {"id": "sw-ecarte-couche-a-la-poulie-basse-haute", "nom": "Écarté à la poulie basse", "nomEn": "Low-to-High Cable Fly", "groupe": "pectoraux", "secondaires": ["epaules"], "materiel": "poulie"},
   {"id": "sw-pompe-sur-les-doigts", "nom": "Pompe sur les doigts", "nomEn": "Finger Push-Up", "groupe": "pectoraux", "secondaires": ["abdos", "epaules", "triceps"], "materiel": "poids_corps"},
   {"id": "e332", "nom": "Écarté couché décliné avec haltères", "nomEn": "Decline Dumbbell Fly", "groupe": "pectoraux", "secondaires": ["epaules"], "materiel": "haltere"},
   {"id": "sw-developpe-incline-a-la-machine-smith", "nom": "Développé incliné à la machine Smith", "nomEn": "Smith Incline Chest Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "machine"},
   {"id": "e14", "nom": "Pompes inclinées", "nomEn": "Incline Push-Up", "groupe": "pectoraux", "secondaires": ["abdos", "epaules", "triceps"], "materiel": "poids_corps"},
   {"id": "sw-developpe-couche-a-la-cable", "nom": "Développé couché au câble", "nomEn": "Cable Bench Press", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "poulie"},
-  {"id": "e144", "nom": "Pompes pondérées", "nomEn": "Weighted Push-Up", "groupe": "pectoraux", "secondaires": ["triceps"], "materiel": "poids_corps"},
+  {"id": "e144", "nom": "Pompes pondérées", "nomEn": "Weighted Push-Up", "groupe": "pectoraux", "secondaires": ["triceps", "epaules"], "materiel": "poids_corps"},
   {"id": "sw-ecarte-couche-avec-halteres", "nom": "Écarté couché avec haltères", "nomEn": "Dumbbell Chest Fly", "groupe": "pectoraux", "secondaires": [], "materiel": "haltere"},
   {"id": "sw-ecartes-poliquin", "nom": "Écartés Poliquin", "nomEn": "Poliquin Flyes", "groupe": "pectoraux", "secondaires": ["epaules"], "materiel": "poids_corps"},
   {"id": "sw-pompes-profondes-avec-halteres", "nom": "Pompes profondes avec haltères", "nomEn": "Dumbbell Deep Push Up", "groupe": "pectoraux", "secondaires": ["epaules", "triceps"], "materiel": "haltere"},
   {"id": "sw-ecarte-couche-incline-a-la-poulie", "nom": "Écarté couché incliné à la poulie", "nomEn": "Incline Bench Cable Fly", "groupe": "pectoraux", "secondaires": ["epaules"], "materiel": "poulie"},
-  {"id": "e77", "nom": "Pompe diamant", "nomEn": "Diamond Push-Up", "groupe": "triceps", "secondaires": ["pectoraux"], "materiel": "poids_corps"},
+  {"id": "e77", "nom": "Pompe diamant", "nomEn": "Diamond Push-Up", "groupe": "triceps", "secondaires": ["pectoraux", "epaules"], "materiel": "poids_corps"},
   {"id": "e143", "nom": "Dips avec poids", "nomEn": "Weighted Dips", "groupe": "triceps", "secondaires": ["pectoraux", "epaules"], "materiel": "poids_corps"},
   {"id": "sw-extension-des-triceps-a-la-poulie-inclinee", "nom": "Extension des triceps à la poulie inclinée", "nomEn": "Cable Incline Skull Crusher", "groupe": "triceps", "secondaires": [], "materiel": "poulie"},
   {"id": "sw-extension-des-triceps-a-la-poulie-croisee", "nom": "Extension des triceps à la poulie croisée", "nomEn": "Cable Cross Triceps Extension", "groupe": "triceps", "secondaires": [], "materiel": "poulie"},
   {"id": "sw-extension-des-triceps-a-la-poulie-prise-inversee", "nom": "Extension des triceps à la poulie, prise inversée", "nomEn": "Reverse Grip Cable Triceps Pushdown", "groupe": "triceps", "secondaires": [], "materiel": "poulie"},
   {"id": "e17", "nom": "Développé couché prise serrée", "nomEn": "Close Grip Bench Press", "groupe": "triceps", "secondaires": ["pectoraux", "epaules"], "materiel": "barre"},
-  {"id": "sw-pompes-bras-croises", "nom": "Pompes bras croisés", "nomEn": "Cross Arms Push-Up", "groupe": "triceps", "secondaires": ["pectoraux"], "materiel": "poids_corps"},
+  {"id": "sw-pompes-bras-croises", "nom": "Pompes bras croisés", "nomEn": "Cross Arms Push-Up", "groupe": "triceps", "secondaires": ["pectoraux", "epaules"], "materiel": "poids_corps"},
   {"id": "sw-extension-triceps-a-un-haltere-debout", "nom": "Extension triceps à un haltère debout", "nomEn": "Standing One Dumbbell French Press", "groupe": "triceps", "secondaires": [], "materiel": "haltere"},
   {"id": "sw-pompes-serrees-sur-les-genoux", "nom": "Pompes serrées sur les genoux", "nomEn": "Knee Close Grip Push-Up", "groupe": "triceps", "secondaires": ["abdos", "pectoraux", "epaules"], "materiel": "poids_corps"},
   {"id": "sw-extension-des-triceps-allonge-a-la-barre-ez", "nom": "Extension des triceps allongé à la barre EZ", "nomEn": "Lying EZ-Bar Triceps Extension", "groupe": "triceps", "secondaires": [], "materiel": "barre"},
@@ -18512,7 +18515,7 @@ const EXERCICES_BASE = [
   {"id": "sw-pompes-prise-serree", "nom": "Pompes prise serrée", "nomEn": "Close Grip Push-Up", "groupe": "pectoraux", "secondaires": ["abdos", "epaules", "triceps"], "materiel": "poids_corps"},
   {"id": "sw-planche-grenouille", "nom": "Planche grenouille", "nomEn": "Frog Planche", "groupe": "triceps", "secondaires": ["abdos", "dos", "biceps", "pectoraux", "avant_bras", "fessiers", "epaules"], "materiel": "poids_corps"},
   {"id": "sw-dips", "nom": "Dips", "nomEn": "Dips", "groupe": "triceps", "secondaires": ["pectoraux", "epaules"], "materiel": "poids_corps"},
-  {"id": "sw-pompes-triceps", "nom": "Pompes triceps", "nomEn": "Triceps Push-Up", "groupe": "triceps", "secondaires": ["pectoraux"], "materiel": "poids_corps"},
+  {"id": "sw-pompes-triceps", "nom": "Pompes triceps", "nomEn": "Triceps Push-Up", "groupe": "triceps", "secondaires": ["pectoraux", "epaules"], "materiel": "poids_corps"},
   {"id": "sw-extension-triceps-unilaterale-en-prise-inversee-a-la-poulie", "nom": "Extension triceps unilatérale en prise inversée à la poulie", "nomEn": "One-Arm Reverse Grip Triceps Cable Pushdown", "groupe": "triceps", "secondaires": [], "materiel": "poulie"},
   {"id": "sw-extension-des-triceps-a-un-bras-a-la-poulie", "nom": "Extension des triceps à un bras à la poulie", "nomEn": "One-Arm Triceps Cable Pushdown", "groupe": "triceps", "secondaires": [], "materiel": "poulie"},
   {"id": "sw-extension-des-triceps-a-la-poulie-haute", "nom": "Extension triceps au-dessus de la tête à la poulie haute", "nomEn": "High Pulley Overhead Triceps Extension", "groupe": "triceps", "secondaires": [], "materiel": "poulie"},
@@ -18546,7 +18549,7 @@ const EXERCICES_BASE = [
   {"id": "sw-pompe-en-planche-complete", "nom": "Pompe en planche complète", "nomEn": "Full Planche Push-Up", "groupe": "triceps", "secondaires": ["abdos", "dos", "ischios", "biceps", "avant_bras", "pectoraux", "fessiers", "epaules"], "materiel": "poids_corps"},
   {"id": "sw-extension-des-triceps-avec-halteres-sur-banc-incline", "nom": "Extension des triceps avec haltères sur banc incliné", "nomEn": "Incline Dumbbell Triceps Extension", "groupe": "triceps", "secondaires": [], "materiel": "haltere"},
   {"id": "sw-extension-des-triceps-a-deux-bras-a-la-poulie", "nom": "Extension des triceps à deux bras à la poulie", "nomEn": "Cable Double-Arm Tricep Kickback", "groupe": "triceps", "secondaires": [], "materiel": "poulie"},
-  {"id": "sw-pompes-diamant-sur-les-genoux", "nom": "Pompes diamant sur les genoux", "nomEn": "Knee Diamond Push-Up", "groupe": "triceps", "secondaires": ["pectoraux"], "materiel": "poids_corps"},
+  {"id": "sw-pompes-diamant-sur-les-genoux", "nom": "Pompes diamant sur les genoux", "nomEn": "Knee Diamond Push-Up", "groupe": "triceps", "secondaires": ["pectoraux", "epaules"], "materiel": "poids_corps"},
   {"id": "sw-extension-des-triceps-avec-bande-elastique", "nom": "Extension des triceps avec bande élastique", "nomEn": "Band Triceps Pushdown", "groupe": "triceps", "secondaires": [], "materiel": "elastique"},
   {"id": "sw-presse-a-triceps-a-la-machine", "nom": "Presse à triceps à la machine", "nomEn": "Seated Dip Machine", "groupe": "triceps", "secondaires": ["pectoraux", "epaules"], "materiel": "machine"},
   {"id": "sw-extension-unilaterale-a-la-poulie", "nom": "Extension unilatérale à la poulie", "nomEn": "One-Arm Cable Pushdown", "groupe": "triceps", "secondaires": [], "materiel": "poulie"},
@@ -21313,10 +21316,12 @@ function rendrePickerExercices() {
   const groupeActif = document.getElementById('picker-filtre-groupe').value;
   const materielActif = document.getElementById('picker-filtre-materiel').value;
   const pratiques = pickerOnglet === 'tous' ? null : new Set(musculationHistorique.flatMap(h => h.exercices.filter(x => x.series.some(s => s.fait)).map(x => x.exerciceId)));
+  // Un muscle choisi : ses exercices, puis ceux où il n'est que secondaire (les rowings pour les biceps).
+  const secondaire = e => !!groupeActif && e.groupe !== groupeActif && Array.isArray(e.secondaires) && e.secondaires.includes(groupeActif);
   let liste = toutesLesExercices().filter(e => {
     if (pratiques && !pratiques.has(e.id)) return false;
     if (pickerOnglet === 'niveau' && !STANDARD_PAR_EXERCICE[e.id]) return false;
-    if (groupeActif && e.groupe !== groupeActif) return false;
+    if (groupeActif && e.groupe !== groupeActif && !secondaire(e)) return false;
     if (materielActif && e.materiel !== materielActif) return false;
     if (q && !normaliserRecherche(e.nom).includes(q) && !(e.nomEn && normaliserRecherche(e.nomEn).includes(q))) return false;
     return true;
@@ -21337,7 +21342,11 @@ function rendrePickerExercices() {
       return (ca.debut - cb.debut) || (ca.rang - cb.rang) || COLLATEUR_FR.compare(ca.nom, cb.nom);
     });
   }
-  document.getElementById('picker-resultats-compte').textContent = accord(liste.length, 'exercice');
+  const nbPrincipaux = liste.filter(e => !secondaire(e)).length, nbSecondaires = liste.length - nbPrincipaux;
+  if (nbSecondaires) liste = liste.filter(e => !secondaire(e)).concat(liste.filter(secondaire));
+  document.getElementById('picker-resultats-compte').textContent = [nbPrincipaux || !nbSecondaires ? accord(nbPrincipaux, 'exercice') : '', nbSecondaires ? nbSecondaires + ' en muscle secondaire' : ''].filter(Boolean).join(' · ');
+  const nomGroupe = (GROUPES_MUSCULAIRES[groupeActif] || '').toLowerCase();
+  const titreSecondaires = `<div class="picker-titre-bloc">Travaillent aussi ${groupeActif === 'dos' ? 'le dos' : 'les ' + escapeHtml(nomGroupe)}</div>`;
   const c = document.getElementById('picker-liste-exercices');
   if (!liste.length) {
     c.innerHTML = `<div class="vide">${pickerOnglet === 'tous' ? 'Aucun exercice ne correspond à ces filtres.' : 'Aucun exercice pratiqué ne correspond à ces filtres.'}</div>`;
@@ -21376,11 +21385,12 @@ function rendrePickerExercices() {
   const generation = ++pickerGeneration;
   const ajouterPaquet = () => {
     if (generation !== pickerGeneration) return;
-    const morceau = liste.slice(rendues, rendues + PAQUET);
+    const debut = rendues, morceau = liste.slice(rendues, rendues + PAQUET);
     rendues += morceau.length;
     const ancienne = c.querySelector('.picker-suite');
     if (ancienne) ancienne.remove();
-    c.insertAdjacentHTML('beforeend', morceau.map(ligneHTML).join('') + (rendues < liste.length ? '<div class="picker-suite" aria-hidden="true"></div>' : ''));
+    const html = morceau.map((e, k) => (nbSecondaires && debut + k === nbPrincipaux ? titreSecondaires : '') + ligneHTML(e)).join('');
+    c.insertAdjacentHTML('beforeend', html + (rendues < liste.length ? '<div class="picker-suite" aria-hidden="true"></div>' : ''));
     const suite = c.querySelector('.picker-suite');
     if (suite && typeof IntersectionObserver === 'function') {
       const obs = new IntersectionObserver(en => { if (en.some(x => x.isIntersecting)) { obs.disconnect(); ajouterPaquet(); } }, { rootMargin: '600px 0px' });
@@ -23118,7 +23128,7 @@ function renderVitrineMuscu() {
     const nbSeries = sug.p.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
     sdj = `<div class="sdj" onclick="apercuProgramme(${argJs(sug.p.id)})"><button type="button" class="carte-action" aria-label="Séance du jour, ${escapeHtml(sug.p.nom)} : voir et démarrer"></button>
       <div class="sdj-corps">${corpsGroupesSVG(g, 'buste')}</div>
-      <small>Séance du jour</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(noms.join(', '))} · ${sug.p.exercices.length} exercice${sug.p.exercices.length > 1 ? 's' : ''}</p>
+      <small>Séance du jour</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(noms.join(', '))}<br>${sug.p.exercices.length}&nbsp;exercice${sug.p.exercices.length > 1 ? 's' : ''}</p>
       <div class="sdj-bas"><span class="sdj-puce">${nbSeries} séries</span><span class="sdj-puce">${sug.d ? escapeHtml(formatDateDisplay(sug.d)) : 'Jamais faite'}</span><button type="button" class="sdj-play" onclick="event.stopPropagation(); demarrerSeance(${argJs(sug.p.id)})" aria-label="Commencer ${escapeHtml(sug.p.nom)} maintenant">${svgV('play')}</button></div></div>`;
   } else {
     sdj = `<div class="sdj" onclick="demarrerSeanceLibre()"><button type="button" class="carte-action" aria-label="Démarrer une séance vide"></button>
@@ -24592,7 +24602,7 @@ function majHerosExercicePerso() {
   if (g) coul[g] = 'var(--corps-cible)';
   c.innerHTML = herosFenetreHTML({
     fond: 'linear-gradient(150deg,#0f766e,#2563eb 60%,#7c3aed)',
-    surtitre: 'Nouvel exercice', titre: nom || 'Sans nom',
+    surtitre: exercicePersoEnEdition ? 'Exercice personnalisé' : 'Nouvel exercice', titre: nom || 'Sans nom',
     sous: escapeHtml([GROUPES_MUSCULAIRES[g], MATERIELS[m] && MATERIELS[m].label].filter(Boolean).join(' · ')),
     // Muscle principal à l'arrière du corps (dos, trapèzes, ischios…) : silhouette vue de dos.
     illustration: `<span class="prog-heros-corps fen-heros-ill" aria-hidden="true">${silhouetteSVG(GROUPES_VUE_DOS.includes(g) ? 'dos' : 'face', coul)}</span>`,
@@ -26097,6 +26107,67 @@ if (window.visualViewport) {
   majHauteurVisible();
 }
 
+/* =====================================================================
+   NOUVELLE VERSION EN LIGNE — sur iPhone, l'appli reste ouverte en
+   arrière-plan : y revenir ne recharge pas la page, il fallait la fermer
+   et la rouvrir pour voir une mise à jour. Au démarrage puis à chaque
+   retour dans l'appli (au plus une fois par minute), le code de la page en
+   ligne est comparé à celui qui tourne ; s'il a changé, un bandeau propose
+   de mettre à jour. La séance en cours, enregistrée à chaque série, est
+   reprise au rechargement.
+   ===================================================================== */
+// Le code écrit dans la page (styles et scripts), pas ce qui s'affiche, qui change à l'usage.
+const SELECTEUR_CODE_PAGE = 'head > style, head > script:not([src]), body > script:not([src])';
+let empreintePage = null, derniereVerifVersion = 0, dernierEtagPage = null, versionProposee = false;
+// cyrb53 : rapide, sans collision en pratique pour distinguer deux versions.
+function empreinteTexte(s) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+}
+function empreinteDocument(doc) {
+  return empreinteTexte([...doc.querySelectorAll(SELECTEUR_CODE_PAGE)].map(e => e.textContent).join('\u0001'));
+}
+async function verifierNouvelleVersion(sansDelai) {
+  if (empreintePage === null || versionProposee || navigator.onLine === false) return;
+  if (!sansDelai && Date.now() - derniereVerifVersion < 60000) return;
+  derniereVerifVersion = Date.now();
+  try {
+    const res = await fetch(new URL('index.html', location.href), { cache: 'no-cache' });
+    if (!res.ok) return;
+    // Même fichier que la dernière fois : rien à comparer.
+    const etag = res.headers.get('etag') || res.headers.get('last-modified');
+    if (etag && etag === dernierEtagPage) return;
+    const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+    // Une page qui n'est pas l'appli (portail Wi-Fi, erreur) ne compte pas.
+    if (!doc.getElementById('onglet-repas')) return;
+    dernierEtagPage = etag;
+    if (empreinteDocument(doc) !== empreintePage) proposerMiseAJour();
+  } catch (e) {}
+}
+function proposerMiseAJour() {
+  versionProposee = true;
+  let t = document.getElementById('toast-maj');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-maj'; t.className = 'toast-annuler toast-maj'; t.setAttribute('role', 'status'); t.setAttribute('aria-live', 'polite');
+    t.innerHTML = `<span>Nouvelle version disponible</span><button type="button" onclick="mettreAJourAppli(this)">Mettre à jour</button><button type="button" class="toast-fermer" aria-label="Plus tard" onclick="this.parentNode.classList.remove('visible')">×</button>`;
+    document.body.appendChild(t);
+  }
+  t.classList.add('visible');
+}
+/* Les fichiers de l'appli sont d'abord repris sur le réseau (le service
+   worker garde ces copies fraîches), puis la page se recharge. */
+async function mettreAJourAppli(bouton) {
+  if (bouton) { bouton.disabled = true; bouton.textContent = 'Mise à jour…'; }
+  const fichiers = Promise.all(['./', 'index.html', 'assets/donnees.js'].map(u => fetch(u, { cache: 'reload' }).catch(() => null)));
+  await Promise.race([fichiers, new Promise(ok => setTimeout(ok, 8000))]);
+  rechargerPage();
+}
+function rechargerPage() { location.reload(); }
+
 window.addEventListener('load', () => {
   loadData();
   majCouleurBarreStyle();
@@ -26113,6 +26184,12 @@ window.addEventListener('load', () => {
   appliquerTheme(themeActuel());
   // Hors ligne : service worker (voir sw.js), seulement servi en http(s).
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+  // Nouvelle version en ligne : bandeau « Mettre à jour » (voir verifierNouvelleVersion).
+  if (/^https?:$/.test(location.protocol)) {
+    // Après le démarrage, pour ne pas le ralentir : rien ne modifie ces styles et scripts en route.
+    setTimeout(() => { empreintePage = empreinteDocument(document); verifierNouvelleVersion(true); }, 4000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') verifierNouvelleVersion(); });
+  }
 
   // Champs volontairement vides quand aucune valeur n'a été enregistrée sur
   // cet appareil : ça montre clairement qu'ils tournent sur les valeurs par

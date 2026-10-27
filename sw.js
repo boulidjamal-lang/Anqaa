@@ -4,7 +4,7 @@
      réseau traîne plus de 3 s (salle de sport, métro) : la version du
      réseau, si elle finit par arriver, sera là à la prochaine ouverture.
    - Nos fichiers (assets/) : la copie en cache tout de suite, mise à jour en
-     arrière-plan.
+     arrière-plan (le réseau d'abord quand l'appli se met à jour).
    - Bibliothèques et polices des CDN (versions figées) : cache d'abord.
    - Tout le reste (Supabase, OpenFoodFacts, IA…) passe sans être gardé. */
 const CACHE = 'anqaa-v1';
@@ -55,6 +55,8 @@ async function cacheEtMiseAJour(req) {
   const cache = await caches.open(CACHE);
   const enCache = await cache.match(req);
   const frais = fetch(req).then(res => { if (gardable(req, res)) cache.put(req, res.clone()); return res; }).catch(() => null);
+  // Mise à jour demandée par l'appli (bandeau « Nouvelle version ») : le réseau d'abord.
+  if (req.cache === 'reload') { const r = await frais; return (r && r.ok ? r : enCache) || r || Response.error(); }
   return enCache || (await frais) || Response.error();
 }
 

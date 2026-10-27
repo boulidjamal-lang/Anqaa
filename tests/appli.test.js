@@ -1670,12 +1670,16 @@ test('séance du jour : le corps se montre du côté où le programme travaille 
       ouvrirFeuilleActivite(); vues.push(vue('#opt-seance-jour .sdj-corps')); fermerFeuilles();
       apercuProgramme(musculationProgrammes[0].id); vues.push(vue('#apercu-programme-heros .prog-heros-corps')); fermerModal('apercu-programme-modal');
       res[nom] = vues.join(' | ');
-      if (nom === 'Dos Biceps') res.allumes = document.querySelectorAll('#vitrine-muscu .sdj-corps path[fill="var(--corps-cible)"]').length;
+      if (nom === 'Dos Biceps') {
+        res.allumes = document.querySelectorAll('#vitrine-muscu .sdj-corps path[fill="var(--corps-cible)"]').length;
+        // Les muscles, puis le nombre d'exercices sur sa propre ligne (« 5 » et « exercices » jamais séparés).
+        res.sousTitre = document.querySelector('#vitrine-muscu .sdj p').innerHTML;
+      }
     });
     return res;
   });
   const quatre = v => [v, v, v, v].join(' | ');
-  assert.deepEqual(r, { 'Dos Biceps': quatre('dos'), Push: quatre('face'), Jambes: quatre('dos jambes'), 'Biceps Dos': quatre('face'), 'Dos et biceps': quatre('dos'), allumes: r.allumes });
+  assert.deepEqual(r, { 'Dos Biceps': quatre('dos'), Push: quatre('face'), Jambes: quatre('dos jambes'), 'Biceps Dos': quatre('face'), 'Dos et biceps': quatre('dos'), allumes: r.allumes, sousTitre: 'Dos, Biceps, Lombaires<br>5&nbsp;exercices' });
   assert.ok(r.allumes >= 4, 'dos et lombaires allumés : ' + r.allumes);
 }));
 
@@ -1691,6 +1695,8 @@ test("bibliothèque : muscles secondaires d'un exercice personnalisé, à la cr�
   const creation = await puces('#perso-secondaires');
   // En-tête : le principal en rose franc, les secondaires visibles (vue de dos : avant-bras) en rose atténué.
   const attenues = await page.evaluate(() => document.querySelectorAll('#perso-heros path[fill^="color-mix"]').length);
+  const surtitre = () => page.evaluate(() => document.querySelector('#perso-heros small').textContent);
+  const surtitreCreation = await surtitre();
   await page.click('#perso-valider-btn');
   const r = await page.evaluate(() => {
     const e = musculationExosPerso[musculationExosPerso.length - 1];
@@ -1709,6 +1715,7 @@ test("bibliothèque : muscles secondaires d'un exercice personnalisé, à la cr�
   await page.evaluate(id => { afficherFicheExerciceBiblio(id); choisirOngletFiche('technique'); }, r.id);
   await page.click('#fiche-exercice-container button:has-text("Modifier cet exercice")');
   const avant = await puces('#perso-secondaires');
+  assert.deepEqual([surtitreCreation, await surtitre()], ['Nouvel exercice', 'Exercice personnalisé']);
   await page.selectOption('#perso-groupe', 'biceps');
   const apres = await puces('#perso-secondaires');
   await page.click('#perso-valider-btn');
@@ -1734,7 +1741,7 @@ test("Administration : muscles secondaires d'un exercice de la base, modifiables
     const modale = document.getElementById('modal-edit-exercice-admin');
     res.dessus = modale.classList.contains('show') && Number(getComputedStyle(modale).zIndex) > Number(getComputedStyle(document.getElementById('picker-exercices-modal')).zIndex);
     res.avant = choixSecondaires('edit-exo-secondaires');
-    document.querySelector('#edit-exo-secondaires [data-groupe="biceps"]').click();
+    document.querySelector('#edit-exo-secondaires [data-groupe="triceps"]').click();
     res.faisceaux = [...document.querySelectorAll('#edit-exo-faisceaux .admin-faisceaux-groupe')].map(d => d.dataset.groupe);
     await sauvegarderEditionExerciceAdmin();
     res.ferme = !modale.classList.contains('show');
@@ -1743,10 +1750,85 @@ test("Administration : muscles secondaires d'un exercice de la base, modifiables
   });
   const correction = serveur.tables.get('exercices_base_overrides').get(r.id);
   assert.deepEqual([r.horsAdmin, r.dessus, r.ferme], [false, true, true]);
-  assert.deepEqual(r.avant, ['epaules', 'triceps', 'avant_bras']);
-  assert.deepEqual(r.faisceaux, ['dos', 'epaules', 'biceps', 'triceps']);
-  assert.deepEqual(correction.donnees.secondaires, ['epaules', 'biceps', 'triceps', 'avant_bras']);
-  assert.deepEqual(r.base, ['epaules', 'biceps', 'triceps', 'avant_bras']);
+  assert.deepEqual(r.avant, ['epaules', 'biceps', 'triceps', 'avant_bras']);
+  assert.deepEqual(r.faisceaux, ['dos', 'epaules', 'biceps']);
+  assert.deepEqual(correction.donnees.secondaires, ['epaules', 'biceps', 'avant_bras']);
+  assert.deepEqual(r.base, ['epaules', 'biceps', 'avant_bras']);
+}));
+
+test('bibliothèque de base : les tirages comptent les biceps, les développés les triceps, les squats les fessiers', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const sec = nom => { const e = toutesLesExercices().find(x => x.nom === nom); if (!e) throw new Error('introuvable : ' + nom); return e.secondaires; };
+    const res = {
+      tractions: sec('Tractions lestées').includes('biceps'), rowing: sec('Rowing barre buste penché').includes('biceps'),
+      brasTendus: sec('Tirage vertical bras tendus').includes('biceps'), pullover: sec('Pull-over à la machine').includes('biceps'),
+      smith: ['triceps', 'epaules'].every(g => sec('Développé couché à la Smith machine').includes(g)),
+      epaules: sec('Développé épaules avec haltères').includes('triceps'),
+      overhead: sec('Squat avec barre au-dessus de la tête').includes('fessiers'), sissy: sec('Squat sissy pondéré en position agenouillée').includes('fessiers')
+    };
+    // Une séance « Dos » : chaque série de rowing compte une demi-série de biceps.
+    const e = toutesLesExercices().find(x => x.nom === 'Rowing barre buste penché');
+    res.series = ajouterSeriesParGroupe({}, [{ exerciceId: e.id, series: [1, 2, 3, 4].map(() => ({ poids: 60, reps: 10, fait: true })) }]).biceps;
+    return res;
+  });
+  assert.deepEqual(r, { tractions: true, rowing: true, brasTendus: false, pullover: false, smith: true, epaules: true, overhead: true, sissy: false, series: 2 });
+}));
+
+test("bibliothèque : un muscle choisi montre aussi les exercices où il est secondaire", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    ouvrirBibliotheque();
+    choisirGroupePicker('biceps');
+    const lire = () => ({ compte: document.getElementById('picker-resultats-compte').textContent,
+      titres: [...document.querySelectorAll('#picker-liste-exercices .picker-titre-bloc')].map(t => t.textContent),
+      noms: [...document.querySelectorAll('#picker-liste-exercices .exo-ligne-nom')].map(n => n.firstChild.textContent.trim()) });
+    const res = { biceps: lire() };
+    // Tous les biceps d'abord ; avec une recherche, seulement ceux qui le travaillent en secondaire.
+    document.getElementById('picker-recherche').value = 'rowing barre buste';
+    rendrePickerExercices();
+    res.rowing = lire();
+    const ligne = [...document.querySelectorAll('#picker-liste-exercices > *')].map(x => x.classList.contains('picker-titre-bloc') ? 'titre' : 'exercice');
+    res.ordre = ligne.slice(0, 2);
+    choisirGroupePicker('dos'); res.dos = lire().titres;
+    return res;
+  });
+  assert.match(r.biceps.compte, /^\d+ exercices · \d+ en muscle secondaire$/);
+  assert.deepEqual(r.biceps.titres, [], 'le premier paquet ne montre que des exercices de biceps');
+  assert.ok(r.biceps.noms.length > 0);
+  assert.deepEqual([r.rowing.compte, r.rowing.titres, r.ordre], ['1 en muscle secondaire', ['Travaillent aussi les biceps'], ['titre', 'exercice']]);
+  assert.deepEqual(r.rowing.noms, ['Rowing barre buste penché']);
+  assert.deepEqual(r.dos, []);
+}));
+
+test('nouvelle version en ligne : bandeau « Mettre à jour » au retour dans l\'appli, seulement si le code a changé', () => avecAppli({}, async ({ page }) => {
+  const html = fs.readFileSync(path.join(RACINE, 'index.html'), 'utf8');
+  const r = await page.evaluate(async html => {
+    const res = {};
+    // L'empreinte de la page qui tourne est celle du fichier : rien ne modifie ses styles et scripts en route.
+    res.memeEmpreinte = empreinteDocument(document) === empreinteDocument(new DOMParser().parseFromString(html, 'text/html'));
+    empreintePage = empreinteDocument(document);
+    const appels = [];
+    let reponse = html, etag = '"v1"';
+    window.fetch = async (url, o) => { appels.push([String(url).replace(/^.*\//, ''), o && o.cache]); return new Response(reponse, { status: 200, headers: { etag } }); };
+    const bandeau = () => !!document.querySelector('#toast-maj.visible');
+    await verifierNouvelleVersion(true); res.identique = bandeau();
+    reponse = '<!doctype html><title>Wi-Fi</title><p>Connecte-toi au réseau</p>'; etag = '"portail"';
+    await verifierNouvelleVersion(true); res.portail = bandeau();
+    reponse = html.replace('/* Le reflet spéculaire', 'window.x = 1;\n/* Le reflet spéculaire'); etag = '"v2"';
+    await verifierNouvelleVersion(); res.tropTot = bandeau();   // moins d'une minute après la dernière vérification
+    derniereVerifVersion = 0;
+    await verifierNouvelleVersion(); res.nouvelle = bandeau();
+    res.texte = document.getElementById('toast-maj').textContent;
+    let recharge = false;
+    rechargerPage = () => { recharge = true; };
+    appels.length = 0;
+    await mettreAJourAppli(document.querySelector('#toast-maj button'));
+    res.miseAJour = [recharge, appels];
+    return res;
+  }, html);
+  assert.equal(r.memeEmpreinte, true);
+  assert.deepEqual([r.identique, r.portail, r.tropTot, r.nouvelle], [false, false, false, true]);
+  assert.equal(r.texte, 'Nouvelle version disponibleMettre à jour×');
+  assert.deepEqual(r.miseAJour, [true, [['', 'reload'], ['index.html', 'reload'], ['donnees.js', 'reload']]]);
 }));
 
 test('bilan de fin de séance : récapitulatif (tonnage, séries, records, écart), plus d\'avis IA', () => avecAppli({}, async ({ page }) => {
