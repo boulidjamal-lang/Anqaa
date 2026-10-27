@@ -1115,9 +1115,10 @@
       width: 1em; height: 1em; display: inline-block; flex: none;
       vertical-align: -0.15em; color: var(--icone);
     }
-    /* Pastille "séance en cours" : un rond plein, pas un contour — sa
-       couleur reste liée à --danger (urgence), pas au réglage --icone. */
-    .icone-pleine { color: var(--danger); }
+    /* Pastille "séance en cours" : un rond plein, pas un contour, en vert
+       « en cours » (comme la pastille d'appel de l'iPhone) : lisible sur la
+       capsule noire du thème clair comme sur la blanche du thème sombre. */
+    .icone-pleine { color: #34c759; }
 
     .admin-aliment-card {
       background: var(--verre-creux); border: 0;
@@ -1549,25 +1550,28 @@
     /* Rappel flottant : une séance reste "en cours" tant qu'elle n'est pas
        terminée ou abandonnée, même en quittant l'onglet Séance (changer
        d'onglet ne l'interrompt pas). Sans rappel visible ailleurs, il est
-       facile d'oublier qu'elle tourne encore. Posé juste au-dessus du bouton
-       flottant, avec la même logique de disparition que lui pendant qu'une
-       modale est ouverte (body.couche-ouverte) pour ne jamais se superposer
-       à un contenu. */
+       facile d'oublier qu'elle tourne encore. Une capsule en négatif (comme
+       le bouton +), centrée juste au-dessus de la barre d'onglets ; elle
+       disparaît pendant qu'une modale est ouverte (body.couche-ouverte) pour
+       ne jamais se superposer à un contenu. */
     .bandeau-seance-flottant {
-      position: fixed; left: 16px; right: 16px; margin: 0 auto; max-width: 480px;
-      bottom: calc(18px + 60px + 10px + env(safe-area-inset-bottom, 0px)); z-index: 79;
+      position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100% - 32px);
+      bottom: calc(18px + 60px + 14px + env(safe-area-inset-bottom, 0px)); z-index: 79;
       display: flex; align-items: center; gap: 10px;
-      background: color-mix(in srgb, var(--danger) 16%, var(--verre-fort));
-      border: 1px solid color-mix(in srgb, var(--danger) 40%, var(--verre-brd));
-      border-radius: var(--rayon); padding: 10px 14px;
-      box-shadow: var(--ombre);
-      font: inherit; text-align: left; color: inherit; cursor: pointer;
+      background: var(--inv); color: var(--sur-inv);
+      border: 0; border-radius: 999px; padding: 11px 12px 11px 16px;
+      box-shadow: var(--ombre-haute);
+      font: inherit; text-align: left; cursor: pointer;
       transition: opacity 0.25s ease, transform 0.25s ease;
     }
     body.couche-ouverte .bandeau-seance-flottant { opacity: 0; pointer-events: none; transform: translateY(14px) scale(0.9); }
-    .bandeau-seance-flottant-pastille { font-size: 1rem; animation: pulseBandeauFlottant 1.6s ease-in-out infinite; }
+    .bandeau-seance-flottant-pastille { display: flex; animation: pulseBandeauFlottant 1.6s ease-in-out infinite; }
+    .bandeau-seance-flottant-pastille .icone-ui { width: 9px; height: 9px; }
     @keyframes pulseBandeauFlottant { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-    .bandeau-seance-flottant-texte { font-weight: 700; font-size: 0.8rem; flex: 1; }
+    .bandeau-seance-flottant-texte { display: flex; min-width: 0; font-weight: 600; font-size: 0.84rem; white-space: nowrap; }
+    .bsf-nom { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .bsf-compte { flex: none; }
+    .bandeau-seance-flottant .bsf-chevron { width: 16px; height: 16px; color: inherit; opacity: .5; }
 
     /* Programmes : un carrousel de cartes illustrées (voir vignetteProgramme). */
     #programmes-liste-container { display: block; }
@@ -4937,6 +4941,7 @@
 <button type="button" class="bandeau-seance-flottant hidden" id="bandeau-seance-flottant" onclick="ouvrirSessionModal()">
   <span class="bandeau-seance-flottant-pastille" aria-hidden="true"><svg class="icone-ui icone-pleine" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg></span>
   <span class="bandeau-seance-flottant-texte" id="bandeau-seance-flottant-texte"></span>
+  <svg class="icone-ui bsf-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
 </button>
 
 <!-- Menu du type de série (normale/dégressif/pyramidal/échec), ouvert au tap
@@ -19520,8 +19525,9 @@ function majBandeauSeanceFlottant() {
   if (!musculationSessionActive || ecranActif === 'seance') { el.classList.add('hidden'); return; }
   el.classList.remove('hidden');
   const nbFaites = musculationSessionActive.exercices.reduce((n, e) => n + e.series.filter(s => s.fait).length, 0);
-  document.getElementById('bandeau-seance-flottant-texte').textContent =
-    (musculationSessionActive.programmeNom || 'Séance libre') + ' · ' + nbFaites + (nbFaites > 1 ? ' séries cochées' : ' série cochée');
+  // Un nom trop long se coupe (…) avant le nombre de séries, qui reste visible.
+  document.getElementById('bandeau-seance-flottant-texte').innerHTML =
+    `<span class="bsf-nom">${escapeHtml(musculationSessionActive.programmeNom || 'Séance libre')}</span><span class="bsf-compte">&nbsp;· ${nbFaites} ${nbFaites > 1 ? 'séries cochées' : 'série cochée'}</span>`;
 }
 
 // Photos des exercices d'un programme : préchargées dès que la liste des
