@@ -1651,6 +1651,104 @@ test('séance du jour : le programme suivant dans l\'ordre de la liste', () => a
   assert.deepEqual(r, ['A', 'C', 'C', 'A', 'A', 'A']);
 }));
 
+test('séance du jour : le corps se montre du côté où le programme travaille le plus (« Dos Biceps » de dos)', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const ids = g => toutesLesExercices().filter(e => e.groupe === g).map(e => e.id);
+    const prog = (nom, groupes) => {
+      const vus = {};
+      return { id: 'p' + nom, nom, maj: Date.now(), exercices: groupes.map(g => { vus[g] = (vus[g] || 0) + 1; return { exerciceId: ids(g)[vus[g] - 1], series: [{ poids: 20, reps: 10 }] }; }) };
+    };
+    // Planche du dos à droite de celle de face ; cadrage des jambes plus bas.
+    const vue = sel => { const vb = document.querySelector(sel + ' svg').getAttribute('viewBox').split(' ').map(Number); return (vb[0] > 700 ? 'dos' : 'face') + (vb[1] >= 600 ? ' jambes' : ''); };
+    const cas = { 'Dos Biceps': ['dos', 'dos', 'biceps', 'biceps', 'lombaires'], Push: ['pectoraux', 'pectoraux', 'epaules', 'triceps'],
+      Jambes: ['quadriceps', 'ischios', 'ischios', 'mollets'], 'Biceps Dos': ['biceps', 'dos'], 'Dos et biceps': ['dos', 'biceps'] };
+    const res = {};
+    Object.entries(cas).forEach(([nom, groupes]) => {
+      musculationProgrammes = [prog(nom, groupes)];
+      allerA('seance'); choisirModeSeance('muscu');
+      const vues = [vue('#vitrine-muscu .sdj-corps'), vue('#programmes-liste-container .pc-corps')];
+      ouvrirFeuilleActivite(); vues.push(vue('#opt-seance-jour .sdj-corps')); fermerFeuilles();
+      apercuProgramme(musculationProgrammes[0].id); vues.push(vue('#apercu-programme-heros .prog-heros-corps')); fermerModal('apercu-programme-modal');
+      res[nom] = vues.join(' | ');
+      if (nom === 'Dos Biceps') res.allumes = document.querySelectorAll('#vitrine-muscu .sdj-corps path[fill="var(--corps-cible)"]').length;
+    });
+    return res;
+  });
+  const quatre = v => [v, v, v, v].join(' | ');
+  assert.deepEqual(r, { 'Dos Biceps': quatre('dos'), Push: quatre('face'), Jambes: quatre('dos jambes'), 'Biceps Dos': quatre('face'), 'Dos et biceps': quatre('dos'), allumes: r.allumes });
+  assert.ok(r.allumes >= 4, 'dos et lombaires allumés : ' + r.allumes);
+}));
+
+test("bibliothèque : muscles secondaires d'un exercice personnalisé, à la création et à la modification, comptés pour moitié", () => avecAppli({}, async ({ page }) => {
+  const puces = sel => page.evaluate(sel => ({ proposes: [...document.querySelectorAll(sel + ' .puce-groupe')].map(b => b.dataset.groupe),
+    choisis: [...document.querySelectorAll(sel + ' .puce-groupe[aria-pressed="true"]')].map(b => b.textContent) }), sel);
+  await page.evaluate(() => { allerA('seance'); choisirModeSeance('muscu'); ouvrirBibliotheque(); });
+  await page.click('#picker-exercices-modal button:has-text("Créer un exercice personnalisé")');
+  await page.fill('#perso-nom', 'Rowing assis machine');
+  await page.selectOption('#perso-groupe', 'dos');
+  await page.click('#perso-secondaires .puce-groupe:has-text("Biceps")');
+  await page.click('#perso-secondaires .puce-groupe:has-text("Avant-bras")');
+  const creation = await puces('#perso-secondaires');
+  // En-tête : le principal en rose franc, les secondaires visibles (vue de dos : avant-bras) en rose atténué.
+  const attenues = await page.evaluate(() => document.querySelectorAll('#perso-heros path[fill^="color-mix"]').length);
+  await page.click('#perso-valider-btn');
+  const r = await page.evaluate(() => {
+    const e = musculationExosPerso[musculationExosPerso.length - 1];
+    document.getElementById('picker-recherche').value = 'rowing assis machine';
+    rendrePickerExercices();
+    return { id: e.id, groupe: e.groupe, secondaires: e.secondaires, ligne: document.querySelector('#picker-liste-exercices .exo-ligne .exo-ligne-meta').textContent,
+      series: ajouterSeriesParGroupe({}, [{ exerciceId: e.id, series: [1, 2, 3].map(() => ({ poids: 40, reps: 10, fait: true })) }]) };
+  });
+  assert.equal(creation.proposes.includes('dos'), false, 'le principal n\'est pas proposé en secondaire');
+  assert.equal(creation.proposes.length, 13);
+  assert.deepEqual(creation.choisis, ['Biceps', 'Avant-bras']);
+  assert.ok(attenues > 0);
+  assert.deepEqual([r.groupe, r.secondaires, r.ligne], ['dos', ['biceps', 'avant_bras'], 'Dos Biceps, Avant-bras']);
+  assert.deepEqual(r.series, { dos: 3, biceps: 1.5, avant_bras: 1.5 });
+  // Modifier depuis la fiche : les secondaires reviennent cochés ; un nouveau principal en sort.
+  await page.evaluate(id => { afficherFicheExerciceBiblio(id); choisirOngletFiche('technique'); }, r.id);
+  await page.click('#fiche-exercice-container button:has-text("Modifier cet exercice")');
+  const avant = await puces('#perso-secondaires');
+  await page.selectOption('#perso-groupe', 'biceps');
+  const apres = await puces('#perso-secondaires');
+  await page.click('#perso-valider-btn');
+  const modifie = await page.evaluate(id => { const e = musculationExosPerso.find(x => x.id === id); return [e.groupe, e.secondaires]; }, r.id);
+  assert.deepEqual(avant.choisis, ['Biceps', 'Avant-bras']);
+  assert.deepEqual([apres.proposes.includes('biceps'), apres.proposes.includes('dos'), apres.choisis], [false, true, ['Avant-bras']]);
+  assert.deepEqual(modifie, ['biceps', ['avant_bras']]);
+}));
+
+test("Administration : muscles secondaires d'un exercice de la base, modifiables depuis sa fiche", () => avecAppli({}, async ({ page }) => {
+  const serveur = creerServeur();
+  await brancherServeur(page, serveur, 'u1');
+  const r = await page.evaluate(async () => {
+    const e = toutesLesExercices().find(x => x.nom === 'Rowing barre buste penché');
+    const bouton = () => [...document.querySelectorAll('#fiche-exercice-container button')].find(b => /Modifier pour tous/.test(b.textContent));
+    afficherFicheExerciceBiblio(e.id);
+    const res = { id: e.id, horsAdmin: !!bouton() };
+    fermerModal('fiche-exercice-modal');
+    sessionUtilisateur = { id: 'admin', email: ADMIN_EMAIL };
+    ouvrirBibliotheque();
+    afficherFicheExerciceBiblio(e.id);
+    bouton().click();
+    const modale = document.getElementById('modal-edit-exercice-admin');
+    res.dessus = modale.classList.contains('show') && Number(getComputedStyle(modale).zIndex) > Number(getComputedStyle(document.getElementById('picker-exercices-modal')).zIndex);
+    res.avant = choixSecondaires('edit-exo-secondaires');
+    document.querySelector('#edit-exo-secondaires [data-groupe="biceps"]').click();
+    res.faisceaux = [...document.querySelectorAll('#edit-exo-faisceaux .admin-faisceaux-groupe')].map(d => d.dataset.groupe);
+    await sauvegarderEditionExerciceAdmin();
+    res.ferme = !modale.classList.contains('show');
+    res.base = trouverExercice(e.id).secondaires;
+    return res;
+  });
+  const correction = serveur.tables.get('exercices_base_overrides').get(r.id);
+  assert.deepEqual([r.horsAdmin, r.dessus, r.ferme], [false, true, true]);
+  assert.deepEqual(r.avant, ['epaules', 'triceps', 'avant_bras']);
+  assert.deepEqual(r.faisceaux, ['dos', 'epaules', 'biceps', 'triceps']);
+  assert.deepEqual(correction.donnees.secondaires, ['epaules', 'biceps', 'triceps', 'avant_bras']);
+  assert.deepEqual(r.base, ['epaules', 'biceps', 'triceps', 'avant_bras']);
+}));
+
 test('bilan de fin de séance : récapitulatif (tonnage, séries, records, écart), plus d\'avis IA', () => avecAppli({}, async ({ page }) => {
   const r = await page.evaluate(() => {
     const exo = toutesLesExercices().find(e => e.groupe === 'pectoraux');

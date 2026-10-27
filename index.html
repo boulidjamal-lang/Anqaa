@@ -849,6 +849,8 @@
     /* Ouverte depuis la feuille « Aliments partagés » (z-index 1100), cette
        modale doit se poser par-dessus, pas derrière. */
     #modal-edit-aliment, #modal-edit-exercice-admin, #modal-fusion-exercice { z-index: 1200; }
+    /* Aussi ouverte depuis la fiche d'un exercice : par-dessus la bibliothèque (1200). */
+    #modal-edit-exercice-admin { z-index: 1250; }
     .feuille.feuille-dessus { z-index: 1150; }
     /* Ouverte depuis #compte-modal (z-index 1000 par défaut), doit se poser
        par-dessus, pas derrière. */
@@ -2896,6 +2898,8 @@
     .puce-groupe.on { color: #fff; background: var(--g); box-shadow: 0 8px 18px -10px var(--g); }
     .puce-groupe.on i { background: #fff; box-shadow: none; }
     :root[data-theme="dark"] .puce-groupe.on[style*="var(--text)"] { color: var(--bg); }
+    /* Plusieurs groupes à cocher (muscles secondaires d'un exercice) : sur plusieurs lignes. */
+    .puces-groupes.puces-choix { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
     html:root #picker-liste-exercices .exo-ligne { gap: 12px; padding: 10px; margin-bottom: 8px; border-radius: 20px; background: var(--verre);
       box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); transition: transform .12s; }
     html:root #picker-liste-exercices .exo-ligne:active { transform: scale(.98); }
@@ -5463,7 +5467,12 @@
     </div>
     <div class="input-group">
       <label for="edit-exo-groupe">Groupe musculaire principal</label>
-      <select id="edit-exo-groupe" onchange="renderFaisceauxAdmin()"></select>
+      <select id="edit-exo-groupe" onchange="changerGroupeSecondaires('edit-exo-secondaires', this.value)"></select>
+    </div>
+    <div class="input-group">
+      <label id="edit-exo-secondaires-titre">Muscles secondaires</label>
+      <div class="puces-groupes puces-choix" id="edit-exo-secondaires" role="group" aria-labelledby="edit-exo-secondaires-titre" data-apres="renderFaisceauxAdmin"></div>
+      <p class="note" style="margin:6px 2px 0;">Chacun compte pour une demi-série dans les statistiques.</p>
     </div>
     <div class="input-group">
       <label for="edit-exo-materiel">Matériel</label>
@@ -6389,7 +6398,12 @@
     </div>
     <div class="input-group">
       <label for="perso-groupe">Groupe musculaire principal</label>
-      <select id="perso-groupe" onchange="majHerosExercicePerso()"></select>
+      <select id="perso-groupe" onchange="changerGroupeSecondaires('perso-secondaires', this.value)"></select>
+    </div>
+    <div class="input-group">
+      <label id="perso-secondaires-titre">Muscles secondaires (facultatif)</label>
+      <div class="puces-groupes puces-choix" id="perso-secondaires" role="group" aria-labelledby="perso-secondaires-titre" data-apres="majHerosExercicePerso"></div>
+      <p class="note" style="margin:6px 2px 0;">Ceux qui travaillent aussi : chacun compte pour une demi-série dans tes statistiques.</p>
     </div>
     <div class="input-group">
       <label for="perso-materiel">Matériel</label>
@@ -20002,7 +20016,7 @@ function voirDetailProgramme(cle) {
   const volMoyen = g.seances.reduce((s, h) => s + volumeSeance(h), 0) / n;
   const dureeMoyenne = g.seances.reduce((s, h) => s + (h.dureeMin || 0), 0) / n;
   const prog = musculationProgrammes.find(p => p.id === derniere.programmeId);
-  const groupes = Object.keys(ajouterSeriesParGroupe({}, derniere.exercices, { date: derniere.date, historique: muscuContexteActuel.historique }));
+  const groupes = ajouterSeriesParGroupe({}, derniere.exercices, { date: derniere.date, historique: muscuContexteActuel.historique });
   document.getElementById('titre-programme-detail').textContent = 'Programme';
   document.getElementById('programme-detail-resume').innerHTML = herosFenetreHTML({
     fond: prog ? teinteProgramme(prog.id) : TEINTES_PROGRAMMES[5],
@@ -20299,12 +20313,11 @@ function renderHerosProgramme() {
   const p = programmeEnEdition;
   const idx = p.id ? Math.max(0, musculationProgrammes.findIndex(x => x.id === p.id)) : musculationProgrammes.length;
   const g = groupesProgramme(p), cles = Object.keys(g);
-  const vises = {}; cles.forEach(k => { vises[k] = 'var(--corps-cible)'; });
   const series = p.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
   const minutes = Math.round(series * 2.5);
   const noms = cles.sort((a, b) => g[b] - g[a]).slice(0, 4).map(k => GROUPES_MUSCULAIRES[k] || k).join(', ');
   c.innerHTML = `<div class="prog-heros" style="background:${TEINTES_PROGRAMMES[idx % TEINTES_PROGRAMMES.length]}">
-    <span class="prog-heros-corps">${silhouetteSVG('face', vises, { vb: CADRES_SILHOUETTE.buste })}</span>
+    <span class="prog-heros-corps">${corpsGroupesSVG(g, 'buste')}</span>
     <small>${p.id ? 'Programme' : 'Nouveau programme'}</small>
     <b id="programme-heros-nom">${escapeHtml((p.nom || '').trim() || 'Sans nom')}</b>
     <p>${noms ? escapeHtml(noms) : 'Ajoute des exercices : les muscles travaillés s’allument.'}</p>
@@ -21544,10 +21557,12 @@ function afficherFicheExerciceBiblio(id, options) {
     // bibliothèque de tout le monde (comme les aliments partagés), mais
     // seul son créateur peut le modifier.
     if (musculationExosPerso.some(x => x.id === e.id)) {
-      html += `<button type="button" class="btn btn-secondaire" style="margin-bottom:14px;" onclick="ouvrirEditionExercicePerso(${argJs(e.id)})"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></svg> Modifier cet exercice (nom, groupe, photo…)</button>`;
+      html += `<button type="button" class="btn btn-secondaire" style="margin-bottom:14px;" onclick="ouvrirEditionExercicePerso(${argJs(e.id)})"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></svg> Modifier cet exercice (nom, muscles, photo…)</button>`;
     } else {
       html += `<p class="note note-explicative" style="margin-bottom:14px;">Exercice personnalisé créé par un autre utilisateur — visible par tous, modifiable seulement par son créateur.</p>`;
     }
+  } else if (estCompteAdmin() && EXERCICES_BASE.some(x => x.id === e.id)) {
+    html += `<button type="button" class="btn btn-secondaire" style="margin-bottom:14px;" onclick="editerExerciceBaseDepuisFiche(${argJs(e.id)})"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></svg> Modifier pour tous (admin) : nom, muscles, vidéo…</button>`;
   }
 
   if (media && media.ins && media.ins.length) {
@@ -21909,6 +21924,36 @@ function remplirSelectsExercice(idGroupe, idMateriel) {
     selMat.innerHTML = ORDRE_MATERIELS.map(m => `<option value="${m}">${MATERIELS[m].label}</option>`).join('');
   }
 }
+/* Muscles secondaires d'un exercice (création, modification, Administration) :
+   une pastille à cocher par muscle suivi dans les statistiques, sauf le
+   principal. Le conteneur nomme dans data-apres la fonction à rappeler
+   après chaque changement (en-tête, faisceaux). */
+function renderChoixSecondaires(id, principal, choisis) {
+  const c = document.getElementById(id);
+  if (!c) return;
+  c.innerHTML = ORDRE_GROUPES.filter(g => ZONES_VOLUME_DEFAUT[g] && g !== principal).map(g => {
+    const on = choisis.includes(g);
+    return `<button type="button" class="puce-groupe${on ? ' on' : ''}" style="--g:${couleurGroupe(g)}" data-groupe="${g}" aria-pressed="${on}" onclick="basculerChoixSecondaire(this)"><i></i>${escapeHtml(GROUPES_MUSCULAIRES[g])}</button>`;
+  }).join('');
+}
+function choixSecondaires(id) {
+  return [...document.querySelectorAll(`#${id} .puce-groupe.on`)].map(b => b.dataset.groupe);
+}
+function apresChoixSecondaires(id) {
+  const f = window[document.getElementById(id).dataset.apres];
+  if (typeof f === 'function') f();
+}
+function basculerChoixSecondaire(b) {
+  const on = !b.classList.contains('on');
+  b.classList.toggle('on', on);
+  b.setAttribute('aria-pressed', String(on));
+  apresChoixSecondaires(b.parentNode.id);
+}
+// Nouveau muscle principal : il quitte les secondaires, l'ancien y redevient proposé.
+function changerGroupeSecondaires(id, principal) {
+  renderChoixSecondaires(id, principal, choixSecondaires(id).filter(g => g !== principal));
+  apresChoixSecondaires(id);
+}
 function preparerSelectsExercicePerso() {
   remplirSelectsExercice('perso-groupe', 'perso-materiel');
 }
@@ -21921,10 +21966,11 @@ function ouvrirCreationExercicePerso() {
   preparerSelectsExercicePerso();
   document.getElementById('perso-groupe').value = ORDRE_GROUPES[0];
   document.getElementById('perso-materiel').value = ORDRE_MATERIELS[0];
+  renderChoixSecondaires('perso-secondaires', ORDRE_GROUPES[0], []);
   majHerosExercicePerso();
   ouvrirModal('exercice-perso-modal');
 }
-/* Édition d'un exercice personnalisé déjà créé (nom, groupe, matériel,
+/* Édition d'un exercice personnalisé déjà créé (nom, muscles, matériel,
    photo) : ouverte depuis sa fiche bibliothèque. Modifie l'entrée en place
    — même id — pour ne pas casser son historique de séances. */
 function ouvrirEditionExercicePerso(id) {
@@ -21938,6 +21984,7 @@ function ouvrirEditionExercicePerso(id) {
   document.getElementById('perso-groupe').value = e.groupe;
   document.getElementById('perso-materiel').value = e.materiel;
   document.getElementById('perso-image').value = (e.img && e.img[0]) || '';
+  renderChoixSecondaires('perso-secondaires', e.groupe, e.secondaires || []);
   fermerModal('fiche-exercice-modal');
   majHerosExercicePerso();
   ouvrirModal('exercice-perso-modal');
@@ -21948,12 +21995,14 @@ function validerExercicePerso() {
   const image = document.getElementById('perso-image').value.trim();
   if (image && !urlImageValide(image)) { alert("Le lien de la photo doit commencer par http:// ou https://."); return; }
   const groupe = document.getElementById('perso-groupe').value;
+  const secondaires = choixSecondaires('perso-secondaires');
   const materiel = document.getElementById('perso-materiel').value;
   if (exercicePersoEnEdition) {
     const e = musculationExosPerso.find(x => x.id === exercicePersoEnEdition);
     if (e) {
       e.nom = nom;
       e.groupe = groupe;
+      e.secondaires = secondaires;
       e.materiel = materiel;
       e.maj = Date.now();
       if (image) e.img = [image]; else delete e.img;
@@ -21961,7 +22010,7 @@ function validerExercicePerso() {
   } else {
     musculationExosPerso.push({
       id: idUnique('perso'), nom,
-      groupe, secondaires: [], materiel,
+      groupe, secondaires, materiel,
       perso: true, maj: Date.now(),
       ...(image ? { img: [image] } : {})
     });
@@ -21990,7 +22039,7 @@ function apercuProgramme(programmeId) {
   const series = programme.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
   document.getElementById('apercu-programme-heros').innerHTML = herosFenetreHTML({
     fond: teinteProgramme(programme.id),
-    illustration: silhouetteGroupesVises(cles),
+    illustration: silhouetteGroupesVises(g),
     surtitre: derniere ? 'Dernière fois ' + formatDateDisplay(derniere.date).toLowerCase() : 'Première fois',
     titre: programme.nom,
     sous: escapeHtml(cles.slice(0, 4).map(k => GROUPES_MUSCULAIRES[k] || k).join(', ')),
@@ -22834,8 +22883,41 @@ function silhouetteSVG(vue, couleurs, opts) {
   }).join('');
   return `<svg viewBox="${opts.vb || planche.vb[vue]}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${planche.contour[vue]}" fill="${contour}"/>${muscles}</svg>`;
 }
-// Cadrages (homme et femme partagent la même planche de coordonnées)
-const CADRES_SILHOUETTE = { torse: '120 150 520 760', dos: '840 150 520 760', jambes: '120 650 520 760', buste: '100 160 560 720' };
+// Cadrages de la vue de face (homme et femme partagent à peu près la même planche de coordonnées)
+const CADRES_SILHOUETTE = { torse: '120 150 520 760', jambes: '120 650 520 760', buste: '100 160 560 720' };
+// De dos, le même cadrage décalé jusqu'à la planche du dos.
+function cadreSilhouette(nom, vue) {
+  if (vue !== 'dos') return CADRES_SILHOUETTE[nom];
+  const [x, y, w, h] = CADRES_SILHOUETTE[nom].split(' ').map(Number);
+  const vb = MANNEQUIN[femmeProfil() ? 'femme' : 'homme'].vb;
+  return [x + parseFloat(vb.dos) - parseFloat(vb.face), y, w, h].join(' ');
+}
+/* Corps d'un programme ou d'une séance (poids : exercices ou séries par
+   groupe) vu du côté où il travaille le plus : l'arrière du corps
+   (GROUPES_VUE_DOS) contre l'avant, et à égalité le côté de son muscle le
+   plus travaillé. « Dos Biceps » se voit donc de dos. Cadré sur les jambes
+   quand elles font plus de la moitié du travail, sinon sur le haut du corps
+   (`haut` : 'buste' ou 'torse'). */
+function cadrageCorps(poids, haut) {
+  let dos = 0, face = 0, bas = 0, total = 0, premier = null;
+  Object.keys(poids).forEach(g => {
+    const n = poids[g] || 0;
+    total += n;
+    if (GROUPES_VUE_DOS.includes(g)) dos += n; else face += n;
+    if (GROUPES_BAS.includes(g)) bas += n;
+    if (premier === null || n > poids[premier]) premier = g;
+  });
+  const vue = dos > face || (dos === face && GROUPES_VUE_DOS.includes(premier)) ? 'dos' : 'face';
+  const jambes = bas * 2 > total;
+  return { vue, jambes, vb: cadreSilhouette(jambes ? 'jambes' : haut, vue) };
+}
+// La silhouette qui va avec : les muscles visés allumés.
+function corpsGroupesSVG(poids, haut) {
+  const vises = {};
+  Object.keys(poids).forEach(k => { vises[k] = 'var(--corps-cible)'; });
+  const { vue, vb } = cadrageCorps(poids, haut);
+  return silhouetteSVG(vue, vises, { vb });
+}
 
 /* =====================================================================
    CORPS QUI PIVOTE (Activité › Musculation) — les planches face et dos du
@@ -23008,19 +23090,14 @@ function programmeSuggere() {
 }
 const TEINTES_PROGRAMMES = ['linear-gradient(160deg,#be185d,#7c3aed)', 'linear-gradient(160deg,#1d4ed8,#0891b2)', 'linear-gradient(160deg,#ea580c,#ca8a04)', 'linear-gradient(160deg,#047857,#0e7490)', 'linear-gradient(160deg,#6d28d9,#db2777)', 'linear-gradient(160deg,#334155,#0f766e)'];
 const GROUPES_BAS = ['quadriceps', 'ischios', 'fessiers', 'mollets', 'adducteurs'];
-const GROUPES_DOS = ['dos', 'trapezes', 'lombaires'];
 function vignetteProgramme(p, i) {
-  const g = groupesProgramme(p), cles = Object.keys(g);
-  const vises = {}; cles.forEach(k => { vises[k] = 'var(--corps-cible)'; });
-  const bas = cles.filter(k => GROUPES_BAS.includes(k)).length, dos = cles.filter(k => GROUPES_DOS.includes(k)).length;
-  const vue = dos > bas && dos >= cles.length / 3 ? 'dos' : 'face';
-  const vb = bas > cles.length / 2 ? CADRES_SILHOUETTE.jambes : vue === 'dos' ? CADRES_SILHOUETTE.dos : CADRES_SILHOUETTE.torse;
+  const g = groupesProgramme(p);
   const der = dernierePerfProgramme(p.id);
   return `<div class="pc" style="background:${TEINTES_PROGRAMMES[i % TEINTES_PROGRAMMES.length]}" onclick="apercuProgramme(${argJs(p.id)})">
     <button type="button" class="carte-action" aria-label="${escapeHtml(p.nom)} : voir et démarrer"></button>
     <button type="button" class="pc-options btn-options-programme" onclick="event.stopPropagation(); ouvrirMenuProgramme(this, ${argJs(p.id)})" title="Modifier, dupliquer, supprimer" aria-label="Options de ${escapeHtml(p.nom)}">⋯</button>
     <span class="tag">${p.exercices.length} exercice${p.exercices.length > 1 ? 's' : ''}</span>
-    <span class="pc-corps${vb === CADRES_SILHOUETTE.jambes ? ' pc-corps--jambes' : ''}">${silhouetteSVG(vue, vises, { vb })}</span>
+    <span class="pc-corps${cadrageCorps(g, 'torse').jambes ? ' pc-corps--jambes' : ''}">${corpsGroupesSVG(g, 'torse')}</span>
     <b>${escapeHtml(p.nom)}</b><small>${der ? 'Dernière : ' + escapeHtml(formatDateDisplay(der.date).toLowerCase()) : 'Jamais faite'}</small></div>`;
 }
 function renderVitrineMuscu() {
@@ -23038,10 +23115,9 @@ function renderVitrineMuscu() {
   let sdj;
   if (sug) {
     const g = groupesProgramme(sug.p), noms = Object.keys(g).sort((a, b) => g[b] - g[a]).slice(0, 3).map(k => GROUPES_MUSCULAIRES[k] || k);
-    const vises = {}; Object.keys(g).forEach(k => { vises[k] = 'var(--corps-cible)'; });
     const nbSeries = sug.p.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
     sdj = `<div class="sdj" onclick="apercuProgramme(${argJs(sug.p.id)})"><button type="button" class="carte-action" aria-label="Séance du jour, ${escapeHtml(sug.p.nom)} : voir et démarrer"></button>
-      <div class="sdj-corps">${silhouetteSVG('face', vises, { vb: CADRES_SILHOUETTE.buste })}</div>
+      <div class="sdj-corps">${corpsGroupesSVG(g, 'buste')}</div>
       <small>Séance du jour</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(noms.join(', '))} · ${sug.p.exercices.length} exercice${sug.p.exercices.length > 1 ? 's' : ''}</p>
       <div class="sdj-bas"><span class="sdj-puce">${nbSeries} séries</span><span class="sdj-puce">${sug.d ? escapeHtml(formatDateDisplay(sug.d)) : 'Jamais faite'}</span><button type="button" class="sdj-play" onclick="event.stopPropagation(); demarrerSeance(${argJs(sug.p.id)})" aria-label="Commencer ${escapeHtml(sug.p.nom)} maintenant">${svgV('play')}</button></div></div>`;
   } else {
@@ -23692,12 +23768,11 @@ function ouvrirFeuilleActivite() {
     btn.classList.toggle('hidden', !sug);
     if (sug) {
       const g = groupesProgramme(sug.p), cles = Object.keys(g).sort((a, b) => g[b] - g[a]);
-      const vises = {}; cles.forEach(k => { vises[k] = 'var(--corps-cible)'; });
       const nbSeries = sug.p.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
       btn.className = 'sdj';
       btn.style.background = teinteProgramme(sug.p.id);
       btn.setAttribute('aria-label', 'Séance du jour : ' + sug.p.nom);
-      btn.innerHTML = `<span class="sdj-corps" aria-hidden="true">${silhouetteSVG('face', vises, { vb: CADRES_SILHOUETTE.buste })}</span>
+      btn.innerHTML = `<span class="sdj-corps" aria-hidden="true">${corpsGroupesSVG(g, 'buste')}</span>
         <small>Séance du jour</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(cles.slice(0, 3).map(k => GROUPES_MUSCULAIRES[k] || k).join(', '))}</p>
         <span class="sdj-bas"><span class="sdj-puce">${nbSeries} séries</span><span class="sdj-puce">${sug.d ? escapeHtml(formatDateDisplay(sug.d)) : 'Jamais faite'}</span><span class="sdj-play" role="button" aria-label="Commencer maintenant" onclick="event.stopPropagation(); fermerFeuilles(); demarrerSeance(${argJs(sug.p.id)})">${svgV('play')}</span></span>`;
     }
@@ -24473,10 +24548,9 @@ function teinteProgramme(id) {
   const i = Math.max(0, musculationProgrammes.findIndex(p => p.id === id));
   return TEINTES_PROGRAMMES[i % TEINTES_PROGRAMMES.length];
 }
-function silhouetteGroupesVises(groupes) {
-  const vises = {};
-  groupes.forEach(k => { vises[k] = 'var(--corps-cible)'; });
-  return `<span class="prog-heros-corps fen-heros-ill" aria-hidden="true">${silhouetteSVG('face', vises, { vb: CADRES_SILHOUETTE.buste })}</span>`;
+// poids : exercices ou séries par groupe (voir cadrageCorps).
+function silhouetteGroupesVises(poids) {
+  return `<span class="prog-heros-corps fen-heros-ill" aria-hidden="true">${corpsGroupesSVG(poids, 'buste')}</span>`;
 }
 const TEINTES_CARDIO = {
   course: 'linear-gradient(150deg,#ea580c,#db2777)', cyclisme: 'linear-gradient(150deg,#2563eb,#0891b2)', natation: 'linear-gradient(150deg,#0e7490,#2563eb)',
@@ -24512,13 +24586,16 @@ function majHerosExercicePerso() {
   const nom = (document.getElementById('perso-nom').value || '').trim();
   const g = document.getElementById('perso-groupe').value;
   const m = document.getElementById('perso-materiel').value;
-  const coul = {}; if (g) coul[g] = 'var(--corps-cible)';
+  // Les muscles secondaires en rose atténué, le principal en rose franc.
+  const coul = {};
+  choixSecondaires('perso-secondaires').forEach(s => { coul[s] = 'color-mix(in srgb, var(--corps-cible) 45%, var(--corps-neutre))'; });
+  if (g) coul[g] = 'var(--corps-cible)';
   c.innerHTML = herosFenetreHTML({
     fond: 'linear-gradient(150deg,#0f766e,#2563eb 60%,#7c3aed)',
     surtitre: 'Nouvel exercice', titre: nom || 'Sans nom',
     sous: escapeHtml([GROUPES_MUSCULAIRES[g], MATERIELS[m] && MATERIELS[m].label].filter(Boolean).join(' · ')),
-    // Muscle du dos (dos, trapèzes, lombaires, ischios, fessiers…) : silhouette vue de dos.
-    illustration: `<span class="prog-heros-corps fen-heros-ill" aria-hidden="true">${silhouetteSVG(['dos', 'trapezes', 'lombaires', 'ischios', 'fessiers', 'triceps', 'mollets'].includes(g) ? 'dos' : 'face', coul)}</span>`,
+    // Muscle principal à l'arrière du corps (dos, trapèzes, ischios…) : silhouette vue de dos.
+    illustration: `<span class="prog-heros-corps fen-heros-ill" aria-hidden="true">${silhouetteSVG(GROUPES_VUE_DOS.includes(g) ? 'dos' : 'face', coul)}</span>`,
     puces: ['Visible dans ta bibliothèque']
   });
 }
@@ -27210,6 +27287,21 @@ async function supprimerAlimentPartage(aliment) {
    et appliquée par-dessus au chargement — voir appliquerOverridesBase().
    ===================================================================== */
 let adminExercicesCharges = [];
+const exerciceBaseAdmin = e => ({
+  id: e.id, nom: e.nom, nomEn: e.nomEn, groupe: e.groupe,
+  secondaires: e.secondaires, materiel: e.materiel, img: e.img, ins: e.ins, video: e.video, faisceaux: e.faisceaux,
+  email: 'Bibliothèque de base', estBase: true
+});
+/* Depuis la fiche d'un exercice de la base, dans la bibliothèque : la même
+   fenêtre que dans Administration › Exercices, sans y passer. */
+function editerExerciceBaseDepuisFiche(id) {
+  const e = EXERCICES_BASE.find(x => x.id === id);
+  if (!e || !estCompteAdmin()) return;
+  const exo = exerciceBaseAdmin(e);
+  adminExercicesCharges = adminExercicesCharges.filter(x => x.id !== id).concat(exo);
+  fermerModal('fiche-exercice-modal');
+  editerExerciceAdmin(exo);
+}
 
 async function afficherFeuillExercicesAdmin() {
   initFiltresGroupeMateriel('exercices-filter-groupe', 'exercices-filter-materiel');
@@ -27244,11 +27336,7 @@ async function chargerExercicesAdmin() {
       estBase: false,
       ...r.donnees
     }));
-    const base = EXERCICES_BASE.map(e => ({
-      id: e.id, nom: e.nom, nomEn: e.nomEn, groupe: e.groupe,
-      secondaires: e.secondaires, materiel: e.materiel, img: e.img, ins: e.ins, video: e.video, faisceaux: e.faisceaux,
-      email: 'Bibliothèque de base', estBase: true
-    }));
+    const base = EXERCICES_BASE.map(exerciceBaseAdmin);
     // Anciens exercices (retirés lors du passage à SmartWorkout, ou
     // supprimés ici) : plus proposés, mais encore présents dans des
     // programmes/séances — à fusionner vers un exercice de la bibliothèque.
@@ -27411,7 +27499,7 @@ function renderFaisceauxAdmin() {
   const c = document.getElementById('edit-exo-faisceaux');
   if (!bloc || !c || !faisceauxEdition) return;
   const groupe = document.getElementById('edit-exo-groupe').value;
-  const exo = { ...faisceauxEdition.exo, groupe, nom: document.getElementById('edit-exo-nom').value || faisceauxEdition.exo.nom };
+  const exo = { ...faisceauxEdition.exo, groupe, secondaires: choixSecondaires('edit-exo-secondaires'), nom: document.getElementById('edit-exo-nom').value || faisceauxEdition.exo.nom };
   const groupes = groupesAFaisceaux(exo, groupe);
   bloc.classList.toggle('hidden', !groupes.length);
   c.innerHTML = groupes.map(g => {
@@ -27446,7 +27534,7 @@ function faisceauxAutoAdmin(groupe) {
    vides (aucun faisceau coché = retour à l'estimation). null si aucun. */
 function faisceauxAEnregistrer(groupe) {
   if (!faisceauxEdition) return null;
-  const groupes = groupesAFaisceaux(faisceauxEdition.exo, groupe);
+  const groupes = groupesAFaisceaux({ ...faisceauxEdition.exo, secondaires: choixSecondaires('edit-exo-secondaires') }, groupe);
   const r = {};
   groupes.forEach(g => { const n = faisceauxEdition.choix[g]; if (n && Object.keys(n).length) r[g] = n; });
   return Object.keys(r).length ? r : null;
@@ -27461,6 +27549,7 @@ function editerExerciceAdmin(exo) {
   remplirSelectsExercice('edit-exo-groupe', 'edit-exo-materiel');
   document.getElementById('edit-exo-nom').value = exo.nom || '';
   document.getElementById('edit-exo-groupe').value = exo.groupe || ORDRE_GROUPES[0];
+  renderChoixSecondaires('edit-exo-secondaires', exo.groupe || ORDRE_GROUPES[0], exo.secondaires || []);
   document.getElementById('edit-exo-materiel').value = exo.materiel || ORDRE_MATERIELS[0];
   // mediaExercice() plutôt que exo.img : pour un exercice de la base, la
   // photo vient normalement de EXERCICE_MEDIA, pas de l'objet lui-même.
@@ -27488,6 +27577,7 @@ async function sauvegarderEditionExerciceAdmin() {
   let image = document.getElementById('edit-exo-image').value.trim();
   if (image && !urlImageValide(image)) { alert("Le lien de la photo doit commencer par http:// ou https://."); return; }
   const groupe = document.getElementById('edit-exo-groupe').value;
+  const secondaires = choixSecondaires('edit-exo-secondaires');
   const materiel = document.getElementById('edit-exo-materiel').value;
   let video = document.getElementById('edit-exo-video').value.trim();
   if (video && !urlImageValide(video)) { alert("Le lien de la vidéo doit commencer par http:// ou https://."); return; }
@@ -27518,7 +27608,7 @@ async function sauvegarderEditionExerciceAdmin() {
       // Un exercice de la base d'origine ne se modifie pas en place (il
       // vit dans le code) : la correction est stockée à part et appliquée
       // par-dessus à chaque chargement — voir appliquerOverridesBase().
-      const donnees = { nom, groupe, materiel };
+      const donnees = { nom, groupe, secondaires, materiel };
       if (image) donnees.img = [image];
       if (videoModifiee) donnees.video = video;
       else if (typeof original.video === 'string') donnees.video = original.video;
@@ -27535,7 +27625,7 @@ async function sauvegarderEditionExerciceAdmin() {
       // On repart des données existantes (secondaires, instructions, flag
       // perso…) pour ne modifier que les champs du formulaire, sans rien
       // effacer d'autre.
-      const donnees = Object.assign({}, original, { id, nom, groupe, materiel, maj: Date.now() });
+      const donnees = Object.assign({}, original, { id, nom, groupe, secondaires, materiel, maj: Date.now() });
       delete donnees.email; delete donnees.utilisateur; delete donnees.estBase;
       if (image) donnees.img = [image]; else delete donnees.img;
       if (videoModifiee) donnees.video = video;
