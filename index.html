@@ -2446,7 +2446,7 @@
     .coach-carte small { display: block; font-size: 0.64rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; background: linear-gradient(90deg, #8b5cf6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
     .coach-carte p { margin: 3px 0 0; font-size: 0.86rem; line-height: 1.42; }
 
-    /* Tuiles Pas / Nutrition / Poids, en roulette comme les jours : elles
+    /* Pas / Hydratation / Poids, en roulette comme les jours : les cartes
        défilent au doigt et se calent au centre ; les voisines, inclinées et
        estompées (majRouletteCartes), dépassent sur les bords de l'écran.
        Les marges ::before / ::after laissent centrer la première et la
@@ -2455,16 +2455,15 @@
       overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; }
     #cartes-stats-repas::-webkit-scrollbar { display: none; }
     #cartes-stats-repas::before, #cartes-stats-repas::after { content: ''; flex: 0 0 calc((100cqw - var(--carte-l)) / 2 - 12px); }
-    #cartes-stats-repas > .carte-stats { flex: 0 0 var(--carte-l); scroll-snap-align: center; scroll-snap-stop: always; will-change: transform, opacity; }
+    #cartes-stats-repas > * { flex: 0 0 var(--carte-l); scroll-snap-align: center; scroll-snap-stop: always; will-change: transform, opacity; }
+    /* L'eau dans la roulette : même carte que ses voisines, boutons sur deux lignes. */
+    #ecran-repas #cartes-stats-repas > #bloc-eau { margin: 0 !important; padding: 14px 15px !important; }
+    html:root body #ecran-repas #cartes-stats-repas .eau-boutons { flex-wrap: wrap !important; }
     #ecran-repas .carte-stats--tuile { margin: 0 !important; padding: 14px 15px 0 !important; overflow: hidden; display: flex; flex-direction: column; min-height: 156px; }
     .tuile-tete { display: flex; align-items: center; gap: 8px; }
-    /* La place du « + » de la pesée et du crayon des pas : le titre passe à la ligne au lieu d'être recouvert (petits écrans). */
-    :is(#carte-stats-poids, #carte-stats-pas) .tuile-tete { padding-right: 40px; }
-    .tuile-plus .icone-ui { width: 17px; height: 17px; }
     .tuile-icone { width: 30px; height: 30px; flex: none; border-radius: 10px; display: grid; place-items: center; color: #fff; }
     .tuile-icone .icone-ui { width: 16px; height: 16px; }
     .tuile-icone--poids { background: linear-gradient(135deg, #38bdf8, #6366f1); }
-    .tuile-icone--nutrition { background: linear-gradient(135deg, #34d399, #10b981); }
     .tuile-icone--pas { background: linear-gradient(135deg, #fbbf24, #f97316); }
     .carte-stats--tuile .carte-stats-titre { font-size: 0.72rem !important; font-weight: 700; letter-spacing: 0 !important; text-transform: none !important; color: var(--text-muted); }
     .carte-stats--tuile .carte-stats-valeur { margin-top: 12px !important; }
@@ -3167,11 +3166,6 @@
     .off-favori { flex: none; width: 40px; height: 40px; border: 0; border-radius: 12px; background: none; cursor: pointer; font-size: 1.15rem; color: var(--text-muted); }
     .off-favori.on { color: #f59e0b; }
     .food-initiale--icone { font-size: 1.05rem; background: var(--piste); }
-    .tuile-plus { position: absolute; top: 10px; right: 10px; z-index: 2; width: 36px; height: 36px; border: 0; border-radius: 12px; cursor: pointer; font-family: inherit; font-size: 1.3rem; font-weight: 600; line-height: 1;
-      color: #fff; background: linear-gradient(135deg, #38bdf8, #6366f1); box-shadow: 0 8px 16px -8px rgba(99,102,241,.8); }
-    #carte-stats-poids { position: relative; }
-    .heros-puce-modif { cursor: pointer; position: relative; }
-    .heros-puce-modif::after { content: '✎'; position: absolute; right: 8px; top: 7px; font-size: .7rem; color: var(--text-muted); }
 
 
     /* Progrès : grille des semaines, titres des macros, boutons IA, repères de zones */
@@ -3773,10 +3767,9 @@
 
 
     /* Apparition douce des blocs de Repas du jour */
-    html:root body.sur-repas #ecran-repas > :is(.summary-card, .coach-carte, #cartes-stats-repas, #bloc-eau, #meals-container) { animation: monte .6s cubic-bezier(.2,.8,.2,1) both; }
+    html:root body.sur-repas #ecran-repas > :is(.summary-card, .coach-carte, #cartes-stats-repas, #meals-container) { animation: monte .6s cubic-bezier(.2,.8,.2,1) both; }
     html:root #ecran-repas > .coach-carte { animation-delay: .06s !important; }
     html:root #ecran-repas > #cartes-stats-repas { animation-delay: .12s !important; }
-    html:root #ecran-repas > #bloc-eau { animation-delay: .18s !important; }
     html:root #ecran-repas > #meals-container { animation-delay: .24s !important; }
     @keyframes monte { from { opacity: 0; transform: translateY(14px) scale(.985); } }
     @media (prefers-reduced-motion: reduce) {
@@ -4328,7 +4321,7 @@
         var salut = document.querySelector('.app-bar .salut');
         if (salut) salut.animate([{ opacity: 0, transform: 'translateX(-8px)' }, { opacity: 1, transform: 'none' }],
           { duration: 420, delay: DUREE - 140, easing: 'cubic-bezier(.2,.8,.25,1)', fill: 'backwards' });
-        var blocs = document.querySelectorAll('body.sur-repas #ecran-repas > :is(.summary-card, .coach-carte, #cartes-stats-repas, #bloc-eau, #meals-container)');
+        var blocs = document.querySelectorAll('body.sur-repas #ecran-repas > :is(.summary-card, .coach-carte, #cartes-stats-repas, #meals-container)');
         blocs.forEach(function (b) { b.style.animation = 'none'; });
         if (blocs.length) void blocs[0].offsetWidth;
         blocs.forEach(function (b) { b.style.animation = ''; });
@@ -4442,9 +4435,12 @@
     <!-- Coach du jour : un conseil calculé sur place (sans IA), voir majCoach. -->
     <div class="coach-carte" id="coach-jour"></div>
 
-    <!-- Pas du jour, nutrition et poids en roulette (voir renderCartesStatsRepas) :
-         la carte du centre s'ouvre au toucher (saisie des pas, ou détail). -->
-    <div id="cartes-stats-repas" role="group" aria-label="Pas, nutrition et poids"></div>
+    <!-- Pas du jour, hydratation et poids en roulette (voir renderCartesStatsRepas) :
+         la carte du centre s'ouvre au toucher (saisie des pas ou de la pesée) ;
+         les boutons de l'eau agissent même de côté. Pas et Poids sont dessinés
+         par renderCartesStatsRepas, l'hydratation est fixe (sa gourde s'anime). -->
+    <div id="cartes-stats-repas" role="group" aria-label="Pas, hydratation et poids">
+    <div id="carte-stats-pas"></div>
 
     <!-- Hydratation : une gourde qui se remplit (vague animée), la quantité
          et les boutons d'ajout. Voir majJaugeEau. -->
@@ -4487,7 +4483,8 @@
         </div>
       </div>
     </div>
-
+    <div id="carte-stats-poids"></div>
+    </div>
 
     <div id="meals-container"></div>
 
@@ -7271,23 +7268,21 @@ function courbeMiniSVG(valeurs, couleur) {
   const pts = valeurs.map((v, i) => v == null ? null : `${(i / (valeurs.length - 1) * W).toFixed(1)},${y(v)}`).filter(Boolean).join(' ');
   return `<svg class="carte-stats-graph" width="${W}" height="${H}" viewBox="-2 -2 ${W + 4} ${H + 4}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${couleur}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
-/* Tuile de Repas du jour (Poids, Nutrition) : icône, valeur, tendance et
-   un graphique bord à bord. Ouvre le détail comme les autres cartes. */
+/* Tuile de Repas du jour (Pas, Poids) : icône, valeur, tendance et un
+   graphique bord à bord. Le toucher note la valeur du jour (pas, pesée). */
 const ICONES_TUILE = {
   poids: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /><path d="M7 21h10" /><path d="M12 3v18" /><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />',
-  nutrition: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />',
   pas: '<path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" />'
 };
-// o.action / o.libelleAction : ce que fait le toucher (par défaut, le détail dans Progrès) ;
-// o.bouton : un bouton en haut à droite (crayon des pas…).
+// o.action / o.libelleAction : ce que fait le toucher (par défaut, le détail dans Progrès).
 function tuileStatsHTML(o) {
-  const titre = { poids: 'Poids · 30\u00a0j', nutrition: 'Nutrition · 30\u00a0j' }[o.onglet] || o.titre;
+  const titre = { poids: 'Poids · 30\u00a0j' }[o.onglet] || o.titre;
   return `<div class="carte-stats carte-stats--compacte carte-stats--tuile fitness-card" id="${o.id}" onclick="${o.action || `ouvrirStats('${o.onglet}')`}">
     <button type="button" class="carte-action" aria-label="${escapeHtml(o.titre)} : ${o.libelleAction || 'ouvrir le détail'}"></button>
     <div class="tuile-tete"><span class="tuile-icone tuile-icone--${o.onglet}" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONES_TUILE[o.onglet] || ''}</svg></span><span class="carte-stats-titre">${escapeHtml(titre)}</span></div>
     <div class="carte-stats-valeur"><b>${escapeHtml(o.valeur)}</b><span>${escapeHtml(o.unite || '')}</span></div>
     ${o.ligne ? `<div class="carte-stats-ligne">${escapeHtml(o.ligne)}</div>` : ''}
-    ${o.graphique || ''}${o.bouton || ''}
+    ${o.graphique || ''}
   </div>`;
 }
 // Courbe lissée (Bézier) avec aire en dégradé et point final.
@@ -7353,7 +7348,7 @@ function carteStatsPoidsHTML() {
   const pesees = Object.keys(appData).filter(d => d <= auj && Number(appData[d] && appData[d].weight) > 0).sort().map(d => [d, Number(appData[d].weight)]);
   if (!pesees.length) {
     return carteStatsHTML({ id: 'carte-stats-poids', onglet: 'poids', compacte: true, titre: 'Poids et composition', valeur: '—', unite: '',
-      ligne: 'Touche + pour noter ta première pesée et suivre ta tendance.' });
+      ligne: 'Touche pour noter ta première pesée et suivre ta tendance.', action: "ouvrirSaisieRapide('poids')", libelleAction: 'noter ta pesée du jour' });
   }
   const dernier = pesees[pesees.length - 1][1];
   const serie = []; for (let i = 20; i >= 0; i--) serie.push(tendancePoidsAu(pesees, decalerJours(auj, -i)));
@@ -7373,36 +7368,10 @@ function carteStatsPoidsHTML() {
     pied = 'Composition mesurée le ' + dateLocale(dm).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
   }
   return carteStatsHTML({ id: 'carte-stats-poids', onglet: 'poids', compacte: true, titre: 'Poids et composition', valeur: fmtUneDecimale(dernier), unite: 'kg',
-    ligne, graphique: courbeTuileSVG(serie, '#38bdf8'), cases, pied });
+    ligne, graphique: courbeTuileSVG(serie, '#38bdf8'), cases, pied, action: "ouvrirSaisieRapide('poids')", libelleAction: 'noter ta pesée du jour' });
 }
-function carteStatsNutritionHTML() {
-  const auj = todayStr();
-  const kcal = [], cibles = [], prot = [], eau = [];
-  for (let i = 29; i >= 1; i--) {
-    const d = decalerJours(auj, -i);
-    const jour = appData[d];
-    const t = jour ? sumMeals(jour) : null;
-    if (t && t.kcal > 0) {
-      kcal.push(t.kcal); cibles.push(computeTargets(jour, d).target); prot.push(t.p);
-      if (Number(jour.eauMl) > 0) eau.push(Number(jour.eauMl));
-    } else kcal.push(0);
-  }
-  const remplis = kcal.filter(v => v > 0);
-  if (!remplis.length) {
-    return carteStatsHTML({ id: 'carte-stats-nutrition', onglet: 'nutrition', compacte: true, titre: 'Ma nutrition · 30 jours', valeur: '—', unite: '',
-      ligne: 'Note tes repas quelques jours pour voir tes moyennes ici.' });
-  }
-  const moy = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
-  const cibleMoy = Math.round(moy(cibles));
-  let dansCible = 0, k = 0;
-  kcal.forEach(v => { if (v > 0) { if (Math.abs(v - cibles[k]) <= cibles[k] * 0.1) dansCible++; k++; } });
-  const cases = [['Objectif moyen', cibleMoy.toLocaleString('fr-FR') + ' kcal'], ['Protéines', fmtUneDecimale(moy(prot) / dernierPoidsConnu(auj)) + ' g/kg']];
-  if (eau.length) cases.push(['Eau / jour', fmtUneDecimale(moy(eau) / 1000) + ' L']);
-  return carteStatsHTML({ id: 'carte-stats-nutrition', onglet: 'nutrition', compacte: true, titre: 'Ma nutrition · 30 jours', valeur: Math.round(moy(remplis)).toLocaleString('fr-FR'), unite: 'kcal / jour',
-    ligne: dansCible + ' j / ' + remplis.length + ' dans la cible', graphique: barresTuileSVG(kcal, cibleMoy), cases });
-}
-/* Pas du jour affiché : la saisie au toucher (ou au crayon), et les 30
-   derniers jours en barres face au repère santé de 7 500 pas. */
+/* Pas du jour affiché : la saisie au toucher, et les 30 derniers jours en
+   barres face au repère santé de 7 500 pas. */
 function cartePasHTML() {
   const pasDu = d => Math.max(0, Math.round(Number(appData[d] && appData[d].steps) || 0));
   const pas = pasDu(currentDate), repere = SEUILS_PAS[1], fr = n => n.toLocaleString('fr-FR');
@@ -7410,8 +7379,7 @@ function cartePasHTML() {
   return tuileStatsHTML({ id: 'carte-stats-pas', onglet: 'pas', titre: 'Pas du jour', valeur: pas ? fr(pas) : '—', unite: pas ? 'pas' : '',
     ligne: !pas ? 'Touche pour noter tes pas' : pas < repere ? `Encore ${fr(repere - pas)} pas pour ${fr(repere)}` : 'Repère santé atteint',
     graphique: barres.some(v => v > 0) ? barresTuileSVG(barres, repere) : '',
-    action: "ouvrirSaisieRapide('pas')", libelleAction: 'noter tes pas',
-    bouton: '<button type="button" class="tuile-plus" onclick="event.stopPropagation(); ouvrirSaisieRapide(\'pas\')" aria-label="Modifier les pas du jour" title="Pas du jour"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg></button>' });
+    action: "ouvrirSaisieRapide('pas')", libelleAction: 'noter tes pas' });
 }
 // Les pas changent sans tout redessiner (updateSummary) : seule leur carte est refaite.
 function majCartePas() {
@@ -7421,31 +7389,35 @@ function majCartePas() {
   majRouletteCartes();
 }
 
-/* Pas, Nutrition et Poids en roulette, comme les jours de la semaine : le
+/* Pas, Hydratation et Poids en roulette, comme les jours de la semaine : le
    défilement natif se cale au centre, et chaque carte s'incline, rapetisse
    et s'estompe selon sa distance au centre (majRouletteCartes). Toucher une
-   carte de côté l'amène au centre ; celle du centre s'ouvre, et les boutons
-   (+ de la pesée, crayon des pas) agissent même de côté. La carte au centre
-   est gardée d'un rendu à l'autre (Nutrition au départ, entre les deux). */
-let rouletteCartesCentre = 'carte-stats-nutrition', rouletteCartesImage = 0;
+   carte de côté l'amène au centre ; celle du centre s'ouvre (saisie des pas,
+   pesée du jour), et les boutons de l'eau agissent même de côté. Pas et
+   Poids sont redessinés ici ; l'hydratation (#bloc-eau, sa gourde animée)
+   reste en place entre les deux. La carte au centre est gardée d'un rendu à
+   l'autre (l'eau au départ). */
+let rouletteCartesCentre = 'bloc-eau', rouletteCartesImage = 0;
 function renderCartesStatsRepas() {
   const c = document.getElementById('cartes-stats-repas');
   if (!c) return;
-  c.innerHTML = cartePasHTML() + carteStatsNutritionHTML() + carteStatsPoidsHTML();
-  const poids = document.getElementById('carte-stats-poids');
-  if (poids && !poids.querySelector('.tuile-plus')) poids.insertAdjacentHTML('beforeend', '<button type="button" class="tuile-plus" onclick="event.stopPropagation(); ouvrirSaisieRapide(\'poids\')" aria-label="Noter ma pesée du jour" title="Pesée du jour">+</button>');
+  [['carte-stats-pas', cartePasHTML], ['carte-stats-poids', carteStatsPoidsHTML]].forEach(([id, html]) => {
+    const carte = document.getElementById(id);
+    if (carte) carte.outerHTML = html();
+  });
   if (!c.dataset.ecoute) {
     c.dataset.ecoute = '1';
-    c.addEventListener('scroll', () => { if (!rouletteCartesImage) rouletteCartesImage = requestAnimationFrame(majRouletteCartes); }, { passive: true });
+    // La carte au centre n'est retenue qu'au défilement (doigt ou centrage), pas quand une carte est redessinée.
+    c.addEventListener('scroll', () => { if (!rouletteCartesImage) rouletteCartesImage = requestAnimationFrame(() => { const id = majRouletteCartes(); if (id) rouletteCartesCentre = id; }); }, { passive: true });
     c.addEventListener('click', e => {
-      const carte = e.target.closest('.carte-stats');
-      if (!carte || e.target.closest('.tuile-plus') || carteAuCentre(carte)) return;
+      const carte = e.target.closest('#cartes-stats-repas > *');
+      if (!carte || e.target.closest('button:not(.carte-action)') || carteAuCentre(carte)) return;
       e.preventDefault(); e.stopPropagation();
       centrerCarteRoulette(carte.id, true);
     }, true);
     // Au clavier (Tab), la carte qui prend le focus vient au centre ; pas au doigt :
     // le bouton touché glisserait sous le doigt et le toucher serait perdu.
-    c.addEventListener('focusin', e => { const carte = e.target.closest('.carte-stats'); if (carte && e.target.matches(':focus-visible') && !carteAuCentre(carte)) centrerCarteRoulette(carte.id, true); });
+    c.addEventListener('focusin', e => { const carte = e.target.closest('#cartes-stats-repas > *'); if (carte && e.target.matches(':focus-visible') && !carteAuCentre(carte)) centrerCarteRoulette(carte.id, true); });
     // L'écran Repas était masqué : on recentre dès qu'il a une largeur.
     if (window.ResizeObserver) new ResizeObserver(() => { if (c.clientWidth) centrerCarteRoulette(rouletteCartesCentre, false); }).observe(c);
   }
@@ -7467,7 +7439,7 @@ function majRouletteCartes() {
   rouletteCartesImage = 0;
   const c = document.getElementById('cartes-stats-repas');
   if (!c || !c.clientWidth) return;
-  const cartes = [...c.querySelectorAll(':scope > .carte-stats')], centre = c.scrollLeft + c.clientWidth / 2, reduit = mouvementReduit();
+  const cartes = [...c.children], centre = c.scrollLeft + c.clientWidth / 2, reduit = mouvementReduit();
   let proche = null, ecart = Infinity;
   cartes.forEach(carte => {
     const dist = (carte.offsetLeft + carte.offsetWidth / 2 - centre) / (carte.offsetWidth + 12), a = Math.min(1.5, Math.abs(dist));
@@ -7476,7 +7448,7 @@ function majRouletteCartes() {
     if (Math.abs(dist) < ecart) { ecart = Math.abs(dist); proche = carte; }
   });
   cartes.forEach(carte => carte.classList.toggle('actif', carte === proche));
-  if (proche) rouletteCartesCentre = proche.id;
+  return proche && proche.id;
 }
 
 function renderApp() {
@@ -12522,17 +12494,17 @@ const TOUR_ETAPES = [
   { ecran: 'repas', cible: '#semaine-nav', titre: 'Ta semaine', texte: "Un mini-anneau par jour : il se remplit avec les calories du jour face à ton objectif. Touche un jour pour l'afficher, glisse pour changer de semaine. La flamme en haut compte tes jours d'affilée." },
   { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: "L'anneau extérieur, ce sont tes calories ; les trois intérieurs, protéines, glucides et lipides. Touche une macro pour sa courbe face à l'objectif, ou le reste de la carte pour ta dépense du jour et ta nutrition." },
   { ecran: 'repas', cible: '#coach-jour', titre: 'Le coach du jour', texte: "Un conseil qui change avec ta journée : ce qui te manque, avec des aliments que tu manges déjà, ou un rappel pour boire. Calculé sur ton téléphone, sans IA." },
-  { ecran: 'repas', cible: '#cartes-stats-repas', titre: 'Pas, nutrition et poids', texte: "Fais glisser pour passer d'une carte à l'autre : tes pas du jour, ta nutrition et ton poids des 30 derniers jours. Touche la carte du centre pour noter tes pas, ou pour le détail : calories et macros, courbe de poids et composition corporelle." },
+  { ecran: 'repas', cible: '#cartes-stats-repas', titre: 'Pas, eau et poids', texte: "Fais glisser pour passer d'une carte à l'autre : tes pas du jour, ton eau et ton poids. Touche la carte du centre pour noter tes pas ou ta pesée du jour ; le détail est dans Progrès." },
   { ecran: 'repas', cible: '#onglet-plus', titre: 'Le bouton +', texte: "Il fait l'action utile de l'écran : ici, une recette, un aliment, une photo ou un code-barres pour le repas du moment. Sur Activité, il lance une séance ; sur Profil, une mesure. Dans Progrès, il est grisé." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-recette', titre: 'Recette', texte: "Tes recettes enregistrées, et celles partagées par l'équipe : une portion s'ajoute en un toucher, macros déjà calculées. Tu y trouves aussi des idées de l'IA qui complètent tes macros du jour." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-manuel', titre: 'Aliment', texte: "Recherche dans la base d'aliments, avec en premier ce que tu manges souvent. Un aliment introuvable ? Saisis-le : il reste à toi, et rejoint la base commune une fois validé." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-photo', ia: true, titre: 'Photo ou description', texte: "Prends en photo ou décris ton assiette : l'IA estime les aliments, les quantités et les macros." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-barcode', titre: 'Code-barres', texte: "Scanne un produit emballé : ses valeurs nutritionnelles sont récupérées toutes seules." },
-  { ecran: 'repas', cible: '#bloc-eau', titre: "L'eau", texte: 'Un toucher sur +250 ml, +500 ml ou +1 L à chaque fois que tu bois.' },
+  { ecran: 'repas', avant: () => centrerCarteRoulette('bloc-eau', false), cible: '#bloc-eau', titre: "L'eau", texte: 'Un toucher sur +250 ml, +500 ml ou +1 L à chaque fois que tu bois.' },
   { ecran: 'repas', cible: '#onglets', titre: 'La barre d’onglets', texte: "Repas, Activité, Progrès (tes statistiques détaillées) et Profil, toujours en bas de l'écran." },
   { ecran: 'repas', cible: '#onglet-seance', titre: 'Activité', texte: 'Ta musculation (programmes, séances, bibliothèque d’exercices) et ton cardio. La visite « Musculation » détaille la partie muscu.' },
   { ecran: 'seance', cible: '#vitrine-muscu .hx', titre: 'Ta semaine de muscu', texte: "Le corps se colore selon le volume de la semaine : vert en zone idéale, gris à travailler. Touche-le pour le détail. Juste dessous, la séance du jour : le programme suivant dans l'ordre de ta liste, après ta dernière séance." },
-  { ecran: 'repas', avant: () => centrerCarteRoulette('carte-stats-pas', false), cible: '#carte-stats-pas', titre: 'Tes pas', texte: "Touche « Pas du jour » (ou son crayon) pour noter tes pas : au-delà de 4 000, le surplus compte dans ta dépense. Leur évolution est dans Progrès › Corps." },
+  { ecran: 'repas', avant: () => centrerCarteRoulette('carte-stats-pas', false), cible: '#carte-stats-pas', titre: 'Tes pas', texte: "Touche la carte « Pas du jour » pour noter tes pas : au-delà de 4 000, le surplus compte dans ta dépense. Leur évolution est dans Progrès › Corps." },
   { ecran: 'seance', cible: '#seance-mode-nav', titre: 'Musculation ou cardio', texte: "Bascule entre tes séances de musculation et ton cardio : course, vélo, natation, marche, rameur, HIIT, sport co." },
   { ecran: 'seance', modeCardio: true, cible: '#seance-cardio .hx--cardio', titre: 'Ta semaine de cardio', texte: "L'objectif conseillé : 150 à 300 min par semaine, une minute intense comptant double. La jauge montre où tu en es, la barre en dessous ta répartition facile / modérée / intense. Ajoute une séance avec le bouton juste en dessous : durée, distance, intensité." },
   { ecran: 'stats', avant: () => { ouvrirStats('resume'); }, cible: '#pg-periode-btn', titre: 'Ta progression', texte: "Le Résumé dit en une phrase où tu en es : ta courbe de poids, ta maintenance réelle, ce qui a bougé. Choisis la période ici (7 jours, 30 jours, 3 mois… ou « Perso »). Corps, Repas, Cardio et Muscu donnent le détail." },
