@@ -1324,6 +1324,38 @@ test('Repas du jour refait : anneaux, semaine, série de jours, coach', () => av
   await page.waitForFunction(() => currentDate === todayStr(), null, { timeout: 3000 });
 }));
 
+test("Coach du jour : suit l'eau bue, l'heure qui passe et le nouveau jour, sans recharger", () => avecAppli({}, async ({ page }) => {
+  const etat = () => page.evaluate(() => ({ coach: document.querySelector('#coach-jour p').textContent, salut: document.getElementById('salut-nom').textContent, jour: currentDate }));
+  // 17 h, la journée presque complète mais presque rien bu : le coach demande de boire.
+  await page.clock.setFixedTime(new Date('2026-10-27T17:00:00'));
+  await page.evaluate(() => {
+    currentDate = todayStr();
+    const day = getDay(currentDate), t = computeTargets(day, currentDate);
+    day.meals[MEALS[1]].push({ name: 'Repas', grams: 100, kcal: t.target * 0.95, p: t.protein, c: t.carbs, f: t.fat });
+    day.eauMl = 250; saveData(currentDate);
+    allerA('repas'); renderApp();
+  });
+  assert.match((await etat()).coach, /Pense à boire/);
+  // Boire : le conseil change aussitôt (avant, il fallait rouvrir l'appli).
+  await page.evaluate(() => ajouterEau(3000));
+  assert.match((await etat()).coach, /Objectif presque atteint/);
+  // 19 h, l'appli restée ouverte : la minuterie de chaque minute voit l'heure changer.
+  await page.clock.setFixedTime(new Date('2026-10-27T19:00:00'));
+  await page.evaluate(() => suivreHeureCoach());
+  assert.match((await etat()).salut, /^Bonsoir/);
+  // Le lendemain matin, retour dans l'appli : elle passe au nouveau jour, conseil du matin.
+  await page.clock.setFixedTime(new Date('2026-10-28T08:00:00'));
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  const matin = await etat();
+  assert.equal(matin.jour, '2026-10-28');
+  assert.match(matin.coach, /Commence ta journée/);
+  assert.match(matin.salut, /^Bonjour/);
+  // Toujours rien de noté à 11 h 30 : le conseil suit l'heure.
+  await page.clock.setFixedTime(new Date('2026-10-28T11:30:00'));
+  await page.evaluate(() => suivreHeureCoach());
+  assert.match((await etat()).coach, /Rien de noté/);
+}));
+
 test('anciens styles visuels retirés : un choix enregistré n\'est plus appliqué', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => { localStorage.setItem('anqaa_style', 'systeme'); });
   await page.reload({ waitUntil: 'domcontentloaded' });

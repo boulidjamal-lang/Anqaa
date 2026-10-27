@@ -7603,7 +7603,35 @@ function majCoach(day, totals, t) {
   else msg = `Il te reste <b>${fr(reste)} kcal</b> et ${fr(Math.max(0, manqueP))} g de protéines pour finir la journée.`;
   el.innerHTML = `<span class="coach-icone" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /></svg></span>
     <div><small>Coach du jour</small><p>${msg}</p></div>`;
+  coachCalcule = { jour: todayStr(), heure: h };
 }
+/* Le conseil dépend aussi de l'heure (petit-déjeuner avant 11 h, eau à partir
+   de 16 h) et du jour : il est recalculé, avec le « Bonjour / Bonsoir », quand
+   l'heure change pendant que l'appli est ouverte et au retour dans l'appli.
+   Après minuit, l'appli qui affichait « aujourd'hui » passe au nouveau jour.
+   Boire (ajouterEau, retirerEau) ne repasse pas par updateSummary : il le
+   recalcule lui-même. */
+var coachCalcule; // var sans valeur : majCoach peut être appelée avant cette ligne au démarrage
+function rafraichirCoach() {
+  const day = getDay(currentDate);
+  majCoach(day, sumMeals(day), computeTargets(day, currentDate));
+}
+function suivreHeureCoach() {
+  if (!coachCalcule || document.visibilityState !== 'visible') return;
+  const jour = todayStr();
+  if (jour === coachCalcule.jour && new Date().getHours() === coachCalcule.heure) return;
+  if (jour !== coachCalcule.jour && currentDate === coachCalcule.jour) {
+    // Une fenêtre ouverte : on attend qu'elle se ferme (prochaine minute).
+    if (document.body.classList.contains('couche-ouverte')) return;
+    currentDate = jour;
+    renderApp();
+    return;
+  }
+  rafraichirCoach();
+  majSalut();
+}
+setInterval(suivreHeureCoach, 60000);
+document.addEventListener('visibilitychange', suivreHeureCoach);
 
 function majBoutonAujourdhui() {
   const b = document.getElementById('btn-aujourdhui');
@@ -8558,6 +8586,7 @@ function ajouterEau(ml) {
   verserGourde(avant, day.eauMl);
   saveData(currentDate);
   majJaugeEau(day);
+  rafraichirCoach();
 }
 
 /* Une boisson notée en ml compte aussi pour l'hydratation du jour, sauf
@@ -8589,6 +8618,7 @@ function retirerEau() {
   verserGourde(avant, day.eauMl);
   saveData(currentDate);
   majJaugeEau(day);
+  rafraichirCoach();
 }
 
 /* Besoin en EAU BUE du jour — calculé automatiquement, jamais un réglage :
