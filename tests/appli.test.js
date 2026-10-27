@@ -1497,13 +1497,17 @@ test('vitrines : Activité (corps, séance du jour, programmes), Cardio (arc, tr
     geant: document.querySelector('#vitrine-muscu .hx-geant').textContent,
     corps: !!document.querySelector('#vitrine-muscu .hx-corps svg path'),
     sdj: document.querySelector('#vitrine-muscu .sdj h4').textContent,
+    // Plus de mosaïque (tonnage, records, séances par jour) : les records du mois
+    // tiennent dans une pastille de « Ta semaine ».
+    mosaique: document.querySelectorAll('#vitrine-muscu .bento').length,
+    records: document.querySelector('#vitrine-muscu .hx-puce--record').textContent,
     programmes: [...document.querySelectorAll('#programmes-liste-container .pc b')].map(b => b.textContent),
     // Un seul affichage des programmes (le carrousel), pas de doublon.
     pcAilleurs: document.querySelectorAll('.pc').length - document.querySelectorAll('#programmes-liste-container .pc').length,
     ancienneListe: document.querySelectorAll('.programme-carte').length,
     pasEnBas: getComputedStyle(document.getElementById('carte-pas-seances')).display !== 'none'
   }));
-  assert.deepEqual(m, { geant: '4', corps: true, sdj: 'Bas', programmes: ['Haut', 'Bas'], pcAilleurs: 0, ancienneListe: 0, pasEnBas: false });
+  assert.deepEqual(m, { geant: '4', corps: true, sdj: 'Bas', mosaique: 0, records: '2 records ce mois', programmes: ['Haut', 'Bas'], pcAilleurs: 0, ancienneListe: 0, pasEnBas: false });
   // Le ⋯ d'une carte : modifier, dupliquer, supprimer — sans ouvrir l'aperçu.
   await page.click('#programmes-liste-container .pc:nth-child(1) .pc-options');
   assert.ok(await page.isVisible('#menu-programme-popup'));
