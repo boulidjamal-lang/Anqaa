@@ -2446,19 +2446,27 @@
     .coach-carte small { display: block; font-size: 0.64rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; background: linear-gradient(90deg, #8b5cf6, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
     .coach-carte p { margin: 3px 0 0; font-size: 0.86rem; line-height: 1.42; }
 
-    /* Pas / Hydratation / Poids, en roulette comme les jours : les cartes
-       défilent au doigt et se calent au centre ; les voisines, inclinées et
-       estompées (majRouletteCartes), dépassent sur les bords de l'écran.
-       Les marges ::before / ::after laissent centrer la première et la
-       dernière carte (cqw : la largeur de la roulette). */
-    #cartes-stats-repas { --carte-l: 64cqw; container-type: inline-size; position: relative; display: flex; gap: 12px; margin: 0 -16px 12px; padding: 2px 0 12px;
+    /* Pas / Hydratation / Poids, en roulette comme les jours : de grandes
+       cartes qui défilent au doigt et se calent au centre ; les voisines,
+       inclinées, estompées et ramenées près du centre (majRouletteCartes),
+       dépassent un peu sur les bords de l'écran. Les marges ::before / ::after
+       laissent centrer la première et la dernière carte (cqw : la largeur de
+       la roulette ; 8px : l'écart, le même que ECART_ROULETTE). */
+    #cartes-stats-repas { --carte-l: 80cqw; container-type: inline-size; position: relative; display: flex; gap: 8px; margin: 0 -16px 12px; padding: 2px 0 12px;
       overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; }
     #cartes-stats-repas::-webkit-scrollbar { display: none; }
-    #cartes-stats-repas::before, #cartes-stats-repas::after { content: ''; flex: 0 0 calc((100cqw - var(--carte-l)) / 2 - 12px); }
+    #cartes-stats-repas::before, #cartes-stats-repas::after { content: ''; flex: 0 0 calc((100cqw - var(--carte-l)) / 2 - 8px); }
     #cartes-stats-repas > * { flex: 0 0 var(--carte-l); scroll-snap-align: center; scroll-snap-stop: always; will-change: transform, opacity; }
-    /* L'eau dans la roulette : même carte que ses voisines, boutons sur deux lignes. */
-    #ecran-repas #cartes-stats-repas > #bloc-eau { margin: 0 !important; padding: 14px 15px !important; }
-    html:root body #ecran-repas #cartes-stats-repas .eau-boutons { flex-wrap: wrap !important; }
+    /* L'eau dans la roulette : la gourde avec le titre et la quantité, puis
+       les cinq boutons sur une ligne, sur toute la largeur de la carte. */
+    #ecran-repas #cartes-stats-repas > #bloc-eau { position: relative; display: grid !important; grid-template-columns: auto 1fr; grid-template-rows: 43px 43px auto; gap: 0 14px !important; align-items: center;
+      margin: 0 !important; padding: 14px 15px !important; }
+    #cartes-stats-repas > #bloc-eau > .eau-corps { display: contents; }
+    #cartes-stats-repas > #bloc-eau .gourde { grid-column: 1; grid-row: 1 / span 2; }
+    #cartes-stats-repas > #bloc-eau h3 { grid-column: 2; grid-row: 1; align-self: end; }
+    #cartes-stats-repas > #bloc-eau .eau-texte { grid-column: 2; grid-row: 2; align-self: start; }
+    #cartes-stats-repas > #bloc-eau .eau-ajout { top: 12px; right: 14px; }
+    html:root body #ecran-repas #cartes-stats-repas .eau-boutons { grid-column: 1 / -1; grid-row: 3; justify-content: space-between; margin-top: 10px !important; }
     #ecran-repas .carte-stats--tuile { margin: 0 !important; padding: 14px 15px 0 !important; overflow: hidden; display: flex; flex-direction: column; min-height: 156px; }
     .tuile-tete { display: flex; align-items: center; gap: 8px; }
     .tuile-icone { width: 30px; height: 30px; flex: none; border-radius: 10px; display: grid; place-items: center; color: #fff; }
@@ -7447,6 +7455,7 @@ function centrerCarteRoulette(id, doux) {
   c.scrollTo({ left: carte.offsetLeft + carte.offsetWidth / 2 - c.clientWidth / 2, behavior: doux && !mouvementReduit() ? 'smooth' : 'auto' });
   majRouletteCartes();
 }
+const ECART_ROULETTE = 8; // px : l'écart entre deux cartes, le même que le gap de #cartes-stats-repas
 function majRouletteCartes() {
   rouletteCartesImage = 0;
   const c = document.getElementById('cartes-stats-repas');
@@ -7454,8 +7463,12 @@ function majRouletteCartes() {
   const cartes = [...c.children], centre = c.scrollLeft + c.clientWidth / 2, reduit = mouvementReduit();
   let proche = null, ecart = Infinity;
   cartes.forEach(carte => {
-    const dist = (carte.offsetLeft + carte.offsetWidth / 2 - centre) / (carte.offsetWidth + 12), a = Math.min(1.5, Math.abs(dist));
-    carte.style.transform = reduit ? '' : `perspective(800px) rotateY(${(-dist * 24).toFixed(2)}deg) scale(${(1 - a * 0.1).toFixed(3)})`;
+    const larg = carte.offsetWidth, dist = (carte.offsetLeft + larg / 2 - centre) / (larg + ECART_ROULETTE), a = Math.min(1.5, Math.abs(dist));
+    // Sur le côté, la carte s'incline et rapetisse un peu ; elle est ramenée
+    // d'autant vers le centre, pour que l'écart visible reste petit.
+    const echelle = 1 - a * 0.05, angle = Math.min(1, a) * 14 * Math.PI / 180;
+    const tire = -Math.sign(dist) * Math.min(1, a) * larg * (1 - echelle * Math.cos(angle)) / 2;
+    carte.style.transform = reduit ? '' : `translateX(${tire.toFixed(1)}px) perspective(800px) rotateY(${(-dist * 14).toFixed(2)}deg) scale(${echelle.toFixed(3)})`;
     carte.style.opacity = (1 - a * 0.4).toFixed(3);
     if (Math.abs(dist) < ecart) { ecart = Math.abs(dist); proche = carte; }
   });

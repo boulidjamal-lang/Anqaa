@@ -1161,8 +1161,12 @@ test("Repas du jour allégé : idées dans « Recette », pas dans Activité, bi
     pct: !!document.getElementById('pct-p')
   }));
   assert.deepEqual(r, { idees: false, ideesDansRecette: true, pasDansActivite: false, bilanDansNutrition: true, bilanDansRepas: false, vides: 3, listesVides: 0, macrosAliment: 'none', pct: false });
-  // Eau : la gourde à gauche, quantité et boutons à droite.
-  const eau = await page.evaluate(() => { const g = document.querySelector('#bloc-eau .gourde').getBoundingClientRect(), b = document.querySelector('#bloc-eau .eau-boutons').getBoundingClientRect(); return b.left > g.right - 1 && b.top < g.bottom; });
+  // Eau (dans la roulette) : la gourde à gauche de la quantité, les cinq boutons sur une ligne dessous.
+  const eau = await page.evaluate(() => {
+    const r = s => document.querySelector('#bloc-eau ' + s).getBoundingClientRect(), g = r('.gourde'), q = r('.eau-texte'), b = r('.eau-boutons');
+    const hauts = new Set([...document.querySelectorAll('#bloc-eau .eau-boutons .btn-icone')].map(x => Math.round(x.getBoundingClientRect().top)));
+    return q.left > g.right - 1 && q.top < g.bottom && b.top > g.bottom - 1 && hauts.size === 1;
+  });
   assert.ok(eau);
   // Toucher un aliment ouvre sa fenêtre (poids et macros).
   await page.click('#ecran-repas .food-info');
