@@ -2303,6 +2303,19 @@ test('Activité : le corps de la semaine pivote (face ↔ dos) sans ouvrir le d�
   await page.mouse.up();
   await page.waitForTimeout(900);
   assert.equal((await etat()).vue, 'dos');
+  // Pire cas : des mouvements groupés dans la même milliseconde. L'élan reste
+  // plafonné : un demi-tour exactement, pas plusieurs tours au hasard.
+  const tour = await page.evaluate(() => new Promise(fin => {
+    const el = document.querySelector('#vitrine-muscu .corps-pivot');
+    el.corpsPivot.regler(0);
+    const r = el.getBoundingClientRect(), y = r.top + r.height / 2;
+    const ev = (type, x) => el.dispatchEvent(new PointerEvent(type, { clientX: x, clientY: y, pointerId: 7, bubbles: true, isPrimary: true }));
+    ev('pointerdown', r.left + r.width / 2 + 60);
+    for (let i = 1; i <= 10; i++) ev('pointermove', r.left + r.width / 2 + 60 - i * 15);
+    ev('pointerup', r.left + r.width / 2 - 90);
+    setTimeout(() => fin(el.corpsPivot.angle), 1500);
+  }));
+  assert.equal(Math.abs(tour), 180, 'angle final : ' + tour);
   await page.evaluate(() => renderVitrineMuscu());
   assert.deepEqual(await etat(), { vue: 'dos', bouton: 'Face', ecran: 'seance', vues: 2 });
   // Le titre, lui, ouvre toujours le détail de la semaine.

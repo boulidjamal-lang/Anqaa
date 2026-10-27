@@ -23061,7 +23061,10 @@ function activerCorpsPivot(el, opts) {
     if (!glisse) return;
     glisse.dx = e.clientX - glisse.x;
     angle = glisse.a + glisse.dx * 0.9;
-    vitesse = (e.clientX - glisse.dernier) * 0.9 / Math.max(1, e.timeStamp - glisse.dt) * 16;
+    // Élan au lâcher (degrés par image) : 8 ms au moins entre deux mouvements
+    // (le téléphone les groupe parfois) et plafonné, sinon un geste vif lançait
+    // plusieurs tours et le corps s'arrêtait de face ou de dos au hasard.
+    vitesse = Math.max(-12, Math.min(12, (e.clientX - glisse.dernier) * 0.9 / Math.max(8, e.timeStamp - glisse.dt) * 16));
     glisse.dernier = e.clientX; glisse.dt = e.timeStamp;
     dessiner();
   });
