@@ -68,12 +68,13 @@ test('ajouter un aliment met à jour le résumé du jour', () => avecAppli({}, a
 }));
 
 test('les pas se notent depuis Repas du jour et comptent dans la dépense', () => avecAppli({}, async ({ page }) => {
-  // Plus de carte des pas dans Activité : la puce « Pas » de Repas du jour suffit.
+  // Plus de carte des pas dans Activité : la carte « Pas du jour » de Repas du jour suffit
+  // (son crayon agit même quand elle est sur le côté de la roulette).
   await page.evaluate(() => allerA('seance'));
   assert.equal(await page.isVisible('#carte-pas-seances'), false);
   await page.evaluate(() => allerA('repas'));
   const avant = await page.evaluate(() => computeTargets(getDay(todayStr()), todayStr()).tdee);
-  await page.click('#ecran-repas .heros-puce-modif');
+  await page.click('#carte-stats-pas .tuile-plus');
   await page.fill('#saisie-rapide-champ', '8500');
   await page.evaluate(() => validerSaisieRapide());
   const r = await page.evaluate(() => ({ pas: getDay(todayStr()).steps, tdee: computeTargets(getDay(todayStr()), todayStr()).tdee }));
@@ -696,15 +697,17 @@ test('cartes de stats : poids et nutrition sur Repas du jour, bandeaux cardio et
   // Plus d'entrée « Statistiques » dans le menu du bouton flottant.
   assert.equal(await page.$('#nav-stats'), null);
   const repas = await page.evaluate(() => [...document.querySelectorAll('#cartes-stats-repas .carte-stats')].map(c => c.id));
-  assert.deepEqual(repas, ['carte-stats-poids', 'carte-stats-nutrition']);
+  assert.deepEqual(repas, ['carte-stats-pas', 'carte-stats-nutrition', 'carte-stats-poids']);
   assert.match(await page.textContent('#carte-stats-poids .carte-stats-valeur'), /79,9\s*kg/);
-  // Deux tuiles côte à côte (icône, valeur, tendance, graphique) ; le détail est dans la fenêtre.
-  const tuiles = await page.evaluate(() => ['#carte-stats-poids', '#carte-stats-nutrition'].map(c => { const b = document.querySelector(c).getBoundingClientRect(); return [Math.round(b.top), Math.round(b.width), !!document.querySelector(c + ' .tuile-graph')]; }));
-  assert.equal(tuiles[0][0], tuiles[1][0], 'tuiles sur la même ligne');
-  assert.ok(tuiles.every(([, w, g]) => w < 200 && g), JSON.stringify(tuiles));
+  // Des tuiles sur une même rangée qui défile (icône, valeur, tendance, graphique) ; le détail est dans la fenêtre.
+  const tuiles = await page.evaluate(() => ['#carte-stats-poids', '#carte-stats-nutrition'].map(c => [document.querySelector(c).offsetTop, !!document.querySelector(c + ' .tuile-graph')]));
+  assert.equal(tuiles[0][0], tuiles[1][0], 'tuiles sur la même rangée');
+  assert.ok(tuiles.every(([, g]) => g), JSON.stringify(tuiles));
   assert.equal(await page.$('#cartes-stats-repas .carte-stats-cases'), null);
 
   // Poids : la carte ouvre le détail, 4 petits graphiques de composition, pas de bilan IA.
+  // (Dans la roulette, la carte doit d'abord venir au centre.)
+  await page.evaluate(() => centrerCarteRoulette('carte-stats-poids', false));
   await page.click('#carte-stats-poids');
   // Les graphiques se dessinent 120 ms après l'ouverture (écran visible).
   await page.waitForFunction(() => compoChartsInstances.length > 0);
@@ -722,6 +725,7 @@ test('cartes de stats : poids et nutrition sur Repas du jour, bandeaux cardio et
   assert.equal(await page.evaluate(() => ecranActif), 'repas');
 
   // Nutrition : la carte ouvre Progrès › Repas (le bilan IA de la période est dans le Résumé).
+  await page.evaluate(() => centrerCarteRoulette('carte-stats-nutrition', false));
   await page.click('#carte-stats-nutrition');
   r = await page.evaluate(() => ({ ecran: ecranActif, onglet: categorieStatsActive(), bilans: document.querySelectorAll('#ecran-stats .stats-bilan').length }));
   assert.deepEqual(r, { ecran: 'stats', onglet: 'nutrition', bilans: 1 });
@@ -1142,7 +1146,7 @@ test("Repas du jour allégé : idées dans « Recette », pas dans Activité, bi
   const r = await page.evaluate(() => ({
     idees: !!document.querySelector('#ecran-repas [onclick*="chercherRecettesMacros"]'),
     ideesDansRecette: !!document.querySelector('#feuille-choix-recette [onclick*="chercherRecettesMacros"]'),
-    pasDansActivite: getComputedStyle(document.getElementById('carte-pas-seances')).display !== 'none' || !document.querySelector('#ecran-repas .heros-puce-modif'),
+    pasDansActivite: getComputedStyle(document.getElementById('carte-pas-seances')).display !== 'none' || !document.querySelector('#ecran-repas #carte-stats-pas'),
     bilanDansNutrition: !!document.querySelector('#depense-modal #carte-bilan-jour'),
     bilanDansRepas: !!document.querySelector('#ecran-repas #carte-bilan-jour'),
     vides: document.querySelectorAll('#meals-container .meal-card--vide').length,
@@ -1354,6 +1358,54 @@ test("Coach du jour : suit l'eau bue, l'heure qui passe et le nouveau jour, sans
   await page.clock.setFixedTime(new Date('2026-10-28T11:30:00'));
   await page.evaluate(() => suivreHeureCoach());
   assert.match((await etat()).coach, /Rien de noté/);
+}));
+
+test('Repas du jour : « 62/1 821 kcal » et la roulette Pas / Nutrition / Poids', () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => {
+    const t = todayStr();
+    for (let k = 12; k >= 0; k--) { const d = shiftDate(t, -k), j = getDay(d); j.steps = 5000 + k * 250; j.weight = 80 + k * 0.1; j.meals[MEALS[0]].push({ name: 'Test', kcal: 1500, p: 100, c: 150, f: 50 }); saveData(d); }
+    allerA('repas'); renderApp();
+  });
+  // Ce qui reste en grand, puis « /objectif kcal » en petit, sur la même ligne.
+  await page.waitForFunction(() => document.getElementById('reste-kcals').firstChild.nodeValue === (computeTargets(getDay(todayStr()), todayStr()).target - 1500).toLocaleString('fr-FR'));
+  const ligne = await page.evaluate(() => {
+    const el = document.getElementById('reste-kcals'), em = el.querySelector('em'), cible = computeTargets(getDay(todayStr()), todayStr()).target;
+    const espaces = s => s.replace(/[  ]/g, ' '), nombre = document.createRange();
+    nombre.selectNodeContents(el.firstChild);
+    return { texte: espaces(el.textContent), attendu: espaces(`${(cible - 1500).toLocaleString('fr-FR')}/${cible.toLocaleString('fr-FR')} kcal`),
+      plusGros: parseFloat(getComputedStyle(el).fontSize) > 2 * parseFloat(getComputedStyle(em).fontSize),
+      memeLigne: Math.abs(nombre.getBoundingClientRect().bottom - em.getBoundingClientRect().bottom) < 8, anciennesTuiles: !!document.querySelector('.heros-puces') };
+  });
+  assert.equal(ligne.texte, ligne.attendu);
+  assert.deepEqual([ligne.plusGros, ligne.memeLigne, ligne.anciennesTuiles], [true, true, false]);
+  // La roulette : Pas, Nutrition, Poids sur une rangée qui défile, Nutrition au centre au départ, les voisines estompées.
+  const r = await page.evaluate(() => {
+    const c = document.getElementById('cartes-stats-repas'), cartes = [...c.querySelectorAll('.carte-stats')];
+    return { ordre: cartes.map(x => x.id), centre: c.querySelector('.carte-stats.actif').id, defile: c.scrollWidth > c.clientWidth,
+      rangees: new Set(cartes.map(x => x.offsetTop)).size, estompees: cartes.filter(x => !x.classList.contains('actif')).every(x => Number(x.style.opacity) < 0.8),
+      pas: document.querySelector('#carte-stats-pas .carte-stats-valeur b').textContent.replace(/ /g, ' '), barresPas: document.querySelectorAll('#carte-stats-pas .tuile-graph rect').length };
+  });
+  assert.deepEqual(r.ordre, ['carte-stats-pas', 'carte-stats-nutrition', 'carte-stats-poids']);
+  assert.equal(r.centre, 'carte-stats-nutrition');
+  assert.ok(r.defile && r.rangees === 1 && r.estompees, JSON.stringify(r));
+  assert.deepEqual([r.pas, r.barresPas], ['5 000', 13]);
+  // Toucher une carte de côté l'amène au centre sans l'ouvrir ; au centre, elle s'ouvre.
+  await page.evaluate(() => document.getElementById('carte-stats-poids').click());
+  await page.waitForFunction(() => carteAuCentre(document.getElementById('carte-stats-poids')) && document.getElementById('carte-stats-poids').classList.contains('actif'));
+  assert.equal(await page.evaluate(() => ecranActif), 'repas');
+  // La carte au centre le reste quand l'écran se redessine.
+  await page.evaluate(() => renderApp());
+  assert.equal(await page.evaluate(() => document.querySelector('#cartes-stats-repas .carte-stats.actif').id), 'carte-stats-poids');
+  await page.evaluate(() => document.getElementById('carte-stats-poids').click());
+  assert.equal(await page.evaluate(() => [ecranActif, categorieStatsActive()].join()), 'stats,poids');
+  await page.evaluate(() => allerA('repas'));
+  // Le crayon des pas agit même quand la carte est de côté.
+  await page.evaluate(() => document.querySelector('#carte-stats-pas .tuile-plus').click());
+  assert.equal(await page.evaluate(() => document.getElementById('feuille-saisie-rapide').classList.contains('show')), true);
+  await page.evaluate(() => fermerFeuilles());
+  // Glisser jusqu'au bout vers la gauche : la carte Pas se pose au centre.
+  await page.evaluate(() => { document.getElementById('cartes-stats-repas').scrollLeft = 0; });
+  await page.waitForFunction(() => document.querySelector('#cartes-stats-repas .carte-stats.actif').id === 'carte-stats-pas');
 }));
 
 test('anciens styles visuels retirés : un choix enregistré n\'est plus appliqué', () => avecAppli({}, async ({ page }) => {
@@ -1922,8 +1974,8 @@ test('repas : annuler une suppression, « Comme hier », favoris, pesée et pas 
     // Pesée rapide
     ouvrirSaisieRapide('poids'); document.getElementById('saisie-rapide-champ').value = 81.4; validerSaisieRapide();
     res.poids = [getDay(todayStr()).weight, userProfile.mesures[todayStr()].poids];
-    // Pas : la pastille du résumé ouvre la saisie
-    document.querySelector('.heros-puce-modif').click();
+    // Pas : le crayon de la carte « Pas du jour » ouvre la saisie
+    document.querySelector('#carte-stats-pas .tuile-plus').click();
     res.feuillePas = document.getElementById('feuille-saisie-rapide').classList.contains('show');
     document.getElementById('saisie-rapide-plus').click(); document.getElementById('saisie-rapide-plus').click(); validerSaisieRapide();
     res.pas = getDay(todayStr()).steps;
