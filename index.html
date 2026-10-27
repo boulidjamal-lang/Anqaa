@@ -2865,7 +2865,16 @@
     .pave-champ { display: grid; justify-items: center; gap: 6px; }
     .pave-champ > small { font-size: .62rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
     .pave-ctrl { position: relative; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; width: 100%; gap: 4px; }
-    .pave-ctrl b { font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.75rem; font-weight: 800; letter-spacing: -.04em; text-align: center; font-variant-numeric: tabular-nums; line-height: 1; }
+    .pave-ctrl .pave-val { width: 100%; min-width: 0; margin: 0; padding: 4px 0; border: 0; border-radius: 12px; background: none; color: var(--text); -webkit-appearance: none; appearance: none;
+      font-family: 'Manrope', 'Inter', sans-serif; font-size: 1.75rem; font-weight: 800; letter-spacing: -.04em; text-align: center; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .pave-ctrl .pave-val:focus { outline: none; background: var(--s2); box-shadow: 0 0 0 2px var(--text); }
+    /* En-tête du pavé : numéro de la série (type, RIR), perf précédente ; glisser pour supprimer. */
+    .serie-pave > .pave-tete { grid-column: 1 / -1; margin: -4px -4px 2px; }
+    .serie-ligne.serie-ligne--pave { display: flex; align-items: center; gap: 10px; padding: 4px; text-align: left; }
+    .serie-ligne--pave .pave-titre { flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 4px; padding: 6px 2px; border: 0; background: none; color: var(--text);
+      font: inherit; font-weight: 800; font-size: .92rem; text-align: left; cursor: pointer; }
+    .serie-ligne--pave .pave-titre .icone-ui { width: 16px; height: 16px; color: var(--text-muted); flex: none; }
+    .serie-ligne--pave .pave-prec { flex: none; width: auto; padding: 6px 10px; }
     .pave-unite { position: absolute; left: 0; right: 0; bottom: -14px; text-align: center; font-size: .62rem; font-weight: 700; color: var(--text-muted); pointer-events: none; }
     .pave-btn { width: 44px; height: 44px; border: 0; border-radius: 15px; display: grid; place-items: center; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none;
       font-family: inherit; font-weight: 600; font-size: 1.5rem; line-height: 1; color: var(--text); background: var(--carte-plein); box-shadow: 0 6px 14px -8px rgba(0,0,0,.4), inset 0 0 0 1px var(--trait); transition: transform .08s; }
@@ -25060,9 +25069,11 @@ function renderSessionExerciceBlocHTML(exo, ei) {
         <button type="button" onclick="arreterRepos(${ei},${si})" aria-label="Arrêter le minuteur de repos"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
       </div>`;
     })() : '';
+    const suite = (set.fait && set.record ? `<div class="serie-record">${svgV('trophee', 2)} Nouveau record · ${nombreFr(Math.round(unRmEstime(Number(set.poids), Number(set.reps))))} kg estimés sur 1 répétition</div>` : '') + bandeRirHTML(ei, si, set) + barreRepos + blocPaliersHTML(ei, si, set);
+    if (si === siCourant && !exo.replie) return paveSerieHTML(exo, ei, si, set, ref, exerciceComplet) + suite;
     return `
     <div class="serie-ligne-fenetre">
-      <button type="button" class="serie-ligne-suppr" onclick="retirerSerieSession(${ei},${si})" aria-label="Supprimer cette série"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg> Supprimer</button>
+      ${boutonSupprSerieHTML(ei, si)}
       <div class="serie-ligne serie-ligne--5col">
         ${boutonNumeroSerie(si, set.technique, `ouvrirMenuTechniqueSession(this,${ei},${si})`, set.rir, `ouvrirRirSerie(${ei},${si})`)}
         ${celluleFrec}
@@ -25070,7 +25081,7 @@ function renderSessionExerciceBlocHTML(exo, ei) {
         <input type="number" inputmode="numeric" step="1" id="serie-reps-${ei}_${si}" aria-label="Répétitions, série ${si + 1}" value="${escapeHtml(set.reps ?? '')}" placeholder="${exo.plage && set.technique !== 'echauffement' ? escapeHtml(textePlage(exo.plage)) : '—'}" onchange="modifierSerieSession(${ei},${si},'reps',this.value)">
         <button type="button" class="serie-check ${set.fait ? 'faite' : ''}" data-serie="${ei}_${si}" onclick="basculerSerieSession(${ei},${si})" aria-label="Marquer la série comme faite"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg></button>
       </div>
-    </div>${si === siCourant && !exo.replie ? paveSerieHTML(exo, ei, si, set, ref, exerciceComplet) : ''}${set.fait && set.record ? `<div class="serie-record">${svgV('trophee', 2)} Nouveau record · ${nombreFr(Math.round(unRmEstime(Number(set.poids), Number(set.reps))))} kg estimés sur 1 répétition</div>` : ''}${bandeRirHTML(ei, si, set)}${barreRepos}${blocPaliersHTML(ei, si, set)}`;
+    </div>${suite}`;
   }).join('');
   const nomExo = escapeHtml(exerciceComplet ? libelleExercice(exerciceComplet) : exo.nom);
   if (exo.replie) {
@@ -25272,7 +25283,7 @@ function choisirOptionProgramme(action) {
 // Même geste pour une ligne de série glissée-ouverte (voir plus bas).
 document.addEventListener('click', (e) => {
   const menu = document.getElementById('menu-technique-popup');
-  if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && !e.target.closest('.serie-num-btn')) {
+  if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && !e.target.closest('.serie-num-btn, .pave-titre')) {
     fermerMenuTechnique();
   }
   const menuProg = document.getElementById('menu-programme-popup');
@@ -25493,6 +25504,12 @@ function valeurDepartSerie(ei, si, champ) {
   return 0;
 }
 function textePave(champ, v) { return champ === 'poids' ? nombreFr(v, 2) : String(v); }
+function boutonSupprSerieHTML(ei, si) {
+  return `<button type="button" class="serie-ligne-suppr" onclick="retirerSerieSession(${ei},${si})" aria-label="Supprimer cette série"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg> Supprimer</button>`;
+}
+/* Le pavé remplace la ligne de la série à faire : son en-tête porte le
+   numéro (type de série, RIR), la perf précédente à reprendre, et se glisse
+   pour supprimer la série ; les chiffres se touchent pour taper une valeur. */
 function paveSerieHTML(exo, ei, si, set, ref, complet) {
   const pas = incrementCharge(complet ? complet.materiel : 'autre') || 1;
   const poids = valeurDepartSerie(ei, si, 'poids'), reps = valeurDepartSerie(ei, si, 'reps');
@@ -25500,15 +25517,32 @@ function paveSerieHTML(exo, ei, si, set, ref, complet) {
       <small>${libelle}</small>
       <div class="pave-ctrl">
         <button type="button" class="pave-btn" aria-label="${libelle} moins ${textePave(champ, delta)}" onpointerdown="appuiPave(event,${ei},${si},'${champ}',-${delta})" onclick="if(!event.detail)ajusterSerieSession(${ei},${si},'${champ}',-${delta})">−</button>
-        <b id="pave-${champ}-${ei}_${si}">${textePave(champ, valeur)}</b><span class="pave-unite">${unite}</span>
+        <input type="text" class="pave-val" id="pave-${champ}-${ei}_${si}" inputmode="${champ === 'poids' ? 'decimal' : 'numeric'}" enterkeyhint="done" autocomplete="off" aria-label="${libelle}, série ${si + 1}" value="${textePave(champ, valeur)}" onfocus="this.select()" onchange="saisirPaveSerie(${ei},${si},'${champ}',this.value)"><span class="pave-unite">${unite}</span>
         <button type="button" class="pave-btn" aria-label="${libelle} plus ${textePave(champ, delta)}" onpointerdown="appuiPave(event,${ei},${si},'${champ}',${delta})" onclick="if(!event.detail)ajusterSerieSession(${ei},${si},'${champ}',${delta})">+</button>
       </div></div>`;
+  const type = set.technique && TECHNIQUE_LABELS[set.technique] ? TECHNIQUE_LABELS[set.technique] : 'série normale';
+  const prec = ref && (ref.poids != null || ref.reps != null)
+    ? `<button type="button" class="serie-prec pave-prec" onclick="reprendrePrecedenteSession(${ei},${si})" title="Reprendre ces valeurs">Préc. ${ref.poids ?? '—'}<small>kg</small>×${ref.reps ?? '—'}</button>` : '';
   return `<div class="serie-pave" id="pave-${ei}_${si}">
+    <div class="serie-ligne-fenetre pave-tete">
+      ${boutonSupprSerieHTML(ei, si)}
+      <div class="serie-ligne serie-ligne--pave">
+        <button type="button" class="pave-titre" onclick="ouvrirMenuTechniqueSession(this,${ei},${si})" aria-label="Série ${si + 1}, ${escapeHtml(type)} : appuyer pour changer le type">Série ${si + 1}${set.technique && TECHNIQUE_LABELS[set.technique] ? ' · ' + escapeHtml(TECHNIQUE_LABELS[set.technique]) : ''}<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></button>${prec}
+      </div>
+    </div>
     ${ctrl('poids', 'Charge', poids, 'kg', pas)}
     ${ctrl('reps', 'Répétitions', reps, set.technique !== 'echauffement' && exo.plage ? escapeHtml(textePlage(exo.plage)) : 'reps', 1)}
     ${complet && complet.materiel === 'barre' ? `<div class="pave-disques" id="pave-disques-${ei}_${si}">${texteDisques(poids)}</div>` : ''}
     <button type="button" class="pave-valider" onclick="validerPaveSerie(${ei},${si})"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg> Valider la série ${si + 1}</button>
   </div>`;
+}
+/* Valeur tapée dans le pavé : virgule ou point ; vide, on revient à la
+   valeur de départ (série d'avant, dernière séance). */
+function saisirPaveSerie(ei, si, champ, texte) {
+  const v = Number(String(texte).trim().replace(',', '.'));
+  modifierSerieSession(ei, si, champ, String(texte).trim() === '' || !Number.isFinite(v) ? '' : String(Math.max(0, v)));
+  const el = document.getElementById(`pave-${champ}-${ei}_${si}`);
+  if (el) el.value = textePave(champ, valeurDepartSerie(ei, si, champ));
 }
 function ajusterSerieSession(ei, si, champ, delta) {
   const set = musculationSessionActive && musculationSessionActive.exercices[ei] && musculationSessionActive.exercices[ei].series[si];
@@ -25524,7 +25558,7 @@ function ajusterSerieSession(ei, si, champ, delta) {
 function majPaveSerie(ei, si) {
   ['poids', 'reps'].forEach(champ => {
     const el = document.getElementById(`pave-${champ}-${ei}_${si}`);
-    if (el) el.textContent = textePave(champ, valeurDepartSerie(ei, si, champ));
+    if (el && document.activeElement !== el) el.value = textePave(champ, valeurDepartSerie(ei, si, champ));
   });
   const d = document.getElementById(`pave-disques-${ei}_${si}`);
   if (d) d.innerHTML = texteDisques(valeurDepartSerie(ei, si, 'poids'));

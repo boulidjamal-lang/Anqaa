@@ -1605,19 +1605,33 @@ test('séance : pavé de saisie à la salle (− / +, pas selon le matériel, va
     musculationHistorique.push({ id: 'h1', date: shiftDate(todayStr(), -2), exercices: [{ exerciceId: exo.id, nom: exo.nom, series: [{ poids: 60, reps: 8, fait: true }, { poids: 60, reps: 8, fait: true }] }] });
     allerA('seance'); demarrerSeanceLibre(); ajouterExerciceASession(exo.id);
     const s = musculationSessionActive.exercices[0].series; s.forEach(x => { x.poids = null; x.reps = null; }); renderSessionModal();
-    return { paves: document.querySelectorAll('.serie-pave').length, poids: document.getElementById('pave-poids-0_0').textContent, reps: document.getElementById('pave-reps-0_0').textContent };
+    return { paves: document.querySelectorAll('.serie-pave').length, poids: document.getElementById('pave-poids-0_0').value, reps: document.getElementById('pave-reps-0_0').value,
+      ligne: !!document.getElementById('serie-poids-0_0'), titre: document.querySelector('#pave-0_0 .pave-titre').textContent,
+      prec: document.querySelector('#pave-0_0 .pave-prec').textContent, numero: !!document.querySelector('#pave-0_0 .serie-num-btn'), typeBouton: document.querySelector('#pave-0_0 .pave-titre').tagName };
   });
-  // Pré-rempli avec la dernière perf, un seul pavé (la série à faire).
-  assert.deepEqual(r0, { paves: 1, poids: '60', reps: '8' });
-  const plus = '#pave-0_0 .pave-champ:nth-child(1) .pave-btn:last-of-type';
+  // Pré-rempli avec la dernière perf, un seul pavé (la série à faire), qui
+  // remplace sa ligne : numéro, perf précédente et validation sont dedans.
+  assert.deepEqual(r0, { paves: 1, poids: '60', reps: '8', ligne: false, titre: 'Série 1', prec: 'Préc. 60kg×8', numero: false, typeBouton: 'BUTTON' });
+  const plus = '#pave-0_0 .pave-champ:has(#pave-poids-0_0) .pave-btn:last-of-type';
   await page.click(plus); await page.click(plus);
-  await page.click('#pave-0_0 .pave-champ:nth-child(2) .pave-btn:first-of-type');
-  let r = await page.evaluate(() => ({ poids: document.getElementById('pave-poids-0_0').textContent, champ: document.getElementById('serie-poids-0_0').value, reps: document.getElementById('pave-reps-0_0').textContent }));
-  assert.deepEqual(r, { poids: '65', champ: '65', reps: '7' }); // barre : 2,5 kg par pas
+  await page.click('#pave-0_0 .pave-champ:has(#pave-reps-0_0) .pave-btn:first-of-type');
+  let r = await page.evaluate(() => ({ poids: document.getElementById('pave-poids-0_0').value, valeur: musculationSessionActive.exercices[0].series[0].poids, reps: document.getElementById('pave-reps-0_0').value }));
+  assert.deepEqual(r, { poids: '65', valeur: 65, reps: '7' }); // barre : 2,5 kg par pas
   await page.click('#pave-0_0 .pave-valider');
-  r = await page.evaluate(() => ({ fait: musculationSessionActive.exercices[0].series[0].fait, valeurs: [musculationSessionActive.exercices[0].series[0].poids, musculationSessionActive.exercices[0].series[0].reps], pave: !!document.getElementById('pave-0_1'), suivant: document.getElementById('pave-poids-0_1').textContent }));
-  // Validée ; le pavé passe à la série suivante, qui reprend la charge.
-  assert.deepEqual(r, { fait: true, valeurs: [65, 7], pave: true, suivant: '65' });
+  r = await page.evaluate(() => ({ fait: musculationSessionActive.exercices[0].series[0].fait, valeurs: [musculationSessionActive.exercices[0].series[0].poids, musculationSessionActive.exercices[0].series[0].reps], pave: !!document.getElementById('pave-0_1'), suivant: document.getElementById('pave-poids-0_1').value, ligne: !!document.getElementById('serie-poids-0_0') }));
+  // Validée ; le pavé passe à la série suivante, qui reprend la charge ; la série faite redevient une ligne.
+  assert.deepEqual(r, { fait: true, valeurs: [65, 7], pave: true, suivant: '65', ligne: true });
+  // Toucher le chiffre pour taper une valeur (virgule acceptée).
+  await page.fill('#pave-poids-0_1', '72,5');
+  await page.press('#pave-poids-0_1', 'Enter');
+  await page.locator('#pave-poids-0_1').evaluate(el => el.blur());
+  r = await page.evaluate(() => ({ valeur: musculationSessionActive.exercices[0].series[1].poids, affiche: document.getElementById('pave-poids-0_1').value }));
+  assert.deepEqual(r, { valeur: 72.5, affiche: '72,5' });
+  // « Série 2 ▾ » ouvre le type de série.
+  await page.click('#pave-0_1 .pave-titre');
+  await page.click('#menu-technique-popup button[onclick="choisirTechniqueMenu(\'degressif\')"]');
+  r = await page.evaluate(() => ({ technique: musculationSessionActive.exercices[0].series[1].technique, titre: document.querySelector('#pave-0_1 .pave-titre').textContent }));
+  assert.deepEqual(r, { technique: 'degressif', titre: 'Série 2 · Dégressif' });
 }));
 
 test('séance du jour : le programme suivant dans l\'ordre de la liste', () => avecAppli({}, async ({ page }) => {
