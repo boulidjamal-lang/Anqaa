@@ -2418,7 +2418,8 @@
     #ecran-repas .reste-kcal { margin: 2px 0 0 !important; font-size: 1.75rem !important; font-weight: 800; letter-spacing: -0.04em; line-height: 1.05; color: var(--text); text-align: left !important; }
     .reste-kcal em { font-style: normal; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-left: 4px; letter-spacing: 0; }
     .reste-kcal.depasse { color: var(--danger) !important; }
-    #ecran-repas .heros-droite .macros-bar { display: grid !important; gap: 4px !important; margin-top: 10px; padding: 0 !important; background: none !important; box-shadow: none !important; }
+    /* stretch : les lignes prennent toute la colonne (le space-around hérité les centrait, décalées de « Il te reste »). */
+    #ecran-repas .heros-droite .macros-bar { display: grid !important; justify-content: stretch; gap: 4px !important; margin-top: 10px; padding: 0 !important; background: none !important; box-shadow: none !important; }
     #ecran-repas .heros-droite .macro-item { display: flex; flex-direction: row; align-items: center; gap: 8px; padding: 4px 6px !important; margin: 0 -6px; border: 0 !important; border-radius: 10px; text-align: left; }
     .macro-point { width: 9px; height: 9px; border-radius: 3px; flex: none; box-shadow: 0 0 8px currentColor; }
     #ecran-repas .heros-droite .macro-lbl { margin: 0; font-size: 0.78rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--text); }
@@ -4021,17 +4022,21 @@
     #grad-eau stop:first-child { stop-color: color-mix(in srgb, var(--eau) 70%, #fff); }
     #grad-eau stop:last-child { stop-color: var(--eau); }
 
-    /* ---------- Résumé du jour : une carte comme les autres ---------- */
-    html:root body #ecran-repas .summary-card { margin: 0 0 12px !important; padding: 18px 16px 16px !important; border-radius: 24px !important; }
+    /* ---------- Résumé du jour : sans fond, posé sur la page comme l'en-tête,
+       et aligné sur le bord des cartes du dessous ---------- */
+    html:root body #ecran-repas .summary-card { margin: 0 0 12px !important; padding: 6px 0 0 !important; border-radius: 24px !important; }
     html:root body .anneaux .anneau-val { filter: none !important; }
     html:root body .anneaux .anneau-piste { stroke: var(--s2) !important; }
+    /* Sur le fond clair de la page, la piste habituelle ne se voyait plus. */
+    html:root[data-theme="light"] body #ecran-repas .anneau-piste { stroke: var(--s3) !important; }
     html:root body #ecran-repas .anneaux-centre h1 { font-weight: 700 !important; letter-spacing: -.03em !important; }
     html:root body #ecran-repas .reste-kcal { background: none !important; -webkit-text-fill-color: var(--text) !important; color: var(--text) !important; font-weight: 700 !important; letter-spacing: -.04em !important; }
     html:root body #ecran-repas .reste-kcal em { -webkit-text-fill-color: var(--text-muted) !important; }
     html:root body #ecran-repas .reste-kcal.depasse { -webkit-text-fill-color: var(--alerte) !important; }
     html:root body #ecran-repas .heros-droite .macro-item { white-space: nowrap; }
     html:root body #ecran-repas .heros-puces { border-top: 0 !important; }
-    html:root body #ecran-repas .heros-puces div { background: var(--s2) !important; box-shadow: none !important; border-radius: 14px !important; }
+    /* Sans carte autour, les tuiles Objectif et Pas deviennent de petites cartes. */
+    html:root body #ecran-repas .heros-puces div { background: var(--s1) !important; box-shadow: var(--ombre-carte) !important; border-radius: 18px !important; padding: 10px 16px !important; }
     html:root body #ecran-repas .heros-puces b { color: var(--text) !important; font-weight: 700 !important; }
 
     /* Coach du jour */
@@ -4119,8 +4124,8 @@
     html:root body .moi-entete[data-sync="ok"] .moi-halo { --halo: var(--ok); }
     html:root body .puce-sync[data-etat="ok"] { color: var(--ok-t); }
 
-    /* Résumé du jour : il faut l'identifiant pour passer devant l'ancien héros. */
-    html:root[data-theme] body #ecran-repas .summary-card { background: var(--s1) !important; box-shadow: var(--ombre-carte) !important; }
+    /* Résumé du jour sans fond : il faut l'identifiant pour passer devant l'ancien héros. */
+    html:root[data-theme] body #ecran-repas .summary-card { background: none !important; box-shadow: none !important; }
 
     /* Séance en cours : en-tête en carte unie, texte dans la couleur du thème. */
     html:root body :is(.seance-heros, #titre-session-modal, .sh-corps) { color: var(--text) !important; }
