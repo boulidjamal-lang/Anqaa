@@ -1418,6 +1418,46 @@ test('Repas du jour : « 62/1 821 kcal » et la roulette Pas / Hydratation / Poi
   await page.waitForFunction(() => document.querySelector('#cartes-stats-repas > .actif').id === 'carte-stats-pas');
 }));
 
+test('Repas du jour : un repas se replie et se déplie par son en-tête, et le reste', () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => {
+    const j = getDay(todayStr());
+    j.meals[MEALS[0]].push({ name: 'Pain', grams: 80, kcal: 200, p: 7, c: 40, f: 2 }, { name: 'Beurre', grams: 10, kcal: 74, p: 0, c: 0, f: 8 });
+    j.meals[MEALS[1]].push({ name: 'Riz', grams: 200, kcal: 260, p: 5, c: 56, f: 1 });
+    saveData(todayStr()); allerA('repas'); renderApp();
+  });
+  const carte = id => `#meals-container .meal-card[data-repas="${id}"]`;
+  const etat = id => page.evaluate(sel => {
+    const c = document.querySelector(sel), l = c.querySelector('.food-list');
+    return { replie: c.classList.contains('replie'), aria: c.querySelector('.repas-bascule').getAttribute('aria-expanded'),
+      hauteur: Math.round(l.getBoundingClientRect().height), visible: getComputedStyle(l).visibility, kcal: c.querySelector('.meal-kcals').textContent.trim() };
+  }, carte(id));
+  // Déplié au départ ; toucher l'en-tête le replie : la liste disparaît, le total reste.
+  let e = await etat('breakfast');
+  assert.deepEqual([e.replie, e.aria, e.visible], [false, 'true', 'visible']);
+  assert.ok(e.hauteur > 40, String(e.hauteur));
+  await page.click(carte('breakfast') + ' .repas-bascule');
+  await page.waitForFunction(sel => getComputedStyle(document.querySelector(sel + ' .food-list')).visibility === 'hidden', carte('breakfast'));
+  e = await etat('breakfast');
+  assert.deepEqual([e.replie, e.aria, e.hauteur, e.visible, e.kcal.replace(/\s+/g, ' ')], [true, 'false', 0, 'hidden', '274 kcal']);
+  // Les autres repas ne bougent pas ; le + ajoute sans replier ni déplier.
+  assert.equal((await etat('lunch')).replie, false);
+  await page.click(carte('breakfast') + ' .repas-ajouter');
+  assert.equal(await page.evaluate(() => document.getElementById('feuille-repas').classList.contains('show')), true);
+  await page.evaluate(() => fermerFeuilles());
+  assert.equal((await etat('breakfast')).replie, true);
+  // Gardé quand l'écran se redessine et à la réouverture de l'appli.
+  await page.evaluate(() => renderApp());
+  assert.equal((await etat('breakfast')).replie, true);
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForFunction(() => typeof allerA === 'function' && document.querySelector('#meals-container .meal-card[data-repas]'));
+  assert.equal((await etat('breakfast')).aria, 'false');
+  // Au clavier : Entrée sur l'en-tête le déplie.
+  await page.focus(carte('breakfast') + ' .repas-bascule');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(sel => getComputedStyle(document.querySelector(sel + ' .food-list')).visibility === 'visible', carte('breakfast'));
+  assert.equal((await etat('breakfast')).aria, 'true');
+}));
+
 test('anciens styles visuels retirés : un choix enregistré n\'est plus appliqué', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => { localStorage.setItem('anqaa_style', 'systeme'); });
   await page.reload({ waitUntil: 'domcontentloaded' });

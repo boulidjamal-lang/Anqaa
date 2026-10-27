@@ -2544,6 +2544,18 @@
       background: var(--piste); color: var(--text); font-family: inherit; font-weight: 600; font-size: 1.2rem; line-height: 1; }
     .repas-equilibre { display: flex; gap: 2px; height: 5px; margin: 12px 0 2px; border-radius: 99px; overflow: hidden; }
     .repas-equilibre i { display: block; border-radius: 99px; }
+    /* Repas repliable (basculerRepas) : l'en-tête est un bouton ; la liste se
+       replie en douceur (grille 1fr → 0fr), puis sort du parcours au clavier. */
+    .repas-bascule { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; margin: 0; padding: 0; border: 0; background: none;
+      color: inherit; font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .repas-bascule:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 14px; }
+    .repas-chevron { width: 13px !important; height: 13px !important; margin-left: 3px; vertical-align: -2px; transition: transform .25s ease; }
+    .meal-card.replie .repas-chevron { transform: rotate(-90deg); }
+    .repas-depliant { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .3s cubic-bezier(.3,.7,.3,1); }
+    .repas-depliant > .food-list { min-height: 0; overflow: hidden; }
+    .meal-card.replie .repas-depliant { grid-template-rows: 0fr; }
+    .meal-card.replie .repas-depliant > .food-list { visibility: hidden; transition: visibility 0s .3s; }
+    @media (prefers-reduced-motion: reduce) { .repas-depliant, .repas-chevron { transition: none; } }
     #ecran-repas .food-item { padding: 10px 0 0 !important; margin-top: 10px; border-top: 1px solid var(--trait) !important; border-bottom: 0 !important; }
     .food-initiale { width: 30px; height: 30px; flex: none; border-radius: 10px; display: grid; place-items: center; font-weight: 800; font-size: 0.78rem; background: var(--piste); color: var(--text-muted); }
     #ecran-repas .food-item-ligne { gap: 10px; }
@@ -8247,6 +8259,23 @@ function basculerIngredientsAliment(mealId, i) {
   ingredientsAlimentOuvert[clef] = !ingredientsAlimentOuvert[clef];
   renderMeals(getDay(currentDate));
 }
+/* Repas repliés : l'en-tête d'un repas (icône, nom, total) replie ou déplie
+   sa liste d'aliments. Le choix est gardé pour chaque repas sur cet appareil,
+   d'un jour à l'autre. La carte change de classe sans être redessinée, pour
+   que la liste se replie en douceur. */
+const REPAS_REPLIES_LS = 'mc_repas_replies';
+var repasReplies = new Set(); // var : renderMeals peut être appelée avant cette ligne au démarrage
+try { repasReplies = new Set(JSON.parse(localStorage.getItem(REPAS_REPLIES_LS) || '[]')); } catch (e) {}
+function basculerRepas(mealId) {
+  const replie = !repasReplies.has(mealId);
+  if (replie) repasReplies.add(mealId); else repasReplies.delete(mealId);
+  try { localStorage.setItem(REPAS_REPLIES_LS, JSON.stringify([...repasReplies])); } catch (e) {}
+  const carte = document.querySelector(`#meals-container .meal-card[data-repas="${mealId}"]`);
+  if (!carte) return;
+  carte.classList.toggle('replie', replie);
+  const bouton = carte.querySelector('.repas-bascule');
+  if (bouton) bouton.setAttribute('aria-expanded', String(!replie));
+}
 function renderMeals(day) {
   const container = document.getElementById('meals-container');
   container.innerHTML = MEALS.map(mealId => {
@@ -8307,16 +8336,19 @@ function renderMeals(day) {
     // Équilibre du repas (part des calories venant de chaque macro).
     const tot = items.reduce((a, it) => ({ p: a.p + (Number(it.p) || 0) * 4, c: a.c + (Number(it.c) || 0) * 4, f: a.f + (Number(it.f) || 0) * 9 }), { p: 0, c: 0, f: 0 });
     const somme = tot.p + tot.c + tot.f || 1;
+    const replie = repasReplies.has(mealId);
     return `
-      <div class="meal-card" data-repas="${mealId}">
+      <div class="meal-card${replie ? ' replie' : ''}" data-repas="${mealId}">
         <div class="meal-header">
-          <span class="repas-icone repas-icone--${mealId}" aria-hidden="true">${MEAL_ICONS[mealId]}</span>
-          <span class="meal-title">${MEAL_LABELS[mealId]}<small>${items.length} aliment${items.length > 1 ? 's' : ''}</small></span>
-          <span class="meal-kcals">${totalMeal} <small>kcal</small></span>
+          <button type="button" class="repas-bascule" aria-expanded="${!replie}" aria-controls="aliments-${mealId}" onclick="basculerRepas(${argJs(mealId)})">
+            <span class="repas-icone repas-icone--${mealId}" aria-hidden="true">${MEAL_ICONS[mealId]}</span>
+            <span class="meal-title">${MEAL_LABELS[mealId]}<small>${items.length} aliment${items.length > 1 ? 's' : ''}<svg class="icone-ui repas-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></small></span>
+            <span class="meal-kcals">${totalMeal} <small>kcal</small></span>
+          </button>
           <button type="button" class="repas-ajouter" ${ajouter} aria-label="Ajouter à ${escapeHtml(MEAL_LABELS[mealId])}">+</button>
         </div>
         <div class="repas-equilibre" aria-hidden="true"><i style="flex:${tot.p / somme};background:var(--protein)"></i><i style="flex:${tot.c / somme};background:var(--carbs)"></i><i style="flex:${tot.f / somme};background:var(--fat)"></i></div>
-        <ul class="food-list">${rows}</ul>
+        <div class="repas-depliant"><ul class="food-list" id="aliments-${mealId}">${rows}</ul></div>
       </div>`;
   }).join('');
 }
