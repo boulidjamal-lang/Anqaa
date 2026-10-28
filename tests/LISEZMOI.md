@@ -9,9 +9,16 @@ Le réseau est coupé pendant les tests (Supabase, IA, polices) : l'appli doit
 fonctionner sans. Chart.js est servi depuis `node_modules`, dans la même
 version que celle de `index.html` (un test vérifie qu'elles correspondent).
 
-`tests/fonctions.test.js` teste à part les deux fonctions serveur du Pro
-(`supabase/functions/ia` et `stripe-webhook`) : elles tournent sous Node avec
-de faux Supabase, Stripe et Gemini (`tests/fonctions/`), sans rien déployer.
+`tests/fonctions.test.js` teste à part les fonctions serveur du Pro
+(`supabase/functions/ia`, `stripe-webhook` et `achats-apple`) : elles tournent
+sous Node avec de faux Supabase, Stripe, Gemini et App Store
+(`tests/fonctions/`), sans rien déployer.
+
+L'app iOS (dépôt Anqa, `ios-app/`) embarque cette même appli. Les tests
+« app iOS » l'ouvrent avec un faux iPhone (`ouvrirAppli(navigateur, { natif:
+true })` dans `tests/outils.js`) : chaque appel aux modules de l'iPhone
+(vibrations, notifications, Santé, achats…) y est noté, et un test vérifie
+que sur le web rien ne change.
 
 ## Lancer
 

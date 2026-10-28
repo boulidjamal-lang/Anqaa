@@ -2923,3 +2923,204 @@ test('Pro : l\'administrateur offre le Pro à un compte, puis le retire', () => 
   assert.deepEqual(r.res, [['Gratuit', ['Offrir Pro']], ['Pro offert', ['Retirer']], ['Gratuit', ['Offrir Pro']]]);
   assert.deepEqual(r.rpc, [['admin_offrir_pro', { p_utilisateur: 'u2', p_offert: true }], ['admin_offrir_pro', { p_utilisateur: 'u2', p_offert: false }]]);
 }));
+
+/* ---------- App iOS : un faux iPhone (window.AppNatif imité, voir outils.js)
+   note chaque appel aux modules natifs ; sur le web, rien ne doit changer. ---------- */
+const appelsNatifs = page => page.evaluate(() => window.__appelsNatifs.map(([m, f, o]) => ({ m, f, o })));
+const appelsDe = async (page, module, methode) => (await appelsNatifs(page)).filter(a => a.m === module && (!methode || a.f === methode));
+
+test('app iOS : sur le web, rien ne change (aucun module natif, caméra du navigateur, ni Apple Santé)', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const vibrations = [];
+    navigator.vibrate = m => { vibrations.push(m); return true; };
+    vibrer('alerte'); vibrer('selection');
+    const ligne = id => getComputedStyle(document.getElementById(id).closest('.ligne-reglage')).display;
+    return { natif: NATIF, classe: document.documentElement.classList.contains('app-ios'), installee: estAppInstallee(), vibrations,
+      retour: urlRetourEmail() === location.origin + location.pathname, lecteur: getComputedStyle(document.getElementById('reader')).display,
+      sante: ligne('sante-inactive'), withings: ligne('withings-deconnecte-reglages') };
+  });
+  assert.deepEqual(r, { natif: null, classe: false, installee: false, vibrations: [[120, 80, 120], 4], retour: true, lecteur: 'block', sante: 'none', withings: 'flex' });
+}));
+
+test('app iOS : démarrage, barre d\'état, liens externes et partage passent par les modules de l\'iPhone', () => avecAppli({ natif: true }, async ({ page }) => {
+  const depart = await appelsNatifs(page);
+  assert.ok(depart.some(a => a.m === 'ScreenOrientation' && a.f === 'lock' && a.o.orientation === 'portrait'), 'portrait au démarrage');
+  assert.ok(depart.some(a => a.m === 'SplashScreen' && a.f === 'hide'), "l'écran de lancement d'iOS laisse la place");
+  await page.evaluate(() => { window.__appelsNatifs.length = 0; choisirTheme('dark'); choisirTheme('light'); });
+  assert.deepEqual((await appelsDe(page, 'StatusBar', 'setStyle')).map(a => a.o.style), ['DARK', 'LIGHT']);
+  const r = await page.evaluate(async () => {
+    window.__appelsNatifs.length = 0;
+    window.__reponsesNatives['Filesystem.writeFile'] = o => ({ uri: 'file:///cache/' + o.path });
+    const a = document.createElement('a');
+    a.href = 'confidentialite.html'; a.target = '_blank'; a.textContent = 'Confidentialité';
+    document.body.appendChild(a); a.click(); a.remove();
+    const fenetre = window.open('https://world.openfoodfacts.org/', '_blank');
+    partageBlob = new Blob(['png'], { type: 'image/png' });
+    await partagerImageStats();
+    return { fenetre: !!fenetre, installee: estAppInstallee(), retour: urlRetourEmail(), classe: document.documentElement.classList.contains('app-ios') };
+  });
+  assert.deepEqual(r, { fenetre: true, installee: true, retour: 'https://boulidjamal-lang.github.io/mon-coach/', classe: true });
+  const liste = await appelsNatifs(page);
+  assert.deepEqual(liste.filter(a => a.m === 'Browser').map(a => a.o.url),
+    ['https://boulidjamal-lang.github.io/mon-coach/confidentialite.html', 'https://world.openfoodfacts.org/']);
+  const ecrit = liste.find(a => a.m === 'Filesystem' && a.f === 'writeFile');
+  assert.deepEqual([ecrit.o.path, ecrit.o.directory, ecrit.o.data], ['bilan-askesis.png', 'CACHE', Buffer.from('png').toString('base64')]);
+  assert.deepEqual(liste.find(a => a.m === 'Share').o.files, ['file:///cache/bilan-askesis.png']);
+}));
+
+test('app iOS : en séance, écran gardé allumé, retour tactile, et rappel de fin de repos programmé puis annulé', () => avecAppli({ natif: true }, async ({ page }) => {
+  const debut = await page.evaluate(() => {
+    window.__reponsesNatives['LocalNotifications.checkPermissions'] = { display: 'prompt' };
+    window.__reponsesNatives['LocalNotifications.requestPermissions'] = { display: 'granted' };
+    allerA('seance'); choisirModeSeance('muscu');
+    demarrerSeanceLibre();
+    ajouterExerciceASession(toutesLesExercices().find(e => e.groupe === 'pectoraux').id);
+    document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+    modifierSerieSession(0, 0, 'poids', '60');
+    modifierSerieSession(0, 0, 'reps', '10');
+    const t0 = Date.now();
+    basculerSerieSession(0, 0);
+    return { t0, repos: reposCibleExo(0), nom: libelleExercice(trouverExercice(musculationSessionActive.exercices[0].exerciceId)) };
+  });
+  await page.waitForFunction(() => window.__appelsNatifs.some(a => a[0] === 'LocalNotifications' && a[1] === 'schedule'));
+  assert.equal((await appelsDe(page, 'KeepAwake', 'keepAwake')).length, 1);
+  assert.ok((await appelsDe(page, 'Haptics', 'impact')).some(a => a.o.style === 'MEDIUM'), 'un petit choc quand la série est cochée');
+  assert.deepEqual((await appelsDe(page, 'LocalNotifications')).map(a => a.f).filter(f => f !== 'cancel'), ['checkPermissions', 'requestPermissions', 'schedule']);
+  const n = (await appelsDe(page, 'LocalNotifications', 'schedule'))[0].o.notifications[0];
+  assert.equal(n.id, 41000);
+  assert.equal(n.title, 'Repos terminé');
+  assert.equal(n.sound, 'fin-repos.wav');
+  assert.ok(n.body.startsWith(debut.nom));
+  const fin = new Date(n.schedule.at).getTime() - debut.t0;
+  assert.ok(Math.abs(fin - debut.repos * 1000) < 2000, `fin du repos prévue à ${fin} ms`);
+  // Repos arrêté : la notification part ; séance finie : l'écran peut s'éteindre.
+  await page.evaluate(() => arreterRepos(0, 0));
+  await page.waitForFunction(() => window.__appelsNatifs.some(a => a[0] === 'LocalNotifications' && a[1] === 'cancel'));
+  assert.deepEqual((await appelsDe(page, 'LocalNotifications', 'cancel'))[0].o, { notifications: [{ id: 41000 }] });
+  await page.evaluate(() => terminerSeance());
+  await page.waitForTimeout(300);
+  assert.equal((await appelsDe(page, 'KeepAwake', 'allowSleep')).length, 1);
+}));
+
+test('app iOS : Apple Santé remplit les pas et les pesées, sans jamais écraser une saisie', () => avecAppli({ natif: true }, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const auj = todayStr(), hier = shiftDate(auj, -1);
+    const a = (d, h) => new Date(d + 'T' + h).toISOString();
+    window.__reponsesNatives['Health.isAvailable'] = { available: true };
+    window.__reponsesNatives['Health.queryAggregated'] = { samples: [{ startDate: a(hier, '00:00:00'), value: 3000 }, { startDate: a(auj, '00:00:00'), value: 12000.4 }] };
+    window.__reponsesNatives['Health.readSamples'] = { samples: [{ startDate: a(auj, '08:00:00'), value: 80.43 }, { startDate: a(hier, '08:00:00'), value: 81 }] };
+    getDay(hier).steps = 5000; getDay(hier).weight = 82; saveData(hier);
+    await activerSante();
+    const visible = id => !document.getElementById(id).classList.contains('hidden');
+    return { pas: getDay(auj).steps, poids: getDay(auj).weight, mesure: userProfile.mesures[auj].poids,
+      pasHier: getDay(hier).steps, poidsHier: getDay(hier).weight, reglage: localStorage.getItem('mc_sante_apple'),
+      connecte: visible('sante-active'), aConnecter: visible('sante-inactive') };
+  });
+  assert.deepEqual(r, { pas: 12000, poids: 80.4, mesure: 80.4, pasHier: 5000, poidsHier: 82, reglage: '1', connecte: true, aConnecter: false });
+  assert.deepEqual((await appelsDe(page, 'Health', 'requestAuthorization'))[0].o, { read: ['steps', 'weight'] });
+  await page.evaluate(() => desactiverSante());
+  assert.equal(await page.evaluate(() => localStorage.getItem('mc_sante_apple')), null);
+}));
+
+test('app iOS : le scanner du téléphone remplace la caméra du navigateur', () => avecAppli({ natif: true }, async ({ page }) => {
+  await page.evaluate(() => {
+    window.__reponsesNatives['CapacitorBarcodeScanner.scanBarcode'] = { ScanResult: '3017620422003', format: 9 };
+    chercherProduitOFFParCode = async code => { window.__codeCherche = code; };
+    ouvrirBarcode('lunch');
+  });
+  await page.waitForFunction(() => window.__codeCherche);
+  const r = await page.evaluate(() => ({ code: window.__codeCherche, champ: document.getElementById('manual-barcode-input').value,
+    lecteur: getComputedStyle(document.getElementById('reader')).display, fenetre: document.getElementById('barcode-modal').classList.contains('show') }));
+  assert.deepEqual(r, { code: '3017620422003', champ: '3017620422003', lecteur: 'none', fenetre: true });
+  assert.equal((await appelsDe(page, 'CapacitorBarcodeScanner', 'scanBarcode'))[0].o.hint, 17);
+}));
+
+test('compte : accord avant l\'IA (un refus n\'envoie rien), suppression du compte, signaler et bloquer un gymbro', () => avecAppli({}, async ({ page }) => {
+  const ia = await page.evaluate(async () => {
+    let requetes = 0;
+    const f = window.fetch;
+    window.fetch = (...a) => { requetes++; return f(...a); };
+    confirmer = () => Promise.resolve(false);
+    let refus = null;
+    try { await geminiGenerate([{ text: 'Bonjour' }], 'texte'); } catch (e) { refus = e.message; }
+    confirmer = () => Promise.resolve(true);
+    const accord = await accordIA();
+    const texte = document.getElementById('accord-ia-etat').textContent;
+    retirerAccordIA();
+    window.fetch = f;
+    return { refus, requetes, accord, texte, retire: !('accordIA' in userProfile), vide: document.getElementById('accord-ia-etat').textContent };
+  });
+  assert.match(ia.refus, /rien n'a été envoyé/);
+  assert.equal(ia.requetes, 0);
+  assert.equal(ia.accord, true);
+  assert.match(ia.texte, /Partage avec l'IA \(Gemini\) accepté le/);
+  assert.deepEqual([ia.retire, ia.vide], [true, '']);
+
+  const sup = await page.evaluate(async () => {
+    const trace = [];
+    sessionUtilisateur = { id: 'u-1', email: 'moi@test.fr' };
+    supa = {
+      storage: { from: b => ({ list: async d => { trace.push(['list', b, d]); return { data: [{ name: '2026-10-01_a.jpg' }] }; },
+        remove: async c => { trace.push(['remove', c]); return { error: null }; } }) },
+      rpc: async n => { trace.push(['rpc', n]); return { error: null }; },
+      auth: { signOut: async () => { trace.push(['signOut']); return {}; } }
+    };
+    getDay(todayStr()).steps = 4321; saveData(todayStr());
+    await supprimerMonCompte();
+    supa = null;
+    return { trace, local: localStorage.getItem(STORAGE_KEY) };
+  });
+  assert.deepEqual(sup.trace, [['list', 'photos-progression', 'u-1'], ['remove', ['u-1/2026-10-01_a.jpg']], ['rpc', 'supprimer_mon_compte'], ['signOut']]);
+  assert.equal(sup.local, null);
+
+  const gb = await page.evaluate(async () => {
+    const rpc = [];
+    sessionUtilisateur = { id: 'u-1' };
+    supa = { rpc: async (n, a) => { rpc.push([n, a]); return { data: [], error: null }; } };
+    gymbroLiensActifs = [];
+    await comparerGymbro('bob');
+    const boutons = [...document.querySelectorAll('#gymbro-comparaison .gb-moderation button')].map(b => b.textContent);
+    await signalerGymbro('bob');
+    await bloquerGymbro('bob');
+    supa = null;
+    return { boutons, rpc: rpc.filter(([n]) => /signaler|bloquer/.test(n)) };
+  });
+  assert.deepEqual(gb.boutons, ['Signaler', 'Bloquer']);
+  assert.deepEqual(gb.rpc, [['gymbro_signaler', { p_pseudo: 'bob', p_motif: null }], ['gymbro_bloquer', { p_pseudo: 'bob' }]]);
+}));
+
+test('app iOS : Pro se paie via Apple (prix d\'Apple, achat relié au compte puis vérifié par le serveur)', () => avecAppli({ natif: true }, async ({ page }) => {
+  await page.evaluate(() => {
+    PRO_APPLE.an = 'askesis.pro.an'; PRO_APPLE.mois = 'askesis.pro.mois';
+    window.__reponsesNatives['NativePurchases.getProducts'] = { products: [
+      { identifier: 'askesis.pro.an', priceString: '29,99 €' }, { identifier: 'askesis.pro.mois', priceString: '3,99 €' }] };
+    window.__reponsesNatives['NativePurchases.purchaseProduct'] = { transactionId: '1000' };
+    const fin = new Date(Date.now() + 14 * 86400e3).toISOString();
+    window.__invocations = [];
+    let abonnement = null;
+    sessionUtilisateur = { id: '6f1c2b8e-0000-4000-8000-000000000001', email: 'moi@test.fr' };
+    supa = {
+      functions: { invoke: async (nom, o) => {
+        window.__invocations.push([nom, o && o.body]);
+        if (nom === 'achats-apple') abonnement = { formule: 'an', statut: 'essai', fin };
+        return { data: { pro: true }, error: null };
+      } },
+      from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: abonnement, error: null }) }) }) })
+    };
+    ouvrirPro();
+  });
+  await page.waitForFunction(() => produitsApple && document.querySelector('.pro-formule span').textContent.includes('29,99'));
+  const fenetre = await page.evaluate(() => ({ prix: [...document.querySelectorAll('.pro-formule span')].map(s => s.textContent),
+    pied: document.getElementById('pro-pied').textContent, restaurer: document.querySelector('.pro-actualiser').textContent,
+    cgv: getComputedStyle(document.querySelector('.pro-accord')).display, bouton: document.getElementById('pro-essai').disabled,
+    balance: document.getElementById('pro-contenu').textContent.includes('Withings') }));
+  assert.deepEqual(fenetre.prix, ['29,99 € / an', '3,99 € / mois']);
+  assert.match(fenetre.pied, /14 jours gratuits, puis 29,99 € \/ an.*Réglages › ton nom › Abonnements.*Conditions d'utilisation · Confidentialité/);
+  assert.deepEqual([fenetre.restaurer, fenetre.cgv, fenetre.bouton, fenetre.balance], ['Restaurer mes achats', 'none', false, false]);
+  await page.click('#pro-essai');
+  await page.waitForFunction(() => estPro());
+  const achat = (await appelsDe(page, 'NativePurchases', 'purchaseProduct'))[0].o;
+  assert.deepEqual(achat, { productIdentifier: 'askesis.pro.an', productType: 'subs', appAccountToken: '6f1c2b8e-0000-4000-8000-000000000001' });
+  assert.deepEqual(await page.evaluate(() => window.__invocations[0]), ['achats-apple', { transactionId: '1000' }]);
+  await page.evaluate(() => { supa = null; });
+}));

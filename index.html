@@ -4201,6 +4201,21 @@
     /* Un bouton désactivé en a l'air (le négatif ne le montrait plus). */
     html:root body .btn:disabled { opacity: .4 !important; cursor: not-allowed; }
 
+    /* App iOS (classe posée par la couche native) : ce qui n'a de sens que sur
+       le web (installer l'appli, Withings par le navigateur, caméra du
+       navigateur), ou que dans l'app (Apple Santé, scanner natif). */
+    html.app-ios .seulement-web { display: none !important; }
+    /* Compte : l'accord IA (retirable) et la suppression du compte, discrète mais là. */
+    .compte-accord-ia { margin: 16px 2px 0; }
+    .compte-accord-ia:empty { display: none; }
+    .compte-accord-ia button { margin-left: 6px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+    .compte-supprimer { display: block; width: 100%; margin-top: 18px; padding: 12px; border: 0; background: none; color: var(--alerte, #e03a2f); font: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; }
+    /* Fiche d'un gymbro : signaler, bloquer. */
+    .gb-moderation { display: flex; justify-content: center; gap: 22px; margin: 22px 0 6px; }
+    .gb-moderation button { padding: 6px 2px; border: 0; background: none; color: var(--text-muted); font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; }
+    .gb-moderation button:last-child { color: var(--alerte, #e03a2f); }
+    html:not(.app-ios) .seulement-ios { display: none !important; }
+
   </style>
 </head>
 <body>
@@ -5388,6 +5403,13 @@
         <div class="bloc-sql" id="bloc-sql-pro"></div>
         <button class="btn btn-secondaire" style="margin-top:9px;" onclick="copierSqlPro()">Copier le SQL</button>
       </details>
+
+      <details style="margin-top:10px;">
+        <summary style="cursor:pointer;font-size:0.75rem;color:var(--text-muted);font-weight:700;">SQL : app iOS et App Store (suppression du compte, signaler, bloquer, achats Apple)</summary>
+        <p class="note note-explicative" style="margin:10px 0 0;">À exécuter une fois, après les autres : permet à chacun de supprimer son compte depuis l'appli, de signaler ou bloquer un gymbro (les signalements arrivent dans la table gymbros_signalements), et prépare les abonnements payés via Apple. Ne modifie aucune donnée existante.</p>
+        <div class="bloc-sql" id="bloc-sql-app-store"></div>
+        <button class="btn btn-secondaire" style="margin-top:9px;" onclick="copierSqlAppStore()">Copier le SQL</button>
+      </details>
     </div>
 
     <div class="input-group">
@@ -5851,6 +5873,8 @@
         <p style="margin:0; font-weight:700;" id="compte-email"></p>
       </div>
       <button class="btn btn-secondaire" style="width:100%;" onclick="deconnexionCompte()">Se déconnecter</button>
+      <p class="note compte-accord-ia" id="accord-ia-etat"></p>
+      <button type="button" class="compte-supprimer" onclick="supprimerMonCompte()">Supprimer mon compte</button>
     </div>
 
     <div id="compte-extras" class="hidden">
@@ -5957,14 +5981,20 @@
 
     <div class="reglages-titre">Appareils</div>
     <div class="carte-liste">
-      <div class="ligne-reglage">
+      <div class="ligne-reglage seulement-web">
         <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="3" /><path d="M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z" /></svg></span>
         <span class="ligne-txt"><small>Balance</small><b>Withings<span class="pastille-pro">Pro</span></b></span>
         <span id="withings-deconnecte-reglages"><a href="#" class="pilule lien-connexion-withings" target="_blank" rel="noopener" onclick="return connexionWithings(event)">Connecter</a></span>
         <span id="withings-connecte-reglages" class="hidden"><button type="button" class="pilule" onclick="deconnexionWithings()">Déconnecter</button></span>
       </div>
+      <div class="ligne-reglage seulement-ios">
+        <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></span>
+        <span class="ligne-txt"><small>Pas et poids</small><b>Apple Santé</b></span>
+        <span id="sante-inactive"><button type="button" class="pilule" onclick="activerSante()">Connecter</button></span>
+        <span id="sante-active" class="hidden"><button type="button" class="pilule" onclick="desactiverSante()">Déconnecter</button></span>
+      </div>
     </div>
-    <p class="note reglages-note">Bloqué dans l'appli Withings au lieu de revenir ici ? Reste appuyé sur « Connecter » pour choisir « Ouvrir dans Safari ».</p>
+    <p class="note reglages-note seulement-web">Bloqué dans l'appli Withings au lieu de revenir ici ? Reste appuyé sur « Connecter » pour choisir « Ouvrir dans Safari ».</p>
 
     <div class="reglages-titre">Affichage</div>
     <div class="carte-liste">
@@ -6204,11 +6234,11 @@
       <input type="number" id="mes-poids" step="0.1" placeholder="70" inputmode="decimal">
     </div>
 
-    <div id="withings-deconnecte">
+    <div id="withings-deconnecte" class="seulement-web">
       <a href="#" class="btn btn-secondaire lien-connexion-withings" style="margin:-6px 0 6px; display:inline-block; box-sizing:border-box; text-align:center; text-decoration:none;" target="_blank" rel="noopener" onclick="return connexionWithings(event)"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></svg> Connecter ma balance Withings<span class="pastille-pro">Pro</span></a>
       <p class="note note-explicative" style="margin:0 0 14px;">Bloqué dans l'appli Withings au lieu de revenir ici ? Reste appuyé sur ce bouton pour choisir « Ouvrir dans Safari ».</p>
     </div>
-    <div id="withings-connecte" class="hidden">
+    <div id="withings-connecte" class="hidden seulement-web">
       <button class="btn btn-secondaire" id="btn-import-withings" style="margin:-6px 0 6px;" onclick="importerPoidsWithings()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></svg> Importer ma dernière pesée Withings</button>
       <p class="note" id="note-import-withings" style="margin:0 0 14px;"></p>
     </div>
@@ -6344,8 +6374,9 @@
       </div>
     </div>
 
-    <div id="reader"></div>
-    <p class="note note-explicative" style="margin:-6px 2px 14px;">Touchez l'image si la mise au point ne s'accroche pas sur le code-barres (redémarre la caméra sur iPhone).</p>
+    <button type="button" class="btn btn-secondaire seulement-ios" style="width:100%; margin:0 0 14px;" onclick="startScanner()"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8v8"/><path d="M11 8v8"/><path d="M15 8v8"/></svg>Scanner un code-barres</button>
+    <div id="reader" class="seulement-web"></div>
+    <p class="note note-explicative seulement-web" style="margin:-6px 2px 14px;">Touchez l'image si la mise au point ne s'accroche pas sur le code-barres (redémarre la caméra sur iPhone).</p>
 
     <div id="barcode-result" class="hidden" style="margin-top: 16px; border-top: 1px solid var(--verre-brd); padding-top: 14px;">
       <div class="input-group">
@@ -6898,6 +6929,131 @@ const WITHINGS_PROXY = 'https://nhbvmqubwbzrddndisfr.supabase.co/functions/v1/dy
 // développeur Withings. À changer ici ET là-bas si l'appli déménage.
 const WITHINGS_REDIRECT_URI = 'https://boulidjamal-lang.github.io/mon-coach/';
 const WITHINGS_TOKEN_LS = 'mc_withings_token';
+
+/* =====================================================================
+   APP iOS
+   window.AppNatif n'existe que dans l'app iOS (natif.js, dépôt Anqa,
+   dossier ios-app/) : il ouvre les modules de l'iPhone (retour tactile,
+   notifications, Santé, partage…). Sur le web, NATIF vaut null et
+   l'appli garde exactement son comportement.
+   ===================================================================== */
+const NATIF = window.AppNatif || null;
+// L'adresse web de l'appli : les liens des emails (confirmation, mot de
+// passe oublié) et les pages légales ouvertes depuis l'app y mènent.
+const URL_SITE_WEB = 'https://boulidjamal-lang.github.io/mon-coach/';
+
+// Un module absent, une permission refusée ou une annulation rendent null :
+// le natif ne fait jamais échouer l'appli.
+function appelNatif(module, methode, options) {
+  const m = NATIF && NATIF[module];
+  if (!m) return Promise.resolve(null);
+  try { return Promise.resolve(m[methode](options)).catch(() => null); } catch (e) { return Promise.resolve(null); }
+}
+
+// Retour tactile : le moteur haptique de l'iPhone dans l'app, la vibration
+// du navigateur ailleurs (Android ; Safari n'en a pas).
+const VIBRATIONS_WEB = { selection: 4, leger: 8, moyen: 12, succes: 30, alerte: [120, 80, 120] };
+let selectionHaptiquePrete = false;
+function vibrer(type) {
+  if (NATIF) {
+    if (type === 'selection') {
+      // Le « cran » d'iOS ne joue qu'après selectionStart.
+      if (!selectionHaptiquePrete) { selectionHaptiquePrete = true; appelNatif('Haptics', 'selectionStart'); }
+      appelNatif('Haptics', 'selectionChanged');
+    } else if (type === 'succes' || type === 'alerte') appelNatif('Haptics', 'notification', { type: type === 'succes' ? 'SUCCESS' : 'WARNING' });
+    else appelNatif('Haptics', 'impact', { style: type === 'moyen' ? 'MEDIUM' : 'LIGHT' });
+    return;
+  }
+  try { if (navigator.vibrate) navigator.vibrate(VIBRATIONS_WEB[type] || 10); } catch (e) {}
+}
+
+// Où mènent les liens des emails de connexion : la page elle-même sur le
+// web ; dans l'app (adresse interne capacitor://), le site de l'appli.
+function urlRetourEmail() { return NATIF ? URL_SITE_WEB : window.location.origin + window.location.pathname; }
+
+// Un lien vers l'extérieur : le navigateur intégré dans l'app (jamais la
+// vue de l'appli elle-même), un nouvel onglet sur le web. Une page de
+// l'appli (pages légales) s'ouvre sur le site.
+function ouvrirLienExterne(url) {
+  const absolue = new URL(url, NATIF ? URL_SITE_WEB : location.href).href;
+  if (NATIF) { appelNatif('Browser', 'open', { url: absolue }); return; }
+  const fenetre = window.open(absolue, '_blank', 'noopener');
+  if (!fenetre) location.href = absolue;
+}
+
+// Partager un fichier (image du bilan, export) : la feuille de partage
+// d'iOS dans l'app (Enregistrer l'image, Messages…).
+async function partagerFichierNatif(blob, nom, titre) {
+  const base64 = await new Promise((ok, ko) => {
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result).split(',')[1] || '');
+    r.onerror = ko;
+    r.readAsDataURL(blob);
+  });
+  const ecrit = await appelNatif('Filesystem', 'writeFile', { path: nom, data: base64, directory: 'CACHE' });
+  if (ecrit && ecrit.uri) await appelNatif('Share', 'share', { title: titre, files: [ecrit.uri] });
+}
+
+/* Rappel de fin de repos : dans l'app, une notification programmée sonne
+   même écran verrouillé. Appli ouverte, elle ne s'affiche pas (le bip et la
+   vibration suffisent : presentationOptions vide dans capacitor.config).
+   Les appels passent l'un après l'autre : annuler puis reprogrammer. */
+let rappelsReposIds = [], rappelsReposSignature = '', permissionRappels = null, fileRappelsRepos = Promise.resolve();
+function majRappelsRepos() {
+  if (!NATIF) return;
+  fileRappelsRepos = fileRappelsRepos.then(majRappelsReposMaintenant, majRappelsReposMaintenant);
+}
+async function majRappelsReposMaintenant() {
+  const prevus = [];
+  if (musculationSessionActive && !musculationSessionActive.demo) Object.keys(reposActifs).forEach(clef => {
+    if (reposSignales[clef]) return;
+    const [ei, si] = clef.split('_').map(Number), exo = musculationSessionActive.exercices[ei];
+    const fin = reposActifs[clef] + reposCibleExo(ei) * 1000;
+    if (!exo || fin < Date.now() + 2000) return;
+    const nom = libelleExercice(trouverExercice(exo.exerciceId)) || exo.nom || 'Exercice suivant';
+    prevus.push({ id: 41000 + ei * 100 + si, fin, nom });
+  });
+  const signature = prevus.map(p => p.id + ':' + p.fin).join(',');
+  if (signature === rappelsReposSignature) return;
+  rappelsReposSignature = signature;
+  if (rappelsReposIds.length) await appelNatif('LocalNotifications', 'cancel', { notifications: rappelsReposIds.map(id => ({ id })) });
+  rappelsReposIds = [];
+  if (!prevus.length) return;
+  if (permissionRappels === null) {
+    let p = await appelNatif('LocalNotifications', 'checkPermissions');
+    if (p && p.display !== 'granted' && p.display !== 'denied') p = await appelNatif('LocalNotifications', 'requestPermissions');
+    permissionRappels = !!(p && p.display === 'granted');
+  }
+  if (!permissionRappels) return;
+  await appelNatif('LocalNotifications', 'schedule', { notifications: prevus.map(p => ({
+    id: p.id, title: 'Repos terminé', body: `${p.nom} : à toi pour la série suivante.`,
+    schedule: { at: new Date(p.fin) }, sound: 'fin-repos.wav' })) });
+  rappelsReposIds = prevus.map(p => p.id);
+}
+
+if (NATIF) {
+  document.documentElement.classList.add('app-ios');
+  // Un lien externe ou « nouvel onglet » s'ouvrirait dans la vue de l'appli :
+  // il part dans le navigateur intégré. (En phase de bulle : les onclick des
+  // liens passent avant et peuvent l'annuler.)
+  document.addEventListener('click', e => {
+    const a = e.target.closest && e.target.closest('a[href]');
+    if (!a || e.defaultPrevented) return;
+    const href = a.getAttribute('href') || '';
+    if (/^(#|javascript:|mailto:|tel:|sms:|data:|blob:)/i.test(href)) return;
+    if (!/^https?:/i.test(href) && a.target !== '_blank') return;
+    e.preventDefault();
+    ouvrirLienExterne(href);
+  });
+  const ouvrirFenetre = window.open.bind(window);
+  window.open = (url, cible, options) => {
+    if (url && /^https?:/i.test(String(url))) { ouvrirLienExterne(String(url)); return { closed: false, close() {}, focus() {} }; }
+    return ouvrirFenetre(url, cible, options);
+  };
+  appelNatif('ScreenOrientation', 'lock', { orientation: 'portrait' });
+  // L'écran de lancement d'iOS laisse la place à l'animation du T dès sa première image.
+  requestAnimationFrame(() => appelNatif('SplashScreen', 'hide', { fadeOutDuration: 200 }));
+}
 
 const MEALS = ['breakfast', 'lunch', 'snack', 'dinner'];
 const MEAL_LABELS = { breakfast: 'Petit-déjeuner', lunch: 'Déjeuner', snack: 'Collation', dinner: 'Dîner' };
@@ -7629,7 +7785,7 @@ function majRoulette() {
   const d = jours[k].dataset.date;
   if (d !== rouletteCentre) {
     // Petit « cran » à chaque jour qui passe sous la fenêtre (Android).
-    if (rouletteCentre && rouletteGeste && navigator.vibrate) { try { navigator.vibrate(4); } catch (e) {} }
+    if (rouletteCentre && rouletteGeste) vibrer('selection');
     rouletteCentre = d;
     const mois = document.getElementById('semaine-mois');
     if (mois) mois.textContent = dateLocale(d).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
@@ -9035,6 +9191,7 @@ function majCoucheOuverte() {
 let deferredInstallPrompt = null; // capturé par 'beforeinstallprompt' — Android/Chrome uniquement, jamais iOS
 
 function estAppInstallee() {
+  if (NATIF) return true;
   const standard = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
   const ios = window.navigator.standalone === true; // API historique Safari iOS, hors standard
   return !!(standard || ios);
@@ -10111,6 +10268,7 @@ function supprimerAliment(mealId, index) {
 let scannerEnDemarrage = false;
 
 async function startScanner() {
+  if (NATIF) { await scannerNatif(); return; }
   if (typeof Html5Qrcode === 'undefined') { alert('Scanner indisponible.'); return; }
   if (scannerEnDemarrage) return;
   scannerEnDemarrage = true;
@@ -10240,6 +10398,25 @@ async function rechercherCodeBarreManuel() {
    sans verrou, plusieurs requêtes OpenFoodFacts partaient en parallèle et
    deux alertes « Produit introuvable » pouvaient s'empiler. */
 let scanTraite = false;
+/* App iOS : le scanner plein écran du téléphone (reconnaissance d'Apple,
+   instantanée), puis la même recherche qu'après un scan web. Fermé sans
+   code : la fenêtre reste ouverte pour la saisie manuelle. */
+async function scannerNatif() {
+  if (scannerEnDemarrage) return;
+  scannerEnDemarrage = true;
+  try {
+    // hint 17 : tous les formats (EAN, UPC, Code 128…), la lecture native est rapide.
+    const r = await NATIF.CapacitorBarcodeScanner.scanBarcode({ hint: 17, scanInstructions: 'Vise le code-barres du produit', scanButton: false, cameraDirection: 1 });
+    const code = r && String(r.ScanResult || '').trim();
+    scannerEnDemarrage = false;
+    if (code) await onScanSuccess(code);
+  } catch (e) {
+    const texte = String((e && (e.message || e.code)) || '');
+    if (/permission|denied|autoris|refus/i.test(texte)) informer("L'appareil photo est refusé à Askēsis : autorise-le dans Réglages › Askēsis pour scanner.");
+  } finally {
+    scannerEnDemarrage = false;
+  }
+}
 async function onScanSuccess(decodedText) {
   if (scanTraite) return;
   scanTraite = true;
@@ -11119,7 +11296,33 @@ async function geminiParServeur(parts, type) {
   return text;
 }
 
+/* Avant le premier envoi à l'IA : un accord explicite, demandé une fois et
+   gardé dans le profil (donc sur tous les appareils), retirable dans
+   « Mon compte ». Apple l'exige (règle 5.1.2) ; c'est la bonne pratique partout. */
+async function accordIA() {
+  if (userProfile.accordIA) return true;
+  const ok = await confirmer("Pour cette analyse, Askēsis envoie à Gemini, l'intelligence artificielle de Google, seulement ce qu'il faut : la photo ou la description du repas, ou les chiffres de ta journée ou de ta période (repas, poids, pas, séances). Jamais ton nom ni ton email.\n\nTu pourras retirer cet accord dans Mon compte.",
+    { ok: "J'accepte", annuler: 'Non merci' });
+  if (!ok) return false;
+  userProfile.accordIA = new Date().toISOString();
+  saveData();
+  majAccordIA();
+  return true;
+}
+function retirerAccordIA() {
+  delete userProfile.accordIA;
+  saveData();
+  majAccordIA();
+}
+function majAccordIA() {
+  const el = document.getElementById('accord-ia-etat');
+  if (!el) return;
+  const d = userProfile.accordIA ? new Date(userProfile.accordIA) : null;
+  el.innerHTML = d && !isNaN(d) ? `Partage avec l'IA (Gemini) accepté le ${escapeHtml(d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }))}.<button type="button" onclick="retirerAccordIA()">Retirer</button>` : '';
+}
+
 async function geminiGenerate(parts, type) {
+  if (!(await accordIA())) throw Object.assign(new Error("Analyse annulée : rien n'a été envoyé."), { lisible: true });
   if (iaServeur && iaServeur.pret && supa) return geminiParServeur(parts, type);
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(geminiKey)}`;
   const DELAIS_RETRY_MS = [1500, 3000];
@@ -12234,6 +12437,7 @@ async function exporterDonneesUtilisateurAdmin() {
     (rj.data || []).forEach(r => { appDataExport[r.jour] = Object.assign({}, r.donnees, { maj: Number(r.maj) || 0 }); });
 
     const blob = new Blob([JSON.stringify({ appData: appDataExport, userProfile: sansIdentifiants(rp.data && rp.data.donnees) }, null, 2)], { type: 'application/json' });
+    if (NATIF) { await partagerFichierNatif(blob, `askesis-${nom.replace(/[^a-z0-9.@-]/gi, '_')}-${todayStr()}.json`, 'Export Askēsis'); return; }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -12487,6 +12691,7 @@ function appliquerTheme(choix) {
   // explicite, pour ne plus jamais désynchroniser barre et contenu.
   const mtc = document.getElementById('meta-theme-color');
   if (mtc) mtc.setAttribute('content', t === 'dark' ? '#0a0a0b' : '#f2f2f4');
+  appelNatif('StatusBar', 'setStyle', { style: t === 'dark' ? 'DARK' : 'LIGHT' });
   majManifestTheme(t);
   majSegment('segment-theme', ['light', 'dark', 'auto'], pref);
   // Les graphiques sont dessines en pixels : leurs couleurs ne suivent pas le
@@ -13191,6 +13396,7 @@ function majUICompte() {
   if (zoneExtras) zoneExtras.classList.toggle('hidden', !sessionUtilisateur);
   if (croixFermer) croixFermer.classList.toggle('hidden', !sessionUtilisateur);
   if (emailAffiche) emailAffiche.textContent = sessionUtilisateur ? sessionUtilisateur.email : '';
+  majAccordIA();
   // Le champ « identifiant libre » n'a plus d'effet une fois connecté :
   // autant le désactiver pour ne pas laisser croire qu'il fait encore quelque chose.
   if (champId) champId.disabled = !!sessionUtilisateur;
@@ -13307,7 +13513,7 @@ async function connexionOuCreerCompte() {
       // à rien". Il faut aussi que cette URL soit dans la liste blanche
       // "Redirect URLs" du projet Supabase (Authentication URL
       // Configuration), sinon Supabase l'ignore et retombe sur Site URL.
-      options: { emailRedirectTo: window.location.origin + window.location.pathname }
+      options: { emailRedirectTo: urlRetourEmail() }
     });
     if (sonde.error) throw sonde.error;
   } catch (e) { if (note) note.textContent = messageAuth(e); return; }
@@ -13323,7 +13529,7 @@ async function connexionOuCreerCompte() {
     if (note) note.textContent = 'Envoi en cours…';
     try {
       const { error: errReset } = await supa.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + window.location.pathname
+        redirectTo: urlRetourEmail()
       });
       if (errReset) throw errReset;
       if (note) note.textContent = `Email envoyé à ${email} : suis le lien pour choisir un nouveau mot de passe.`;
@@ -13343,6 +13549,36 @@ async function connexionOuCreerCompte() {
   } else {
     if (note) note.textContent = 'Compte créé : vérifie ta boîte mail pour confirmer ton adresse, puis reviens te connecter avec ce même mot de passe.';
   }
+}
+
+/* Supprimer mon compte (exigé par Apple, et un droit partout) : les photos
+   de progression par le stockage, puis toutes les données et le compte lui-
+   même par la fonction supprimer_mon_compte (SQL « App iOS et App Store »).
+   Un abonnement payé via Apple se résilie chez Apple : on le rappelle. */
+async function supprimerMonCompte() {
+  if (!supa || !sessionUtilisateur) return;
+  const ok = await confirmer("Supprimer ton compte efface pour de bon tes repas, pesées, séances, programmes, recettes, photos et ton nom d'utilisateur, sur tous tes appareils. Impossible de revenir en arrière.\n\nUn abonnement payé via Apple se résilie à part : Réglages de l'iPhone › ton nom › Abonnements.",
+    { ok: 'Supprimer définitivement', danger: true });
+  if (!ok) return;
+  try {
+    try {
+      const dossier = sessionUtilisateur.id;
+      const { data } = await supa.storage.from(BUCKET_PHOTOS).list(dossier, { limit: 1000 });
+      const chemins = (data || []).map(f => dossier + '/' + f.name);
+      if (chemins.length) await supa.storage.from(BUCKET_PHOTOS).remove(chemins);
+    } catch (e) {}
+    const { error } = await supa.rpc('supprimer_mon_compte');
+    if (error) throw error;
+  } catch (e) {
+    const m = String((e && e.message) || e);
+    if (/abonnement_actif/.test(m)) informer("Résilie d'abord ton abonnement Askēsis Pro (Profil › Askēsis Pro › Gérer mon abonnement), puis recommence.");
+    else if (estErreurSqlManquant(e)) informer("La suppression du compte n'est pas encore activée sur le serveur : l'administrateur doit exécuter le SQL « App iOS et App Store ».");
+    else informer('Suppression impossible : ' + m);
+    return;
+  }
+  try { await supa.auth.signOut(); } catch (e) {}
+  viderDonneesLocales();
+  informer('Ton compte et toutes tes données ont été supprimés.');
 }
 
 async function deconnexionCompte() {
@@ -14906,7 +15142,9 @@ const ERREURS_GYMBRO = {
   compte_bloque: 'Ton compte est suspendu.',
   pas_gymbro: "Vous n'êtes plus gymbros.",
   seance_inconnue: "Cette séance n'existe plus.",
-  non_connecte: 'Connecte-toi pour ajouter un gymbro.'
+  non_connecte: 'Connecte-toi pour ajouter un gymbro.',
+  bloque: "Impossible : l'un de vous a bloqué l'autre.",
+  trop_de_signalements: 'Tu as déjà fait beaucoup de signalements aujourd\'hui : réessaie demain.'
 };
 function messageErreurGymbro(e) {
   const m = String((e && e.message) || e || '');
@@ -15019,7 +15257,7 @@ async function comparerGymbro(pseudo) {
         <button type="button" class="btn btn-secondaire" onclick="annulerLienGymbro(${argJs(pseudo)}, false)">Annuler la demande</button>`;
     }
     c.innerHTML = `${barre}<div class="gface gface--seul"><div class="gface-p">${bulleGymbro(pseudo, 76)}<b>${qui}</b></div></div>
-      <div class="gymbro-invitation">${corps}</div>`;
+      <div class="gymbro-invitation">${corps}</div>${moderationGymbroHTML(pseudo)}`;
     return;
   }
   c.innerHTML = barre + '<div class="loader">Chargement des séances de @' + escapeHtml(pseudo) + '…</div>';
@@ -15041,7 +15279,7 @@ async function comparerGymbro(pseudo) {
 
   let html = barre + profilGymbroHTML(pseudo, siennes);
   if (!siennes.length) {
-    c.innerHTML = html + `<p class="note gb-vide-note">${qui} n'a aucune séance partagée sur les 90 derniers jours (ou a désactivé le partage).</p>` + actionLien;
+    c.innerHTML = html + `<p class="note gb-vide-note">${qui} n'a aucune séance partagée sur les 90 derniers jours (ou a désactivé le partage).</p>` + actionLien + moderationGymbroHTML(pseudo);
     return;
   }
   // 30 derniers jours, colonne par colonne : le meilleur des deux en gras.
@@ -15081,8 +15319,33 @@ async function comparerGymbro(pseudo) {
     const [v, u] = tonnes(r.volume);
     return `<div class="gli"><div><b>${escapeHtml(r.titre)}</b><small>${escapeHtml(dateRelativeFil(h.date))} · ${r.series} série${r.series > 1 ? 's' : ''}${r.volume ? ' · ' + v + ' ' + u : ''}</small></div>
       ${top ? `<span class="gli-top">${escapeHtml(nomExo(top.e.exerciceId, [h]))}<b>${poidsFr(Number(top.b.poids))} kg × ${Math.round(Number(top.b.reps))}</b></span>` : ''}</div>`;
-  }).join('') + '</div>' + actionLien;
+  }).join('') + '</div>' + actionLien + moderationGymbroHTML(pseudo);
   c.innerHTML = html;
+}
+/* Signaler, bloquer (exigés par Apple pour tout contenu entre personnes) :
+   sous la fiche de chaque gymbro. Bloquer retire le lien et empêche toute
+   nouvelle demande, dans les deux sens. */
+function moderationGymbroHTML(pseudo) {
+  return `<div class="gb-moderation"><button type="button" onclick="signalerGymbro(${argJs(pseudo)})">Signaler</button><button type="button" onclick="bloquerGymbro(${argJs(pseudo)})">Bloquer</button></div>`;
+}
+async function signalerGymbro(pseudo) {
+  if (!(await confirmer(`Signaler @${pseudo} pour un nom, une photo ou un comportement inapproprié ? L'équipe Askēsis vérifie chaque signalement sous 24 h.`, { ok: 'Signaler' }))) return;
+  try {
+    const { error } = await supa.rpc('gymbro_signaler', { p_pseudo: pseudo, p_motif: null });
+    if (error) throw error;
+    informer('Merci, le signalement est envoyé. Tu peux aussi bloquer cette personne.');
+  } catch (e) { informer(messageErreurGymbro(e)); }
+}
+async function bloquerGymbro(pseudo) {
+  if (!(await confirmer(`Bloquer @${pseudo} ? Vous ne serez plus gymbros, vous ne verrez plus vos séances, et aucune nouvelle demande ne sera possible entre vous.`, { ok: 'Bloquer', danger: true }))) return;
+  try {
+    const { error } = await supa.rpc('gymbro_bloquer', { p_pseudo: pseudo });
+    if (error) throw error;
+    userProfile.gymbros = (userProfile.gymbros || []).filter(p => p.toLowerCase() !== pseudo.toLowerCase());
+    saveData();
+  } catch (e) { informer(messageErreurGymbro(e)); return; }
+  await chargerLiensGymbro();
+  retourRechercheGymbro();
 }
 function retourRechercheGymbro() {
   document.getElementById('gymbro-comparaison').innerHTML = '';
@@ -16460,7 +16723,84 @@ function deconnexionWithings() {
   majUIWithings();
 }
 
+/* =====================================================================
+   APPLE SANTÉ (app iOS)
+   Les pas et le poids arrivent tout seuls, à l'ouverture et à chaque retour
+   dans l'app. Les pas d'un jour prennent la plus grande des deux valeurs
+   (une saisie plus haute, d'une montre par exemple, n'est jamais écrasée) ;
+   une pesée de Santé ne remplit qu'un jour encore sans pesée. Réglage propre
+   à ce téléphone (localStorage) : les données, elles, se synchronisent.
+   ===================================================================== */
+const SANTE_LS = 'mc_sante_apple';
+let derniereLectureSante = 0;
+function santeActive() {
+  try { return !!NATIF && localStorage.getItem(SANTE_LS) === '1'; } catch (e) { return false; }
+}
+function majUISante() {
+  const actif = santeActive();
+  const off = document.getElementById('sante-inactive'), on = document.getElementById('sante-active');
+  if (off) off.classList.toggle('hidden', actif);
+  if (on) on.classList.toggle('hidden', !actif);
+}
+async function activerSante() {
+  if (!NATIF) return;
+  const dispo = await appelNatif('Health', 'isAvailable');
+  if (!dispo || !dispo.available) { informer("Apple Santé n'est pas disponible sur cet appareil."); return; }
+  await appelNatif('Health', 'requestAuthorization', { read: ['steps', 'weight'] });
+  try { localStorage.setItem(SANTE_LS, '1'); } catch (e) {}
+  majUISante();
+  const n = await lireSante(true);
+  informer(n ? `Apple Santé est connecté : ${n} journée${n > 1 ? 's' : ''} complétée${n > 1 ? 's' : ''}.`
+    : "Apple Santé est connecté. Si rien n'arrive, vérifie l'accès dans Santé › Partage › Apps › Askēsis.");
+}
+function desactiverSante() {
+  try { localStorage.removeItem(SANTE_LS); } catch (e) {}
+  majUISante();
+}
+// 7 derniers jours de pas, pesées des 30 derniers jours. Renvoie le nombre de journées complétées.
+async function lireSante(forcer) {
+  if (!santeActive() || (!forcer && Date.now() - derniereLectureSante < 60000)) return 0;
+  derniereLectureSante = Date.now();
+  const maintenant = new Date();
+  const debutJour = k => new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() - k).toISOString();
+  const pasModifies = new Set(), poidsModifies = new Set();
+  const pas = await appelNatif('Health', 'queryAggregated', { dataType: 'steps', startDate: debutJour(6), endDate: maintenant.toISOString(), bucket: 'day', aggregation: 'sum' });
+  ((pas && pas.samples) || []).forEach(e => {
+    const d = dateEnChaine(new Date(e.startDate)), n = Math.round(Number(e.value) || 0);
+    const jour = getDay(d);
+    if (n > (Number(jour.steps) || 0)) { jour.steps = n; pasModifies.add(d); }
+  });
+  const poids = await appelNatif('Health', 'readSamples', { dataType: 'weight', startDate: debutJour(30), endDate: maintenant.toISOString(), limit: 200, ascending: false });
+  const vus = new Set();
+  ((poids && poids.samples) || []).forEach(e => {
+    const d = dateEnChaine(new Date(e.startDate)), kg = Math.round(Number(e.value) * 10) / 10;
+    if (vus.has(d) || !(kg > 20 && kg < 400)) return;
+    vus.add(d); // la plus récente du jour (tri du plus récent au plus ancien)
+    const jour = getDay(d);
+    if (Number(jour.weight) > 0) return;
+    jour.weight = kg;
+    if (!userProfile.mesures) userProfile.mesures = {};
+    userProfile.mesures[d] = Object.assign({}, userProfile.mesures[d], { poids: kg });
+    poidsModifies.add(d);
+  });
+  const tous = new Set([...pasModifies, ...poidsModifies]);
+  if (!tous.size) return 0;
+  tous.forEach(d => saveData(d));
+  if (poidsModifies.size) { saveData(); afficherResumeMesures(); buildMasterArrays(); renderApp(); }
+  else if (pasModifies.has(currentDate)) {
+    const champ = document.getElementById('daily-steps');
+    if (champ) champ.value = getDay(currentDate).steps;
+    majCartePas();
+  }
+  return tous.size;
+}
+if (NATIF) {
+  window.addEventListener('load', () => setTimeout(() => lireSante(), 3000));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') lireSante(); });
+}
+
 function majUIWithings() {
+  majUISante();
   const t = tokenWithings();
   const paires = [
     ['withings-deconnecte', 'withings-connecte'],
@@ -16514,6 +16854,11 @@ function brancherLiensWithings() {
    serveur — sinon on laisse le navigateur suivre le href normalement
    (return true), target="_blank" ouvre déjà un nouvel onglet tout seul. */
 function connexionWithings(e) {
+  if (NATIF) {
+    if (e) e.preventDefault();
+    informer("Dans l'app iPhone, connecte plutôt Apple Santé (Profil › Réglages › Appareils) : l'app Withings y envoie déjà tes pesées.");
+    return false;
+  }
   if (!accesPro()) {
     if (e) e.preventDefault();
     ouvrirPro('withings');
@@ -19239,6 +19584,7 @@ function sauvegarderSessionActive() {
     if (musculationSessionActive) localStorage.setItem(MUSCU_SESSION_KEY, JSON.stringify(musculationSessionActive));
     else localStorage.removeItem(MUSCU_SESSION_KEY);
   } catch (e) {}
+  majRappelsRepos();
 }
 function sauvegarderProgrammeEnEdition() {
   // Même logique que sauvegarderSessionActive() ci-dessus : local uniquement,
@@ -19630,7 +19976,13 @@ function fermerEditionProgramme() {
 /* Écran allumé pendant une séance (Wake Lock : Safari iOS 16.4+, Chrome) :
    repris au retour dans l'appli, rendu dès que la séance se termine. */
 var verrouEcran = null; // var : majBandeauSeanceFlottant peut être appelée avant cette ligne au démarrage
+var ecranGardeAllume = false;
 async function majVerrouEcran() {
+  if (NATIF) {
+    const voulu = !!musculationSessionActive;
+    if (voulu !== ecranGardeAllume) { ecranGardeAllume = voulu; appelNatif('KeepAwake', voulu ? 'keepAwake' : 'allowSleep'); }
+    return;
+  }
   if (!('wakeLock' in navigator)) return;
   try {
     if (musculationSessionActive && !verrouEcran && document.visibilityState === 'visible') {
@@ -19644,6 +19996,7 @@ async function majVerrouEcran() {
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') majVerrouEcran(); });
 function majBandeauSeanceFlottant() {
   majVerrouEcran();
+  majRappelsRepos();
   const el = document.getElementById('bandeau-seance-flottant');
   if (!el) return;
   if (!musculationSessionActive || ecranActif === 'seance') { el.classList.add('hidden'); return; }
@@ -20877,7 +21230,7 @@ function demarrerReordre(c, o, zone, pointerId, y) {
   if (from < 0) return;
   c.classList.add('reordre');
   zone.classList.add('reordre-tenu');
-  if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+  vibrer('moyen');
   try { c.setPointerCapture(pointerId); } catch (e) {}
   // Les exercices viennent de se replier : on place celui qu'on tient sous
   // le doigt, puis on mémorise la position de chacun.
@@ -22050,6 +22403,7 @@ function agrandirCourbeFiche() {
   document.body.classList.add('couche-ouverte');
   const exo = trouverExercice(ficheHisto.id);
   document.getElementById('courbe-pe-titre').textContent = exo ? libelleExercice(exo) : '';
+  if (NATIF) appelNatif('ScreenOrientation', 'lock', { orientation: 'landscape' });
   try {
     const el = document.documentElement;
     if (el.requestFullscreen && !document.fullscreenElement) {
@@ -22077,6 +22431,7 @@ function fermerCourbePleinEcran() {
   pe.classList.add('hidden');
   if (!document.querySelector('.modal.show')) document.body.classList.remove('couche-ouverte');
   if (courbePleinEcranChart) { courbePleinEcranChart.destroy(); courbePleinEcranChart = null; }
+  if (NATIF) appelNatif('ScreenOrientation', 'lock', { orientation: 'portrait' });
   try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
   try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); } catch (e) {}
 }
@@ -22732,6 +23087,7 @@ async function genererImagePartage() {
 }
 async function partagerImageStats() {
   if (!partageBlob) await genererImagePartage();
+  if (NATIF) { await partagerFichierNatif(partageBlob, 'bilan-askesis.png', 'Mon bilan Askēsis'); return; }
   const fichier = new File([partageBlob], 'bilan-askesis.png', { type: 'image/png' });
   try {
     if (navigator.canShare && navigator.canShare({ files: [fichier] })) await navigator.share({ files: [fichier], title: 'Mon bilan Askēsis' });
@@ -22739,6 +23095,7 @@ async function partagerImageStats() {
   } catch (e) { /* partage annulé */ }
 }
 function enregistrerImagePartage() {
+  if (NATIF) { partagerImageStats(); return; }
   const a = document.createElement('a');
   a.href = document.getElementById('partage-stats-img').src;
   a.download = 'bilan-askesis.png';
@@ -23427,6 +23784,11 @@ const PRO_PAIEMENT_LS = 'askesis_pro_paiement';
 // à coller ici une fois créés. Vides : le Pro se montre, mais le paiement
 // est annoncé « bientôt ».
 const PRO_LIENS = { an: '', mois: '', portail: '' };
+// App iOS : Pro se paie via Apple (achats intégrés). Identifiants des deux
+// abonnements créés dans App Store Connect (même groupe, essai de 14 jours) ;
+// vides tant que ce n'est pas fait : la fenêtre affiche « bientôt disponible ».
+const PRO_APPLE = { an: '', mois: '' };
+var produitsApple = null; // { an, mois } : les produits lus chez Apple (prix localisés)
 const PRO_TARIFS = { an: '29,99 €', anParMois: '2,50 €', mois: '3,99 €', remise: '−37 %', essaiJours: 14 };
 const IA_ESSAIS_GRATUITS = 3;
 const RAISONS_PRO = {
@@ -23550,15 +23912,15 @@ function renderPro(raison) {
     ['ia', "L'IA sans limite", "Photo d'un repas, programme sur mesure, analyse de ta journée et de ta période"],
     ['progres', 'Progrès avancé', 'Maintenance réelle, prévisions, constats, zones de volume, niveau de force, périodes longues'],
     ['photos', 'Photos de progression', 'Avant / après, côte à côte'],
-    ['balance', 'Balance Withings', 'Tes pesées arrivent toutes seules']
+    ...(NATIF ? [] : [['balance', 'Balance Withings', 'Tes pesées arrivent toutes seules']])
   ].map(([ic, titre, sous]) => `<div class="ligne-reglage"><span class="action-ic">${ic === 'ia' ? svgV('eclair') : ICONES_PRO[ic]}</span><span class="ligne-txt"><b>${titre}</b><small>${sous}</small></span></div>`).join('')}</div>`;
   if (estPro()) {
     const a = etatPro.abonnement;
     c.innerHTML = `<p class="pro-statut-grand">${escapeHtml(texteAbonnementPro())}</p>
       ${a.formule === 'fondateur' ? `<p class="note pro-merci">Merci d'avoir été là dès le début : Pro est à toi, pour toujours.</p>` : ''}
       ${avantages}
-      ${abonnementProPaye() && PRO_LIENS.portail ? `<button type="button" class="btn btn-secondaire" onclick="gererAbonnementPro()">Gérer mon abonnement</button>
-      <p class="note pro-pied">Changer de formule ou de carte, résilier : chez Stripe, notre prestataire de paiement.</p>` : ''}`;
+      ${abonnementProPaye() && (NATIF || PRO_LIENS.portail) ? `<button type="button" class="btn btn-secondaire" onclick="gererAbonnementPro()">Gérer mon abonnement</button>
+      <p class="note pro-pied">${NATIF ? 'Changer de formule ou résilier : dans les abonnements de ton compte Apple.' : 'Changer de formule ou de carte, résilier : chez Stripe, notre prestataire de paiement.'}</p>` : ''}`;
     return;
   }
   const formule = (cle, titre, prix, sous, badge) => `<button type="button" class="pro-formule" role="radio" aria-checked="${formuleProChoisie === cle}" onclick="choisirFormulePro('${cle}')"><b>${titre}</b><span>${prix}</span>${sous ? `<small>${sous}</small>` : ''}${badge ? `<em>${badge}</em>` : ''}</button>`;
@@ -23566,24 +23928,34 @@ function renderPro(raison) {
     <p class="pro-accroche">Va plus loin dans ton suivi.</p>
     ${avantages}
     <div class="pro-formules" role="radiogroup" aria-label="Formule">
-      ${formule('an', 'Annuel', PRO_TARIFS.an + ' / an', 'soit ' + PRO_TARIFS.anParMois + ' / mois', PRO_TARIFS.remise)}
-      ${formule('mois', 'Mensuel', PRO_TARIFS.mois + ' / mois', 'sans engagement', '')}
+      ${formule('an', 'Annuel', prixPro('an') + ' / an', produitsApple ? '' : 'soit ' + PRO_TARIFS.anParMois + ' / mois', PRO_TARIFS.remise)}
+      ${formule('mois', 'Mensuel', prixPro('mois') + ' / mois', 'sans engagement', '')}
     </div>
-    <label class="pro-accord"><input type="checkbox" id="pro-accord"${accordPro ? ' checked' : ''} onchange="accordPro = this.checked; majBoutonPro()"> <span>J'accepte les <a href="cgv.html" target="_blank" rel="noopener">conditions de vente</a> et je demande l'accès immédiat à Pro.</span></label>
+    <label class="pro-accord seulement-web"><input type="checkbox" id="pro-accord"${accordPro ? ' checked' : ''} onchange="accordPro = this.checked; majBoutonPro()"> <span>J'accepte les <a href="cgv.html" target="_blank" rel="noopener">conditions de vente</a> et je demande l'accès immédiat à Pro.</span></label>
     <button type="button" class="btn btn-primary" id="pro-essai" onclick="commencerPro()" disabled></button>
     <p class="note pro-pied" id="pro-pied"></p>
-    <button type="button" class="lien-depliant pro-actualiser" onclick="actualiserPro()">Déjà abonné ? Actualiser</button>`;
+    <button type="button" class="lien-depliant pro-actualiser" onclick="${NATIF ? 'restaurerAchatsApple()' : 'actualiserPro()'}">${NATIF ? 'Restaurer mes achats' : 'Déjà abonné ? Actualiser'}</button>`;
   majBoutonPro();
+  if (NATIF && !produitsApple) chargerProduitsApple();
 }
 function choisirFormulePro(cle) { formuleProChoisie = cle; renderPro(); }
-function paiementProPret() { return !!(PRO_LIENS.an && PRO_LIENS.mois); }
+function paiementProPret() { return NATIF ? !!produitsApple : !!(PRO_LIENS.an && PRO_LIENS.mois); }
+function prixPro(cle) { return produitsApple && produitsApple[cle] ? produitsApple[cle].priceString : PRO_TARIFS[cle]; }
 function majBoutonPro() {
   const b = document.getElementById('pro-essai'), pied = document.getElementById('pro-pied');
   if (!b) return;
   const pret = paiementProPret();
   b.textContent = pret ? `Essayer ${PRO_TARIFS.essaiJours} jours gratuitement` : 'Paiement bientôt disponible';
-  b.disabled = !pret || !accordPro || !sessionUtilisateur;
-  const prix = formuleProChoisie === 'an' ? PRO_TARIFS.an + ' / an' : PRO_TARIFS.mois + ' / mois';
+  b.disabled = !pret || !(accordPro || NATIF) || !sessionUtilisateur;
+  const prix = formuleProChoisie === 'an' ? prixPro('an') + ' / an' : prixPro('mois') + ' / mois';
+  // App iOS : les mentions qu'Apple demande sous un abonnement (prix, renouvellement, résiliation, liens).
+  if (NATIF) {
+    pied.innerHTML = (pret
+      ? `${PRO_TARIFS.essaiJours} jours gratuits, puis ${prix}, payé avec ton compte Apple. L'abonnement se renouvelle tout seul sauf si tu le résilies au moins 24 h avant la fin de la période, dans Réglages › ton nom › Abonnements.`
+      : 'Le paiement arrive très bientôt.')
+      + ' <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" target="_blank" rel="noopener">Conditions d\'utilisation</a> · <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a>';
+    return;
+  }
   pied.innerHTML = (pret
     ? `${PRO_TARIFS.essaiJours} jours gratuits, puis ${prix}. Sans engagement : résiliable à tout moment, pendant l'essai aussi.`
     : 'Le paiement en ligne arrive très bientôt.') + ' <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a>';
@@ -23594,6 +23966,7 @@ function ouvrirPageStripe(url) {
   if (fenetre) { try { fenetre.opener = null; } catch (e) {} } else location.href = url;
 }
 function commencerPro() {
+  if (NATIF) { acheterProApple(); return; }
   const lien = PRO_LIENS[formuleProChoisie];
   if (!lien || !sessionUtilisateur || !accordPro) return;
   const url = new URL(lien);
@@ -23604,11 +23977,69 @@ function commencerPro() {
   ouvrirPageStripe(url.toString());
 }
 function gererAbonnementPro() {
+  if (NATIF) { appelNatif('NativePurchases', 'manageSubscriptions'); return; }
   if (!PRO_LIENS.portail) return;
   const url = new URL(PRO_LIENS.portail);
   if (sessionUtilisateur && sessionUtilisateur.email) url.searchParams.set('prefilled_email', sessionUtilisateur.email);
   ouvrirPageStripe(url.toString());
 }
+/* ---------- Achats Apple (app iOS) ----------
+   L'achat se fait par la feuille de paiement d'Apple ; appAccountToken relie
+   l'abonnement au compte Askēsis. La fonction serveur « achats-apple » le
+   vérifie chez Apple puis remplit la table abonnements : l'appli relit
+   ensuite son statut Pro comme pour Stripe. */
+async function chargerProduitsApple() {
+  if (!NATIF || !PRO_APPLE.an || !PRO_APPLE.mois) return;
+  const r = await appelNatif('NativePurchases', 'getProducts', { productIdentifiers: [PRO_APPLE.an, PRO_APPLE.mois], productType: 'subs' });
+  const liste = (r && r.products) || [];
+  const p = { an: liste.find(x => x.identifier === PRO_APPLE.an), mois: liste.find(x => x.identifier === PRO_APPLE.mois) };
+  if (p.an && p.mois) { produitsApple = p; if (document.getElementById('pro-contenu')) renderPro(); }
+}
+async function validerAchatApple(transactionId) {
+  if (!transactionId || !supa) return false;
+  const { data, error } = await supa.functions.invoke('achats-apple', { body: { transactionId: String(transactionId) } });
+  if (error) {
+    let corps = {};
+    try { corps = await error.context.json(); } catch (e) {}
+    throw Object.assign(new Error(corps.erreur || error.message), { code: corps.code });
+  }
+  await chargerAbonnementPro();
+  return !!(data && data.pro);
+}
+async function acheterProApple() {
+  const id = PRO_APPLE[formuleProChoisie];
+  if (!NATIF || !id || !sessionUtilisateur) return;
+  const b = document.getElementById('pro-essai');
+  if (b) { b.disabled = true; b.textContent = 'Paiement…'; }
+  try {
+    const t = await NATIF.NativePurchases.purchaseProduct({ productIdentifier: id, productType: 'subs', appAccountToken: sessionUtilisateur.id });
+    await validerAchatApple(t && t.transactionId);
+    if (estPro()) { fermerModal('pro-modal'); bienvenuePro(); return; }
+  } catch (e) {
+    // Fermer la feuille d'Apple n'est pas une erreur.
+    if (!/cancel|annul/i.test(String((e && (e.message || e.code)) || ''))) informer("Le paiement n'a pas abouti : " + ((e && e.message) || e));
+  }
+  renderPro();
+}
+async function restaurerAchatsApple() {
+  if (!NATIF) return;
+  try {
+    await NATIF.NativePurchases.restorePurchases();
+    const r = await NATIF.NativePurchases.getPurchases({ productType: 'subs', onlyCurrentEntitlements: true });
+    const achats = (r && r.purchases) || [];
+    let autreCompte = false;
+    for (const t of achats) {
+      try { await validerAchatApple(t.transactionId); } catch (e) { if (e.code === 'autre_compte') autreCompte = true; }
+    }
+    if (estPro()) { fermerModal('pro-modal'); bienvenuePro(); }
+    else informer(autreCompte ? 'Cet abonnement Apple est lié à un autre compte Askēsis : connecte-toi avec celui-là.' : 'Aucun abonnement Askēsis en cours sur ton compte Apple.');
+  } catch (e) { informer('Restauration impossible : ' + ((e && e.message) || e)); }
+}
+// Renouvellement ou achat terminé pendant que l'app est ouverte : on le fait vérifier.
+if (NATIF) {
+  try { Promise.resolve(NATIF.NativePurchases.addListener('transactionUpdated', t => { validerAchatApple(t && t.transactionId).catch(() => {}); })).catch(() => {}); } catch (e) {}
+}
+
 function bienvenuePro() {
   try { localStorage.removeItem(PRO_PAIEMENT_LS); } catch (e) {}
   celebrer('Bienvenue dans Pro', texteAbonnementPro(), 'eclair');
@@ -23793,6 +24224,161 @@ $$;
 drop trigger if exists nettoyer_pro on auth.users;
 create trigger nettoyer_pro after delete on auth.users for each row execute function public.nettoyer_pro();`;
 
+/* SQL « App iOS et App Store » : ce qu'Apple exige (suppression du compte
+   par la personne elle-même, signaler et bloquer dans Gymbro) et les
+   abonnements payés via Apple. Copiable depuis Administration › Réglages
+   techniques ; le guide ios-app/GUIDE_iOS.md (dépôt Anqa) y renvoie. */
+function copierSqlAppStore() {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(SQL_APP_STORE).catch(() => informer('Copie ce SQL :', { copie: SQL_APP_STORE }));
+  } else {
+    informer('Copie ce SQL :', { copie: SQL_APP_STORE });
+  }
+}
+const SQL_APP_STORE = `-- App iOS et App Store : suppression du compte par la personne elle-même,
+-- signaler et bloquer dans Gymbro, abonnements payés via Apple.
+-- À exécuter une fois dans l'éditeur SQL de Supabase, après les autres SQL.
+-- Idempotent : relancer ne casse rien. Aucune donnée existante n'est modifiée.
+
+-- 1) Supprimer mon compte : toutes les données de la personne, puis le compte.
+--    Les tables pas encore créées sont ignorées. Les photos de progression
+--    sont effacées avant, par l'appli (le stockage ne se vide pas en SQL).
+create or replace function public.supprimer_mon_compte()
+returns void language plpgsql security definer set search_path = public as $fn$
+declare
+  moi text := auth.uid()::text;
+  r record;
+begin
+  if moi is null then raise exception 'non_connecte'; end if;
+  -- Un abonnement Stripe en cours se résilie d'abord (sinon il continuerait d'être prélevé).
+  if to_regclass('public.abonnements') is not null and exists (
+    select 1 from abonnements where utilisateur = moi and abonnement_stripe is not null
+      and formule in ('mois', 'an') and statut in ('actif', 'essai')
+  ) then raise exception 'abonnement_actif'; end if;
+  for r in select * from (values
+      ('journees', 'utilisateur'), ('profil', 'utilisateur'), ('programmes_musculation', 'utilisateur'),
+      ('seances_musculation', 'utilisateur'), ('exercices_perso_musculation', 'utilisateur'),
+      ('recettes_perso', 'utilisateur'), ('recettes_supprimees', 'utilisateur'),
+      ('pseudos', 'utilisateur'), ('profils', 'utilisateur'),
+      ('gymbros_liens', 'demandeur'), ('gymbros_liens', 'cible'),
+      ('gymbros_respects', 'seance_utilisateur'), ('gymbros_respects', 'auteur'),
+      ('gymbros_bloques', 'auteur'), ('gymbros_bloques', 'cible'),
+      ('gymbros_signalements', 'auteur'), ('gymbros_signalements', 'cible'),
+      ('abonnements', 'utilisateur'), ('usages_ia', 'utilisateur'),
+      ('comptes_bloques', 'utilisateur'), ('journal_utilisateurs', 'utilisateur')
+    ) as t(nom, colonne)
+  loop
+    if to_regclass('public.' || r.nom) is not null then
+      execute format('delete from public.%I where %I = $1', r.nom, r.colonne) using moi;
+    end if;
+  end loop;
+  -- Aliments proposés à la base commune : ceux pas encore validés partent,
+  -- les validés restent pour tous, sans plus de lien avec le compte.
+  if to_regclass('public.aliments_partages') is not null then
+    begin
+      delete from aliments_partages where createur_id::text = moi and not coalesce(valide, false);
+    exception when others then null;
+    end;
+    begin
+      update aliments_partages set createur_id = null where createur_id::text = moi;
+    exception when others then null;
+    end;
+  end if;
+  delete from auth.users where id::text = moi;
+end;
+$fn$;
+revoke execute on function public.supprimer_mon_compte() from public, anon;
+grant execute on function public.supprimer_mon_compte() to authenticated;
+
+-- 2) Gymbro : bloquer et signaler.
+create table if not exists public.gymbros_bloques (
+  auteur  text not null,
+  cible   text not null,
+  cree_le timestamptz not null default now(),
+  primary key (auteur, cible)
+);
+alter table public.gymbros_bloques enable row level security;
+-- Pas de policy : on n'y passe que par les fonctions ci-dessous.
+
+create table if not exists public.gymbros_signalements (
+  id      bigserial primary key,
+  auteur  text not null,
+  cible   text not null,
+  motif   text check (motif is null or char_length(motif) <= 500),
+  cree_le timestamptz not null default now(),
+  traite  boolean not null default false
+);
+alter table public.gymbros_signalements enable row level security;
+drop policy if exists "signalements admin" on public.gymbros_signalements;
+create policy "signalements admin" on public.gymbros_signalements for all to authenticated
+  using (auth.jwt() ->> 'email' = '${ADMIN_EMAIL}') with check (auth.jwt() ->> 'email' = '${ADMIN_EMAIL}');
+
+create or replace function public.gymbro_bloquer(p_pseudo text)
+returns void language plpgsql security definer set search_path = public as $fn$
+declare
+  moi text := auth.uid()::text;
+  lui text;
+begin
+  if moi is null then raise exception 'non_connecte'; end if;
+  select utilisateur into lui from pseudos where lower(pseudo) = lower(p_pseudo);
+  if lui is null then raise exception 'pseudo_inconnu'; end if;
+  if lui = moi then raise exception 'soi_meme'; end if;
+  insert into gymbros_bloques (auteur, cible) values (moi, lui) on conflict do nothing;
+  delete from gymbros_liens where (demandeur = moi and cible = lui) or (demandeur = lui and cible = moi);
+end;
+$fn$;
+grant execute on function public.gymbro_bloquer(text) to authenticated;
+
+create or replace function public.gymbro_signaler(p_pseudo text, p_motif text)
+returns void language plpgsql security definer set search_path = public as $fn$
+declare
+  moi text := auth.uid()::text;
+  lui text;
+begin
+  if moi is null then raise exception 'non_connecte'; end if;
+  select utilisateur into lui from pseudos where lower(pseudo) = lower(p_pseudo);
+  if lui is null then raise exception 'pseudo_inconnu'; end if;
+  if lui = moi then raise exception 'soi_meme'; end if;
+  if (select count(*) from gymbros_signalements where auteur = moi and cree_le > now() - interval '1 day') >= 20 then
+    raise exception 'trop_de_signalements';
+  end if;
+  insert into gymbros_signalements (auteur, cible, motif) values (moi, lui, nullif(left(trim(coalesce(p_motif, '')), 500), ''));
+end;
+$fn$;
+grant execute on function public.gymbro_signaler(text, text) to authenticated;
+
+-- Une demande entre deux personnes dont l'une a bloqué l'autre est refusée.
+create or replace function public.gymbros_liens_sans_blocage()
+returns trigger language plpgsql security definer set search_path = public as $fn$
+begin
+  if exists (select 1 from gymbros_bloques b
+             where (b.auteur = new.demandeur and b.cible = new.cible) or (b.auteur = new.cible and b.cible = new.demandeur)) then
+    raise exception 'bloque';
+  end if;
+  return new;
+end;
+$fn$;
+do $$
+begin
+  if to_regclass('public.gymbros_liens') is not null then
+    drop trigger if exists gymbros_liens_sans_blocage on public.gymbros_liens;
+    create trigger gymbros_liens_sans_blocage before insert on public.gymbros_liens
+      for each row execute function public.gymbros_liens_sans_blocage();
+  end if;
+end $$;
+
+-- 3) Abonnements payés via Apple (fonction « achats-apple ») : d'où vient
+--    l'abonnement, et la transaction Apple d'origine (une par compte).
+do $$
+begin
+  if to_regclass('public.abonnements') is not null then
+    alter table public.abonnements add column if not exists source text;
+    alter table public.abonnements add column if not exists transaction_apple text;
+    create unique index if not exists abonnements_transaction_apple
+      on public.abonnements (transaction_apple) where transaction_apple is not null;
+  end if;
+end $$;`;
+
 function renderVitrineProfil() {
   const c = document.getElementById('vitrine-profil');
   if (!c) return;
@@ -23846,7 +24432,7 @@ function celebrer(titre, sous, icone) {
   z.classList.remove('visible'); void z.offsetWidth; z.classList.add('visible');
   clearTimeout(celebrer.minuteur);
   celebrer.minuteur = setTimeout(() => z.classList.remove('visible'), 3200);
-  try { if (navigator.vibrate) navigator.vibrate(30); } catch (e) {}
+  vibrer('succes');
 }
 /* Chiffres qui défilent jusqu'à leur valeur (depuis la précédente, ou 0
    pour un bloc qui vient d'être dessiné). Seul le premier nœud texte change :
@@ -25799,7 +26385,7 @@ function ajusterSerieSession(ei, si, champ, delta) {
   const champSaisie = document.getElementById(`serie-${champ}-${ei}_${si}`);
   if (champSaisie) champSaisie.value = v;
   majPaveSerie(ei, si);
-  try { if (navigator.vibrate) navigator.vibrate(4); } catch (e) {}
+  vibrer('selection');
 }
 function majPaveSerie(ei, si) {
   ['poids', 'reps'].forEach(champ => {
@@ -25863,6 +26449,7 @@ function basculerSerieSession(ei, si) {
     }
   }
   if (set.fait) {
+    vibrer('moyen');
     preparerSonRepos();
     delete reposSignales[clef];
     reposActifs[clef] = Date.now();
@@ -25899,6 +26486,7 @@ function enchainerExerciceSession(ei) {
 }
 function arreterRepos(ei, si) {
   delete reposActifs[ei + '_' + si];
+  majRappelsRepos();
   renderSessionModal();
 }
 /* Les minuteurs de repos ET le dépli des paliers sont tous deux indexés par
@@ -25968,7 +26556,7 @@ function preparerSonRepos() {
   try { audioRepos = audioRepos || new (window.AudioContext || window.webkitAudioContext)(); if (audioRepos.state === 'suspended') audioRepos.resume(); } catch (e) {}
 }
 function signalerFinRepos() {
-  try { if (navigator.vibrate) navigator.vibrate([120, 80, 120]); } catch (e) {}
+  vibrer('alerte');
   if (!audioRepos) return;
   try {
     [0, 0.18].forEach(t => {
@@ -26366,6 +26954,7 @@ window.addEventListener('load', () => {
   document.getElementById('bloc-sql-rls').textContent = sqlRls();
   document.getElementById('bloc-sql-gymbro').textContent = SQL_GYMBRO_PHOTOS;
   document.getElementById('bloc-sql-pro').textContent = SQL_PRO;
+  document.getElementById('bloc-sql-app-store').textContent = SQL_APP_STORE;
   retourPaiementPro();
   // Pas de synchroniser('démarrage') ici : la vérification de session est
   // asynchrone, donc juste après initAuth() sessionUtilisateur est encore

@@ -162,3 +162,89 @@ test('webhook Stripe : essai, paiement, résiliation, fin ; signature vérifiée
   await evenement(h, 'checkout.session.completed', { mode: 'subscription', client_reference_id: 'u-fondateur', subscription: 'sub_2' });
   assert.deepEqual([ligne('u-fondateur').formule, ligne('u-fondateur').statut, ligne('u-fondateur').fin, ligne('u-fondateur').client_stripe], ['fondateur', 'actif', null, 'cus_2']);
 });
+
+// Apple : une vraie clé ES256 de test et une fausse App Store Server API
+// (production, puis bac à sable), qui renvoie des JWS lisibles.
+const { generateKeyPairSync, verify: verifierSignature } = require('crypto');
+function cleAppleTest() {
+  const { privateKey, publicKey } = generateKeyPairSync('ec', { namedCurve: 'P-256' });
+  return { pem: privateKey.export({ type: 'pkcs8', format: 'pem' }), publicKey };
+}
+const jws = contenu => ['e30', Buffer.from(JSON.stringify(contenu)).toString('base64url'), 'signature'].join('.');
+function fausseApiApple(abonnements, journal) {
+  return async (url, o) => {
+    journal.push({ url: String(url), auth: o && o.headers && o.headers.Authorization });
+    const m = String(url).match(/^https:\/\/api\.storekit(-sandbox)?\.itunes\.apple\.com\/inApps\/v1\/subscriptions\/(\d+)$/);
+    const a = m && abonnements[m[2]];
+    if (!a || a.env !== (m[1] ? 'Sandbox' : 'Production')) return new Response('{}', { status: 404 });
+    return new Response(JSON.stringify({ bundleId: a.bundleId || 'com.jambou.askesis', data: [{ lastTransactions: [{
+      status: a.status, signedTransactionInfo: jws(a.transaction), signedRenewalInfo: jws(a.renouvellement || { autoRenewStatus: 1 }) }] }] }), { status: 200 });
+  };
+}
+const envApple = cle => ({ SUPABASE_URL: 'https://x.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'service', APPLE_IAP_KEY_ID: 'KEY123',
+  APPLE_IAP_ISSUER_ID: 'issuer-1', APPLE_IAP_PRIVATE_KEY: cle.pem, APPLE_BUNDLE_ID: 'com.jambou.askesis' });
+const achatApple = (h, jeton, corps) => h(new Request('https://x.supabase.co/functions/v1/achats-apple', {
+  method: 'POST', headers: jeton ? { Authorization: 'Bearer ' + jeton } : {}, body: JSON.stringify(corps)
+})).then(async r => ({ status: r.status, corps: await r.json() }));
+
+test('achats Apple : achat vérifié chez Apple et relié au compte ; jeton ES256 valide ; transaction d\'un autre compte refusée', async () => {
+  const base = fausseBase();
+  const cle = cleAppleTest(), journal = [];
+  const dans1an = Date.now() + 365 * 86400e3;
+  globalThis.fetch = fausseApiApple({
+    1000: { env: 'Production', status: 1, transaction: { transactionId: '1000', originalTransactionId: '900', productId: 'askesis.pro.an', expiresDate: dans1an, appAccountToken: 'U-LIBRE' } },
+    2000: { env: 'Sandbox', status: 1, transaction: { transactionId: '2000', originalTransactionId: '1900', productId: 'askesis.pro.mois', expiresDate: dans1an, appAccountToken: 'u-pro', offerType: 1, offerDiscountType: 'FREE_TRIAL' } }
+  }, journal);
+  const h = await chargerFonction('achats-apple', envApple(cle), base);
+  const r = await achatApple(h, 'jeton-libre', { transactionId: '1000' });
+  assert.deepEqual([r.status, r.corps.pro, r.corps.statut], [200, true, 'actif']);
+  const ligne = base.tables.abonnements.find(l => l.utilisateur === 'u-libre');
+  assert.deepEqual([ligne.formule, ligne.source, ligne.transaction_apple], ['an', 'apple', '900']);
+  // Le jeton envoyé à Apple : un JWT ES256 que la clé publique vérifie.
+  const [e, c, s] = journal[0].auth.replace('Bearer ', '').split('.');
+  assert.deepEqual(JSON.parse(Buffer.from(e, 'base64url')), { alg: 'ES256', kid: 'KEY123', typ: 'JWT' });
+  const charge = JSON.parse(Buffer.from(c, 'base64url'));
+  assert.deepEqual([charge.iss, charge.aud, charge.bid], ['issuer-1', 'appstoreconnect-v1', 'com.jambou.askesis']);
+  assert.ok(charge.exp - charge.iat <= 3600);
+  assert.ok(verifierSignature('sha256', Buffer.from(e + '.' + c), { key: cle.publicKey, dsaEncoding: 'ieee-p1363' }, Buffer.from(s, 'base64url')));
+  // Bac à sable (TestFlight) après un 404 en production ; essai gratuit.
+  const r2 = await achatApple(h, 'jeton-pro', { transactionId: '2000' });
+  assert.deepEqual([r2.status, r2.corps.statut], [200, 'essai']);
+  assert.ok(journal.some(j => /storekit-sandbox/.test(j.url)));
+  // La transaction de quelqu'un d'autre : refusée, rien d'écrit.
+  const avant = JSON.stringify(base.tables.abonnements);
+  assert.equal((await achatApple(h, 'jeton-pro', { transactionId: '1000' })).status, 403);
+  assert.equal(JSON.stringify(base.tables.abonnements), avant);
+  // Sans connexion, transaction farfelue, transaction inconnue chez Apple.
+  assert.equal((await achatApple(h, null, { transactionId: '1000' })).status, 401);
+  assert.equal((await achatApple(h, 'jeton-libre', { transactionId: 'abc' })).status, 400);
+  assert.equal((await achatApple(h, 'jeton-libre', { transactionId: '555' })).status, 404);
+});
+
+test('achats Apple : notifications d\'Apple (résiliation, expiration) ; un fondateur le reste ; serveur non configuré', async () => {
+  const base = fausseBase();
+  const cle = cleAppleTest(), journal = [];
+  base.tables.abonnements.push({ utilisateur: 'u-fondateur', formule: 'fondateur', statut: 'actif', fin: null });
+  const abonnements = { 1000: { env: 'Production', status: 1, renouvellement: { autoRenewStatus: 0 },
+    transaction: { transactionId: '1000', originalTransactionId: '900', productId: 'askesis.pro.mois', expiresDate: Date.now() + 20 * 86400e3, appAccountToken: 'u-libre' } } };
+  globalThis.fetch = fausseApiApple(abonnements, journal);
+  const h = await chargerFonction('achats-apple', envApple(cle), base);
+  const notifier = id => h(new Request('https://x.supabase.co/functions/v1/achats-apple', { method: 'POST',
+    body: JSON.stringify({ signedPayload: jws({ notificationType: 'DID_CHANGE_RENEWAL_STATUS', data: { signedTransactionInfo: jws({ transactionId: id }) } }) }) })).then(r => r.status);
+  const statut = u => base.tables.abonnements.find(l => l.utilisateur === u).statut;
+  assert.equal(await notifier('1000'), 200);
+  assert.equal(statut('u-libre'), 'annule'); // renouvellement coupé : Pro jusqu'à la fin de la période
+  abonnements[1000].status = 2;
+  assert.equal(await notifier('1000'), 200);
+  assert.equal(statut('u-libre'), 'expire');
+  // Un fondateur qui s'abonne quand même via Apple reste fondateur.
+  abonnements[3000] = { env: 'Production', status: 1, transaction: { transactionId: '3000', originalTransactionId: '2900', productId: 'askesis.pro.an', expiresDate: Date.now() + 86400e3, appAccountToken: 'u-fondateur' } };
+  assert.equal((await achatApple(h, 'jeton-fondateur', { transactionId: '3000' })).status, 200);
+  const f = base.tables.abonnements.find(l => l.utilisateur === 'u-fondateur');
+  assert.deepEqual([f.formule, f.transaction_apple], ['fondateur', '2900']);
+  // Clé Apple pas encore posée sur le serveur : 503, Apple n'est pas appelé.
+  const h2 = await chargerFonction('achats-apple', { ...envApple(cle), APPLE_IAP_PRIVATE_KEY: '' }, base);
+  const n = journal.length;
+  assert.equal((await achatApple(h2, 'jeton-libre', { transactionId: '1000' })).status, 503);
+  assert.equal(journal.length, n);
+});

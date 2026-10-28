@@ -7,6 +7,11 @@ l'appli fonctionne exactement comme avant : rien n'est verrouillé.** Chaque
 étape s'active toute seule, sans nouvelle mise à jour de l'appli, sauf
 l'étape 4 (les liens de paiement à mettre dans `index.html`).
 
+Dans l'**app iOS**, Pro se paie via Apple (achats intégrés, obligatoire sur
+l'App Store) : voir `ios-app/GUIDE_iOS.md` dans le dépôt Anqa, étapes 4 et 5.
+Stripe reste le paiement du site web ; les deux remplissent la même table
+`abonnements`.
+
 Ce qui est réservé à Pro :
 
 - l'IA au-delà de **3 essais par mois** (photo d'un repas, programme sur

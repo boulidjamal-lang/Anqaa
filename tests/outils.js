@@ -43,6 +43,7 @@ async function ouvrirAppli(navigateur, options = {}) {
   // La proposition « installer sur l'écran d'accueil » s'ouvre 1,2 s après
   // le démarrage et masquerait les boutons : on la marque comme déjà vue.
   await ctx.addInitScript(() => { try { localStorage.setItem('installPopupVu', String(Date.now())); } catch (e) {} });
+  if (options.natif) await ctx.addInitScript(installerFauxNatif);
   const page = await ctx.newPage();
   const erreurs = [];
   const dialogues = [];
@@ -56,6 +57,26 @@ async function ouvrirAppli(navigateur, options = {}) {
   await page.waitForTimeout(800);
   await preparer(page, options.theme);
   return { page, ctx, erreurs, dialogues };
+}
+
+/* Faux iPhone : window.AppNatif comme dans l'app iOS (dépôt Anqa,
+   ios-app/src/natif.js). Chaque appel d'un module est noté dans
+   window.__appelsNatifs ([module, méthode, options]) ; les réponses viennent
+   de window.__reponsesNatives (« Module.methode » → valeur ou fonction). */
+function installerFauxNatif() {
+  window.__appelsNatifs = [];
+  window.__reponsesNatives = window.__reponsesNatives || {};
+  const module = nom => new Proxy({}, {
+    get: (cible, methode) => options => {
+      window.__appelsNatifs.push([nom, methode, options === undefined ? null : JSON.parse(JSON.stringify(options))]);
+      const r = window.__reponsesNatives[nom + '.' + methode];
+      try { return Promise.resolve(typeof r === 'function' ? r(options) : (r === undefined ? {} : r)); } catch (e) { return Promise.reject(e); }
+    }
+  });
+  const natif = { plateforme: 'ios', version: 'test', disponible: () => true };
+  ['App', 'Browser', 'Filesystem', 'Haptics', 'Keyboard', 'LocalNotifications', 'ScreenOrientation', 'Share', 'SplashScreen',
+    'StatusBar', 'KeepAwake', 'CapacitorBarcodeScanner', 'Health', 'NativePurchases'].forEach(n => { natif[n] = module(n); });
+  window.AppNatif = natif;
 }
 
 async function preparer(page, theme) {
