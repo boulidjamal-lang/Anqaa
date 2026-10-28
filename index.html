@@ -2817,7 +2817,8 @@
 
     /* Célébration (record, badge, niveau) */
     .celebration { position: fixed; left: 50%; top: calc(12px + env(safe-area-inset-top, 0px)); z-index: 3000; width: min(92vw, 380px); pointer-events: none;
-      transform: translate(-50%, -160%); transition: transform .55s cubic-bezier(.2,1.35,.3,1); }
+      /* Caché : remonté de toute sa hauteur plus l'encoche, sinon son bas dépasse sous l'heure des grands iPhone. */
+      transform: translate(-50%, calc(-100% - 40px - env(safe-area-inset-top, 0px))); transition: transform .55s cubic-bezier(.2,1.35,.3,1); }
     .celebration.visible { transform: translate(-50%, 0); }
     .celebration-carte { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 16px 12px 12px; border-radius: 22px; background: var(--carte-plein);
       box-shadow: 0 22px 50px -14px rgba(0,0,0,.5), inset 0 0 0 1px var(--trait); }
