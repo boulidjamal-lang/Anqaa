@@ -983,7 +983,7 @@ test("Gymbros : rangée d'Activité, record du fil, classement de la semaine, li
     res.face = !!document.querySelector('#gymbro-comparaison .gface .gface-vs');
     return res;
   });
-  assert.deepEqual(r.noms, ['Inviter', '@lea', '@carl', '@alice']);
+  assert.deepEqual(r.noms, ['Ajouter', '@lea', '@carl', '@alice']);
   assert.deepEqual(r.sous, ['Nouveau', 'Push · auj.', 'il y a 10 j']);
   assert.equal(r.anneaux, 1, "anneau pour qui s'est entraîné aujourd'hui");
   assert.ok(r.profil, 'la rangée est aussi dans le Profil');
@@ -3182,7 +3182,7 @@ test('Gymbro en direct : anneau vert, « En ce moment » dans le fil, sa séance
     res.anneauApres = document.querySelectorAll('#gymbros-rangee .gav--direct').length;
     return res;
   });
-  assert.deepEqual(r.rangee, ['Inviter', '@karim', '@ines'], "en séance : en tête de la rangée");
+  assert.deepEqual(r.rangee, ['Ajouter', '@karim', '@ines'], "en séance : en tête de la rangée");
   assert.equal(r.sous[0], 'En séance');
   assert.equal(r.anneau, 1);
   assert.deepEqual(r.sections, ['En ce moment']);
@@ -3447,4 +3447,69 @@ test("Séance à deux depuis une séance libre : l'invitation arrive même sans 
   assert.deepEqual(r.apres, [true]);
   assert.deepEqual(r.ligne, ['60kg×10']);
   assert.ok(!r.ajouterApres, 'plus rien à ajouter');
+}));
+
+test("Ajouter un gymbro par son nom d'utilisateur : le + de la rangée ouvre la recherche, Ajouter et Accepter en un geste", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const appels = [];
+    let liens = [{ pseudo: 'lea', sens: 'recue', statut: 'attente' }, { pseudo: 'karim', sens: 'envoyee', statut: 'acceptee' }];
+    const tous = [{ pseudo: 'sofiane.fit', partage_seances: true }, { pseudo: 'sophie', partage_seances: false }, { pseudo: 'lea', partage_seances: true }, { pseudo: 'karim', partage_seances: true }];
+    const reponse = data => ({ then: (ok, ko) => Promise.resolve({ data, error: null }).then(ok, ko) });
+    let motif = '';
+    const chaine = { select: () => chaine, ilike: (c, m) => { motif = m; return chaine; }, neq: () => chaine, order: () => chaine,
+      limit: () => reponse(tous.filter(x => x.pseudo.startsWith(motif.replace('%', '')))) };
+    supa = {
+      rpc: (nom, args) => {
+        appels.push([nom, args]);
+        if (nom === 'gymbro_mes_liens') return reponse(liens);
+        if (nom === 'gymbro_demander') { liens.push({ pseudo: args.p_pseudo, sens: 'envoyee', statut: 'attente' }); return reponse('attente'); }
+        if (nom === 'gymbro_repondre') { liens = liens.map(l => l.pseudo === args.p_pseudo ? { ...l, statut: 'acceptee' } : l); return reponse('acceptee'); }
+        return reponse([]);
+      },
+      from: () => chaine
+    };
+    sessionUtilisateur = { id: 'moi', email: 'moi@x.fr' };
+    monPseudo = { pseudo: 'jamal', partage_seances: true };
+    await chargerLiensGymbro();
+    allerA('seance');
+    const res = {};
+    const plus = document.querySelector('#gymbros-rangee .gst');
+    res.plus = plus.querySelector('small').textContent;
+    plus.click();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.onglet = gymbroOnglet;
+    res.focus = document.activeElement && document.activeElement.id;
+    res.monNom = document.getElementById('gymbro-mon-nom').textContent;
+    const lignes = () => [...document.querySelectorAll('#gymbro-resultats .grech-res')].map(x => [x.querySelector('b').textContent, x.querySelector('.gbtn').textContent.trim()]);
+    await lancerRechercheGymbro('@So');
+    res.avant = lignes();
+    document.querySelector('#gymbro-resultats .grech-res .gbtn').click();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.demande = appels.find(a => a[0] === 'gymbro_demander');
+    res.apres = lignes();
+    await lancerRechercheGymbro('le');
+    document.querySelector('#gymbro-resultats .grech-res .gbtn').click();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.accepte = appels.find(a => a[0] === 'gymbro_repondre');
+    res.lea = lignes();
+    await lancerRechercheGymbro('ka');
+    res.karim = lignes();
+    res.sections = [...document.querySelectorAll('#gymbro-favoris > p')].map(p => p.textContent);
+    // Depuis « S'entraîner ensemble » aussi.
+    fermerModal('gymbro-modal');
+    res.lienDuo = document.querySelector('#duo-inviter-modal .duo-ajout-lien').textContent;
+    return res;
+  });
+  assert.equal(r.plus, 'Ajouter');
+  assert.equal(r.onglet, 'mes');
+  assert.equal(r.focus, 'gymbro-recherche', 'le clavier s\'ouvre sur la recherche');
+  assert.equal(r.monNom, 'Ou dis-lui de te chercher : @jamal');
+  assert.deepEqual(r.avant, [['@sofiane.fit', 'Ajouter'], ['@sophie', 'Ajouter']]);
+  assert.deepEqual(r.demande, ['gymbro_demander', { p_pseudo: 'sofiane.fit' }]);
+  assert.deepEqual(r.apres, [['@sofiane.fit', 'Envoyée ✓'], ['@sophie', 'Ajouter']]);
+  assert.deepEqual(r.accepte, ['gymbro_repondre', { p_pseudo: 'lea', p_accepter: true }]);
+  assert.deepEqual(r.lea, [['@lea', 'Gymbro ✓']]);
+  assert.deepEqual(r.karim, [['@karim', 'Gymbro ✓']]);
+  assert.deepEqual(r.sections, ['Tes gymbros · 2', 'Demande envoyée']);
+  assert.match(r.lienDuo, /Ajouter un gymbro par son nom d'utilisateur/);
 }));

@@ -3728,6 +3728,17 @@
     .gbtn--ok { background: linear-gradient(135deg, #059669, #0891b2); color: #fff; }
     .gbtn--non { padding: 0 13px; background: var(--piste); color: var(--text); }
     html:root .grech { margin: 0 0 8px; }
+    .gb-sec.gb-sec--haut { margin-top: 0; }
+    .grech-res { padding: 8px 10px 8px 8px; }
+    .grech-qui { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+    .grech-qui > span:last-child { min-width: 0; display: grid; gap: 1px; }
+    .grech-qui b, .grech-qui small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .grech-qui b { font-size: .9rem; }
+    .grech-qui small { font-size: .76rem; color: var(--text-muted); }
+    .gbtn--fait { cursor: default; color: var(--text-muted); }
+    #gymbro-resultats:not(:empty) { margin-bottom: 12px; }
+    .duo-ajout-lien { display: block; width: 100%; margin: 10px 0 0; padding: 14px 0 2px; border: 0; border-top: 1px solid var(--trait); background: none;
+      color: var(--text); font: 700 .86rem 'Inter', sans-serif; text-align: left; cursor: pointer; }
     .gdem { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; padding: 10px 12px; border-radius: 18px; background: var(--carte-plein); box-shadow: 0 0 0 1px var(--trait); }
     .gdem > div { flex: 1; min-width: 0; }
     .gdem b { display: block; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; }
@@ -6254,15 +6265,16 @@
       <div id="gymbro-vue-fil"><div id="fil-gymbros"></div></div>
       <div id="gymbro-vue-classement" class="hidden"></div>
       <div id="gymbro-vue-recherche" class="hidden">
-        <div class="ginvite">
-          <div><b>Invite un ami</b><small>Il ouvre ton lien, ta fiche s'affiche : un geste et vous êtes gymbros.</small></div>
-          <button type="button" class="gbtn" onclick="partagerLienGymbro()">Partager le lien</button>
-        </div>
+        <p class="gb-sec gb-sec--haut">Ajouter un gymbro</p>
         <div class="input-group grech">
           <label for="gymbro-recherche" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Nom d'utilisateur</label>
-          <input type="search" id="gymbro-recherche" placeholder="@ Chercher un nom d'utilisateur…" autocapitalize="none" spellcheck="false" autocomplete="off" oninput="rechercherGymbro(this.value)">
+          <input type="search" id="gymbro-recherche" placeholder="@ Son nom d'utilisateur…" autocapitalize="none" spellcheck="false" autocomplete="off" oninput="rechercherGymbro(this.value)">
         </div>
         <div id="gymbro-resultats"></div>
+        <div class="ginvite">
+          <div><b>Ou envoie-lui ton lien</b><small id="gymbro-mon-nom">Il l'ouvre, ta fiche s'affiche : un geste et vous êtes gymbros.</small></div>
+          <button type="button" class="gbtn" onclick="partagerLienGymbro()">Partager</button>
+        </div>
         <div id="gymbro-favoris"></div>
       </div>
     </div>
@@ -6279,6 +6291,7 @@
     </div>
     <p class="note duo-note" id="duo-inviter-note"></p>
     <div class="duo-amis" id="duo-inviter-liste"></div>
+    <button type="button" class="duo-ajout-lien" onclick="fermerModal('duo-inviter-modal'); ouvrirAjoutGymbro()">+ Ajouter un gymbro par son nom d'utilisateur</button>
   </div>
 </div>
 <div id="duo-rejoindre-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="duo-rejoindre-titre">
@@ -14671,7 +14684,7 @@ function rangeeGymbrosHTML() {
   const recues = demandesGymbroRecues();
   const acceptes = gymbroLiens.filter(l => l.statut === 'acceptee').map(l => ({ pseudo: l.pseudo, d: derniereSeanceGymbro(l.pseudo), direct: directVisibleDe(l.pseudo) }))
     .sort((a, b) => (!!b.direct - !!a.direct) || (b.d ? b.d.date : '').localeCompare(a.d ? a.d.date : '') || a.pseudo.localeCompare(b.pseudo));
-  const bulles = [`<button type="button" class="gst" onclick="partagerLienGymbro()"><span class="gav gav--inviter" style="--t:56px"><i aria-hidden="true">+</i></span><small>Inviter</small></button>`]
+  const bulles = [`<button type="button" class="gst" onclick="ouvrirAjoutGymbro()" aria-label="Ajouter un gymbro par son nom d'utilisateur ou par un lien"><span class="gav gav--inviter" style="--t:56px"><i aria-hidden="true">+</i></span><small>Ajouter</small></button>`]
     .concat(recues.map(l => `<button type="button" class="gst" onclick="ouvrirGymbro('mes')" aria-label="@${escapeHtml(l.pseudo)} veut être ton gymbro">${bulleGymbro(l.pseudo, 56)}<small>@${escapeHtml(l.pseudo)}</small><em class="nouv">Nouveau</em></button>`))
     .concat(acceptes.map(({ pseudo, d, direct }) => direct
       ? `<button type="button" class="gst" onclick="ouvrirDirectGymbro(${argJs(pseudo)})" aria-label="@${escapeHtml(pseudo)} est en séance : la suivre en direct">${bulleGymbro(pseudo, 56, 'direct')}<small>@${escapeHtml(pseudo)}</small><em class="gst-direct"><i class="point-direct" aria-hidden="true"></i>En séance</em></button>`
@@ -14981,6 +14994,8 @@ function majPastilleGymbro() {
    séance), demandes envoyées. */
 function renderGymbrosFavoris() {
   const c = document.getElementById('gymbro-favoris');
+  const monNom = document.getElementById('gymbro-mon-nom');
+  if (monNom) monNom.textContent = monPseudo ? `Ou dis-lui de te chercher : @${monPseudo.pseudo}` : "Il l'ouvre, ta fiche s'affiche : un geste et vous êtes gymbros.";
   const titre = t => `<p class="gb-sec">${t}</p>`;
   const auj = todayStr();
   const ligne = (p, sous, anneau) => `<button type="button" class="gli" onclick="comparerGymbro(${argJs(p)})">${bulleGymbro(p, 42, anneau)}
@@ -15839,7 +15854,7 @@ function renderFilGymbros() {
     const acceptes = gymbroLiens.filter(l => l.statut === 'acceptee').length;
     html += `<div class="gvide"><b>${acceptes ? 'Rien de neuf pour l’instant' : 'Ton fil est vide'}</b>
       <p>${acceptes ? 'Aucune séance partagée par tes gymbros ces 14 derniers jours.' : 'Ajoute des gymbros pour voir leurs séances ici et les encourager.'}</p>
-      <button type="button" class="gbtn gbtn--ok" onclick="choisirOngletGymbro('mes')">${acceptes ? 'Mes gymbros' : 'Inviter un ami'}</button></div>`;
+      <button type="button" class="gbtn gbtn--ok" onclick="${acceptes ? "choisirOngletGymbro('mes')" : 'ouvrirAjoutGymbro()'}">${acceptes ? 'Mes gymbros' : 'Ajouter un gymbro'}</button></div>`;
   } else if (filGymbros.length) {
     const auj = todayStr();
     html += filGymbros.slice(0, filGymbrosVisibles).map((f, i) => {
@@ -16017,7 +16032,7 @@ function rechercherGymbro(v) {
 async function lancerRechercheGymbro(v) {
   const c = document.getElementById('gymbro-resultats');
   const q = normaliserPseudo(v);
-  if (q.length < 2) { c.innerHTML = ''; return; }
+  if (q.length < 2) { c.innerHTML = ''; resultatsRechercheGymbro = null; return; }
   if (!supa || !sessionUtilisateur) { c.innerHTML = '<p class="note">Connecte-toi pour chercher un gymbro.</p>'; return; }
   c.innerHTML = '<p class="note">Recherche…</p>';
   try {
@@ -16025,19 +16040,69 @@ async function lancerRechercheGymbro(v) {
     const { data, error } = await supa.from('pseudos').select('pseudo,partage_seances')
       .ilike('pseudo', motif).neq('utilisateur', sessionUtilisateur.id).order('pseudo').limit(12);
     if (error) throw error;
-    c.innerHTML = (data && data.length)
-      ? data.map(r => `<button type="button" class="exo-ligne" onclick="comparerGymbro(${argJs(r.pseudo)})">
-          <span style="flex:1; min-width:0;"><span class="exo-ligne-nom">@${escapeHtml(r.pseudo)}</span>
-          <span class="exo-ligne-meta">${escapeHtml(etatRechercheGymbro(r))}</span></span></button>`).join('')
-      : '<p class="note">Aucun utilisateur ne commence par « ' + escapeHtml(q) + ' ».</p>';
+    resultatsRechercheGymbro = { q, lignes: (data || []).filter(r => r && typeof r.pseudo === 'string' && r.pseudo) };
+    afficherRechercheGymbro();
   } catch (e) {
     c.innerHTML = `<div class="error-box">${escapeHtml(estErreurSqlManquant(e) ? MESSAGE_SQL_MANQUANT : 'Erreur : ' + (e.message || e))}</div>`;
   }
 }
+/* Une ligne par nom trouvé : sa fiche au toucher, et l'action directe à
+   droite (Ajouter, Accepter), sans repasser par la fiche. */
+let resultatsRechercheGymbro = null;
+function afficherRechercheGymbro() {
+  const c = document.getElementById('gymbro-resultats');
+  const res = resultatsRechercheGymbro;
+  if (!c || !res) return;
+  const action = r => {
+    if (!gymbroLiensActifs) return '<span class="gchev" aria-hidden="true">›</span>';
+    const l = lienGymbro(r.pseudo);
+    const qui = escapeHtml(r.pseudo);
+    if (!l) return `<button type="button" class="gbtn gbtn--ok" onclick="ajouterGymbroRecherche(${argJs(r.pseudo)}, this)" aria-label="Ajouter @${qui} comme gymbro">Ajouter</button>`;
+    if (l.statut === 'acceptee') return '<span class="gbtn gbtn--non gbtn--fait">Gymbro ✓</span>';
+    if (l.sens === 'recue') return `<button type="button" class="gbtn gbtn--ok" onclick="accepterGymbroRecherche(${argJs(r.pseudo)}, this)" aria-label="Accepter @${qui}">Accepter</button>`;
+    return '<span class="gbtn gbtn--non gbtn--fait">Envoyée ✓</span>';
+  };
+  c.innerHTML = res.lignes.length
+    ? res.lignes.map(r => `<div class="gdem grech-res"><button type="button" class="grech-qui" onclick="comparerGymbro(${argJs(r.pseudo)})">${bulleGymbro(r.pseudo, 40)}
+        <span><b>@${escapeHtml(r.pseudo)}</b><small>${escapeHtml(etatRechercheGymbro(r))}</small></span></button>${action(r)}</div>`).join('')
+    : '<p class="note">Aucun utilisateur ne commence par « ' + escapeHtml(res.q) + ' ».</p>';
+}
+async function ajouterGymbroRecherche(pseudo, bouton) {
+  if (!supa || !sessionUtilisateur) return;
+  if (bouton) { bouton.disabled = true; bouton.textContent = '…'; }
+  try {
+    const { error } = await supa.rpc('gymbro_demander', { p_pseudo: pseudo });
+    if (error) throw error;
+    userProfile.gymbros = (userProfile.gymbros || []).filter(p => p.toLowerCase() !== pseudo.toLowerCase());
+    saveData();
+    vibrer('leger');
+  } catch (e) { alert(messageErreurGymbro(e)); }
+  await chargerLiensGymbro();
+  renderGymbrosFavoris();
+  afficherRechercheGymbro();
+}
+async function accepterGymbroRecherche(pseudo, bouton) {
+  if (!supa || !sessionUtilisateur) return;
+  if (bouton) { bouton.disabled = true; bouton.textContent = '…'; }
+  try {
+    const { error } = await supa.rpc('gymbro_repondre', { p_pseudo: pseudo, p_accepter: true });
+    if (error) throw error;
+    vibrer('succes');
+  } catch (e) { alert(messageErreurGymbro(e)); }
+  await chargerLiensGymbro();
+  renderGymbrosFavoris();
+  afficherRechercheGymbro();
+}
+// « + » de la rangée, fil vide, « S'entraîner ensemble » : droit à la recherche par nom.
+function ouvrirAjoutGymbro() {
+  ouvrirGymbro('mes');
+  const champ = document.getElementById('gymbro-recherche');
+  if (champ) champ.focus();
+}
 function etatRechercheGymbro(r) {
   if (!gymbroLiensActifs) return r.partage_seances ? 'Comparer nos séances et nos charges' : 'Séances non partagées';
   const l = lienGymbro(r.pseudo);
-  if (!l) return 'Envoyer une demande de gymbro';
+  if (!l) return 'Pas encore gymbro';
   if (l.statut === 'acceptee') return r.partage_seances ? 'Gymbro · comparer nos séances' : 'Gymbro · séances non partagées';
   return l.sens === 'recue' ? 'Te demande d\'être son gymbro' : 'Demande envoyée, en attente';
 }
