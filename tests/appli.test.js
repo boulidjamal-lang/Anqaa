@@ -3388,3 +3388,63 @@ test("Séance à deux, côté invité : l'invitation sur n'importe quel écran, 
   assert.equal(r.ecran, 'seance');
   assert.ok(r.bandeau, "l'invitation disparaît une fois acceptée");
 }));
+
+test("Séance à deux depuis une séance libre : l'invitation arrive même sans exercice, ses exercices s'ajoutent d'un geste", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const appels = [];
+    const reponse = data => ({ then: (ok, ko) => Promise.resolve({ data, error: null }).then(ok, ko) });
+    const exo = toutesLesExercices().find(e => e.nom === 'Développé couché avec barre');
+    const debut = Date.now() - 2 * 60000;
+    const programme = { nom: 'Séance libre', debut, ex: [] };
+    const etat = { duos: [{ id: 'd-7', pseudo: 'jamal', statut: 'attente', hote: false, programme, cree_le: new Date().toISOString() }],
+      direct: [{ pseudo: 'jamal', maj: new Date().toISOString(), donnees: { v: 1, nom: 'Séance libre', debut, ex: [] } }] };
+    supa = {
+      rpc: (nom, args) => {
+        appels.push([nom, JSON.parse(JSON.stringify(args || null))]);
+        if (nom === 'gymbro_mes_liens') return reponse([{ pseudo: 'jamal', sens: 'recue', statut: 'acceptee' }]);
+        if (nom === 'gymbro_direct') return reponse(etat);
+        if (nom === 'duo_repondre') return reponse(programme);
+        if (nom === 'direct_publier') return reponse([]);
+        return reponse([]);
+      },
+      from: () => ({ select: () => reponse(null) })
+    };
+    sessionUtilisateur = { id: 'moi', email: 'moi@x.fr' };
+    monPseudo = { pseudo: 'karim', partage_seances: true };
+    allerA('repas');
+    await chargerLiensGymbro();
+    await chargerDirect(true);
+    const res = {};
+    const b = document.getElementById('duo-invitation');
+    res.visible = !b.classList.contains('hidden');
+    res.texte = [...b.querySelectorAll('b, small')].map(x => x.textContent.trim());
+    b.click();
+    res.tete = document.querySelector('#duo-rejoindre-corps .duo-rj-tete b').textContent;
+    res.note = document.querySelector('#duo-rejoindre-corps .duo-note').textContent;
+    document.querySelector('#duo-rejoindre-modal .btn-primary').click();
+    await new Promise(ok => setTimeout(ok, 80));
+    const s = musculationSessionActive;
+    res.seance = s && { nom: s.programmeNom, exercices: s.exercices.length, duo: s.duo && s.duo.statut };
+    // Jamal ajoute un exercice : je peux l'ajouter d'un geste, et sa ligne apparaît dessous.
+    etat.duos[0].statut = 'acceptee';
+    etat.direct[0].donnees.ex = [{ id: exo.id, nom: exo.nom, n: 3, s: [[60, 10, 0], null, null] }];
+    await chargerDirect(true);
+    const ajouter = document.querySelector('#session-duo .duo-ajouter');
+    res.ajouter = ajouter && ajouter.textContent.replace(/\s+/g, ' ').trim();
+    ajouter.click();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.apres = musculationSessionActive.exercices.map(e => e.exerciceId === exo.id);
+    res.ligne = [...document.querySelectorAll('#session-exercices-container .duo-ligne .direct-chip')].map(x => x.textContent.trim());
+    res.ajouterApres = !!document.querySelector('#session-duo .duo-ajouter');
+    return res;
+  });
+  assert.ok(r.visible, "l'invitation d'une séance libre vide s'affiche");
+  assert.deepEqual(r.texte, ["@jamal t'invite à sa séance", "Séance libre · à l'instant"]);
+  assert.equal(r.tete, 'Séance libre');
+  assert.match(r.note, /Pas encore d'exercice/);
+  assert.deepEqual(r.seance, { nom: 'Séance libre', exercices: 0, duo: 'acceptee' });
+  assert.equal(r.ajouter, '+ Ajouter son exercice : Développé couché avec barre');
+  assert.deepEqual(r.apres, [true]);
+  assert.deepEqual(r.ligne, ['60kg×10']);
+  assert.ok(!r.ajouterApres, 'plus rien à ajouter');
+}));

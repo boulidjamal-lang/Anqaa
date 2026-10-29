@@ -3629,6 +3629,11 @@
     .duo-invit-t b { font-size: .86rem; }
     .duo-invit-t small { font-size: .74rem; opacity: .68; }
     .duo-invit-ok { flex: none; display: grid; place-items: center; height: 40px; padding: 0 16px; border-radius: 99px; background: var(--vert-direct); color: #052e14; font: 800 .86rem 'Inter', sans-serif; }
+    .duo-invit-carte { display: flex; align-items: center; gap: 11px; width: 100%; margin: 0 0 12px; padding: 9px; border: 0; border-radius: 22px;
+      background: var(--inv); color: var(--sur-inv); font: inherit; text-align: left; cursor: pointer; --gav-fond: var(--inv); }
+    .duo-ajouter { display: flex; width: 100%; margin: -6px 0 14px; padding: 11px 14px; border: 0; border-radius: 14px; cursor: pointer;
+      background: color-mix(in srgb, var(--vert-direct) 14%, var(--piste)); color: var(--text); font: 700 .84rem 'Inter', sans-serif; text-align: left; }
+    .duo-ajouter span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .duo-rj-tete { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; }
     .duo-rj-tete b { display: block; font: 800 1.08rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; }
     .duo-rj-tete small { display: flex; align-items: center; gap: 8px; margin-top: 3px; font-size: .78rem; color: var(--text-muted); }
@@ -15038,7 +15043,7 @@ function nouveauxRespects() { return respectsRecus.filter(r => r.quand > (Number
      mêmes exercices avec SES charges, et chacun voit les séries de l'autre
      sous chaque exercice.
    Lecture par sondage (gymbro_direct) : toutes les 5 s en duo ou fenêtre
-   Gymbro ouverte, toutes les 30 s sinon, et seulement avec des gymbros.
+   Gymbro ouverte, toutes les 15 s sinon, et seulement avec des gymbros.
    Tant que le SQL n'est pas passé, rien de tout ça n'apparaît.
    ===================================================================== */
 const MESSAGE_SQL_DIRECT = "Cette fonction n'est pas encore activée sur le serveur : l'administrateur doit exécuter le SQL « Gymbro en direct et séances à deux » (Administration › Réglages techniques).";
@@ -15183,7 +15188,7 @@ function nettoyerDirect(r) {
   };
 }
 function nettoyerProgrammeDuo(p) {
-  if (!p || typeof p !== 'object' || !Array.isArray(p.ex) || !p.ex.length) return null;
+  if (!p || typeof p !== 'object' || !Array.isArray(p.ex)) return null;
   return {
     nom: typeof p.nom === 'string' && p.nom.trim() ? p.nom.trim().slice(0, 60) : 'Séance libre',
     debut: Number(p.debut) > 0 ? Number(p.debut) : null,
@@ -15257,7 +15262,7 @@ function demarrerBoucleDirect() {
     directTour++;
     const s = musculationSessionActive;
     const rapide = (duoDe(s) && ecranActif === 'seance') || (gymbroModalOuvert() && (directVue || gymbroOnglet === 'fil'));
-    if (rapide || directTour % 6 === 0) chargerDirect(true);
+    if (rapide || directTour % 3 === 0) chargerDirect(true);
     if (s && Date.now() - directBattement > 60000) publierDirect(true);
     // Le bouton 💪 se réactive au bout d'une minute.
     if (Object.keys(encouragesLe).some(p => Date.now() - encouragesLe[p] > 60000)) {
@@ -15296,7 +15301,7 @@ function carteDirectHTML(d) {
     const part = i < r.courant || r.courant < 0 ? 100 : i === r.courant ? Math.round(100 * e.s.filter(Boolean).length / (e.n || 1)) : 0;
     return `<i${i === r.courant ? ' class="encours"' : ''} style="--part:${part}%"></i>`;
   }).join('');
-  const maintenant = x
+  const maintenant = !d.ex.length ? '<small>Séance libre</small><b>Pas encore d’exercice</b>' : x
     ? `<small>Exercice ${r.courant + 1} sur ${d.ex.length}</small><b>${escapeHtml(nomExerciceDirect(x))}</b>
        <span>Série ${Math.min(x.s.filter(Boolean).length + 1, x.n)} sur ${x.n}${repos != null ? ' · au repos depuis ' + dureeMinSec(repos) : ''}</span>`
     : '<small>Dernière ligne droite</small><b>Tous ses exercices sont faits</b>';
@@ -15347,7 +15352,7 @@ function renderDirectVue() {
       ${etat === 'encours' && repos != null ? `<small class="direct-repos">Au repos depuis <span class="duo-repos" data-depuis="${d.repos}">${dureeMinSec(repos)}</span></small>` : ''}</div></div>`;
   }).join('');
   const majIlYa = Math.max(0, Math.round((Date.now() - d.maj) / 1000));
-  c.innerHTML = barre + `
+  c.innerHTML = barre + carteInvitationDuoHTML(directVue) + `
     <div class="direct-tete">${bulleGymbro(d.pseudo, 52, 'direct')}
       <div><b>${escapeHtml(d.nom)}</b><small>${r.min != null ? 'Depuis ' + r.min + ' min · ' : ''}${r.series} série${r.series > 1 ? 's' : ''} · ${r.volume.toLocaleString('fr-FR')} kg</small></div></div>
     <div class="gb-carte direct-liste">${lignes || '<p class="note" style="margin:12px 0;">Pas encore d’exercice.</p>'}</div>
@@ -15412,13 +15417,27 @@ function renderDuoSession() {
   } else if (d.statut === 'acceptee') {
     const p = directDe(d.pseudo);
     const etat = !p ? 'Il ouvre sa séance…' : p.fini ? 'A terminé sa séance ✓' : '<i class="point-direct" aria-hidden="true"></i>En direct · séries partagées';
+    const manquants = exercicesManquantsDuo();
     z.innerHTML = bandeau(bulleGymbro(d.pseudo, 40, p && !p.fini ? 'direct' : false), `Avec ${qui}`, etat,
-      `<button type="button" class="duo-action duo-action--menu" onclick="menuDuo()" aria-label="Options de la séance à deux">•••</button>`);
+      `<button type="button" class="duo-action duo-action--menu" onclick="menuDuo()" aria-label="Options de la séance à deux">•••</button>`)
+      + (manquants.length ? `<button type="button" class="duo-ajouter" onclick="ajouterExercicesDuo()"><span>+ Ajouter ${manquants.length > 1 ? 'ses ' + manquants.length + ' exercices' : 'son exercice'} : ${escapeHtml(manquants.map(e => libelleExercice(trouverExercice(e.id))).join(', '))}</span></button>` : '');
   } else {
     const texte = d.statut === 'refusee' ? `${qui} ne peut pas maintenant` : `${qui} a quitté la séance à deux`;
     z.innerHTML = bandeau(bulleGymbro(d.pseudo, 40), texte, d.statut === 'refusee' ? "Invite quelqu'un d'autre ou continue seul" : 'Tu continues seul',
       `<button type="button" class="duo-action" onclick="oublierDuo()">OK</button>`);
   }
+}
+// Ce qu'il fait et que je n'ai pas dans ma séance (séance libre : chacun ajoute au fil de l'eau).
+function exercicesManquantsDuo() {
+  const s = musculationSessionActive, d = duoAccepte(s);
+  const p = d && directDe(d.pseudo);
+  if (!p) return [];
+  const miens = new Set(s.exercices.map(e => e.exerciceId));
+  return p.ex.filter((e, i, t) => e.id && !miens.has(e.id) && trouverExercice(e.id) && t.findIndex(x => x.id === e.id) === i);
+}
+function ajouterExercicesDuo() {
+  exercicesManquantsDuo().forEach(e => ajouterExerciceASession(e.id));
+  renderDuoSession();
 }
 function ouvrirInviterDuo() {
   if (!musculationSessionActive) return;
@@ -15430,7 +15449,9 @@ function renderInviterDuo() {
   const s = musculationSessionActive;
   const liste = document.getElementById('duo-inviter-liste');
   if (!s || !liste) return;
-  document.getElementById('duo-inviter-note').innerHTML = `Ton gymbro reçoit ta séance <b>${escapeHtml(s.programmeNom || 'Séance libre')}</b> : mêmes exercices, dans le même ordre, avec <b>ses</b> charges. Vous voyez les séries de l'autre en direct, et chacun garde la séance dans son historique.`;
+  document.getElementById('duo-inviter-note').innerHTML = s.programmeId
+    ? `Ton gymbro reçoit ta séance <b>${escapeHtml(s.programmeNom || 'Séance libre')}</b> : mêmes exercices, dans le même ordre, avec <b>ses</b> charges. Vous voyez les séries de l'autre en direct, et chacun garde la séance dans son historique.`
+    : `Ton gymbro rejoint ta séance libre avec <b>ses</b> charges : il reçoit les exercices déjà ajoutés, et ceux que vous ajoutez ensuite se rajoutent d'un geste chez l'autre. Vous voyez les séries de l'autre en direct.`;
   const d = duoDe(s);
   const amis = gymbroLiens.filter(l => l.statut === 'acceptee').map(l => ({ pseudo: l.pseudo, direct: directVisibleDe(l.pseudo), derniere: derniereSeanceGymbro(l.pseudo) }))
     .sort((a, b) => (!!b.direct - !!a.direct) || (b.derniere ? b.derniere.date : '').localeCompare(a.derniere ? a.derniere.date : '') || a.pseudo.localeCompare(b.pseudo));
@@ -15573,14 +15594,27 @@ function invitationDuo() {
   return duosGymbro.find(x => !x.hote && x.statut === 'attente' && x.programme && Date.now() - x.creeLe < 90 * 60000
     && !duoIgnores.has(x.id) && !(s && s.duo && s.duo.id === x.id)) || null;
 }
+// Ses exercices du moment : en séance libre, il en a souvent ajouté depuis
+// l'invitation (à défaut, ceux de l'invitation).
+function exercicesDuoActuels(inv, programme) {
+  const live = directVisibleDe(inv.pseudo);
+  const ex = live ? live.ex.filter(e => e.id) : [];
+  return ex.length ? ex.map(e => ({ id: e.id, nom: e.nom, n: Math.max(1, e.n), ss: false })) : (programme || inv.programme).ex;
+}
+function texteExercicesDuo(n) { return n ? ' · ' + n + ' exercice' + (n > 1 ? 's' : '') : ''; }
+// L'invitation aussi dans la fenêtre Gymbro : le bandeau du bas se cache sous les fenêtres.
+function carteInvitationDuoHTML(pseudo) {
+  const inv = directActif ? invitationDuo() : null;
+  if (!inv || (pseudo && inv.pseudo.toLowerCase() !== String(pseudo).toLowerCase())) return '';
+  return `<button type="button" class="duo-invit-carte" onclick="ouvrirInvitationDuo()">${bulleGymbro(inv.pseudo, 36)}<span class="duo-invit-t"><b>@${escapeHtml(inv.pseudo)} t'invite à sa séance</b><small>${escapeHtml(inv.programme.nom)}${texteExercicesDuo(exercicesDuoActuels(inv).length)} · ${escapeHtml(ilYA(inv.creeLe))}</small></span><span class="duo-invit-ok">Rejoindre</span></button>`;
+}
 function majBandeauInvitation() {
   const b = document.getElementById('duo-invitation');
   if (!b) return;
   const inv = directActif && sessionUtilisateur ? invitationDuo() : null;
   b.classList.toggle('hidden', !inv);
   if (!inv) return;
-  const n = inv.programme.ex.length;
-  const html = `${bulleGymbro(inv.pseudo, 36)}<span class="duo-invit-t"><b>@${escapeHtml(inv.pseudo)} t'invite à sa séance</b><small>${escapeHtml(inv.programme.nom)} · ${n} exercice${n > 1 ? 's' : ''} · ${escapeHtml(ilYA(inv.creeLe))}</small></span><span class="duo-invit-ok">Rejoindre</span>`;
+  const html = `${bulleGymbro(inv.pseudo, 36)}<span class="duo-invit-t"><b>@${escapeHtml(inv.pseudo)} t'invite à sa séance</b><small>${escapeHtml(inv.programme.nom)}${texteExercicesDuo(exercicesDuoActuels(inv).length)} · ${escapeHtml(ilYA(inv.creeLe))}</small></span><span class="duo-invit-ok">Rejoindre</span>`;
   if (b.dataset.rendu !== html) { b.innerHTML = html; b.dataset.rendu = html; }
   b.setAttribute('aria-label', `@${inv.pseudo} t'invite à sa séance ${inv.programme.nom} : voir l'invitation`);
   // Au-dessus du bandeau de la séance en cours quand il est là.
@@ -15594,8 +15628,9 @@ function ouvrirInvitationDuo() {
   const p = inv.programme;
   const live = directVisibleDe(inv.pseudo);
   const faites = live ? resumeDirect(live).series : null;
+  const exs = exercicesDuoActuels(inv);
   document.getElementById('duo-rejoindre-titre').textContent = 'Séance de @' + inv.pseudo;
-  const lignes = p.ex.map(e => {
+  const lignes = exs.map(e => {
     const exo = trouverExercice(e.id);
     const prec = exo ? dernierePerfExercice(e.id) : null;
     const s = prec && prec.series.find(x => x && x.poids != null && x.poids !== '');
@@ -15605,10 +15640,11 @@ function ouvrirInvitationDuo() {
   }).join('');
   document.getElementById('duo-rejoindre-corps').innerHTML = `
     <div class="duo-rj-tete">${bulleGymbro(inv.pseudo, 44, live ? 'direct' : false)}
-      <div><b>${escapeHtml(p.nom)} · ${p.ex.length} exercice${p.ex.length > 1 ? 's' : ''}</b>
+      <div><b>${escapeHtml(p.nom)}${texteExercicesDuo(exs.length)}</b>
       <small>${live ? '<i class="point-direct" aria-hidden="true"></i>' : ''}${p.debut ? 'Commencée ' + escapeHtml(ilYA(p.debut)) : 'Invitation ' + escapeHtml(ilYA(inv.creeLe))}${faites ? ` · ${faites} série${faites > 1 ? 's' : ''} faite${faites > 1 ? 's' : ''}` : ''}</small></div></div>
-    <div class="duo-rj-liste">${lignes}</div>
-    <p class="note duo-note">Ta séance démarre avec ces exercices et <b>tes</b> charges habituelles. Tu peux en retirer ou en ajouter.</p>`;
+    ${exs.length ? `<div class="duo-rj-liste">${lignes}</div>
+    <p class="note duo-note">Ta séance démarre avec ces exercices et <b>tes</b> charges habituelles. Tu peux en retirer ou en ajouter.</p>`
+    : `<p class="note duo-note">Pas encore d'exercice : tu démarres une séance libre. Quand @${escapeHtml(inv.pseudo)} en ajoute un, tu l'ajoutes d'un geste (avec tes charges) et vous voyez vos séries.</p>`}`;
   ouvrirModal('duo-rejoindre-modal', true);
 }
 async function repondreInvitationDuo(accepter) {
@@ -15634,6 +15670,7 @@ async function rejoindreDuo(inv, programme) {
       if (musculationSessionActive.duo && musculationSessionActive.duo.id !== duo.id) quitterDuoServeur(musculationSessionActive.duo);
       musculationSessionActive.duo = duo;
       sauvegarderSessionActive();
+      if (gymbroModalOuvert()) fermerModal('gymbro-modal');
       renderSeance();
       ouvrirSessionModal();
       chargerDirect(true);
@@ -15643,10 +15680,11 @@ async function rejoindreDuo(inv, programme) {
   }
   // Mêmes exercices, même ordre, même nombre de séries ; les charges sont
   // les miennes (dernière fois sur chaque exercice, comme un programme).
-  const exercices = construireExercicesSession({ exercices: programme.ex.map(e => ({
+  const exs = exercicesDuoActuels(inv, programme);
+  const exercices = construireExercicesSession({ exercices: exs.map(e => ({
     exerciceId: e.id, series: Array.from({ length: e.n }, () => ({ poids: null, reps: null })), supersetSuivant: e.ss })) });
   exercices.forEach((x, i) => {
-    const e = programme.ex[i];
+    const e = exs[i];
     if (!trouverExercice(x.exerciceId)) x.nom = e.nom;
     if (x.series.length > e.n) x.series = x.series.slice(0, e.n);
   });
@@ -15654,6 +15692,7 @@ async function rejoindreDuo(inv, programme) {
   reposActifs = {};
   palierOuvert = {};
   sauvegarderSessionActive();
+  if (gymbroModalOuvert()) fermerModal('gymbro-modal');
   renderSeance();
   ouvrirSessionModal();
   chargerDirect(true);
@@ -15785,7 +15824,7 @@ function renderFilGymbros() {
     return;
   }
   const nouveaux = nouveauxRespects();
-  let html = '';
+  let html = carteInvitationDuoHTML();
   if (respectsRecus.length) {
     const noms = [...new Set(respectsRecus.map(r => r.pseudo))];
     const qui = noms.slice(0, 2).map(p => '@' + p).join(', ') + (noms.length > 2 ? ' et ' + (noms.length - 2) + ' autre' + (noms.length > 3 ? 's' : '') : '');
