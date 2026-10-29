@@ -20,6 +20,11 @@ true })` dans `tests/outils.js`) : chaque appel aux modules de l'iPhone
 (vibrations, notifications, Santé, achats…) y est noté, et un test vérifie
 que sur le web rien ne change.
 
+Ce qui passe entre comptes (Gymbro, séance en direct, séance à deux) est
+testé avec un faux Supabase écrit dans chaque test : les appels de l'appli
+y sont notés et les réponses des autres comptes simulées, y compris des
+données piégées (un nom d'exercice qui contient du HTML doit rester du texte).
+
 ## Lancer
 
 ```

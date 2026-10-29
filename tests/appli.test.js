@@ -3124,3 +3124,267 @@ test('app iOS : Pro se paie via Apple (prix d\'Apple, achat relié au compte pui
   assert.deepEqual(await page.evaluate(() => window.__invocations[0]), ['achats-apple', { transactionId: '1000' }]);
   await page.evaluate(() => { supa = null; });
 }));
+
+/* ---------------- Gymbro en direct et séance à deux ---------------- */
+test('Gymbro en direct : anneau vert, « En ce moment » dans le fil, sa séance série par série, encouragement', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const tous = toutesLesExercices();
+    const id = nom => tous.find(e => e.nom === nom).id;
+    const appels = [];
+    const reponse = data => ({ then: (ok, ko) => Promise.resolve({ data, error: null }).then(ok, ko) });
+    let direct = [{ pseudo: 'karim', maj: new Date().toISOString(), donnees: { v: 1, nom: 'Push', debut: Date.now() - 26 * 60000, repos: Date.now() - 48000, rc: 120,
+      ex: [{ id: id('Développé couché avec barre'), nom: 'Développé couché avec barre', n: 3, s: [[80, 8, 0], [80, 8, 0], [82.5, 6, 1]] },
+        { id: id('Développé incliné avec haltères'), nom: 'Incliné', n: 3, s: [[28, 10, 0], null, null] },
+        { id: 'inconnu', nom: '<img src=x onerror=alert(1)>', n: 2, s: [null, null] }] } }];
+    supa = {
+      rpc: (nom, args) => {
+        appels.push([nom, args]);
+        if (nom === 'gymbro_mes_liens') return reponse([{ pseudo: 'ines', sens: 'envoyee', statut: 'acceptee' }, { pseudo: 'karim', sens: 'recue', statut: 'acceptee' }]);
+        if (nom === 'gymbro_direct') return reponse({ direct, duos: [] });
+        if (nom === 'gymbro_encourager') return reponse(true);
+        return reponse([]);
+      },
+      from: () => ({ select: () => reponse(null) })
+    };
+    sessionUtilisateur = { id: 'moi', email: 'moi@x.fr' };
+    monPseudo = { pseudo: 'jamal', partage_seances: true };
+    await chargerLiensGymbro();
+    await chargerDirect(true);
+    allerA('seance');
+    const res = {};
+    const textes = sel => [...document.querySelectorAll(sel)].map(x => x.textContent.replace(/\s+/g, ' ').trim());
+    res.rangee = textes('#gymbros-rangee .gst small');
+    res.sous = textes('#gymbros-rangee .gst em');
+    res.anneau = document.querySelectorAll('#gymbros-rangee .gav--direct').length;
+    ouvrirGymbro('fil');
+    await new Promise(ok => setTimeout(ok, 80));
+    res.sections = textes('#fil-gymbros .gb-sec');
+    res.maintenant = textes('#fil-gymbros .direct-maintenant > *');
+    res.stats = textes('#fil-gymbros .direct-carte .fil-stats > div');
+    document.querySelector('#fil-gymbros .direct-carte .gcomp').click();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.etats = [...document.querySelectorAll('#gymbro-comparaison .direct-ex')].map(x => x.className.replace('direct-ex direct-ex--', ''));
+    res.chips = textes('#gymbro-comparaison .direct-ex--fait .direct-chip');
+    res.repos = textes('#gymbro-comparaison .direct-repos');
+    res.injection = !!document.querySelector('#gymbro-comparaison img[src="x"]');
+    res.inconnu = textes('#gymbro-comparaison .direct-ex--avenir b');
+    document.querySelector('#gymbro-comparaison .direct-encourager').click();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.encourage = appels.find(a => a[0] === 'gymbro_encourager');
+    res.bouton = document.querySelector('#gymbro-comparaison .direct-encourager').textContent.trim();
+    res.grise = document.querySelector('#gymbro-comparaison .direct-encourager').disabled;
+    // Karim a fini (ou coupé le partage) : plus rien en direct.
+    direct = [];
+    await chargerDirect(true);
+    res.apres = document.querySelector('#gymbro-comparaison .gvide b').textContent;
+    retourRechercheGymbro();
+    res.sectionsApres = textes('#fil-gymbros .gb-sec');
+    res.anneauApres = document.querySelectorAll('#gymbros-rangee .gav--direct').length;
+    return res;
+  });
+  assert.deepEqual(r.rangee, ['Inviter', '@karim', '@ines'], "en séance : en tête de la rangée");
+  assert.equal(r.sous[0], 'En séance');
+  assert.equal(r.anneau, 1);
+  assert.deepEqual(r.sections, ['En ce moment']);
+  assert.equal(r.maintenant[1], 'Exercice 2 sur 3');
+  assert.equal(r.maintenant[2], 'Développé incliné avec haltères');
+  assert.match(r.maintenant[3], /^Série 2 sur 3 · au repos depuis 0:4\d$/);
+  assert.deepEqual(r.stats, ['4 séries', '2 055 kg', '🏆 1 record']);
+  assert.deepEqual(r.etats, ['fait', 'encours', 'avenir']);
+  assert.deepEqual(r.chips, ['80kg×8', '80kg×8', '82,5kg×6 🏆']);
+  assert.match(r.repos[0], /^Au repos depuis 0:4\d$/);
+  assert.ok(!r.injection, "le nom d'exercice venu d'un autre compte est échappé");
+  assert.deepEqual(r.inconnu, ['<img src=x onerror=alert(1)>']);
+  assert.deepEqual(r.encourage, ['gymbro_encourager', { p_pseudo: 'karim' }]);
+  assert.equal(r.bouton, '💪 Envoyé');
+  assert.ok(r.grise, 'un 💪 par minute');
+  assert.equal(r.apres, 'Plus en séance');
+  assert.deepEqual(r.sectionsApres, []);
+  assert.equal(r.anneauApres, 0);
+}));
+
+test('Ma séance en direct : envoyée à chaque série (jamais les notes), 💪 reçus, effacée si on coupe le partage ou si on abandonne', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const appels = [];
+    let recus = [];
+    const reponse = data => ({ then: (ok, ko) => Promise.resolve({ data, error: null }).then(ok, ko) });
+    supa = {
+      rpc: (nom, args) => {
+        appels.push([nom, JSON.parse(JSON.stringify(args || null))]);
+        if (nom === 'gymbro_mes_liens') return reponse([{ pseudo: 'karim', sens: 'envoyee', statut: 'acceptee' }]);
+        if (nom === 'gymbro_direct') return reponse({ direct: [], duos: [] });
+        if (nom === 'direct_publier') return reponse(recus);
+        return reponse(null);
+      },
+      from: () => ({ select: () => reponse(null) })
+    };
+    sessionUtilisateur = { id: 'moi', email: 'moi@x.fr' };
+    monPseudo = { pseudo: 'jamal', partage_seances: true };
+    await chargerLiensGymbro();
+    await chargerDirect(true);
+    const exo = toutesLesExercices().find(e => e.nom === 'Développé couché avec barre');
+    musculationProgrammes = [{ id: 'p1', nom: 'Push', exercices: [{ exerciceId: exo.id, series: [{ poids: 60, reps: 8 }, { poids: 60, reps: 8 }] }] }];
+    await demarrerSeance('p1');
+    musculationSessionActive.notes = 'note secrète';
+    basculerSerieSession(0, 0);
+    await new Promise(ok => setTimeout(ok, 1500));
+    const pub = appels.filter(a => a[0] === 'direct_publier');
+    const res = { envoi: pub[pub.length - 1] && pub[pub.length - 1][1] };
+    // Un 💪 de Karim revient avec l'envoi suivant.
+    recus = [{ pseudo: 'karim', cree_le: new Date().toISOString() }];
+    basculerSerieSession(0, 1);
+    await new Promise(ok => setTimeout(ok, 1500));
+    res.fete = document.getElementById('celebration').textContent;
+    // Partage coupé en pleine séance : ce qui était visible disparaît.
+    basculerPartageDirect(false);
+    await new Promise(ok => setTimeout(ok, 80));
+    res.efface = appels.filter(a => a[0] === 'direct_terminer').length;
+    res.envoisCoupe = appels.filter(a => a[0] === 'direct_publier').length;
+    basculerSerieSession(0, 1);
+    await new Promise(ok => setTimeout(ok, 1500));
+    res.envoisApres = appels.filter(a => a[0] === 'direct_publier').length;
+    basculerPartageDirect(true);
+    await new Promise(ok => setTimeout(ok, 80));
+    await abandonnerSeance();
+    await new Promise(ok => setTimeout(ok, 80));
+    res.effaceAbandon = appels.filter(a => a[0] === 'direct_terminer').length;
+    return res;
+  });
+  assert.deepEqual(r.envoi.p_donnees.ex[0].s, [[60, 8, 0], null]);
+  assert.equal(r.envoi.p_donnees.nom, 'Push');
+  assert.equal(r.envoi.p_duo, null);
+  assert.ok(!JSON.stringify(r.envoi).includes('secrète'), 'les notes ne partent jamais');
+  assert.match(r.fete, /@karim t’encourage 💪/);
+  assert.equal(r.efface, 1);
+  assert.equal(r.envoisApres, r.envoisCoupe, 'plus rien ne part une fois le partage coupé');
+  assert.equal(r.effaceAbandon, 2);
+}));
+
+test("Séance à deux, côté hôte : invitation sans mes charges, il rejoint, sa ligne sous l'exercice, son record annoncé, on se quitte", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const appels = [];
+    const reponse = data => ({ then: (ok, ko) => Promise.resolve({ data, error: null }).then(ok, ko) });
+    const exo = toutesLesExercices().find(e => e.nom === 'Développé couché avec barre');
+    let etat = { direct: [], duos: [] };
+    supa = {
+      rpc: (nom, args) => {
+        appels.push([nom, JSON.parse(JSON.stringify(args || null))]);
+        if (nom === 'gymbro_mes_liens') return reponse([{ pseudo: 'karim', sens: 'envoyee', statut: 'acceptee' }]);
+        if (nom === 'gymbro_direct') return reponse(etat);
+        if (nom === 'duo_inviter') return reponse('d-1');
+        if (nom === 'direct_publier') return reponse([]);
+        return reponse(null);
+      },
+      from: () => ({ select: () => reponse(null) })
+    };
+    sessionUtilisateur = { id: 'moi', email: 'moi@x.fr' };
+    monPseudo = { pseudo: 'jamal', partage_seances: true };
+    await chargerLiensGymbro();
+    await chargerDirect(true);
+    musculationProgrammes = [{ id: 'p1', nom: 'Push', exercices: [{ exerciceId: exo.id, series: [{ poids: 60, reps: 8 }, { poids: 60, reps: 8 }, { poids: 60, reps: 8 }] }] }];
+    await demarrerSeance('p1');
+    const res = {};
+    res.bouton = document.querySelector('#session-duo .duo-bouton b').textContent;
+    document.querySelector('#session-duo .duo-bouton').click();
+    res.liste = [...document.querySelectorAll('#duo-inviter-liste .duo-ami b')].map(b => b.textContent);
+    document.querySelector('#duo-inviter-liste .gbtn').click();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.invitation = appels.find(a => a[0] === 'duo_inviter');
+    res.attente = document.querySelector('#session-duo .duo-t b').textContent;
+    // Karim accepte et commence : une série faite au développé couché.
+    etat = { duos: [{ id: 'd-1', pseudo: 'karim', statut: 'acceptee', hote: true, cree_le: new Date().toISOString() }],
+      direct: [{ pseudo: 'karim', maj: new Date().toISOString(), donnees: { v: 1, nom: 'Push', debut: Date.now(), ex: [{ id: exo.id, nom: 'x', n: 3, s: [[80, 8, 0], null, null] }] } }] };
+    await chargerDirect(true);
+    res.rejoint = document.getElementById('celebration').textContent;
+    res.avec = document.querySelector('#session-duo .duo-t b').textContent;
+    const ligne = () => [...document.querySelectorAll('#session-exercices-container .duo-ligne .direct-chip, #session-exercices-container .duo-ligne .duo-etat')].map(x => x.textContent.trim());
+    res.ligne = ligne();
+    // Il bat son record.
+    etat.direct[0].donnees.ex[0].s = [[80, 8, 0], [85, 6, 1], null];
+    await chargerDirect(true);
+    res.record = document.getElementById('celebration').textContent;
+    res.ligne2 = ligne();
+    // Mes séries partent avec le duo.
+    basculerSerieSession(0, 0);
+    await new Promise(ok => setTimeout(ok, 1500));
+    const pub = appels.filter(a => a[0] === 'direct_publier');
+    res.duoPublie = pub.length ? pub[pub.length - 1][1].p_duo : null;
+    await menuDuo();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.quitte = appels.find(a => a[0] === 'duo_quitter');
+    res.apres = document.querySelector('#session-duo .duo-bouton b').textContent;
+    res.lignes = document.querySelectorAll('#session-exercices-container .duo-ligne').length;
+    return res;
+  });
+  assert.equal(r.bouton, "S'entraîner avec un gymbro");
+  assert.deepEqual(r.liste, ['@karim']);
+  assert.equal(r.invitation[1].p_pseudo, 'karim');
+  assert.deepEqual(r.invitation[1].p_programme.ex.map(e => e.n), [3]);
+  assert.ok(!JSON.stringify(r.invitation[1]).includes('poids'), 'mes charges ne partent pas');
+  assert.equal(r.attente, 'Invitation envoyée à @karim');
+  assert.match(r.rejoint, /@karim te rejoint/);
+  assert.equal(r.avec, 'Avec @karim');
+  assert.deepEqual(r.ligne, ['80kg×8', 'En cours']);
+  assert.match(r.record, /@karim : record battu 🏆.*85 kg × 6/);
+  assert.deepEqual(r.ligne2, ['80kg×8', '85kg×6 🏆', 'En cours']);
+  assert.equal(r.duoPublie, 'd-1');
+  assert.deepEqual(r.quitte, ['duo_quitter', { p_id: 'd-1' }]);
+  assert.equal(r.apres, "S'entraîner avec un gymbro");
+  assert.equal(r.lignes, 0);
+}));
+
+test("Séance à deux, côté invité : l'invitation sur n'importe quel écran, il rejoint avec ses propres charges", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const appels = [];
+    const reponse = data => ({ then: (ok, ko) => Promise.resolve({ data, error: null }).then(ok, ko) });
+    const exo = toutesLesExercices().find(e => e.nom === 'Développé couché avec barre');
+    const programme = { nom: 'Push', debut: Date.now() - 3 * 60000, ex: [{ id: exo.id, nom: 'Développé couché avec barre', n: 3 }, { id: 'perso-x', nom: 'Mon exo maison', n: 2 }] };
+    supa = {
+      rpc: (nom, args) => {
+        appels.push([nom, JSON.parse(JSON.stringify(args || null))]);
+        if (nom === 'gymbro_mes_liens') return reponse([{ pseudo: 'jamal', sens: 'recue', statut: 'acceptee' }]);
+        if (nom === 'gymbro_direct') return reponse({ direct: [], duos: [{ id: 'd-9', pseudo: 'jamal', statut: 'attente', hote: false, programme, cree_le: new Date().toISOString() }] });
+        if (nom === 'duo_repondre') return reponse(args.p_accepter ? programme : null);
+        return reponse([]);
+      },
+      from: () => ({ select: () => reponse(null) })
+    };
+    sessionUtilisateur = { id: 'moi', email: 'moi@x.fr' };
+    monPseudo = { pseudo: 'karim', partage_seances: true };
+    // Ma dernière fois au développé couché : 70 kg.
+    musculationHistorique.unshift({ id: 'h1', date: decalerJours(todayStr(), -3), programmeNom: 'Haut', exercices: [{ exerciceId: exo.id,
+      series: [{ poids: 70, reps: 8, fait: true }, { poids: 70, reps: 7, fait: true }, { poids: 70, reps: 6, fait: true }, { poids: 65, reps: 8, fait: true }] }] });
+    allerA('repas');
+    await chargerLiensGymbro();
+    await chargerDirect(true);
+    const res = {};
+    const b = document.getElementById('duo-invitation');
+    res.visible = !b.classList.contains('hidden');
+    res.texte = [...b.querySelectorAll('b, small, .duo-invit-ok')].map(x => x.textContent.trim());
+    b.click();
+    res.titre = document.getElementById('duo-rejoindre-titre').textContent;
+    res.lignes = [...document.querySelectorAll('#duo-rejoindre-corps .duo-rj small')].map(x => x.textContent);
+    document.querySelector('#duo-rejoindre-modal .btn-primary').click();
+    await new Promise(ok => setTimeout(ok, 80));
+    res.reponse = appels.find(a => a[0] === 'duo_repondre');
+    const s = musculationSessionActive;
+    res.seance = s && { nom: s.programmeNom, duo: s.duo, ex: s.exercices.map(e => ({ nom: e.nom, n: e.series.length, poids: e.series[0].poids })) };
+    res.ecran = ecranActif;
+    res.bandeau = document.getElementById('duo-invitation').classList.contains('hidden');
+    return res;
+  });
+  assert.ok(r.visible, "l'invitation apparaît sur l'écran Repas");
+  assert.deepEqual(r.texte, ["@jamal t'invite à sa séance", "Push · 2 exercices · à l'instant", 'Rejoindre']);
+  assert.equal(r.titre, 'Séance de @jamal');
+  assert.match(r.lignes[0], /^3 séries · toi la dernière fois : 70 kg × 8$/);
+  assert.match(r.lignes[1], /pas dans ta bibliothèque/);
+  assert.deepEqual(r.reponse, ['duo_repondre', { p_id: 'd-9', p_accepter: true }]);
+  assert.equal(r.seance.nom, 'Push');
+  assert.deepEqual(r.seance.duo, { id: 'd-9', pseudo: 'jamal', hote: false, statut: 'acceptee' });
+  assert.equal(r.seance.ex.length, 2);
+  assert.equal(r.seance.ex[0].n, 3, 'même nombre de séries que lui');
+  assert.equal(r.seance.ex[0].poids, 70, 'mes propres charges');
+  assert.deepEqual(r.seance.ex[1], { nom: 'Mon exo maison', n: 2, poids: null });
+  assert.equal(r.ecran, 'seance');
+  assert.ok(r.bandeau, "l'invitation disparaît une fois acceptée");
+}));

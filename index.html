@@ -3533,6 +3533,111 @@
     .fil-respect[aria-pressed="true"] { background: linear-gradient(135deg, #ea580c, #db2777); color: #fff; }
     .fil-vide { margin: 0 0 10px; }
     .fil-plus { width: 100%; }
+    /* Gymbro en direct et séance à deux. Le vert « en direct » est celui de
+       la pastille du bandeau de séance en cours. */
+    :root { --vert-direct: #34c759; --vert-direct-texte: #1a7f37; }
+    :root[data-theme="dark"] { --vert-direct-texte: #4ade80; }
+    .point-direct { display: inline-block; width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--vert-direct);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--vert-direct) 28%, transparent); animation: pulseBandeauFlottant 1.6s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) { .point-direct { animation: none; } }
+    .gav--direct { padding: 3px; background: var(--vert-direct); box-shadow: 0 0 0 3px color-mix(in srgb, var(--vert-direct) 22%, transparent); }
+    html:root .gav--direct > .avatar { box-sizing: border-box; border: 2.5px solid var(--gav-fond, var(--bg)); }
+    .gst em.gst-direct { display: flex; align-items: center; gap: 5px; color: var(--vert-direct-texte); font-weight: 800; }
+    .gst em.gst-direct .point-direct, .direct-pastille .point-direct, .duo-t small .point-direct { width: 6px; height: 6px; box-shadow: none; }
+    .gb-sec.gb-sec--direct { display: flex; align-items: center; gap: 9px; margin-top: 2px; }
+    #gymbro-modal .fil-carte.direct-carte { box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--vert-direct) 55%, transparent), 0 14px 28px -22px rgba(0, 0, 0, .55); }
+    #gymbro-modal .direct-carte .fil-stats { margin: 0 0 10px; }
+    .direct-pastille { flex: none; display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px; border-radius: 99px;
+      font-size: .72rem; font-weight: 800; color: var(--vert-direct-texte); background: color-mix(in srgb, var(--vert-direct) 15%, transparent); }
+    .direct-pastille--barre { margin-left: auto; }
+    .direct-maintenant { display: grid; gap: 2px; margin: 12px 0 10px; padding: 12px 13px; border-radius: 16px; background: var(--piste); }
+    .direct-maintenant small { font-size: .7rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+    .direct-maintenant b { font: 800 1.02rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; }
+    .direct-maintenant > span { font-size: .8rem; color: var(--text-muted); }
+    .direct-etapes { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; margin: 0 0 10px; }
+    .direct-etapes i { height: 5px; border-radius: 99px;
+      background: linear-gradient(90deg, var(--text) var(--part), color-mix(in srgb, var(--text) 14%, transparent) var(--part)); }
+    .direct-etapes i.encours { background: linear-gradient(90deg, var(--vert-direct) var(--part), color-mix(in srgb, var(--vert-direct) 25%, transparent) var(--part)); }
+    .direct-tete { display: flex; align-items: center; gap: 14px; margin: 0 0 14px; }
+    .direct-tete b { display: block; font: 800 1.35rem/1.1 'Manrope', 'Inter', sans-serif; letter-spacing: -.03em; }
+    .direct-tete small { display: block; margin-top: 5px; font-size: .82rem; color: var(--text-muted); }
+    #gymbro-modal .gb-carte.direct-liste { padding: 2px 14px; }
+    .direct-ex { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; padding: 13px 0; border-top: 1px solid var(--trait); }
+    .direct-ex:first-child { border-top: 0; }
+    .direct-m { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--piste); color: var(--text-muted); font: 800 .8rem 'Inter', sans-serif; }
+    .direct-ex--fait .direct-m { background: var(--inv); color: var(--sur-inv); }
+    html:root .direct-ex--fait .direct-m .icone-ui { width: 15px; height: 15px; color: var(--sur-inv); }
+    .direct-ex--encours .direct-m { background: color-mix(in srgb, var(--vert-direct) 16%, transparent); }
+    .direct-ex-c b { display: block; margin: 4px 0 8px; font-size: .92rem; }
+    .direct-ex--avenir .direct-ex-c b { margin-bottom: 2px; color: var(--text-muted); font-weight: 700; }
+    .direct-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .direct-chip { display: inline-flex; align-items: baseline; padding: 5px 9px; border-radius: 10px; background: var(--piste); white-space: nowrap;
+      font: 800 .82rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+    .direct-chip small { margin: 0 2px 0 1px; font-size: .64rem; font-weight: 700; color: var(--text-muted); }
+    .direct-chip--rec { background: linear-gradient(90deg, rgba(251, 191, 36, .34), rgba(251, 191, 36, .14)); }
+    .direct-chip--attente { background: none; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--vert-direct) 60%, transparent); color: var(--vert-direct-texte); font-weight: 700; }
+    .direct-avenir { font-size: .78rem; color: var(--text-muted); }
+    .direct-repos { display: block; margin-top: 8px; font-size: .76rem; font-weight: 700; color: var(--vert-direct-texte); font-variant-numeric: tabular-nums; }
+    .direct-maj { margin: 2px 2px 12px; text-align: center; font-size: .74rem; color: var(--text-muted); }
+    .fil-respect.direct-encourager { width: 100%; }
+    .fil-respect:disabled { cursor: default; }
+    .direct-fiche { display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 12px; padding: 12px 14px; border: 0; border-radius: 16px; cursor: pointer;
+      background: color-mix(in srgb, var(--vert-direct) 12%, var(--piste)); color: var(--text); font: inherit; font-size: .84rem; text-align: left; }
+    .direct-fiche > span:nth-of-type(1) { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .direct-fiche-suivre { flex: none; font-weight: 800; color: var(--vert-direct-texte); }
+    /* Séance à deux : bouton d'invitation, bandeau du duo, ligne du partenaire */
+    .duo-bouton, .duo-bandeau { display: flex; align-items: center; gap: 12px; width: 100%; margin: 0 0 14px; padding: 12px 14px 12px 12px; border: 0; border-radius: 18px;
+      background: var(--carte-plein); box-shadow: 0 0 0 1px var(--trait); color: var(--text); font: inherit; text-align: left; }
+    .duo-bouton { cursor: pointer; }
+    .duo-bouton > .icone-ui:first-child { box-sizing: content-box; width: 20px; height: 20px; flex: none; padding: 10px; border-radius: 50%; background: var(--piste); }
+    .duo-bouton .duo-chevron { width: 18px; height: 18px; flex: none; opacity: .45; }
+    .duo-bandeau { padding: 10px; --gav-fond: var(--carte-plein); }
+    .duo-bandeau--actif { background: color-mix(in srgb, var(--vert-direct) 10%, var(--carte-plein)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--vert-direct) 35%, transparent); }
+    .duo-t { flex: 1; min-width: 0; display: grid; gap: 3px; }
+    .duo-t b { font-size: .92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .duo-t small { display: flex; align-items: center; gap: 7px; font-size: .76rem; color: var(--text-muted); }
+    .duo-action { flex: none; height: 38px; padding: 0 14px; border: 0; border-radius: 99px; background: var(--piste); color: var(--text); font: 800 .8rem 'Inter', sans-serif; cursor: pointer; }
+    .duo-action--menu { width: 38px; padding: 0; letter-spacing: .05em; font-size: .7rem; }
+    .duo-note { margin: 0 0 14px; line-height: 1.5; }
+    .duo-amis { display: grid; }
+    .duo-ami { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--trait); }
+    .duo-ami:first-child { border-top: 0; }
+    .duo-ami > div { flex: 1; min-width: 0; }
+    .duo-ami b { display: block; font-size: .92rem; }
+    .duo-ami small { display: block; font-size: .76rem; color: var(--text-muted); }
+    .duo-ligne { display: flex; align-items: center; gap: 10px; margin: 12px 0 4px; padding: 9px 11px 9px 9px; border-radius: 16px;
+      background: color-mix(in srgb, var(--vert-direct) 10%, var(--piste)); }
+    .duo-ligne:empty { display: none; }
+    .duo-ligne-c { flex: 1; min-width: 0; }
+    .duo-ligne-c > small { display: block; margin: 0 0 5px; font-size: .7rem; font-weight: 800; color: var(--text-muted); }
+    .duo-ligne .direct-chips { flex-wrap: nowrap; overflow: hidden; gap: 5px; }
+    .duo-ligne .direct-chip { padding: 4px 7px; font-size: .78rem; background: var(--carte-plein); }
+    .duo-ligne .direct-chip--rec { background: linear-gradient(90deg, rgba(251, 191, 36, .42), rgba(251, 191, 36, .2)); }
+    .duo-etat { flex: none; align-self: flex-start; margin-top: 1px; font-size: .72rem; font-weight: 800; color: var(--vert-direct-texte); font-variant-numeric: tabular-nums; }
+    .duo-mini { display: inline-flex; align-items: center; gap: 5px; margin-right: 8px; font-size: .74rem; font-weight: 800; color: var(--text-muted); }
+    .duo-mini:empty { display: none; }
+    /* L'invitation, chez celui qu'on invite : juste au-dessus de la barre d'onglets */
+    .duo-invit { position: fixed; left: 12px; right: 12px; bottom: calc(18px + 60px + 14px + env(safe-area-inset-bottom, 0px)); z-index: 80; margin: 0 auto; max-width: 520px;
+      display: flex; align-items: center; gap: 11px; padding: 9px; border: 0; border-radius: 24px; background: var(--inv); color: var(--sur-inv);
+      box-shadow: var(--ombre-haute); font: inherit; text-align: left; cursor: pointer; --gav-fond: var(--inv);
+      transition: opacity .25s ease, transform .25s ease; }
+    .duo-invit--haut { bottom: calc(18px + 60px + 14px + 58px + env(safe-area-inset-bottom, 0px)); }
+    body.mode-seance .duo-invit { bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
+    body.couche-ouverte .duo-invit { opacity: 0; pointer-events: none; transform: translateY(14px) scale(.96); }
+    .duo-invit-t { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .duo-invit-t b, .duo-invit-t small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .duo-invit-t b { font-size: .86rem; }
+    .duo-invit-t small { font-size: .74rem; opacity: .68; }
+    .duo-invit-ok { flex: none; display: grid; place-items: center; height: 40px; padding: 0 16px; border-radius: 99px; background: var(--vert-direct); color: #052e14; font: 800 .86rem 'Inter', sans-serif; }
+    .duo-rj-tete { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; }
+    .duo-rj-tete b { display: block; font: 800 1.08rem 'Manrope', 'Inter', sans-serif; letter-spacing: -.02em; }
+    .duo-rj-tete small { display: flex; align-items: center; gap: 8px; margin-top: 3px; font-size: .78rem; color: var(--text-muted); }
+    .duo-rj-liste { margin: 0 0 14px; padding: 2px 12px; border-radius: 18px; background: var(--piste); }
+    .duo-rj { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--trait); }
+    .duo-rj:first-child { border-top: 0; }
+    .duo-rj > div { min-width: 0; }
+    .duo-rj b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .88rem; }
+    .duo-rj small { display: block; font-size: .74rem; color: var(--text-muted); }
     /* Classement */
     html:root .gb-mesure { margin: 0 0 8px; }
     .gpodium { display: grid; grid-template-columns: 1fr 1.15fr 1fr; align-items: end; gap: 8px; margin: 22px 0 14px; }
@@ -4582,6 +4687,7 @@
         </div>
         <button type="button" class="sh-corps" id="session-corps" onclick="basculerCorpsSession()" aria-label="Agrandir la silhouette des muscles travaillés" aria-expanded="false"></button>
       </div>
+      <div id="session-duo"></div>
       <div class="session-haut" id="session-haut">
         <div class="session-zones" id="session-zones"></div>
       </div>
@@ -4980,6 +5086,9 @@
   <span class="bandeau-seance-flottant-texte" id="bandeau-seance-flottant-texte"></span>
   <svg class="icone-ui bsf-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
 </button>
+
+<!-- Invitation à s'entraîner ensemble (séance à deux) : au-dessus de la barre d'onglets, sur tous les écrans. -->
+<button type="button" class="duo-invit hidden" id="duo-invitation" onclick="ouvrirInvitationDuo()"></button>
 
 <!-- Menu du type de série (normale/dégressif/pyramidal/échec), ouvert au tap
      sur la pastille numérotée d'une série — un seul menu partagé, positionné
@@ -5410,6 +5519,13 @@
         <p class="note note-explicative" style="margin:10px 0 0;">À exécuter une fois, après les autres : permet à chacun de supprimer son compte depuis l'appli, de signaler ou bloquer un gymbro (les signalements arrivent dans la table gymbros_signalements), et prépare les abonnements payés via Apple. Ne modifie aucune donnée existante.</p>
         <div class="bloc-sql" id="bloc-sql-app-store"></div>
         <button class="btn btn-secondaire" style="margin-top:9px;" onclick="copierSqlAppStore()">Copier le SQL</button>
+      </details>
+
+      <details style="margin-top:10px;">
+        <summary style="cursor:pointer;font-size:0.75rem;color:var(--text-muted);font-weight:700;">SQL : Gymbro en direct et séances à deux</summary>
+        <p class="note note-explicative" style="margin:10px 0 0;">À exécuter une fois, après le SQL « Nom d'utilisateur, Gymbro et photos » : la séance en cours devient visible des gymbros (s'ils partagent leurs séances), on peut s'inviter à s'entraîner ensemble et s'envoyer des 💪. Tant qu'il n'est pas passé, ces fonctions restent simplement cachées.</p>
+        <div class="bloc-sql" id="bloc-sql-gymbro-direct"></div>
+        <button class="btn btn-secondaire" style="margin-top:9px;" onclick="copierSqlGymbroDirect()">Copier le SQL</button>
       </details>
     </div>
 
@@ -5950,6 +6066,10 @@
         <input type="checkbox" id="profil-partage" style="width:auto;" onchange="basculerPartageSeances(this.checked)">
         Partager mes séances avec mes gymbros
       </label>
+      <label class="hidden" style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:600; margin:10px 0 0; cursor:pointer;">
+        <input type="checkbox" id="profil-partage-direct" style="width:auto;" onchange="basculerPartageDirect(this.checked)">
+        Montrer ma séance en cours à mes gymbros
+      </label>
     </div>
     <button type="button" class="btn btn-primary" style="margin-top:16px;" onclick="fermerModal('profil-modif-modal')">Terminé</button>
   </div>
@@ -6142,6 +6262,29 @@
       </div>
     </div>
     <div id="gymbro-comparaison"></div>
+  </div>
+</div>
+
+<!-- ================= SÉANCE À DEUX : inviter un gymbro, rejoindre une séance ================= -->
+<div id="duo-inviter-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-duo-inviter">
+  <div class="modal-content" style="max-width:480px;">
+    <div class="modal-entete">
+      <h3 id="titre-duo-inviter">S'entraîner ensemble</h3>
+      <button class="close-modal" onclick="fermerModal('duo-inviter-modal')" aria-label="Fermer">&times;</button>
+    </div>
+    <p class="note duo-note" id="duo-inviter-note"></p>
+    <div class="duo-amis" id="duo-inviter-liste"></div>
+  </div>
+</div>
+<div id="duo-rejoindre-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="duo-rejoindre-titre">
+  <div class="modal-content" style="max-width:480px;">
+    <div class="modal-entete">
+      <h3 id="duo-rejoindre-titre">Séance</h3>
+      <button class="close-modal" onclick="fermerModal('duo-rejoindre-modal')" aria-label="Fermer">&times;</button>
+    </div>
+    <div id="duo-rejoindre-corps"></div>
+    <button type="button" class="btn btn-primary" onclick="repondreInvitationDuo(true)">Rejoindre la séance</button>
+    <button type="button" class="btn btn-secondaire" style="margin-top:10px;" onclick="repondreInvitationDuo(false)">Pas maintenant</button>
   </div>
 </div>
 
@@ -12556,9 +12699,9 @@ function allerA(nom) {
   window.scrollTo({ top: 0, behavior: 'auto' });
   reduireAppBar(false);
   if (nom === 'stats') { prepareStats(); }
-  if (nom === 'seance') { renderSeance(); choisirModeSeance(modeSeance, true); renderRangeesGymbros(); chargerFilGymbros(); }
+  if (nom === 'seance') { renderSeance(); choisirModeSeance(modeSeance, true); renderRangeesGymbros(); chargerFilGymbros(); chargerDirect(); }
   if (nom === 'repas') { majNoteCleIA(); renderPremiersPas(); }
-  if (nom === 'reglages') { renderVitrineProfil(); renderRangeesGymbros(); chargerFilGymbros(); }
+  if (nom === 'reglages') { renderVitrineProfil(); renderRangeesGymbros(); chargerFilGymbros(); chargerDirect(); }
   majBoutonPlus();
   // Les aliments ne sont chargés qu'à l'ouverture de leur feuille :
   // inutile d'interroger Supabase tant que personne ne les regarde.
@@ -13309,7 +13452,7 @@ function definirSessionUtilisateur(user) {
     if (memeCompte) return;
     chargerMonPseudo();
     chargerMonProfil();
-    chargerLiensGymbro().then(ouvrirInvitationGymbro);
+    chargerLiensGymbro().then(() => { ouvrirInvitationGymbro(); chargerDirect(true); demarrerBoucleDirect(); });
     compterAValiderAdmin();
     chargerFilGymbros(true);
     chargerRecettesPartagees();
@@ -13341,6 +13484,8 @@ function definirSessionUtilisateur(user) {
    poids d'une personne ne traîne visible pour la suivante, ni ne se
    retrouve poussé par erreur vers son compte à elle. */
 function viderDonneesLocales() {
+  directGymbros = []; duosGymbro = []; directActif = false; directVue = null; directPublie = false; directEnvoye = '';
+  majBandeauInvitation();
   appData = {};
   userProfile = { height: 175, age: 25, gender: 'm', weight: 70 };
   musculationProgrammes = []; musculationHistorique = []; musculationExosPerso = [];
@@ -14433,6 +14578,7 @@ function majUIPseudo() {
     partage.closest('label').classList.toggle('hidden', !monPseudo);
     partage.checked = !!(monPseudo && monPseudo.partage_seances);
   }
+  majPartageDirectUI();
 }
 
 /* --------------------------------- Gymbro ---------------------------------- */
@@ -14446,6 +14592,7 @@ function ouvrirGymbro(onglet, pseudo) {
   document.getElementById('gymbro-resultats').innerHTML = '';
   document.getElementById('gymbro-comparaison').innerHTML = '';
   document.getElementById('gymbro-espace').classList.remove('hidden');
+  directVue = null;
   ouvrirModal('gymbro-modal');
   choisirOngletGymbro(['fil', 'classement', 'mes'].includes(onglet) ? onglet : (demandesGymbroRecues().length ? 'mes' : 'fil'));
   if (pseudo) comparerGymbro(pseudo);
@@ -14455,6 +14602,7 @@ function ouvrirGymbro(onglet, pseudo) {
     chargerSeancesGymbros();
   });
   chargerFilGymbros();
+  chargerDirect(true);
 }
 function gymbroModalOuvert() {
   const m = document.getElementById('gymbro-modal');
@@ -14480,7 +14628,8 @@ function teinteAvatar(pseudo) {
 }
 function bulleGymbro(pseudo, taille, anneau, moi) {
   const av = moi ? avatarHTML(pseudo, monProfil && monProfil.avatar) : avatarGymbro(pseudo);
-  return `<span class="gav${anneau ? ' gav--actif' : ''}" style="--t:${taille}px;--av:${teinteAvatar(pseudo)}">${av}</span>`;
+  const classe = anneau === 'direct' ? ' gav--direct' : anneau ? ' gav--actif' : '';
+  return `<span class="gav${classe}" style="--t:${taille}px;--av:${teinteAvatar(pseudo)}">${av}</span>`;
 }
 /* Dernière séance connue d'un gymbro (fil des 14 jours, ou ses 90 jours
    partagés s'ils sont déjà chargés). */
@@ -14515,11 +14664,13 @@ function rangeeGymbrosHTML() {
   if (!sessionUtilisateur || !gymbroLiensActifs) return '';
   const auj = todayStr();
   const recues = demandesGymbroRecues();
-  const acceptes = gymbroLiens.filter(l => l.statut === 'acceptee').map(l => ({ pseudo: l.pseudo, d: derniereSeanceGymbro(l.pseudo) }))
-    .sort((a, b) => (b.d ? b.d.date : '').localeCompare(a.d ? a.d.date : '') || a.pseudo.localeCompare(b.pseudo));
+  const acceptes = gymbroLiens.filter(l => l.statut === 'acceptee').map(l => ({ pseudo: l.pseudo, d: derniereSeanceGymbro(l.pseudo), direct: directVisibleDe(l.pseudo) }))
+    .sort((a, b) => (!!b.direct - !!a.direct) || (b.d ? b.d.date : '').localeCompare(a.d ? a.d.date : '') || a.pseudo.localeCompare(b.pseudo));
   const bulles = [`<button type="button" class="gst" onclick="partagerLienGymbro()"><span class="gav gav--inviter" style="--t:56px"><i aria-hidden="true">+</i></span><small>Inviter</small></button>`]
     .concat(recues.map(l => `<button type="button" class="gst" onclick="ouvrirGymbro('mes')" aria-label="@${escapeHtml(l.pseudo)} veut être ton gymbro">${bulleGymbro(l.pseudo, 56)}<small>@${escapeHtml(l.pseudo)}</small><em class="nouv">Nouveau</em></button>`))
-    .concat(acceptes.map(({ pseudo, d }) => `<button type="button" class="gst" onclick="ouvrirGymbro('fil', ${argJs(pseudo)})">${bulleGymbro(pseudo, 56, !!d && d.date === auj)}<small>@${escapeHtml(pseudo)}</small><em>${escapeHtml(sousTitreGymbro(d, true))}</em></button>`));
+    .concat(acceptes.map(({ pseudo, d, direct }) => direct
+      ? `<button type="button" class="gst" onclick="ouvrirDirectGymbro(${argJs(pseudo)})" aria-label="@${escapeHtml(pseudo)} est en séance : la suivre en direct">${bulleGymbro(pseudo, 56, 'direct')}<small>@${escapeHtml(pseudo)}</small><em class="gst-direct"><i class="point-direct" aria-hidden="true"></i>En séance</em></button>`
+      : `<button type="button" class="gst" onclick="ouvrirGymbro('fil', ${argJs(pseudo)})">${bulleGymbro(pseudo, 56, !!d && d.date === auj)}<small>@${escapeHtml(pseudo)}</small><em>${escapeHtml(sousTitreGymbro(d, true))}</em></button>`));
   const vide = acceptes.length || recues.length ? '' : '<p class="gstrip-vide">Invite tes amis : vous verrez vos séances et pourrez vous encourager.</p>';
   return `<div class="gstrip"><div class="gstrip-tete"><b>Tes gymbros</b><button type="button" class="gstrip-tout" onclick="ouvrirGymbro()">Tout voir ›</button></div>
     <div class="gstrip-ligne">${bulles.join('')}${vide}</div></div>`;
@@ -14875,6 +15026,638 @@ let filGymbrosVisibles = 8;
 let respectsRecus = [];
 const estDateIsoFil = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
 function nouveauxRespects() { return respectsRecus.filter(r => r.quand > (Number(userProfile.respectsVus) || 0)); }
+/* =====================================================================
+   GYMBRO EN DIRECT ET SÉANCE À DEUX (voir SQL_GYMBRO_DIRECT)
+   - Pendant une séance, un résumé léger (exercices, séries faites, repos ;
+     jamais les notes) part sur Supabase à chaque série cochée, puis toutes
+     les minutes. Abandonnée, la séance disparaît. Les gymbros acceptés la
+     voient (anneau vert dans la rangée, « En ce moment » en tête du fil,
+     page de la séance en direct) si la personne partage ses séances et n'a
+     pas coupé « Montrer ma séance en cours ».
+   - Séance à deux : on invite un gymbro depuis sa séance ; il démarre les
+     mêmes exercices avec SES charges, et chacun voit les séries de l'autre
+     sous chaque exercice.
+   Lecture par sondage (gymbro_direct) : toutes les 5 s en duo ou fenêtre
+   Gymbro ouverte, toutes les 30 s sinon, et seulement avec des gymbros.
+   Tant que le SQL n'est pas passé, rien de tout ça n'apparaît.
+   ===================================================================== */
+const MESSAGE_SQL_DIRECT = "Cette fonction n'est pas encore activée sur le serveur : l'administrateur doit exécuter le SQL « Gymbro en direct et séances à deux » (Administration › Réglages techniques).";
+const ENCOURAGEMENTS_VUS_LS = 'mc_encouragements_vus';
+const ICONE_DUO = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M19 8v6" /><path d="M22 11h-6" /></svg>';
+let directGymbros = [];        // séances en cours de mes gymbros (nettoyées)
+let duosGymbro = [];           // invitations à s'entraîner ensemble, reçues et envoyées
+let directActif = false;       // vrai dès que gymbro_direct répond (SQL en place)
+let directSignature = '';      // pour ne redessiner que si quelque chose a changé
+let directDernier = 0, directChargement = false;
+let directIndispoJusqua = 0;  // SQL absent : on ne redemande que toutes les 10 minutes
+let directVue = null;          // pseudo dont la séance en direct est ouverte
+let directPublie = false, directEnvoye = '', directBattement = 0, directEnvoiTimer = null;
+let directMinuteur = null, directTour = 0;
+let encouragesLe = {};         // pseudo -> dernier 💪 envoyé (bouton grisé une minute)
+let duoIgnores = new Set();    // invitations écartées (Rejoindre ou Pas maintenant)
+let invitationOuverte = null;
+let recordsDuoVus = null;      // records du partenaire déjà annoncés (null : premier passage)
+
+function nomExerciceSession(e) {
+  const exo = trouverExercice(e.exerciceId);
+  return exo ? libelleExercice(exo) : (e.nom || 'Exercice');
+}
+function dureeMinSec(sec) { return Math.floor(sec / 60) + ':' + String(Math.floor(sec % 60)).padStart(2, '0'); }
+function ilYA(ms) {
+  const min = Math.max(0, Math.round((Date.now() - ms) / 60000));
+  return min < 1 ? "à l'instant" : min < 60 ? 'il y a ' + min + ' min' : 'il y a ' + Math.floor(min / 60) + ' h';
+}
+
+/* ------------------------- Publier ma séance ------------------------- */
+function instantaneSeance(s) {
+  // Repos en cours : le plus récent des minuteurs (avec sa durée prévue,
+  // pour que les autres sachent quand il est reparti).
+  let repos = 0, reposEi = -1;
+  Object.keys(reposActifs).forEach(k => { const t = Number(reposActifs[k]); if (t > repos) { repos = t; reposEi = Number(k.split('_')[0]); } });
+  return {
+    v: 1, nom: String(s.programmeNom || 'Séance libre').slice(0, 60), debut: s.debut,
+    ...(repos && s.exercices[reposEi] ? { repos, rc: reposCibleExo(reposEi) } : {}),
+    ex: s.exercices.slice(0, 30).map(e => ({
+      id: String(e.exerciceId || '').slice(0, 80), nom: String(nomExerciceSession(e)).slice(0, 80), n: Math.min(e.series.length, 20),
+      s: e.series.slice(0, 20).map(x => x.fait ? [Number(x.poids) || 0, Number(x.reps) || 0, x.record ? 1 : 0] : null)
+    }))
+  };
+}
+function duoDe(s) { return s && s.duo && ['attente', 'acceptee'].includes(s.duo.statut) ? s.duo : null; }
+function duoAccepte(s) { const d = duoDe(s); return d && d.statut === 'acceptee' ? d : null; }
+function directPartage() { return !!(monPseudo && monPseudo.partage_seances !== false && userProfile.partageDirect !== false); }
+function directPeutPublier(s) {
+  return !!(supa && sessionUtilisateur && directActif && s && !s.demo && (directPartage() || duoAccepte(s)));
+}
+// À chaque sauvegarde de la séance (série cochée, repos, exercice ajouté…).
+function majDirectSession() {
+  if (!musculationSessionActive || musculationSessionActive.demo) return;
+  clearTimeout(directEnvoiTimer);
+  directEnvoiTimer = setTimeout(() => publierDirect(false), 1200);
+}
+async function publierDirect(battement) {
+  const s = musculationSessionActive;
+  if (!s || s.demo) return;
+  if (!directPeutPublier(s)) {
+    // Partage coupé en pleine séance : ce qui était visible disparaît.
+    if (directPublie && supa && sessionUtilisateur) {
+      directPublie = false; directEnvoye = '';
+      try { await supa.rpc('direct_terminer'); } catch (e) {}
+    }
+    return;
+  }
+  const inst = instantaneSeance(s);
+  const texte = JSON.stringify(inst);
+  if (texte === directEnvoye && !(battement && Date.now() - directBattement > 55000)) return;
+  try {
+    const d = duoDe(s);
+    const { data, error } = await supa.rpc('direct_publier', { p_donnees: inst, p_duo: d ? d.id : null });
+    if (error) throw error;
+    directEnvoye = texte; directBattement = Date.now(); directPublie = true;
+    annoncerEncouragements(data);
+  } catch (e) {
+    // Hors ligne : le battement suivant (toutes les minutes) réessaiera.
+    if (estErreurSqlManquant(e)) directActif = false;
+  }
+}
+/* Fin de séance. Terminée : le dernier état reste visible du partenaire de
+   duo (« a terminé ») ; abandonnée ou remplacée : tout disparaît. Le second
+   à finir (ou celui qui abandonne) clôt le duo. */
+function finDirect(s, terminee) {
+  clearTimeout(directEnvoiTimer);
+  if (!supa || !sessionUtilisateur || !directActif || !s || s.demo) return;
+  const ignorer = () => {};
+  const d = duoDe(s);
+  const partenaire = d && directDe(d.pseudo);
+  if (terminee && directPeutPublier(s)) {
+    supa.rpc('direct_publier', { p_donnees: Object.assign(instantaneSeance(s), { fini: Date.now() }), p_duo: d ? d.id : null }).then(ignorer, ignorer);
+  } else if (directPublie || d) {
+    supa.rpc('direct_terminer').then(ignorer, ignorer);
+  }
+  if (d && (!terminee || d.statut !== 'acceptee' || !partenaire || partenaire.fini)) supa.rpc('duo_quitter', { p_id: d.id }).then(ignorer, ignorer);
+  directPublie = false; directEnvoye = ''; recordsDuoVus = null;
+}
+function annoncerEncouragements(liste) {
+  if (!Array.isArray(liste) || !liste.length || !musculationSessionActive) return;
+  let vus = [];
+  try { vus = JSON.parse(localStorage.getItem(ENCOURAGEMENTS_VUS_LS) || '[]'); } catch (e) {}
+  if (!Array.isArray(vus)) vus = [];
+  const nouveaux = liste.filter(x => x && typeof x.pseudo === 'string' && x.pseudo && typeof x.cree_le === 'string' && !vus.includes(x.pseudo + '|' + x.cree_le));
+  if (!nouveaux.length) return;
+  try { localStorage.setItem(ENCOURAGEMENTS_VUS_LS, JSON.stringify(vus.concat(nouveaux.map(x => x.pseudo + '|' + x.cree_le)).slice(-40))); } catch (e) {}
+  const noms = [...new Set(nouveaux.map(x => '@' + x.pseudo))];
+  celebrer((noms.length > 2 ? noms.slice(0, 2).join(', ') + ' et ' + (noms.length - 2) + ' autre' + (noms.length > 3 ? 's' : '') : noms.join(' et '))
+    + (noms.length > 1 ? ' t’encouragent' : ' t’encourage') + ' 💪', 'Continue comme ça !', 'flamme');
+}
+// Case « Montrer ma séance en cours » (Modifier le profil), sous le partage des séances.
+function majPartageDirectUI() {
+  const c = document.getElementById('profil-partage-direct');
+  if (!c) return;
+  c.closest('label').classList.toggle('hidden', !sessionUtilisateur || !monPseudo || !directActif || monPseudo.partage_seances === false);
+  c.checked = userProfile.partageDirect !== false;
+}
+function basculerPartageDirect(actif) {
+  userProfile.partageDirect = !!actif;
+  saveData();
+  majPartageDirectUI();
+  if (musculationSessionActive) publierDirect(false);
+}
+
+/* ------------------- Lire les séances de mes gymbros ------------------- */
+// Données d'autres comptes : on ne garde que des valeurs connues, bornées.
+function nettoyerDirect(r) {
+  if (!r || typeof r.pseudo !== 'string' || !r.pseudo) return null;
+  const d = r.donnees;
+  if (!d || typeof d !== 'object' || !Array.isArray(d.ex)) return null;
+  const nombre = (v, max) => { const n = Number(v); return Number.isFinite(n) && n >= 0 && n < max ? n : null; };
+  const ex = d.ex.slice(0, 30).filter(e => e && typeof e === 'object').map(e => {
+    const s = (Array.isArray(e.s) ? e.s.slice(0, 20) : []).map(x => Array.isArray(x) && nombre(x[0], 1000) !== null && nombre(x[1], 1000) !== null
+      ? { poids: nombre(x[0], 1000), reps: Math.round(nombre(x[1], 1000)), record: x[2] === 1 } : null);
+    return { id: typeof e.id === 'string' ? e.id.slice(0, 80) : '', nom: typeof e.nom === 'string' && e.nom.trim() ? e.nom.trim().slice(0, 80) : 'Exercice',
+      n: Math.max(s.length, Math.min(20, Math.floor(nombre(e.n, 100) || 0))), s };
+  });
+  return {
+    pseudo: r.pseudo, nom: typeof d.nom === 'string' && d.nom.trim() ? d.nom.trim().slice(0, 60) : 'Séance libre',
+    debut: nombre(d.debut, 1e14), repos: nombre(d.repos, 1e14), reposCible: nombre(d.rc, 3600), fini: !!d.fini,
+    maj: Date.parse(r.maj) || Date.now(), ex
+  };
+}
+function nettoyerProgrammeDuo(p) {
+  if (!p || typeof p !== 'object' || !Array.isArray(p.ex) || !p.ex.length) return null;
+  return {
+    nom: typeof p.nom === 'string' && p.nom.trim() ? p.nom.trim().slice(0, 60) : 'Séance libre',
+    debut: Number(p.debut) > 0 ? Number(p.debut) : null,
+    ex: p.ex.slice(0, 30).filter(e => e && typeof e === 'object' && typeof e.id === 'string' && e.id).map(e => ({
+      id: e.id.slice(0, 80), nom: typeof e.nom === 'string' && e.nom.trim() ? e.nom.trim().slice(0, 80) : 'Exercice',
+      n: Math.max(1, Math.min(20, Math.floor(Number(e.n) || 3))), ss: e.ss === 1
+    }))
+  };
+}
+function nettoyerDuo(r) {
+  if (!r || typeof r.id !== 'string' || typeof r.pseudo !== 'string' || !r.pseudo) return null;
+  if (!['attente', 'acceptee', 'refusee', 'terminee'].includes(r.statut)) return null;
+  return { id: r.id, pseudo: r.pseudo, statut: r.statut, hote: r.hote === true, creeLe: Date.parse(r.cree_le) || 0, programme: nettoyerProgrammeDuo(r.programme) };
+}
+function directDe(pseudo) {
+  const p = String(pseudo || '').toLowerCase();
+  return directGymbros.find(d => d.pseudo.toLowerCase() === p) || null;
+}
+function directVisibles() { return directGymbros.filter(d => !d.fini); }
+function directVisibleDe(pseudo) { const d = directDe(pseudo); return d && !d.fini ? d : null; }
+
+async function chargerDirect(force) {
+  if (!supa || !sessionUtilisateur || !gymbroLiensActifs || directChargement) return;
+  if (!gymbroLiens.some(l => l.statut === 'acceptee')) {
+    if (directGymbros.length || duosGymbro.length) { directGymbros = []; duosGymbro = []; appliquerDirect(); }
+    return;
+  }
+  if (Date.now() < directIndispoJusqua || (!force && Date.now() - directDernier < 4000)) return;
+  directChargement = true; directDernier = Date.now();
+  try {
+    const { data, error } = await supa.rpc('gymbro_direct');
+    if (error) throw error;
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Réponse inattendue');
+    const decouvert = !directActif;
+    directActif = true;
+    directGymbros = (Array.isArray(data.direct) ? data.direct : []).map(nettoyerDirect).filter(Boolean);
+    duosGymbro = (Array.isArray(data.duos) ? data.duos : []).map(nettoyerDuo).filter(Boolean);
+    // SQL tout juste en place, séance déjà commencée : elle part maintenant.
+    if (decouvert && musculationSessionActive) { publierDirect(false); renderDuoSession(); }
+  } catch (e) {
+    if (estErreurSqlManquant(e)) { directActif = false; directGymbros = []; duosGymbro = []; directIndispoJusqua = Date.now() + 10 * 60000; }
+    else return; // hors ligne : on garde ce qu'on avait
+  } finally {
+    directChargement = false;
+  }
+  appliquerDirect();
+}
+function appliquerDirect() {
+  const signature = JSON.stringify([directGymbros.map(d => [d.pseudo, d.fini, d.ex, d.repos]), duosGymbro, directActif]);
+  const change = signature !== directSignature;
+  directSignature = signature;
+  if (change) renderRangeesGymbros();
+  if (gymbroModalOuvert()) {
+    if (directVue) renderDirectVue();
+    else if (change && gymbroOnglet === 'fil' && !document.getElementById('gymbro-espace').classList.contains('hidden')) renderFilGymbros();
+  }
+  suivreDuo();
+  majBandeauInvitation();
+  majPartageDirectUI();
+}
+function rafraichirVuesDirect() {
+  if (!gymbroModalOuvert()) return;
+  if (directVue) renderDirectVue();
+  else if (gymbroOnglet === 'fil') renderFilGymbros();
+}
+function demarrerBoucleDirect() {
+  if (directMinuteur) return;
+  setInterval(() => { if (!document.hidden) majReposDuo(); }, 1000);
+  directMinuteur = setInterval(() => {
+    if (document.hidden || !supa || !sessionUtilisateur) return;
+    directTour++;
+    const s = musculationSessionActive;
+    const rapide = (duoDe(s) && ecranActif === 'seance') || (gymbroModalOuvert() && (directVue || gymbroOnglet === 'fil'));
+    if (rapide || directTour % 6 === 0) chargerDirect(true);
+    if (s && Date.now() - directBattement > 60000) publierDirect(true);
+    // Le bouton 💪 se réactive au bout d'une minute.
+    if (Object.keys(encouragesLe).some(p => Date.now() - encouragesLe[p] > 60000)) {
+      Object.keys(encouragesLe).forEach(p => { if (Date.now() - encouragesLe[p] > 60000) delete encouragesLe[p]; });
+      rafraichirVuesDirect();
+    }
+  }, 5000);
+}
+
+/* ---------------------- Ce qu'on en montre ---------------------- */
+function resumeDirect(d) {
+  let series = 0, volume = 0, records = 0;
+  d.ex.forEach(e => e.s.forEach(x => { if (x) { series++; volume += x.poids * x.reps; if (x.record) records++; } }));
+  const courant = d.ex.findIndex(e => e.s.filter(Boolean).length < e.n);
+  return { series, volume: Math.round(volume), records, courant, min: d.debut ? Math.max(0, Math.round((Date.now() - d.debut) / 60000)) : null };
+}
+// Encore au repos ? Jusqu'à 30 s après la durée prévue ; au-delà, il est reparti.
+function reposDirect(d) {
+  if (!d.repos || d.fini) return null;
+  const sec = Math.floor((Date.now() - d.repos) / 1000);
+  return sec >= 0 && sec <= (d.reposCible || 180) + 30 ? sec : null;
+}
+function nomExerciceDirect(e) { const exo = trouverExercice(e.id); return exo ? libelleExercice(exo) : e.nom; }
+function chipDirectHTML(x) {
+  return `<span class="direct-chip${x.record ? ' direct-chip--rec' : ''}">${escapeHtml(poidsFr(x.poids))}<small>kg</small>×${x.reps}${x.record ? ' 🏆' : ''}</span>`;
+}
+function boutonEncouragerHTML(pseudo, large) {
+  const envoye = Date.now() - (encouragesLe[pseudo.toLowerCase()] || 0) < 60000;
+  return `<button type="button" class="fil-respect${large ? ' direct-encourager' : ''}" ${envoye ? 'aria-pressed="true" disabled' : 'aria-pressed="false"'} onclick="encouragerGymbro(${argJs(pseudo)})"><span aria-hidden="true">💪</span> ${envoye ? 'Envoyé' : 'Encourager' + (large ? ' @' + escapeHtml(pseudo) : '')}</button>`;
+}
+function carteDirectHTML(d) {
+  const r = resumeDirect(d);
+  const x = d.ex[r.courant];
+  const repos = reposDirect(d);
+  const etapes = d.ex.map((e, i) => {
+    const part = i < r.courant || r.courant < 0 ? 100 : i === r.courant ? Math.round(100 * e.s.filter(Boolean).length / (e.n || 1)) : 0;
+    return `<i${i === r.courant ? ' class="encours"' : ''} style="--part:${part}%"></i>`;
+  }).join('');
+  const maintenant = x
+    ? `<small>Exercice ${r.courant + 1} sur ${d.ex.length}</small><b>${escapeHtml(nomExerciceDirect(x))}</b>
+       <span>Série ${Math.min(x.s.filter(Boolean).length + 1, x.n)} sur ${x.n}${repos != null ? ' · au repos depuis ' + dureeMinSec(repos) : ''}</span>`
+    : '<small>Dernière ligne droite</small><b>Tous ses exercices sont faits</b>';
+  const tuile = (v, u) => `<div><b>${v}</b> <span>${u}</span></div>`;
+  return `<div class="fil-carte direct-carte">
+    <div class="gcarte-tete">${bulleGymbro(d.pseudo, 40, 'direct')}
+      <div class="fil-qui"><b>@${escapeHtml(d.pseudo)}</b><small>${escapeHtml(d.nom)}${r.min != null ? ' · depuis ' + r.min + ' min' : ''}</small></div>
+      <span class="direct-pastille"><i class="point-direct" aria-hidden="true"></i>En direct</span></div>
+    <div class="direct-maintenant">${d.ex.length ? `<div class="direct-etapes" aria-hidden="true">${etapes}</div>` : ''}${maintenant}</div>
+    <div class="fil-stats">${tuile(r.series, 'série' + (r.series > 1 ? 's' : ''))}${tuile(r.volume.toLocaleString('fr-FR'), 'kg')}${r.records ? tuile('🏆 ' + r.records, 'record' + (r.records > 1 ? 's' : '')) : r.min != null ? tuile(r.min, 'min') : ''}</div>
+    <div class="gcarte-actions">${boutonEncouragerHTML(d.pseudo)}
+      <button type="button" class="gcomp" onclick="ouvrirDirectGymbro(${argJs(d.pseudo)})">Suivre sa séance</button></div>
+  </div>`;
+}
+function ouvrirDirectGymbro(pseudo) {
+  if (!gymbroModalOuvert()) ouvrirGymbro('fil');
+  directVue = pseudo;
+  document.getElementById('gymbro-espace').classList.add('hidden');
+  const fenetre = document.querySelector('#gymbro-modal .modal-content');
+  if (fenetre) fenetre.scrollTop = 0;
+  renderDirectVue();
+  chargerDirect(true);
+}
+function renderDirectVue() {
+  const c = document.getElementById('gymbro-comparaison');
+  if (!c || !directVue) return;
+  const d = directDe(directVue);
+  const qui = '@' + escapeHtml(directVue);
+  const enDirect = d && !d.fini;
+  const barre = `<div class="gb-barre-retour"><button type="button" class="gretour" onclick="retourRechercheGymbro()" aria-label="Retour">‹</button><h4>${qui}</h4>${enDirect ? '<span class="direct-pastille direct-pastille--barre"><i class="point-direct" aria-hidden="true"></i>En direct</span>' : ''}</div>`;
+  if (!enDirect) {
+    c.innerHTML = barre + `<div class="gvide"><b>${d ? 'Séance terminée' : 'Plus en séance'}</b>
+      <p>${d ? 'Elle arrive dans le fil dans un instant.' : qui + " n'a pas de séance en cours."}</p>
+      <button type="button" class="gbtn gbtn--ok" onclick="comparerGymbro(${argJs(directVue)})">Voir sa fiche</button></div>`;
+    return;
+  }
+  const r = resumeDirect(d);
+  const repos = reposDirect(d);
+  const coche = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>';
+  const lignes = d.ex.map((e, i) => {
+    const faites = e.s.filter(Boolean);
+    const etat = r.courant < 0 || i < r.courant && faites.length >= e.n ? 'fait' : i === r.courant ? 'encours' : faites.length ? 'fait' : 'avenir';
+    const marque = etat === 'fait' ? coche : etat === 'encours' ? '<i class="point-direct" aria-hidden="true"></i>' : String(i + 1);
+    const series = etat === 'avenir' ? `<span class="direct-avenir">${e.n} série${e.n > 1 ? 's' : ''} · à venir</span>`
+      : faites.map(chipDirectHTML).join('') + (etat === 'encours' ? `<span class="direct-chip direct-chip--attente">série ${Math.min(faites.length + 1, e.n)}…</span>` : '');
+    return `<div class="direct-ex direct-ex--${etat}"><span class="direct-m">${marque}</span>
+      <div class="direct-ex-c"><b>${escapeHtml(nomExerciceDirect(e))}</b><div class="direct-chips">${series}</div>
+      ${etat === 'encours' && repos != null ? `<small class="direct-repos">Au repos depuis <span class="duo-repos" data-depuis="${d.repos}">${dureeMinSec(repos)}</span></small>` : ''}</div></div>`;
+  }).join('');
+  const majIlYa = Math.max(0, Math.round((Date.now() - d.maj) / 1000));
+  c.innerHTML = barre + `
+    <div class="direct-tete">${bulleGymbro(d.pseudo, 52, 'direct')}
+      <div><b>${escapeHtml(d.nom)}</b><small>${r.min != null ? 'Depuis ' + r.min + ' min · ' : ''}${r.series} série${r.series > 1 ? 's' : ''} · ${r.volume.toLocaleString('fr-FR')} kg</small></div></div>
+    <div class="gb-carte direct-liste">${lignes || '<p class="note" style="margin:12px 0;">Pas encore d’exercice.</p>'}</div>
+    <p class="direct-maj">Mis à jour ${majIlYa < 60 ? 'il y a ' + majIlYa + ' s' : ilYA(d.maj)}</p>
+    ${boutonEncouragerHTML(d.pseudo, true)}`;
+}
+function bandeauDirectFicheHTML(pseudo) {
+  const d = directVisibleDe(pseudo);
+  if (!d) return '';
+  const r = resumeDirect(d);
+  return `<button type="button" class="direct-fiche" onclick="ouvrirDirectGymbro(${argJs(pseudo)})"><i class="point-direct" aria-hidden="true"></i>
+    <span><b>En séance</b> · ${escapeHtml(d.nom)}${r.min != null ? ' · depuis ' + r.min + ' min' : ''}</span><span class="direct-fiche-suivre">Suivre ›</span></button>`;
+}
+function avecSeanceHTML(d) { return d && typeof d.avec === 'string' && PSEUDO_REGEX.test(d.avec) ? ' · avec @' + escapeHtml(d.avec) : ''; }
+async function encouragerGymbro(pseudo) {
+  if (!supa || !sessionUtilisateur) return;
+  const cle = String(pseudo).toLowerCase();
+  encouragesLe[cle] = Date.now();
+  rafraichirVuesDirect();
+  try {
+    const { error } = await supa.rpc('gymbro_encourager', { p_pseudo: pseudo });
+    if (error) throw error;
+    vibrer('leger');
+  } catch (e) {
+    delete encouragesLe[cle];
+    rafraichirVuesDirect();
+    const m = (e && e.message) || '';
+    informer(/pas_en_seance/.test(m) ? `@${pseudo} vient de finir sa séance.` : estErreurSqlManquant(e) ? MESSAGE_SQL_DIRECT : 'Impossible d’envoyer ton encouragement pour l’instant. Vérifie ta connexion.');
+  }
+}
+
+/* ------------------------- Séance à deux ------------------------- */
+function messageErreurDuo(e) {
+  const m = (e && e.message) || '';
+  if (estErreurSqlManquant(e)) return MESSAGE_SQL_DIRECT;
+  if (/pas_gymbro|pseudo_inconnu/.test(m)) return "Vous n'êtes plus gymbros.";
+  if (/trop_d_invitations/.test(m)) return "Trop d'invitations envoyées aujourd'hui. Réessaie demain.";
+  if (/invitation_expiree|invitation_inconnue/.test(m)) return "Cette invitation n'est plus valable : la séance est sans doute finie.";
+  return "Impossible pour l'instant. Vérifie ta connexion et réessaie.";
+}
+// Les exercices de ma séance, sans mes charges, pour l'invité.
+function programmeDuo(s) {
+  return {
+    nom: String(s.programmeNom || 'Séance libre').slice(0, 60), debut: s.debut,
+    ex: s.exercices.slice(0, 30).map(e => ({ id: String(e.exerciceId || '').slice(0, 80), nom: String(nomExerciceSession(e)).slice(0, 80),
+      n: Math.max(1, Math.min(e.series.length, 20)), ...(e.supersetSuivant ? { ss: 1 } : {}) }))
+  };
+}
+function renderDuoSession() {
+  const z = document.getElementById('session-duo');
+  if (!z) return;
+  const s = musculationSessionActive;
+  const d = s && s.duo;
+  const amis = gymbroLiens.filter(l => l.statut === 'acceptee');
+  if (!s || s.demo || !sessionUtilisateur || !directActif || (!d && !amis.length)) { z.innerHTML = ''; return; }
+  const qui = d ? '@' + escapeHtml(d.pseudo) : '';
+  const bandeau = (bulle, titre, sous, action) => `<div class="duo-bandeau${d && d.statut === 'acceptee' ? ' duo-bandeau--actif' : ''}">${bulle}<span class="duo-t"><b>${titre}</b><small>${sous}</small></span>${action}</div>`;
+  if (!d) {
+    z.innerHTML = `<button type="button" class="duo-bouton" onclick="ouvrirInviterDuo()">${ICONE_DUO}<span class="duo-t"><b>S'entraîner avec un gymbro</b><small>Il suit la même séance, avec ses charges</small></span><svg class="icone-ui duo-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>`;
+  } else if (d.statut === 'attente') {
+    z.innerHTML = bandeau(bulleGymbro(d.pseudo, 40), `Invitation envoyée à ${qui}`, "Il la verra en ouvrant l'appli", `<button type="button" class="duo-action" onclick="annulerDuo()">Annuler</button>`);
+  } else if (d.statut === 'acceptee') {
+    const p = directDe(d.pseudo);
+    const etat = !p ? 'Il ouvre sa séance…' : p.fini ? 'A terminé sa séance ✓' : '<i class="point-direct" aria-hidden="true"></i>En direct · séries partagées';
+    z.innerHTML = bandeau(bulleGymbro(d.pseudo, 40, p && !p.fini ? 'direct' : false), `Avec ${qui}`, etat,
+      `<button type="button" class="duo-action duo-action--menu" onclick="menuDuo()" aria-label="Options de la séance à deux">•••</button>`);
+  } else {
+    const texte = d.statut === 'refusee' ? `${qui} ne peut pas maintenant` : `${qui} a quitté la séance à deux`;
+    z.innerHTML = bandeau(bulleGymbro(d.pseudo, 40), texte, d.statut === 'refusee' ? "Invite quelqu'un d'autre ou continue seul" : 'Tu continues seul',
+      `<button type="button" class="duo-action" onclick="oublierDuo()">OK</button>`);
+  }
+}
+function ouvrirInviterDuo() {
+  if (!musculationSessionActive) return;
+  renderInviterDuo();
+  ouvrirModal('duo-inviter-modal', true);
+  chargerDirect(true);
+}
+function renderInviterDuo() {
+  const s = musculationSessionActive;
+  const liste = document.getElementById('duo-inviter-liste');
+  if (!s || !liste) return;
+  document.getElementById('duo-inviter-note').innerHTML = `Ton gymbro reçoit ta séance <b>${escapeHtml(s.programmeNom || 'Séance libre')}</b> : mêmes exercices, dans le même ordre, avec <b>ses</b> charges. Vous voyez les séries de l'autre en direct, et chacun garde la séance dans son historique.`;
+  const d = duoDe(s);
+  const amis = gymbroLiens.filter(l => l.statut === 'acceptee').map(l => ({ pseudo: l.pseudo, direct: directVisibleDe(l.pseudo), derniere: derniereSeanceGymbro(l.pseudo) }))
+    .sort((a, b) => (!!b.direct - !!a.direct) || (b.derniere ? b.derniere.date : '').localeCompare(a.derniere ? a.derniere.date : '') || a.pseudo.localeCompare(b.pseudo));
+  liste.innerHTML = amis.map(a => {
+    const invite = d && d.pseudo.toLowerCase() === a.pseudo.toLowerCase();
+    const sous = a.direct ? 'En séance en ce moment' : a.derniere ? 'Dernière séance : ' + quandGymbro(a.derniere) : 'Pas encore de séance partagée';
+    return `<div class="duo-ami">${bulleGymbro(a.pseudo, 44, a.direct ? 'direct' : false)}<div><b>@${escapeHtml(a.pseudo)}</b><small>${escapeHtml(invite ? "Il la verra en ouvrant l'appli" : sous)}</small></div>
+      <button type="button" class="gbtn${invite ? ' gbtn--ok' : ''}" ${invite ? 'disabled' : ''} onclick="inviterDuo(${argJs(a.pseudo)})">${invite ? 'Invité ✓' : 'Inviter'}</button></div>`;
+  }).join('') || '<p class="note">Ajoute des gymbros pour vous entraîner ensemble.</p>';
+}
+async function inviterDuo(pseudo) {
+  const s = musculationSessionActive;
+  if (!s || !supa || !sessionUtilisateur) return;
+  try {
+    const { data, error } = await supa.rpc('duo_inviter', { p_pseudo: pseudo, p_programme: programmeDuo(s) });
+    if (error) throw error;
+    if (typeof data !== 'string' || !data) throw new Error('Réponse inattendue');
+    s.duo = { id: data, pseudo, hote: true, statut: 'attente' };
+    recordsDuoVus = null;
+    sauvegarderSessionActive();
+    renderInviterDuo();
+    renderDuoSession();
+    vibrer('leger');
+    setTimeout(() => fermerModal('duo-inviter-modal'), 700);
+    chargerDirect(true);
+  } catch (e) {
+    informer(messageErreurDuo(e));
+  }
+}
+function quitterDuoServeur(d) {
+  if (d && supa && sessionUtilisateur) supa.rpc('duo_quitter', { p_id: d.id }).then(() => {}, () => {});
+}
+function annulerDuo() {
+  const s = musculationSessionActive;
+  if (!s || !s.duo) return;
+  quitterDuoServeur(s.duo);
+  delete s.duo;
+  sauvegarderSessionActive();
+  renderDuoSession();
+}
+function oublierDuo() {
+  const s = musculationSessionActive;
+  if (!s || !s.duo) return;
+  delete s.duo;
+  recordsDuoVus = null;
+  sauvegarderSessionActive();
+  renderSessionModal();
+}
+async function menuDuo() {
+  const s = musculationSessionActive;
+  if (!s || !s.duo) return;
+  if (!(await confirmer(`Quitter la séance à deux avec @${s.duo.pseudo} ? Tu continues ta séance seul.`, { ok: 'Quitter', danger: true }))) return;
+  quitterDuoServeur(s.duo);
+  oublierDuo();
+}
+// Après chaque lecture : invitation acceptée ou refusée, partenaire parti,
+// ses séries et ses records sous mes exercices.
+function suivreDuo() {
+  const s = musculationSessionActive;
+  const d = s && s.duo;
+  if (!d || !directActif) return;
+  const serveur = duosGymbro.find(x => x.id === d.id);
+  // L'état n'avance que dans un sens (une lecture partie avant l'acceptation
+  // ne fait pas revenir le duo « en attente »).
+  const rang = { attente: 0, acceptee: 1, refusee: 2, terminee: 2 };
+  if (serveur && rang[serveur.statut] > rang[d.statut]) {
+    if (serveur.statut === 'acceptee' && d.statut === 'attente') celebrer(`@${d.pseudo} te rejoint 💪`, 'Vous voyez vos séries en direct', 'amis');
+    d.statut = serveur.statut;
+    recordsDuoVus = null;
+    // Ses records d'avant ne sont pas annoncés, seulement ceux qui suivent.
+    if (d.statut === 'acceptee') annoncerRecordsDuo(d);
+    sauvegarderSessionActive();
+    renderSessionModal();
+    return;
+  }
+  if (d.statut === 'acceptee') {
+    annoncerRecordsDuo(d);
+    majLignesDuo();
+  }
+  renderDuoSession();
+}
+function annoncerRecordsDuo(d) {
+  const p = directDe(d.pseudo);
+  if (!p) return;
+  const cles = [];
+  p.ex.forEach((e, i) => e.s.forEach((x, j) => { if (x && x.record) cles.push([i, j, x.poids, x.reps].join('_')); }));
+  // Premier passage : ses records d'avant ne sont pas annoncés.
+  if (recordsDuoVus === null) { recordsDuoVus = new Set(cles); return; }
+  cles.filter(k => !recordsDuoVus.has(k)).forEach(k => {
+    recordsDuoVus.add(k);
+    const [i, j] = k.split('_').map(Number);
+    const x = p.ex[i].s[j];
+    celebrer(`@${d.pseudo} : record battu 🏆`, `${nomExerciceDirect(p.ex[i])} · ${poidsFr(x.poids)} kg × ${x.reps}`, 'trophee');
+  });
+}
+// Sa ligne sous un de mes exercices (le même exercice dans sa séance).
+function duoLigneHTML(exo) {
+  const d = duoAccepte(musculationSessionActive);
+  if (!d) return '';
+  const p = directDe(d.pseudo);
+  if (!p) return '';
+  const e = p.ex.find(x => x.id === exo.exerciceId);
+  if (!e) return '';
+  const faites = e.s.filter(Boolean);
+  const r = resumeDirect(p);
+  const repos = reposDirect(p);
+  const courant = p.ex[r.courant] === e;
+  const etat = p.fini ? 'A terminé' : faites.length >= e.n ? 'Fini ✓'
+    : courant ? (repos != null ? `Repos <span class="duo-repos" data-depuis="${p.repos}">${dureeMinSec(repos)}</span>` : 'En cours') : '';
+  return `${bulleGymbro(d.pseudo, 28, p.fini ? false : 'direct')}<div class="duo-ligne-c"><small>@${escapeHtml(d.pseudo)}</small>
+    <div class="direct-chips">${faites.length ? faites.map(chipDirectHTML).join('') : '<span class="direct-avenir">pas encore commencé</span>'}</div></div>
+    ${etat ? `<span class="duo-etat">${etat}</span>` : ''}`;
+}
+function duoMiniHTML(exo) {
+  const d = duoAccepte(musculationSessionActive);
+  const p = d && directDe(d.pseudo);
+  const e = p && p.ex.find(x => x.id === exo.exerciceId);
+  return e ? `${bulleGymbro(d.pseudo, 18)}${e.s.filter(Boolean).length}/${e.n}` : '';
+}
+function majLignesDuo() {
+  const s = musculationSessionActive;
+  if (!s) return;
+  document.querySelectorAll('#session-exercices-container .duo-ligne[data-ei], #session-exercices-container .duo-mini[data-ei]').forEach(z => {
+    const exo = s.exercices[Number(z.dataset.ei)];
+    const html = exo ? (z.classList.contains('duo-mini') ? duoMiniHTML(exo) : duoLigneHTML(exo)) : '';
+    if (z.dataset.rendu !== html) { z.innerHTML = html; z.dataset.rendu = html; }
+  });
+}
+// Chaque seconde (minuteur de la séance) : ses temps de repos avancent.
+function majReposDuo() {
+  document.querySelectorAll('.duo-repos[data-depuis]').forEach(el => {
+    const sec = Math.max(0, Math.floor((Date.now() - Number(el.dataset.depuis)) / 1000));
+    el.textContent = dureeMinSec(sec);
+  });
+}
+
+/* ------------------ L'invitation, chez celui qu'on invite ------------------ */
+function invitationDuo() {
+  const s = musculationSessionActive;
+  return duosGymbro.find(x => !x.hote && x.statut === 'attente' && x.programme && Date.now() - x.creeLe < 90 * 60000
+    && !duoIgnores.has(x.id) && !(s && s.duo && s.duo.id === x.id)) || null;
+}
+function majBandeauInvitation() {
+  const b = document.getElementById('duo-invitation');
+  if (!b) return;
+  const inv = directActif && sessionUtilisateur ? invitationDuo() : null;
+  b.classList.toggle('hidden', !inv);
+  if (!inv) return;
+  const n = inv.programme.ex.length;
+  const html = `${bulleGymbro(inv.pseudo, 36)}<span class="duo-invit-t"><b>@${escapeHtml(inv.pseudo)} t'invite à sa séance</b><small>${escapeHtml(inv.programme.nom)} · ${n} exercice${n > 1 ? 's' : ''} · ${escapeHtml(ilYA(inv.creeLe))}</small></span><span class="duo-invit-ok">Rejoindre</span>`;
+  if (b.dataset.rendu !== html) { b.innerHTML = html; b.dataset.rendu = html; }
+  b.setAttribute('aria-label', `@${inv.pseudo} t'invite à sa séance ${inv.programme.nom} : voir l'invitation`);
+  // Au-dessus du bandeau de la séance en cours quand il est là.
+  const seance = document.getElementById('bandeau-seance-flottant');
+  b.classList.toggle('duo-invit--haut', !!seance && !seance.classList.contains('hidden'));
+}
+function ouvrirInvitationDuo() {
+  const inv = invitationDuo();
+  if (!inv) return;
+  invitationOuverte = inv.id;
+  const p = inv.programme;
+  const live = directVisibleDe(inv.pseudo);
+  const faites = live ? resumeDirect(live).series : null;
+  document.getElementById('duo-rejoindre-titre').textContent = 'Séance de @' + inv.pseudo;
+  const lignes = p.ex.map(e => {
+    const exo = trouverExercice(e.id);
+    const prec = exo ? dernierePerfExercice(e.id) : null;
+    const s = prec && prec.series.find(x => x && x.poids != null && x.poids !== '');
+    const sous = `${e.n} série${e.n > 1 ? 's' : ''}` + (s ? ` · toi la dernière fois : ${poidsFr(Number(s.poids))} kg × ${s.reps ?? '—'}` : exo ? '' : ' · pas dans ta bibliothèque');
+    return `<div class="duo-rj"><span class="exo-ligne-vignette" aria-hidden="true">${exo ? medaillonExercice(exo, true) : ''}</span>
+      <div><b>${escapeHtml(exo ? libelleExercice(exo) : e.nom)}</b><small>${escapeHtml(sous)}</small></div></div>`;
+  }).join('');
+  document.getElementById('duo-rejoindre-corps').innerHTML = `
+    <div class="duo-rj-tete">${bulleGymbro(inv.pseudo, 44, live ? 'direct' : false)}
+      <div><b>${escapeHtml(p.nom)} · ${p.ex.length} exercice${p.ex.length > 1 ? 's' : ''}</b>
+      <small>${live ? '<i class="point-direct" aria-hidden="true"></i>' : ''}${p.debut ? 'Commencée ' + escapeHtml(ilYA(p.debut)) : 'Invitation ' + escapeHtml(ilYA(inv.creeLe))}${faites ? ` · ${faites} série${faites > 1 ? 's' : ''} faite${faites > 1 ? 's' : ''}` : ''}</small></div></div>
+    <div class="duo-rj-liste">${lignes}</div>
+    <p class="note duo-note">Ta séance démarre avec ces exercices et <b>tes</b> charges habituelles. Tu peux en retirer ou en ajouter.</p>`;
+  ouvrirModal('duo-rejoindre-modal', true);
+}
+async function repondreInvitationDuo(accepter) {
+  const inv = duosGymbro.find(x => x.id === invitationOuverte);
+  fermerModal('duo-rejoindre-modal');
+  if (!inv || !supa || !sessionUtilisateur) return;
+  duoIgnores.add(inv.id);
+  majBandeauInvitation();
+  try {
+    const { data, error } = await supa.rpc('duo_repondre', { p_id: inv.id, p_accepter: !!accepter });
+    if (error) throw error;
+    if (accepter) await rejoindreDuo(inv, nettoyerProgrammeDuo(data) || inv.programme);
+  } catch (e) {
+    if (accepter) informer(messageErreurDuo(e));
+  }
+}
+async function rejoindreDuo(inv, programme) {
+  const duo = { id: inv.id, pseudo: inv.pseudo, hote: false, statut: 'acceptee' };
+  recordsDuoVus = null;
+  if (musculationSessionActive) {
+    const remplacer = await confirmer(`Tu as déjà une séance en cours (${musculationSessionActive.programmeNom || 'séance libre'}). La remplacer par celle de @${inv.pseudo} ? La tienne ne sera pas enregistrée. Sinon, garde-la : vous verrez quand même vos séries.`, { ok: 'Remplacer', annuler: 'Garder la mienne' });
+    if (!remplacer) {
+      if (musculationSessionActive.duo && musculationSessionActive.duo.id !== duo.id) quitterDuoServeur(musculationSessionActive.duo);
+      musculationSessionActive.duo = duo;
+      sauvegarderSessionActive();
+      renderSeance();
+      ouvrirSessionModal();
+      chargerDirect(true);
+      return;
+    }
+    finDirect(musculationSessionActive, false);
+  }
+  // Mêmes exercices, même ordre, même nombre de séries ; les charges sont
+  // les miennes (dernière fois sur chaque exercice, comme un programme).
+  const exercices = construireExercicesSession({ exercices: programme.ex.map(e => ({
+    exerciceId: e.id, series: Array.from({ length: e.n }, () => ({ poids: null, reps: null })), supersetSuivant: e.ss })) });
+  exercices.forEach((x, i) => {
+    const e = programme.ex[i];
+    if (!trouverExercice(x.exerciceId)) x.nom = e.nom;
+    if (x.series.length > e.n) x.series = x.series.slice(0, e.n);
+  });
+  musculationSessionActive = { programmeId: null, programmeNom: programme.nom, debut: Date.now(), notes: '', exercices, duo };
+  reposActifs = {};
+  palierOuvert = {};
+  sauvegarderSessionActive();
+  renderSeance();
+  ouvrirSessionModal();
+  chargerDirect(true);
+}
 async function chargerFilGymbros(force) {
   if (!supa || !sessionUtilisateur) return;
   if (!force && filGymbros && Date.now() - filGymbrosDernier < 120000) { renderFilGymbros(); return; }
@@ -15008,12 +15791,17 @@ function renderFilGymbros() {
     const qui = noms.slice(0, 2).map(p => '@' + p).join(', ') + (noms.length > 2 ? ' et ' + (noms.length - 2) + ' autre' + (noms.length > 3 ? 's' : '') : '');
     html += `<div class="fil-respects${nouveaux.length ? ' fil-respects--nouveau' : ''}"><span aria-hidden="true">💪</span><span><b>${respectsRecus.length} respect${respectsRecus.length > 1 ? 's' : ''}</b> reçu${respectsRecus.length > 1 ? 's' : ''} ces 14 derniers jours · ${escapeHtml(qui)}</span></div>`;
   }
-  if (!filGymbros.length) {
+  const enDirect = directVisibles();
+  if (enDirect.length) {
+    html += `<p class="gb-sec gb-sec--direct"><i class="point-direct" aria-hidden="true"></i>En ce moment</p>` + enDirect.map(carteDirectHTML).join('')
+      + (filGymbros.length ? '<p class="gb-sec">Dernières séances</p>' : '');
+  }
+  if (!filGymbros.length && !enDirect.length) {
     const acceptes = gymbroLiens.filter(l => l.statut === 'acceptee').length;
     html += `<div class="gvide"><b>${acceptes ? 'Rien de neuf pour l’instant' : 'Ton fil est vide'}</b>
       <p>${acceptes ? 'Aucune séance partagée par tes gymbros ces 14 derniers jours.' : 'Ajoute des gymbros pour voir leurs séances ici et les encourager.'}</p>
       <button type="button" class="gbtn gbtn--ok" onclick="choisirOngletGymbro('mes')">${acceptes ? 'Mes gymbros' : 'Inviter un ami'}</button></div>`;
-  } else {
+  } else if (filGymbros.length) {
     const auj = todayStr();
     html += filGymbros.slice(0, filGymbrosVisibles).map((f, i) => {
       const r = resumeSeanceFil(f.donnees);
@@ -15022,7 +15810,7 @@ function renderFilGymbros() {
       const stats = [r.duree ? tuile(r.duree, 'min') : '', tuile(r.series, 'série' + (r.series > 1 ? 's' : '')), r.volume ? tuile(r.volume.toLocaleString('fr-FR'), 'kg') : ''].join('');
       return `<div class="fil-carte">
         <div class="gcarte-tete">${bulleGymbro(f.pseudo, 40, f.donnees.date === auj)}
-          <div class="fil-qui"><b>@${escapeHtml(f.pseudo)}</b><small>${escapeHtml(dateRelativeFil(f.donnees.date))} · ${escapeHtml(r.titre)}</small></div>
+          <div class="fil-qui"><b>@${escapeHtml(f.pseudo)}</b><small>${escapeHtml(dateRelativeFil(f.donnees.date))} · ${escapeHtml(r.titre)}${avecSeanceHTML(f.donnees)}</small></div>
           ${record ? '<span class="grec">🏆 Record</span>' : ''}</div>
         <div class="gcarte-corps"><span class="gsil" role="img" aria-label="${escapeHtml(r.muscles.length ? 'Muscles travaillés : ' + r.muscles.join(', ') : 'Muscles travaillés')}">${silhouetteSeanceFil(f.donnees)}</span>
           <div class="fil-stats">${stats}</div></div>
@@ -15237,6 +16025,7 @@ function statsPeriodeMuscu(historique, jours) {
   return { seances: h.length, series, volume: Math.round(volume) };
 }
 async function comparerGymbro(pseudo) {
+  directVue = null;
   const c = document.getElementById('gymbro-comparaison');
   document.getElementById('gymbro-espace').classList.add('hidden');
   const fenetre = document.querySelector('#gymbro-modal .modal-content');
@@ -15278,7 +16067,7 @@ async function comparerGymbro(pseudo) {
   const lui = '@' + pseudo;
   const actionLien = `<button type="button" class="btn btn-secondaire gb-retirer" onclick="${gymbroLiensActifs ? 'annulerLienGymbro' : favori ? 'retirerGymbroFavori' : 'ajouterGymbroFavori'}(${argJs(pseudo)}${gymbroLiensActifs ? ', true' : ''})">${favori ? 'Retirer de mes gymbros' : '+ Ajouter à mes gymbros'}</button>`;
 
-  let html = barre + profilGymbroHTML(pseudo, siennes);
+  let html = barre + bandeauDirectFicheHTML(pseudo) + profilGymbroHTML(pseudo, siennes);
   if (!siennes.length) {
     c.innerHTML = html + `<p class="note gb-vide-note">${qui} n'a aucune séance partagée sur les 90 derniers jours (ou a désactivé le partage).</p>` + actionLien + moderationGymbroHTML(pseudo);
     return;
@@ -15349,6 +16138,7 @@ async function bloquerGymbro(pseudo) {
   retourRechercheGymbro();
 }
 function retourRechercheGymbro() {
+  directVue = null;
   document.getElementById('gymbro-comparaison').innerHTML = '';
   const fenetre = document.querySelector('#gymbro-modal .modal-content');
   if (fenetre) fenetre.scrollTop = 0;
@@ -19586,6 +20376,7 @@ function sauvegarderSessionActive() {
     else localStorage.removeItem(MUSCU_SESSION_KEY);
   } catch (e) {}
   majRappelsRepos();
+  majDirectSession();
 }
 function sauvegarderProgrammeEnEdition() {
   // Même logique que sauvegarderSessionActive() ci-dessus : local uniquement,
@@ -19998,6 +20789,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 function majBandeauSeanceFlottant() {
   majVerrouEcran();
   majRappelsRepos();
+  queueMicrotask(majBandeauInvitation);
   const el = document.getElementById('bandeau-seance-flottant');
   if (!el) return;
   if (!musculationSessionActive || ecranActif === 'seance') { el.classList.add('hidden'); return; }
@@ -24265,6 +25057,8 @@ begin
       ('gymbros_respects', 'seance_utilisateur'), ('gymbros_respects', 'auteur'),
       ('gymbros_bloques', 'auteur'), ('gymbros_bloques', 'cible'),
       ('gymbros_signalements', 'auteur'), ('gymbros_signalements', 'cible'),
+      ('seances_direct', 'utilisateur'), ('seances_duo', 'hote'), ('seances_duo', 'invite'),
+      ('gymbros_encouragements', 'auteur'), ('gymbros_encouragements', 'cible'),
       ('abonnements', 'utilisateur'), ('usages_ia', 'utilisateur'),
       ('comptes_bloques', 'utilisateur'), ('journal_utilisateurs', 'utilisateur')
     ) as t(nom, colonne)
@@ -24379,6 +25173,244 @@ begin
       on public.abonnements (transaction_apple) where transaction_apple is not null;
   end if;
 end $$;`;
+
+/* SQL « Gymbro en direct et séances à deux » : séance en cours visible des
+   gymbros, invitations à s'entraîner ensemble, encouragements. Copiable
+   depuis Administration › Réglages techniques. */
+function copierSqlGymbroDirect() {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(SQL_GYMBRO_DIRECT).catch(() => informer('Copie ce SQL :', { copie: SQL_GYMBRO_DIRECT }));
+  } else {
+    informer('Copie ce SQL :', { copie: SQL_GYMBRO_DIRECT });
+  }
+}
+const SQL_GYMBRO_DIRECT = `-- Gymbro en direct et séances à deux.
+-- À exécuter une fois dans l'éditeur SQL de Supabase, APRÈS le SQL
+-- « Nom d'utilisateur, Gymbro, photos » (il s'appuie sur ses tables).
+-- Idempotent : relancer ne casse rien. Aucune donnée existante n'est modifiée.
+--
+-- Rien n'est lisible ni modifiable directement dans ces trois tables : tout
+-- passe par les fonctions ci-dessous, qui vérifient qui fait quoi (gymbros
+-- acceptés seulement, partage des séances respecté, comptes bloqués exclus).
+
+-- 1) La séance en cours de chacun : une ligne par personne, remplacée à
+--    chaque série cochée. Un résumé léger (exercices, séries faites, repos),
+--    jamais les notes. Effacée si la séance est abandonnée ; une séance
+--    terminée n'est plus montrée qu'au partenaire de duo.
+create table if not exists public.seances_direct (
+  utilisateur text primary key,
+  donnees     jsonb not null,
+  duo         uuid,
+  maj         timestamptz not null default now()
+);
+alter table public.seances_direct enable row level security;
+
+-- 2) S'entraîner ensemble : une invitation par ligne (hôte -> invité), avec
+--    les exercices de la séance de l'hôte, sans ses charges.
+create table if not exists public.seances_duo (
+  id         uuid primary key default gen_random_uuid(),
+  hote       text not null,
+  invite     text not null,
+  programme  jsonb not null,
+  statut     text not null default 'attente'
+             check (statut in ('attente', 'acceptee', 'refusee', 'annulee', 'terminee')),
+  cree_le    timestamptz not null default now(),
+  repondu_le timestamptz
+);
+create index if not exists seances_duo_hote on public.seances_duo (hote, cree_le desc);
+create index if not exists seances_duo_invite on public.seances_duo (invite, cree_le desc);
+alter table public.seances_duo enable row level security;
+
+-- 3) Les 💪 envoyés à un gymbro pendant sa séance.
+create table if not exists public.gymbros_encouragements (
+  auteur  text not null,
+  cible   text not null,
+  cree_le timestamptz not null default now()
+);
+create index if not exists gymbros_encouragements_cible on public.gymbros_encouragements (cible, cree_le desc);
+alter table public.gymbros_encouragements enable row level security;
+
+-- 4) Publier ma séance en cours (l'appli l'appelle à chaque série cochée
+--    et toutes les minutes pendant la séance). Renvoie les 💪 reçus ces
+--    10 dernières minutes.
+create or replace function public.direct_publier(p_donnees jsonb, p_duo uuid default null)
+returns jsonb language plpgsql security definer set search_path = public as $fn$
+declare
+  moi text := auth.uid()::text;
+  v_duo uuid := p_duo;
+begin
+  if moi is null then raise exception 'non_connecte'; end if;
+  if p_donnees is null or jsonb_typeof(p_donnees) <> 'object' or length(p_donnees::text) > 20000 then
+    raise exception 'donnees_invalides';
+  end if;
+  if v_duo is not null and not exists (select 1 from seances_duo d where d.id = v_duo and moi in (d.hote, d.invite)) then
+    v_duo := null;
+  end if;
+  insert into seances_direct (utilisateur, donnees, duo, maj) values (moi, p_donnees, v_duo, now())
+    on conflict (utilisateur) do update set donnees = excluded.donnees, duo = excluded.duo, maj = now();
+  if random() < 0.05 then
+    delete from seances_direct where maj < now() - interval '1 day';
+  end if;
+  return coalesce((
+    select jsonb_agg(jsonb_build_object('pseudo', p.pseudo, 'cree_le', e.cree_le) order by e.cree_le)
+    from gymbros_encouragements e join pseudos p on p.utilisateur = e.auteur
+    where e.cible = moi and e.cree_le > now() - interval '10 minutes'), '[]'::jsonb);
+end;
+$fn$;
+
+-- Séance abandonnée : plus rien n'en reste.
+create or replace function public.direct_terminer()
+returns void language sql security definer set search_path = public as $$
+  delete from seances_direct where utilisateur = auth.uid()::text;
+$$;
+
+-- 5) Ce que je vois : les séances en cours de mes gymbros acceptés (s'ils
+--    partagent leurs séances), celle de mon partenaire de duo dans tous les
+--    cas, et nos invitations à nous entraîner ensemble (reçues et envoyées).
+--    Bloquer quelqu'un retire le lien gymbro : il disparaît d'ici aussi.
+create or replace function public.gymbro_direct()
+returns jsonb language sql stable security definer set search_path = public as $$
+  with moi as (select auth.uid()::text as id),
+  amis as (
+    select case when l.demandeur = moi.id then l.cible else l.demandeur end as utilisateur
+    from gymbros_liens l, moi
+    where l.statut = 'acceptee' and moi.id in (l.demandeur, l.cible)
+      and not exists (select 1 from comptes_bloques b where b.utilisateur = case when l.demandeur = moi.id then l.cible else l.demandeur end)
+  ),
+  duos as (
+    select d.id, d.statut, d.hote = moi.id as hote, d.programme, d.cree_le,
+           case when d.hote = moi.id then d.invite else d.hote end as autre
+    from seances_duo d, moi
+    where moi.id in (d.hote, d.invite) and d.cree_le > now() - interval '6 hours' and d.statut <> 'annulee'
+  )
+  select jsonb_build_object(
+    'direct', coalesce((
+      select jsonb_agg(jsonb_build_object('pseudo', p.pseudo, 'donnees', s.donnees, 'maj', s.maj) order by s.maj desc)
+      from seances_direct s
+      join amis a on a.utilisateur = s.utilisateur
+      join pseudos p on p.utilisateur = s.utilisateur
+      where s.maj > now() - interval '45 minutes'
+        and ((p.partage_seances and s.donnees->>'fini' is null)
+          or exists (select 1 from duos d where d.autre = s.utilisateur and d.statut = 'acceptee'))
+    ), '[]'::jsonb),
+    'duos', coalesce((
+      select jsonb_agg(x.ligne order by x.cree_le desc) from (
+        select jsonb_build_object('id', d.id, 'pseudo', p.pseudo, 'statut', d.statut, 'hote', d.hote,
+                 'programme', case when not d.hote and d.statut = 'attente' then d.programme end,
+                 'cree_le', d.cree_le) as ligne, d.cree_le
+        from duos d
+        join amis a on a.utilisateur = d.autre
+        join pseudos p on p.utilisateur = d.autre
+        order by d.cree_le desc limit 10) x
+    ), '[]'::jsonb))
+  from moi where moi.id is not null;
+$$;
+
+-- 6) S'entraîner ensemble : inviter (une invitation en attente à la fois),
+--    répondre, quitter.
+create or replace function public.duo_inviter(p_pseudo text, p_programme jsonb)
+returns uuid language plpgsql security definer set search_path = public as $fn$
+declare
+  moi text := auth.uid()::text;
+  lui text;
+  nouveau uuid;
+begin
+  if moi is null then raise exception 'non_connecte'; end if;
+  if exists (select 1 from comptes_bloques b where b.utilisateur = moi) then raise exception 'compte_bloque'; end if;
+  select utilisateur into lui from pseudos where lower(pseudo) = lower(p_pseudo);
+  if lui is null or lui = moi or exists (select 1 from comptes_bloques b where b.utilisateur = lui) then
+    raise exception 'pseudo_inconnu';
+  end if;
+  if not exists (select 1 from gymbros_liens l where l.statut = 'acceptee'
+                 and ((l.demandeur = moi and l.cible = lui) or (l.cible = moi and l.demandeur = lui))) then
+    raise exception 'pas_gymbro';
+  end if;
+  if p_programme is null or jsonb_typeof(p_programme) <> 'object' or length(p_programme::text) > 12000 then
+    raise exception 'programme_invalide';
+  end if;
+  if (select count(*) from seances_duo where hote = moi and cree_le > now() - interval '1 day') >= 30 then
+    raise exception 'trop_d_invitations';
+  end if;
+  delete from seances_duo where cree_le < now() - interval '7 days';
+  update seances_duo set statut = 'annulee' where hote = moi and statut = 'attente';
+  insert into seances_duo (hote, invite, programme) values (moi, lui, p_programme) returning id into nouveau;
+  return nouveau;
+end;
+$fn$;
+
+-- Accepter renvoie les exercices de l'hôte (pour démarrer la même séance).
+create or replace function public.duo_repondre(p_id uuid, p_accepter boolean)
+returns jsonb language plpgsql security definer set search_path = public as $fn$
+declare
+  moi text := auth.uid()::text;
+  d record;
+begin
+  if moi is null then raise exception 'non_connecte'; end if;
+  select * into d from seances_duo where id = p_id and invite = moi for update;
+  if not found then raise exception 'invitation_inconnue'; end if;
+  if d.statut <> 'attente' or d.cree_le < now() - interval '3 hours' then raise exception 'invitation_expiree'; end if;
+  if p_accepter and not exists (select 1 from gymbros_liens l where l.statut = 'acceptee'
+                 and ((l.demandeur = moi and l.cible = d.hote) or (l.cible = moi and l.demandeur = d.hote))) then
+    raise exception 'pas_gymbro';
+  end if;
+  update seances_duo set statut = case when p_accepter then 'acceptee' else 'refusee' end, repondu_le = now()
+    where id = p_id;
+  if not p_accepter then return null; end if;
+  -- Un seul duo à la fois : mes autres duos en cours se terminent.
+  update seances_duo set statut = 'terminee' where id <> p_id and statut = 'acceptee' and moi in (hote, invite);
+  return d.programme;
+end;
+$fn$;
+
+create or replace function public.duo_quitter(p_id uuid)
+returns void language sql security definer set search_path = public as $$
+  update seances_duo set statut = case when statut = 'attente' then 'annulee' else 'terminee' end
+  where id = p_id and auth.uid()::text in (hote, invite) and statut in ('attente', 'acceptee');
+$$;
+
+-- 7) Encourager un gymbro pendant sa séance (un 💪 par minute au plus).
+create or replace function public.gymbro_encourager(p_pseudo text)
+returns boolean language plpgsql security definer set search_path = public as $fn$
+declare
+  moi text := auth.uid()::text;
+  lui text;
+begin
+  if moi is null then raise exception 'non_connecte'; end if;
+  if exists (select 1 from comptes_bloques b where b.utilisateur = moi) then raise exception 'compte_bloque'; end if;
+  select utilisateur into lui from pseudos where lower(pseudo) = lower(p_pseudo);
+  if lui is null or lui = moi then raise exception 'pseudo_inconnu'; end if;
+  if not exists (select 1 from gymbros_liens l where l.statut = 'acceptee'
+                 and ((l.demandeur = moi and l.cible = lui) or (l.cible = moi and l.demandeur = lui))) then
+    raise exception 'pas_gymbro';
+  end if;
+  if not exists (select 1 from seances_direct s where s.utilisateur = lui and s.maj > now() - interval '45 minutes'
+                 and s.donnees->>'fini' is null) then
+    raise exception 'pas_en_seance';
+  end if;
+  if exists (select 1 from gymbros_encouragements e where e.auteur = moi and e.cible = lui
+             and e.cree_le > now() - interval '1 minute') then
+    return false;
+  end if;
+  delete from gymbros_encouragements where cree_le < now() - interval '2 days';
+  insert into gymbros_encouragements (auteur, cible) values (moi, lui);
+  return true;
+end;
+$fn$;
+
+revoke execute on function public.direct_publier(jsonb, uuid) from public, anon;
+revoke execute on function public.direct_terminer() from public, anon;
+revoke execute on function public.gymbro_direct() from public, anon;
+revoke execute on function public.duo_inviter(text, jsonb) from public, anon;
+revoke execute on function public.duo_repondre(uuid, boolean) from public, anon;
+revoke execute on function public.duo_quitter(uuid) from public, anon;
+revoke execute on function public.gymbro_encourager(text) from public, anon;
+grant execute on function public.direct_publier(jsonb, uuid) to authenticated;
+grant execute on function public.direct_terminer() to authenticated;
+grant execute on function public.gymbro_direct() to authenticated;
+grant execute on function public.duo_inviter(text, jsonb) to authenticated;
+grant execute on function public.duo_repondre(uuid, boolean) to authenticated;
+grant execute on function public.duo_quitter(uuid) to authenticated;
+grant execute on function public.gymbro_encourager(text) to authenticated;`;
 
 function renderVitrineProfil() {
   const c = document.getElementById('vitrine-profil');
@@ -25525,6 +26557,7 @@ async function demarrerSeance(programmeId) {
       !(await confirmer('Une séance (' + (musculationSessionActive.programmeNom || 'séance libre') + ') est déjà en cours. L’abandonner pour démarrer celle-ci ?', { ok: 'Démarrer la nouvelle', danger: true }))) return;
   const programme = musculationProgrammes.find(p => p.id === programmeId);
   if (!programme) return;
+  if (musculationSessionActive) finDirect(musculationSessionActive, false);
   musculationSessionActive = {
     programmeId: programme.id, programmeNom: programme.nom, debut: Date.now(), notes: '',
     exercices: construireExercicesSession(programme)
@@ -25538,6 +26571,7 @@ async function demarrerSeance(programmeId) {
 async function demarrerSeanceLibre() {
   if (musculationSessionActive &&
       !(await confirmer('Une séance (' + (musculationSessionActive.programmeNom || 'séance libre') + ') est déjà en cours. L’abandonner pour démarrer celle-ci ?', { ok: 'Démarrer la nouvelle', danger: true }))) return;
+  if (musculationSessionActive) finDirect(musculationSessionActive, false);
   musculationSessionActive = { programmeId: null, programmeNom: null, debut: Date.now(), notes: '', exercices: [] };
   reposActifs = {};
   palierOuvert = {};
@@ -25631,6 +26665,7 @@ function renderSessionModal() {
   const s = musculationSessionActive;
   if (!s) return;
   document.getElementById('titre-session-modal').textContent = s.programmeNom || 'Séance libre';
+  renderDuoSession();
   zonesSemaineSession = seriesSemaine(lundiDeLaSemaine(todayStr()), true);
   renderCorpsSession();
   const c = document.getElementById('session-exercices-container');
@@ -25925,6 +26960,7 @@ function renderSessionExerciceBlocHTML(exo, ei) {
       <button type="button" class="session-exo-vignette-btn" onclick="agrandirVideoExercice(${argJs(exo.exerciceId)})" aria-label="Voir la démonstration en grand"><span class="exo-ligne-vignette" aria-hidden="true">${exerciceComplet ? medaillonExercice(exerciceComplet, true) : ''}</span></button>
       <button type="button" class="session-exo-replie-btn" onclick="basculerRepliExerciceSession(${ei})" aria-expanded="false" aria-label="Déplier ${nomExo}">
         <span class="session-exo-nom">${nomExo}</span>
+        ${duoAccepte(musculationSessionActive) ? `<span class="duo-mini" data-ei="${ei}">${duoMiniHTML(exo)}</span>` : ''}
         <span class="session-exo-progression${fini ? ' session-exo-progression--fini' : ''}">${fini ? '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>' : ''}${faites}/${exo.series.length} série${exo.series.length > 1 ? 's' : ''}</span>
         <span class="session-exo-chevron" aria-hidden="true">${ICONE_CHEVRON_EXO}</span>
       </button>
@@ -25947,6 +26983,7 @@ function renderSessionExerciceBlocHTML(exo, ei) {
         </div>
       </div>
     </div>
+    ${duoAccepte(musculationSessionActive) ? `<div class="duo-ligne" data-ei="${ei}">${duoLigneHTML(exo)}</div>` : ''}
     <div class="tempo-ligne" style="margin:8px 0 4px;">
       <button type="button" class="label-icone" onclick="ouvrirAideTempo(document.getElementById('tempo-seance-${ei}').value)" title="Tempo : comment ça marche ?" aria-label="Tempo : comment ça marche ?">${ICONE_METRONOME}</button>
       <input type="text" id="tempo-seance-${ei}" maxlength="7" aria-label="Tempo, par exemple 3010" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="3010" value="${escapeHtml(exo.tempo || '')}" onchange="modifierTempoSession(${ei}, this.value, this)">
@@ -26650,7 +27687,7 @@ async function terminerSeance() {
   const dureeMin = Math.max(1, Math.round((fin - s.debut) / 60000));
   const entree = {
     id: idUnique('hist'), programmeId: s.programmeId, programmeNom: s.programmeNom || 'Séance libre',
-    date: todayStr(), debut: s.debut, fin, dureeMin, notes: s.notes || '', maj: fin,
+    date: todayStr(), debut: s.debut, fin, dureeMin, notes: s.notes || '', maj: fin, ...(duoAccepte(s) ? { avec: s.duo.pseudo } : {}),
     exercices: s.exercices.map(e => ({
       exerciceId: e.exerciceId, nom: e.nom, series: e.series.filter(x => x.fait || x.poids || x.reps),
       supersetSuivant: !!e.supersetSuivant, ...(e.notes && e.notes.trim() ? { notes: e.notes.trim() } : {}),
@@ -26675,6 +27712,7 @@ async function terminerSeance() {
   saveData(entree.date);
 
   const etaitLibre = !s.programmeId && entree.exercices.length > 0;
+  finDirect(s, true);
   musculationSessionActive = null;
   reposActifs = {};
   palierOuvert = {};
@@ -26751,6 +27789,7 @@ async function fermerBilanSeance() {
 }
 async function abandonnerSeance() {
   if (!(await confirmer('Abandonner cette séance ? Rien ne sera enregistré dans ton historique.', { ok: 'Abandonner', danger: true }))) return;
+  finDirect(musculationSessionActive, false);
   musculationSessionActive = null;
   reposActifs = {};
   palierOuvert = {};
@@ -26956,6 +27995,7 @@ window.addEventListener('load', () => {
   document.getElementById('bloc-sql-gymbro').textContent = SQL_GYMBRO_PHOTOS;
   document.getElementById('bloc-sql-pro').textContent = SQL_PRO;
   document.getElementById('bloc-sql-app-store').textContent = SQL_APP_STORE;
+  document.getElementById('bloc-sql-gymbro-direct').textContent = SQL_GYMBRO_DIRECT;
   retourPaiementPro();
   // Pas de synchroniser('démarrage') ici : la vérification de session est
   // asynchrone, donc juste après initAuth() sessionUtilisateur est encore
@@ -26995,6 +28035,8 @@ window.addEventListener('load', () => {
       if (Date.now() - gymbroLiensDernierChargement > 60000) chargerLiensGymbro();
       if (Date.now() - adminAValiderDernier > 60000) compterAValiderAdmin();
       chargerFilGymbros();
+      chargerDirect(true);
+      if (musculationSessionActive) publierDirect(true);
     }
   });
   // Référence initiale (aucun rechargement à ce stade, juste la mémoriser) :
