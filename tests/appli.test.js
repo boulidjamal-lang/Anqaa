@@ -1748,7 +1748,7 @@ test('Coach du jour : une idée de protéines différente chaque jour, pour le r
   for (const d of ['2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31']) soirs.push(await coach(d + 'T19:00:00', [pates]));
   soirs.forEach(m => assert.match(m, /^Il te manque \d+\sg de protéines, il te reste [\d\s]+\skcal\. Pour ce soir : .+ \((.+,\s)?\+\d+\sg\)/, m));
   assert.ok(soirs.every(m => !/\(\S*[ ]/.test(m.split('Pour ce soir : ')[1].replace(/\) et /g, ')'))), 'parenthèses insécables');
-  const idees = soirs.map(m => m.split('Pour ce soir : ')[1].replace(/\.$/, '').split(' et ').map(x => x.split(' (')[0]));
+  const idees = soirs.map(m => m.split('Pour ce soir : ')[1].split(').')[0].split(' et ').map(x => x.split(' (')[0]));
   const premieres = idees.map(i => i[0]);
   // Cinq familles possibles le soir (ton poulet, poisson, œufs, crevettes, légumineuses) : une par soir.
   assert.equal(new Set(premieres).size, 5, 'une idée différente chaque soir : ' + premieres.join(' | '));
@@ -1762,13 +1762,130 @@ test('Coach du jour : une idée de protéines différente chaque jour, pour le r
   assert.doesNotMatch(apresThon, /Thon/);
   // Midi, la moitié des protéines déjà prises au petit-déjeuner : dans le rythme, pas de reproche.
   assert.match(await coach('2026-11-01T12:00:00', [['breakfast', { name: 'Omelette', grams: 300, kcal: 500, partP: 0.5, c: 5, f: 30 }]]), /^Bon rythme pour les protéines/);
-  // Midi avec presque rien : une idée pour midi ; déjà déjeuné à 13 h : une idée pour le goûter.
+  // Midi avec presque rien : une idée pour midi ; déjà déjeuné à 13 h : une idée pour la collation.
   assert.match(await coach('2026-11-01T12:00:00', [['breakfast', { name: 'Croissant', grams: 60, kcal: 250, p: 5, c: 28, f: 13 }]]), /Pour midi : /);
-  assert.match(await coach('2026-11-01T13:00:00', [pates]), /Pour le goûter : /);
+  assert.match(await coach('2026-11-01T13:00:00', [pates]), /Pour la collation : /);
   // Jamais de whey proposé à qui n'en a jamais noté ; les lentilles, si.
   assert.doesNotMatch(await coach('2026-11-01T16:00:00', [pates]), /whey/);
   const neuf = await page.evaluate(() => { appData = {}; invaliderHistorique(); return ideesProteines({ meals: {} }, 'dinner', 1500, 100).map(i => i.nom); });
   assert.deepEqual(neuf, ['Lentilles'], 'compte neuf : ni viande, ni poisson, ni fruits de mer');
+}));
+
+test('Coach du jour : une analyse complète (programme, séance et record, récupération, reprise, poids, eau), ses actions et son écriture', () => avecAppli({}, async ({ page }) => {
+  // Les constats du coach : [clé, texte sans balises, action].
+  const analyse = () => page.evaluate(() => {
+    currentDate = todayStr();
+    const d = getDay(currentDate);
+    return analyseCoach(d, sumMeals(d), computeTargets(d, currentDate)).map(c => [c.cle, c.texte.replace(/<[^>]+>/g, ''), c.action ? c.action.libelle : null]);
+  });
+  const constat = (liste, cle) => (liste.find(c => c[0] === cle) || [])[1] || '';
+  const le = async (quand, prep) => { await page.clock.setFixedTime(new Date(quand)); if (prep) await page.evaluate(prep); return analyse(); };
+  await page.evaluate(() => {
+    const exos = toutesLesExercices();
+    window.__pecs = exos.filter(e => e.groupe === 'pectoraux').slice(0, 2);
+    window.__quads = exos.filter(e => e.groupe === 'quadriceps').slice(0, 2);
+    const prog = (id, nom, liste) => ({ id, nom, maj: Date.now(), exercices: liste.map(e => ({ exerciceId: e.id, nom: e.nom, series: [{ poids: 40, reps: 10 }, { poids: 40, reps: 10 }, { poids: 40, reps: 10 }] })) });
+    musculationProgrammes.push(prog('pa', 'Haut', window.__pecs), prog('pb', 'Bas', window.__quads));
+    window.__seance = (date, programmeId, exos, poids) => {
+      musculationHistorique.push({ id: 'h' + date + programmeId, programmeId, programmeNom: programmeId, date, debut: Date.now() - 3e6, fin: Date.now(), dureeMin: 48, maj: Date.now(),
+        exercices: exos.map(e => ({ exerciceId: e.id, nom: e.nom, series: [0, 1, 2].map(() => ({ poids, reps: 8, fait: true })) })) });
+      sauvegarderHistorique();
+    };
+  });
+
+  // Mercredi 8 h, rien de noté, jamais pesé : le plan du jour, la séance « Haut » ; la pesée dans l'analyse.
+  const matin = await le('2026-11-04T08:00:00');
+  assert.equal(matin[0][0], 'vide');
+  assert.match(matin[0][1], /Au programme aujourd'hui : [\d\s]+\skcal dont \d+\sg de protéines, et ta séance Haut \(pectoraux/);
+  assert.match(matin[0][1], /Commence ta journée/);
+  assert.equal(matin[0][2], 'Ajouter mon petit-déjeuner');
+  assert.match(constat(matin, 'seance'), /^Ta prochaine séance : Haut/);
+  assert.match(constat(matin, 'pesee'), /Pèse-toi un matin, à jeun/);
+  // La carte : le constat principal, son action, et l'analyse complète repliée puis dépliée.
+  const carte = await page.evaluate(() => {
+    allerA('repas'); renderApp();
+    const c = document.getElementById('coach-jour');
+    const avant = [c.querySelector('.coach-analyse').hidden, c.querySelector('.coach-plus').getAttribute('aria-expanded')];
+    c.querySelector('.coach-plus').click();
+    return { texte: c.querySelector('p').textContent, action: c.querySelector('.coach-actions button').textContent, avant,
+      apres: [c.querySelector('.coach-analyse').hidden, c.querySelector('.coach-plus').getAttribute('aria-expanded'), c.querySelector('.coach-plus').textContent],
+      points: c.querySelectorAll('.coach-analyse li').length };
+  });
+  assert.equal(carte.texte, matin[0][1]);
+  assert.equal(carte.action, 'Ajouter mon petit-déjeuner');
+  assert.deepEqual(carte.avant, [true, 'false']);
+  assert.deepEqual(carte.apres.slice(0, 2), [false, 'true']);
+  assert.match(carte.apres[2], /^Masquer l'analyse/);
+  assert.equal(carte.points, matin.length - 1);
+  await page.evaluate(() => basculerAnalyseCoach());
+
+  // Le soir, séance « Haut » faite avec un record (60 kg contre 50 la semaine d'avant), journée bien remplie.
+  const soir = await le('2026-11-04T18:00:00', () => {
+    window.__seance('2026-10-28', 'pa', window.__pecs, 50);
+    window.__seance('2026-11-04', 'pa', window.__pecs, 60);
+    const j = getDay(todayStr()), t = computeTargets(j, todayStr());
+    j.meals.lunch = [{ name: 'Repas', grams: 500, kcal: Math.round(t.target * 0.6), p: t.protein, c: 100, f: 20 }];
+    j.eauMl = quotaEauSuggere(todayStr()); saveData(todayStr());
+  });
+  assert.equal(soir[0][0], 'seance-faite');
+  assert.match(soir[0][1], /^(Belle séance|Bien joué|Séance validée) : 6 séries en 48\smin \(pectoraux/);
+  assert.match(soir[0][1], /Nouveau record : .+ \(60\skg × 8\)/);
+
+  // Jeudi 10 h : la veille, une séance libre a chargé les quadriceps ; la prochaine du programme (« Bas ») attendra.
+  const jeudi = await le('2026-11-05T10:00:00', () => {
+    window.__seance('2026-11-04', 'libre', window.__quads, 80);
+    const j = getDay(todayStr()), t = computeTargets(j, todayStr());
+    j.meals.breakfast = [{ name: 'Omelette', grams: 300, kcal: 500, p: Math.round(t.protein * 0.4), c: 5, f: 30 }]; saveData(todayStr());
+  });
+  assert.equal(jeudi[0][0], 'recuperation');
+  assert.match(jeudi[0][1], /^Tes quadriceps ont beaucoup travaillé hier\. Si tu les sens encore, ta séance Bas peut attendre demain/);
+  assert.equal(jeudi[0][2], 'Voir la séance Bas');
+
+  // Une semaine plus tard, plus rien depuis : la reprise. Pesées en baisse de 0,5 kg par semaine, objectif 80 kg.
+  const reprise = await le('2026-11-12T10:00:00', () => {
+    for (let k = 35; k >= 1; k--) { const d = shiftDate(todayStr(), -k); getDay(d).weight = Math.round((85 - (35 - k) * 0.5 / 7) * 10) / 10; saveData(d); }
+    userProfile.poidsVise = 80;
+    [-2, -1].forEach(k => { const d = shiftDate(todayStr(), k); getDay(d).eauMl = 2000; saveData(d); });
+    const j = getDay(todayStr()), t = computeTargets(j, todayStr());
+    j.meals.breakfast = [{ name: 'Omelette', grams: 300, kcal: 500, p: Math.round(t.protein * 0.4), c: 5, f: 30 }]; saveData(todayStr());
+  });
+  assert.equal(reprise[0][0], 'reprise');
+  assert.match(reprise[0][1], /^Ça fait 8 jours sans séance\..+ta prochaine, c'est Bas\./);
+  assert.match(constat(reprise, 'poids'), /^Tu perds 0,5\skg par semaine.+À ce rythme, 80\skg vers le \d+ \S+\./);
+  assert.equal(constat(reprise, 'pesee'), '', 'pesé hier : pas de rappel');
+  // Midi : qui note son eau d'habitude est relancé au rythme de la journée ; le bouton ajoute 250 ml.
+  const midi = await le('2026-11-12T12:00:00');
+  assert.match(constat(midi, 'eau'), /^Pense à boire : 0\sL sur/);
+  const eau = await page.evaluate(() => {
+    allerA('repas'); renderApp();
+    [...document.querySelectorAll('#coach-jour .coach-action')].find(b => b.textContent === '+250 ml d\'eau').click();
+    return getDay(todayStr()).eauMl;
+  });
+  assert.equal(eau, 250);
+
+  // Données piégées : un nom de programme reste du texte.
+  await page.evaluate(() => { musculationProgrammes.find(p => p.id === 'pb').nom = '<img src=x onerror="window.__xss=1">'; allerA('repas'); renderApp(); });
+  assert.deepEqual(await page.evaluate(() => [document.querySelectorAll('#coach-jour img').length, window.__xss || null]), [0, null]);
+
+  // Sans mouvement réduit : trois points, puis le message s'écrit mot à mot ; un redessin pendant l'écriture ne la coupe pas.
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.clock.setFixedTime(new Date('2026-11-12T19:00:00'));
+  const ecrit = await page.evaluate(async () => {
+    const j = getDay(todayStr());
+    j.meals.lunch = [{ name: 'Pâtes', grams: 300, kcal: 600, p: 15, c: 110, f: 8 }]; saveData(todayStr());
+    renderApp();
+    const p = () => document.querySelector('#coach-jour .coach-texte');
+    const pense = !!p().querySelector('.coach-pense');
+    renderApp();
+    const toujours = !!p().querySelector('.coach-pense');
+    await new Promise(ok => setTimeout(ok, 1800));
+    return { pense, toujours, mots: p().querySelectorAll('.cm').length, texte: p().textContent };
+  });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  assert.equal(ecrit.pense, true);
+  assert.equal(ecrit.toujours, true, 'le redessin garde l\'écriture en cours');
+  assert.ok(ecrit.mots > 5, String(ecrit.mots));
+  assert.match(ecrit.texte, /^Il te manque/);
 }));
 
 test('Repas du jour : « 62/1 821 kcal » et la roulette Pas / Hydratation / Poids', () => avecAppli({}, async ({ page }) => {

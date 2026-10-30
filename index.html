@@ -4187,6 +4187,28 @@
 
     /* Coach du jour */
     html:root body .coach-carte small { background: none !important; -webkit-text-fill-color: var(--text-muted) !important; }
+    /* Coach : le message qui s'écrit, ses actions et l'analyse complète. */
+    html:root body .coach-corps { flex: 1; min-width: 0; }
+    html:root body .coach-texte { min-height: 1.42em; }
+    html:root body .coach-texte .cm { opacity: 0; animation: coach-mot .35s ease-out forwards; }
+    @keyframes coach-mot { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: none; } }
+    html:root body .coach-pense { display: inline-flex; gap: 5px; height: 1.42em; align-items: center; }
+    html:root body .coach-pense i { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); animation: coach-pense 1s ease-in-out infinite; }
+    html:root body .coach-pense i:nth-child(2) { animation-delay: .15s; }
+    html:root body .coach-pense i:nth-child(3) { animation-delay: .3s; }
+    @keyframes coach-pense { 0%, 80%, 100% { opacity: .3; transform: none; } 40% { opacity: 1; transform: translateY(-3px); } }
+    html:root body .coach-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    html:root body .coach-action { position: relative; min-height: 36px; padding: 0 15px; border: 0; border-radius: 999px; background: var(--inv); color: var(--sur-inv); font: inherit; font-size: .8rem; font-weight: 650; cursor: pointer; }
+    html:root body .coach-action::after { content: ''; position: absolute; inset: -4px -2px; }
+    html:root body .coach-action--petite { min-height: 32px; margin-top: 8px; padding: 0 12px; background: var(--s3); color: var(--text); font-size: .76rem; }
+    html:root body .coach-plus { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; min-height: 36px; padding: 0; border: 0; background: none; color: var(--text-muted); font: inherit; font-size: .78rem; font-weight: 650; cursor: pointer; }
+    html:root body .coach-nb { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; display: inline-grid; place-items: center; background: var(--s3); color: var(--text); font-size: .7rem; font-weight: 700; }
+    html:root body .coach-analyse { list-style: none; margin: 0; padding: 0; }
+    html:root body .coach-analyse li { display: grid; grid-template-columns: 30px 1fr; gap: 11px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ligne); }
+    html:root body .coach-analyse p { margin: 0; font-size: .82rem; line-height: 1.42; }
+    html:root body .coach-pt { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; background: var(--s3); color: var(--text-muted); }
+    html:root body .coach-pt .icone-ui { width: 16px; height: 16px; }
+    @media (prefers-reduced-motion: reduce) { html:root body .coach-texte .cm { animation: none; opacity: 1; } html:root body .coach-pense i { animation: none; } }
 
     /* Tuiles Poids / Nutrition : courbe dans la couleur du texte. */
     html:root body .tuile-graph path[stroke] { stroke: var(--text) !important; }
@@ -8427,10 +8449,14 @@ function choisirJour(d) {
   rouletteGeste = true;
   centrerJour(d, true);
 }
-/* ---------- Coach du jour : un conseil calculé sur place, sans IA ----------
-   Ce qui compte le plus à cet instant : rien de noté, objectif dépassé,
-   protéines en retard sur le rythme de la journée (avec une idée pour le
-   repas à venir), eau en retard le soir, ou bravo. */
+/* ---------- Coach du jour : une analyse complète, calculée sur place ----------
+   Le coach croise ce que l'appli sait de ta journée et de ta semaine : repas
+   et protéines, eau, pas, séance du programme, récupération, volume par
+   muscle, records, cardio, poids et objectif, régularité. Il en tire des
+   constats classés par importance : le premier s'écrit en tête de la carte,
+   les autres forment « l'analyse complète ». Tout est calculé sur le
+   téléphone, sans IA ni réseau ; les phrases changent d'un jour à l'autre,
+   jamais d'un affichage à l'autre. */
 
 /* Idées de protéines pour varier, une par famille d'aliments : une portion
    courante (valeurs moyennes) et les repas où elle a sa place. Tes propres
@@ -8447,7 +8473,7 @@ const IDEES_PROTEINES = [
   { nom: 'Lentilles', portion: '200 g cuites', kcal: 230, p: 18, famille: '🫘', repas: ['lunch', 'dinner'] },
   { nom: 'Shaker de whey', portion: '30 g', kcal: 115, p: 23, famille: 'whey', repas: ['breakfast', 'snack'] },
 ];
-const MOMENT_REPAS = { breakfast: 'le petit-déjeuner', lunch: 'midi', snack: 'le goûter', dinner: 'ce soir' };
+const MOMENT_REPAS = { breakfast: 'le petit-déjeuner', lunch: 'midi', snack: 'la collation', dinner: 'ce soir' };
 // Famille d'un aliment (volaille, poisson, œufs, laitages…), null si inconnue.
 function familleAliment(nom) {
   if (/\b(whey|isolat|proteines? en poudre|shakers?)\b/.test(normaliserRecherche(nom))) return 'whey';
@@ -8494,8 +8520,7 @@ function ideesProteines(day, repas, reste, manque) {
   if (varie.length) liste = varie;
   if (!liste.length) return [];
   liste.sort((a, b) => a.famille < b.famille ? -1 : a.famille > b.famille ? 1 : 0);
-  const [an, mo, jo] = currentDate.split('-').map(Number);
-  const k = (Date.UTC(an, mo - 1, jo) / 864e5 + MEALS.indexOf(repas)) % liste.length;
+  const k = (numeroJour(currentDate) + MEALS.indexOf(repas)) % liste.length;
   const idees = [liste[k]];
   // La première ne suffit pas : une deuxième, d'une autre famille, si les kcal le permettent.
   // Deux crans plus loin d'abord : ce n'est pas la première idée du lendemain.
@@ -8505,34 +8530,389 @@ function ideesProteines(day, repas, reste, manque) {
   }
   return idees;
 }
+// « Skyr nature (150 g, +16 g) », la parenthèse insécable.
+function texteIdeesProteines(idees) {
+  const fr = n => Math.round(n).toLocaleString('fr-FR');
+  return idees.map(i => `<b>${escapeHtml(i.nom)}</b> (${((i.portion ? escapeHtml(i.portion) + ', ' : '') + '+' + fr(i.p) + ' g').replace(/ /g, '\u00a0')})`).join(' et ');
+}
+function numeroJour(iso) {
+  const [a, m, j] = String(iso).split('-').map(Number);
+  return Date.UTC(a, m - 1, j) / 864e5;
+}
+/* Une formulation parmi plusieurs : la même toute la journée (la carte se
+   redessine souvent), une autre le lendemain. */
+function variante(cle, options) {
+  let x = 7;
+  const s = currentDate + '|' + cle;
+  for (let i = 0; i < s.length; i++) x = (x * 31 + s.charCodeAt(i)) >>> 0;
+  return options[x % options.length];
+}
+
+const ICONES_COACH = {
+  repas: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />',
+  proteines: '<path d="M6.5 6.5 17.5 17.5" /><path d="m21 21-1-1" /><path d="m3 3 1 1" /><path d="m18 22 4-4" /><path d="m2 6 4-4" /><path d="m3 10 7-7" /><path d="m14 21 7-7" />',
+  eau: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />',
+  pas: '<path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /><path d="M16 17h4" /><path d="M4 13h4" />',
+  seance: '<path d="M14.4 14.4 9.6 9.6" /><path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z" /><path d="m21.5 21.5-1.4-1.4" /><path d="M3.9 3.9 2.5 2.5" /><path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z" />',
+  record: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />',
+  repos: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />',
+  volume: '<path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" />',
+  cardio: '<path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" />',
+  poids: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /><path d="M7 21h10" /><path d="M12 3v18" /><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />',
+  serie: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />',
+  bravo: '<path d="M20 6 9 17l-5-5" />',
+};
+function iconeCoach(cle) {
+  return `<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONES_COACH[cle] || ICONES_COACH.repas}</svg>`;
+}
+
+/* Les constats du coach, du plus important au moins important. Chacun :
+   { cle, prio, icone, texte (HTML, données échappées), action? { libelle, faire } }. */
+function analyseCoach(day, totals, t) {
+  const fr = n => Math.round(n).toLocaleString('fr-FR');
+  const kg = n => (Math.round(n * 10) / 10).toLocaleString('fr-FR');
+  const h = new Date().getHours(), auj = currentDate === todayStr(), hier = shiftDate(currentDate, -1);
+  const reste = t.target - totals.kcal, manqueP = t.protein - totals.p;
+  // Aujourd'hui, les protéines comptent en retard sur le rythme de la journée, pas sur le total.
+  const retardP = auj ? t.protein * partProteinesAttendue(h) - totals.p : manqueP;
+  const eau = Number(day.eauMl) || 0, quotaEau = quotaEauSuggere(currentDate);
+  const qui = sessionUtilisateur && monPseudo && monPseudo.pseudo ? monPseudo.pseudo.charAt(0).toUpperCase() + monPseudo.pseudo.slice(1) : '';
+  const objectif = t.goal;
+  const constats = [];
+  const ajouter = c => constats.push(c);
+  // Chaque règle à part : une donnée inattendue n'empêche jamais les autres de parler.
+  const regle = f => { try { f(); } catch (e) { if (typeof noterErreur === 'function') noterErreur('js', 'Coach : ' + (e && e.message), e && e.stack); } };
+
+  // Musculation : séances du jour, d'hier, et la prochaine du programme.
+  const histo = typeof musculationHistorique !== 'undefined' && Array.isArray(musculationHistorique) ? musculationHistorique : [];
+  const seancesDuJour = histo.filter(s => s.date === currentDate);
+  const seriesFaites = s => (s.exercices || []).reduce((n, e) => n + (e.series || []).filter(z => z.fait).length, 0);
+  const aEntraine = seancesDuJour.some(s => seriesFaites(s) > 0);
+  let prochaine = null;
+  try { prochaine = auj && typeof programmeSuggere === 'function' ? programmeSuggere() : null; } catch (e) {}
+  const groupesDe = seances => {
+    const acc = {}, cache = new Map();
+    seances.forEach(s => ajouterSeriesParGroupe(acc, s.exercices || [], { date: s.date, historique: histo, cache }));
+    return acc;
+  };
+  const libGroupes = (g, n) => Object.keys(g).filter(k => g[k] > 0).sort((a, b) => g[b] - g[a]).slice(0, n || 3).map(k => (GROUPES_MUSCULAIRES[k] || k).toLowerCase());
+  const liste = mots => mots.length > 1 ? mots.slice(0, -1).join(', ') + ' et ' + mots[mots.length - 1] : mots.join('');
+  // « tes pectoraux », mais « ton dos » : le seul groupe au singulier.
+  const muscles = groupes => {
+    const pluriel = groupes.length > 1 || groupes[0] !== 'dos';
+    return { noms: escapeHtml(liste(groupes.map(g => (GROUPES_MUSCULAIRES[g] || g).toLowerCase()))), pluriel, det: pluriel ? 'tes' : 'ton', pron: pluriel ? 'les' : 'le' };
+  };
+
+  // 1. Rien de noté.
+  regle(() => {
+    if (totals.kcal > 0) return;
+    if (!auj) { ajouter({ cle: 'vide', prio: 100, icone: 'repas', texte: 'Aucun repas noté ce jour-là.' }); return; }
+    if (h < 11) {
+      const idees = ideesProteines(day, 'breakfast', t.target, t.protein);
+      const seance = prochaine && !aEntraine ? `, et ta séance <b>${escapeHtml(prochaine.p.nom)}</b> (${escapeHtml(liste(libGroupes(groupesProgramme(prochaine.p))))})` : '';
+      const salut = variante('salut', [`Bonjour${qui ? ' ' + escapeHtml(qui) : ''}.`, `Bien dormi${qui ? ' ' + escapeHtml(qui) : ''} ?`, `C'est parti${qui ? ' ' + escapeHtml(qui) : ''}.`]);
+      ajouter({ cle: 'vide', prio: 100, icone: 'repas', action: { libelle: 'Ajouter mon petit-déjeuner', faire: "ouvrirFeuilleRepas('breakfast')" },
+        texte: `${salut} Au programme aujourd'hui : <b>${fr(t.target)}\u00a0kcal</b> dont <b>${fr(t.protein)}\u00a0g de protéines</b>${seance}. Commence ta journée avec un petit-déjeuner protéiné${idees.length ? ' : ' + texteIdeesProteines(idees.slice(0, 1)) : ''}.` });
+    } else {
+      ajouter({ cle: 'vide', prio: 100, icone: 'repas', action: { libelle: 'Ajouter un repas', faire: `ouvrirFeuilleRepas('${repasAVenir(day, h)}')` },
+        texte: `Rien de noté pour l'instant : ajoute ton premier repas, je m'occupe du reste. Il te reste <b>${fr(t.target)}\u00a0kcal</b> et <b>${fr(t.protein)}\u00a0g de protéines</b> pour la journée.` });
+    }
+  });
+
+  // 2. Objectif dépassé, remis dans la semaine.
+  regle(() => {
+    if (!(totals.kcal > 0) || reste >= -t.target * 0.05) return;
+    let ecarts = 0, n = 0;
+    for (let k = 1; k <= 7; k++) {
+      const d = shiftDate(currentDate, -k), j = appData[d];
+      if (!j || !j.meals || !Object.values(j.meals).some(l => Array.isArray(l) && l.length)) continue;
+      ecarts += sumMeals(j).kcal - computeTargets(j, d).target; n++;
+    }
+    const moy = n >= 3 ? Math.round(ecarts / n / 10) * 10 : null;
+    let semaine = '';
+    if (moy != null && moy < 0) semaine = ` Sur 7 jours, tu restes à <b>${fr(moy)}\u00a0kcal</b> par jour en moyenne${objectif === 'seche' ? ' : ta sèche avance quand même' : ''}.`;
+    else if (moy != null && moy > 100) semaine = ` Sur 7 jours, tu es à <b>+${fr(moy)}\u00a0kcal</b> par jour en moyenne : demain, vise un peu plus léger.`;
+    ajouter({ cle: 'depassement', prio: 90, icone: 'repas',
+      texte: `Tu as dépassé ton objectif de <b>${fr(-reste)}\u00a0kcal</b>.${semaine} ${variante('depasse', ['Pas de panique : une journée ne fait pas une tendance.', 'Une journée ne change rien, c\'est la régularité qui compte.', 'Rien de grave : on reprend normalement demain.'])}` });
+  });
+
+  // 3. Protéines en retard sur le rythme, avec une idée pour le repas à venir.
+  regle(() => {
+    if (!(totals.kcal > 0) || !(manqueP > 20 && reste > 150 && retardP > 10)) return;
+    const repas = auj ? repasAVenir(day, h) : null;
+    const idees = repas ? ideesProteines(day, repas, reste, manqueP) : [];
+    const pourquoi = !auj ? '' : aEntraine ? ' Après ta séance, ce sont elles qui reconstruisent tes muscles.'
+      : objectif === 'seche' ? variante('pq-seche', [' En sèche, ce sont elles qui protègent ton muscle.', ' En sèche, elles gardent ton muscle tout en calmant la faim.'])
+      : objectif === 'masse' ? ' Pour prendre du muscle, c\'est la priorité.' : '';
+    ajouter({ cle: 'proteines', prio: 80, icone: 'proteines', action: repas ? { libelle: 'Ajouter à ' + (MEAL_LABELS[repas] || 'un repas').toLowerCase(), faire: `ouvrirFeuilleRepas('${repas}')` } : null,
+      texte: `Il te manque <b>${fr(manqueP)}\u00a0g de protéines</b>, il te reste ${fr(reste)}\u00a0kcal.` + (idees.length ? ` Pour ${MOMENT_REPAS[repas]} : ${texteIdeesProteines(idees)}.` : '') + pourquoi });
+  });
+
+  // 4. Fin de journée très en dessous de l'objectif.
+  regle(() => {
+    if (!auj || h < 20 || !(totals.kcal > 0) || reste < t.target * 0.3) return;
+    const conseil = objectif === 'masse' ? 'en prise de masse, chaque repas compte : un dernier en-cas avant de dormir ?'
+      : 'un trop gros déficit fait fondre le muscle et revenir la faim. Une collation protéinée avant de dormir ?';
+    ajouter({ cle: 'peu', prio: 60, icone: 'repas', action: { libelle: 'Ajouter une collation', faire: "ouvrirFeuilleRepas('snack')" },
+      texte: `Il te reste <b>${fr(reste)}\u00a0kcal</b> à cette heure : ${conseil}` });
+  });
+
+  // 5. Eau : au rythme de la journée pour qui la note, sinon le rappel de fin d'après-midi.
+  regle(() => {
+    if (!auj) return;
+    let joursNotes = 0;
+    for (let k = 1; k <= 7; k++) { const j = appData[shiftDate(currentDate, -k)]; if (j && Number(j.eauMl) > 0) joursNotes++; }
+    const attendu = quotaEau * Math.max(0, Math.min(1, (h - 8) / 13));
+    const enRetard = joursNotes >= 2 ? h >= 11 && attendu - eau >= 500 : h >= 16 && eau < quotaEau * 0.6;
+    if (!enRetard) return;
+    const litres = n => (Math.round(n / 100) / 10).toLocaleString('fr-FR');
+    const raison = aEntraine ? ' Avec ta séance du jour, ton corps en demande plus.' : '';
+    ajouter({ cle: 'eau', prio: h >= 16 ? 72 : 50, icone: 'eau', action: { libelle: '+250 ml d\'eau', faire: 'ajouterEau(250)' },
+      texte: `Pense à boire : <b>${litres(eau)}\u00a0L</b> sur ${litres(quotaEau)}\u00a0L, il t'en reste <b>${litres(quotaEau - eau)}\u00a0L</b> d'ici ce soir.${raison}` });
+  });
+
+  // 6. Séance faite aujourd'hui : bilan, records.
+  regle(() => {
+    if (!aEntraine) return;
+    const series = seancesDuJour.reduce((n, s) => n + seriesFaites(s), 0);
+    const duree = seancesDuJour.reduce((n, s) => n + (Number(s.dureeMin) || 0), 0);
+    const avant = histo.filter(s => s.date < currentDate);
+    const records = [...new Set(seancesDuJour.flatMap(s => (s.exercices || []).map(e => e.exerciceId)))].map(id => {
+      const b = meilleur1RM(id, seancesDuJour), a = meilleur1RM(id, avant), exo = trouverExercice(id);
+      return b && a && b.valeur > a.valeur && exo ? { nom: libelleExercice(exo), b } : null;
+    }).filter(Boolean);
+    const groupes = libGroupes(groupesDe(seancesDuJour));
+    // « Nouveau record : Squat » plutôt que « record au … » : l'accord dépend du nom de l'exercice.
+    const record = records.length ? ` Nouveau record : <b>${escapeHtml(records[0].nom)}</b>${records[0].b.poids ? ` (${kg(records[0].b.poids)}\u00a0kg × ${records[0].b.reps})` : ''}${records.length > 1 ? `, et ${records.length - 1} autre${records.length > 2 ? 's' : ''}` : ''} !` : '';
+    const suite = manqueP > 20 ? ' Les protéines des prochaines heures vont compter.' : variante('recup', [' Bonne récupération !', ' Maintenant, récupère bien.', ' Ton corps fait le reste cette nuit.']);
+    ajouter({ cle: 'seance-faite', prio: records.length ? 58 : 40, icone: records.length ? 'record' : 'seance',
+      texte: `${variante('bravo', ['Belle séance', 'Bien joué', 'Séance validée'])}${qui ? ' ' + escapeHtml(qui) : ''} : <b>${series} séries</b>${duree ? ` en ${fr(duree)}\u00a0min` : ''}${groupes.length ? ` (${escapeHtml(liste(groupes))})` : ''}.${record}${suite}` });
+  });
+
+  // 7. Prochaine séance du programme, récupération, reprise après une pause.
+  regle(() => {
+    if (!prochaine || aEntraine || h >= 22 || (typeof musculationSessionActive !== 'undefined' && musculationSessionActive)) return;
+    const p = prochaine.p, g = groupesProgramme(p);
+    const nbSeries = (p.exercices || []).reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
+    const derniere = histo.reduce((d, s) => s.date > d && s.date < currentDate ? s.date : d, '');
+    const sansSeance = derniere ? Math.round((numeroJour(currentDate) - numeroJour(derniere))) : null;
+    // Muscles de la prochaine séance qui ont déjà beaucoup travaillé hier.
+    const hierG = groupesDe(histo.filter(s => s.date === hier));
+    const fatigues = Object.keys(g).filter(k => (hierG[k] || 0) >= 6);
+    // boutonCoachHTML échappe tout l'attribut : l'argument n'a besoin que de JSON.stringify.
+    const action = { libelle: 'Voir la séance ' + p.nom, faire: `apercuProgramme(${JSON.stringify(p.id)})` };
+    if (fatigues.length) {
+      ajouter({ cle: 'recuperation', prio: 45, icone: 'repos', action,
+        texte: (m => `${m.pluriel ? 'Tes' : 'Ton'} <b>${m.noms}</b> ${m.pluriel ? 'ont' : 'a'} beaucoup travaillé hier. Si tu ${m.pron} sens encore, ta séance <b>${escapeHtml(p.nom)}</b> peut attendre demain : le muscle grandit pendant le repos.`)(muscles(fatigues)) });
+      return;
+    }
+    const glucides = h >= 10 && h < 18 ? ' Si tu y vas tout à l\'heure, prends des glucides 1 à 2 h avant (riz, pâtes, banane).' : '';
+    if (sansSeance != null && sansSeance >= 5) {
+      ajouter({ cle: 'reprise', prio: 52, icone: 'seance', action,
+        texte: `Ça fait <b>${sansSeance} jours</b> sans séance. ${variante('reprise', ['Même 30 minutes aujourd\'hui relancent la machine', 'Une séance courte suffit pour reprendre le rythme', 'Le plus dur, c\'est d\'y retourner : la suite vient toute seule'])} : ta prochaine, c'est <b>${escapeHtml(p.nom)}</b>.${glucides}` });
+      return;
+    }
+    ajouter({ cle: 'seance', prio: 34, icone: 'seance', action,
+      texte: `Ta prochaine séance : <b>${escapeHtml(p.nom)}</b> (${escapeHtml(liste(libGroupes(g)))}, ${nbSeries}\u00a0séries).${sansSeance != null && sansSeance >= 1 ? ` Dernière séance il y a ${sansSeance === 1 ? 'un jour' : sansSeance + ' jours'}.` : ''}${glucides}` });
+  });
+
+  // 8. Volume de la semaine par muscle (à partir du jeudi) : trop peu, ou trop.
+  regle(() => {
+    if (!auj || !histo.length) return;
+    const jourSem = (new Date().getDay() + 6) % 7;  // 0 = lundi
+    const { series } = couleursSemaine();
+    const quatreSem = groupesDe(histo.filter(s => s.date >= shiftDate(currentDate, -28) && s.date < lundiDeLaSemaine(currentDate)));
+    const trop = GROUPES_PRINCIPAUX.filter(g => ZONES_VOLUME[g] && (series[g] || 0) >= ZONES_VOLUME[g].mrv);
+    if (trop.length) {
+      const g = trop[0], m = muscles([g]);
+      ajouter({ cle: 'volume-trop', prio: 38, icone: 'volume',
+        texte: `${m.pluriel ? 'Tes' : 'Ton'} <b>${m.noms}</b> en ${m.pluriel ? 'sont' : 'est'} à ${formatSeries(series[g])} séries cette semaine, plus que ce que tu récupères (${ZONES_VOLUME[g].mrv}) : allège la prochaine séance qui ${m.pron} fait travailler.` });
+      return;
+    }
+    if (jourSem < 3) return;
+    const peu = GROUPES_PRINCIPAUX.filter(g => ZONES_VOLUME[g] && (quatreSem[g] || 0) > 0 && (series[g] || 0) < ZONES_VOLUME[g].mev)
+      .sort((a, b) => (series[a] || 0) / ZONES_VOLUME[a].mev - (series[b] || 0) / ZONES_VOLUME[b].mev);
+    if (!peu.length) return;
+    const g = peu[0], n = series[g] || 0, m = muscles([g]), v = m.pluriel ? 'ont' : 'a';
+    ajouter({ cle: 'volume', prio: 26, icone: 'volume', action: { libelle: 'Voir mes muscles', faire: "ouvrirStats('muscu')" },
+      texte: `Cette semaine, ${m.det} <b>${m.noms}</b> ${n ? `n'${v} eu que ${formatSeries(n)} série${n > 1 ? 's' : ''}` : `n'${v} pas encore travaillé`} : vise au moins ${ZONES_VOLUME[g].mev} séries pour progresser${peu.length > 1 ? ` (${escapeHtml(liste(peu.slice(1, 3).map(x => (GROUPES_MUSCULAIRES[x] || x).toLowerCase())))} aussi)` : ''}.` });
+  });
+
+  // 9. Cardio de la semaine.
+  regle(() => {
+    if (!auj) return;
+    const jourSem = (new Date().getDay() + 6) % 7;
+    const b = bilanSemaineCardio(lundiDeLaSemaine(currentDate));
+    const recent = seancesCardio().some(s => s.date >= shiftDate(currentDate, -28));
+    if (!recent || jourSem < 3 || b.equiv >= OBJECTIF_CARDIO.cible) return;
+    ajouter({ cle: 'cardio', prio: 20, icone: 'cardio', action: { libelle: 'Noter du cardio', faire: 'ouvrirCardio()' },
+      texte: `Cardio : <b>${fr(b.equiv)}\u00a0min</b> cette semaine sur ${OBJECTIF_CARDIO.cible}. Encore ${fr(OBJECTIF_CARDIO.cible - b.equiv)}\u00a0min pour l'objectif santé, une marche rapide compte.` });
+  });
+
+  // 10. Pas du jour, en fin de journée.
+  regle(() => {
+    const pas = Number(day.steps) || 0;
+    if (!auj || h < 16 || !(pas > 0)) return;
+    const seuil = SEUILS_PAS.find(s => pas < s);
+    if (!seuil || seuil - pas > 6000) return;
+    const minutes = Math.max(5, Math.round((seuil - pas) / 100 / 5) * 5);
+    ajouter({ cle: 'pas', prio: 24, icone: 'pas',
+      texte: `Encore <b>${fr(seuil - pas)}\u00a0pas</b> pour passer les ${fr(seuil)} : environ ${minutes}\u00a0minutes de marche${h >= 18 ? ', parfait après le dîner' : ''}.` });
+  });
+
+  // 11. Poids : rythme, poids visé, stagnation, pesée oubliée.
+  regle(() => {
+    if (!auj) return;
+    const actuel = dernierPoidsConnu(currentDate), vise = poidsVise(), rythme = rythmePoidsJours(28);
+    let dernierePesee = '';
+    Object.keys(appData).forEach(d => { if (d <= currentDate && d > dernierePesee && Number(appData[d] && appData[d].weight) > 0) dernierePesee = d; });
+    const joursSansPesee = dernierePesee ? numeroJour(currentDate) - numeroJour(dernierePesee) : null;
+    if (joursSansPesee == null || joursSansPesee >= 7) {
+      ajouter({ cle: 'pesee', prio: h < 11 ? 30 : 12, icone: 'poids', action: { libelle: 'Me peser', faire: "ouvrirSaisieRapide('poids')" },
+        texte: joursSansPesee == null ? 'Pèse-toi un matin, à jeun : avec ton poids, je calcule tes besoins au plus juste.'
+          : `Dernière pesée il y a <b>${joursSansPesee} jours</b>. Une pesée le matin, à jeun, garde ton objectif juste.` });
+    }
+    if (rythme == null || !actuel) return;
+    const sens = vise ? Math.sign(vise - actuel) : objectif === 'seche' ? -1 : objectif === 'masse' ? 1 : 0;
+    const r = Math.abs(rythme), verbe = rythme < 0 ? 'perds' : 'prends';
+    if (sens === 0) {
+      if (r >= 0.25) ajouter({ cle: 'poids', prio: 22, icone: 'poids', texte: `Tu ${verbe} <b>${kg(r)}\u00a0kg par semaine</b> ces 4 dernières semaines, alors que tu vises le maintien.` });
+      return;
+    }
+    if (Math.sign(rythme) === sens && r >= 0.1) {
+      if (sens < 0 && r > actuel * 0.01) {
+        ajouter({ cle: 'poids', prio: 42, icone: 'poids',
+          texte: `Tu perds vite : <b>${kg(r)}\u00a0kg par semaine</b>. Au-delà de 1 % de ton poids par semaine, tu risques d'y laisser du muscle : remonte un peu tes calories.` });
+        return;
+      }
+      let quand = '';
+      if (vise && Math.abs(vise - actuel) >= 0.3) {
+        const date = new Date(); date.setDate(date.getDate() + Math.round(Math.abs(vise - actuel) / r * 7));
+        quand = ` À ce rythme, <b>${kg(vise)}\u00a0kg</b> vers le <b>${date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</b>.`;
+      }
+      ajouter({ cle: 'poids', prio: 21, icone: 'poids', texte: `Tu ${verbe} <b>${kg(r)}\u00a0kg par semaine</b> : ${variante('poids-ok', ['pile dans la bonne direction', 'un rythme régulier, c\'est ce qui dure', 'continue comme ça'])}.${quand}` });
+    } else if (r < 0.1) {
+      ajouter({ cle: 'poids', prio: 36, icone: 'poids',
+        texte: `Ton poids ne bouge presque plus depuis 4 semaines${vise ? ` (objectif ${kg(vise)}\u00a0kg)` : ''}. ${sens < 0 ? 'Pour relancer : 100 à 150 kcal de moins par jour, ou 2 000 pas de plus.' : 'Pour relancer : 150 à 200 kcal de plus par jour, surtout des glucides.'}` });
+    } else {
+      ajouter({ cle: 'poids', prio: 40, icone: 'poids',
+        texte: `Ton poids ${rythme > 0 ? 'monte' : 'baisse'} (<b>${rythme > 0 ? '+' : '−'}${kg(r)}\u00a0kg par semaine</b>) alors que tu vises ${vise ? `<b>${kg(vise)}\u00a0kg</b>` : sens < 0 ? 'une perte' : 'une prise'}. Regarde tes moyennes de la semaine dans Progrès : l'écart vient souvent du week-end.` });
+    }
+  });
+
+  // 12. Lipides déjà hauts.
+  regle(() => {
+    if (!auj || h < 13 || !(totals.f > t.fat * 1.15)) return;
+    ajouter({ cle: 'lipides', prio: 28, icone: 'repas',
+      texte: `Tes lipides sont déjà à <b>${fr(totals.f)}\u00a0g</b> (objectif ${fr(t.fat)}\u00a0g) : pour la suite, des protéines maigres et des légumes.` });
+  });
+
+  // 13. Bonnes nouvelles.
+  regle(() => {
+    if (!(totals.kcal > 0) || reste < -t.target * 0.05) return;
+    if (reste >= 0 && reste <= t.target * 0.1 && manqueP <= 20) {
+      ajouter({ cle: 'presque', prio: 20, icone: 'bravo', texte: `Objectif presque atteint, <b>${fr(reste)}\u00a0kcal</b> restantes et des protéines au rendez-vous. ${variante('fin', ['Belle journée', 'Journée réussie', 'Du beau travail'])}${qui ? ' ' + escapeHtml(qui) : ''} !` });
+    } else if (manqueP <= 0) {
+      ajouter({ cle: 'proteines-ok', prio: 18, icone: 'bravo', texte: `Protéines atteintes (<b>${fr(totals.p)}\u00a0g</b>). Il te reste ${fr(Math.max(0, reste))}\u00a0kcal à répartir comme tu veux.` });
+    } else if (auj && retardP <= 10) {
+      ajouter({ cle: 'rythme', prio: 15, icone: 'bravo', texte: `Bon rythme pour les protéines : <b>${fr(totals.p)}\u00a0g</b> déjà. Il te reste ${fr(Math.max(0, reste))}\u00a0kcal et ${fr(manqueP)}\u00a0g pour la suite de la journée.` });
+    }
+  });
+
+  // 14. Régularité : les paliers en avant, sinon un mot dans l'analyse.
+  regle(() => {
+    if (!auj) return;
+    const serie = joursDAffilee();
+    if (serie < 3) return;
+    const palier = [7, 14, 21, 30, 50, 75, 100, 150, 200, 365].includes(serie);
+    ajouter({ cle: 'serie', prio: palier ? 22 : 8, icone: 'serie',
+      texte: palier ? `<b>${serie} jours d'affilée</b> à noter tes repas${qui ? ', ' + escapeHtml(qui) : ''} ! C'est cette régularité qui fait les résultats.`
+        : `<b>${serie} jours d'affilée</b> à noter tes repas : ${variante('serie', ['continue', 'garde le rythme', 'ne lâche rien'])}.` });
+  });
+
+  if (!constats.length) {
+    ajouter({ cle: 'reste', prio: 1, icone: 'repas', texte: `Il te reste <b>${fr(reste)}\u00a0kcal</b> et ${fr(Math.max(0, manqueP))}\u00a0g de protéines pour finir la journée.` });
+  }
+  return constats.sort((a, b) => b.prio - a.prio);
+}
+
+/* La carte : le constat principal s'écrit mot à mot, comme une réponse
+   qu'on tape (sauf mouvement réduit, ou quand l'écran n'est pas visible),
+   avec son action ; « Voir l'analyse complète » déplie les autres. */
+var coachAnalyseOuverte = false;
+function boutonCoachHTML(a, petit) {
+  return a ? `<button type="button" class="coach-action${petit ? ' coach-action--petite' : ''}" onclick="${escapeHtml(a.faire)}">${escapeHtml(a.libelle)}</button>` : '';
+}
 function majCoach(day, totals, t) {
   const el = document.getElementById('coach-jour');
   if (!el) return;
-  const h = new Date().getHours(), auj = currentDate === todayStr();
-  const reste = t.target - totals.kcal, manqueP = t.protein - totals.p;
-  const eau = Number(day.eauMl) || 0, quotaEau = quotaEauSuggere(currentDate);
-  const fr = n => Math.round(n).toLocaleString('fr-FR');
-  // Aujourd'hui, les protéines comptent en retard sur le rythme de la journée, pas sur le total.
-  const retardP = auj ? t.protein * partProteinesAttendue(h) - totals.p : manqueP;
-  let msg;
-  if (totals.kcal === 0) msg = auj ? (h < 11 ? 'Commence ta journée : note ton <b>petit-déjeuner</b> avec le bouton +.' : 'Rien de noté pour l\'instant : ajoute ton premier repas avec le bouton +.') : 'Aucun repas noté ce jour-là.';
-  else if (reste < -t.target * 0.05) msg = `Tu as dépassé ton objectif de <b>${fr(-reste)} kcal</b>. Pas de panique : une journée ne fait pas une tendance, reprends demain.`;
-  else if (manqueP > 20 && reste > 150 && retardP > 10) {
-    const repas = auj ? repasAVenir(day, h) : null;
-    const idees = repas ? ideesProteines(day, repas, reste, manqueP) : [];
-    // Insécables : « (150 g, +32 g) » ne se coupe pas en fin de ligne.
-    const portion = i => ((i.portion ? escapeHtml(i.portion) + ', ' : '') + '+' + fr(i.p) + ' g').replace(/ /g, '\u00a0');
-    msg = `Il te manque <b>${fr(manqueP)}\u00a0g de protéines</b>, il te reste ${fr(reste)}\u00a0kcal.`
-      + (idees.length ? ` Pour ${MOMENT_REPAS[repas]} : ${idees.map(i => `<b>${escapeHtml(i.nom)}</b> (${portion(i)})`).join(' et ')}.` : '');
+  let constats;
+  try { constats = analyseCoach(day, totals, t); } catch (e) {
+    constats = [{ cle: 'reste', prio: 1, icone: 'repas', texte: `Il te reste <b>${Math.round(t.target - totals.kcal).toLocaleString('fr-FR')}\u00a0kcal</b> pour la journée.` }];
   }
-  else if (auj && h >= 16 && eau < quotaEau * 0.6) msg = `Pense à boire : <b>${(Math.round((quotaEau - eau) / 100) / 10).toLocaleString('fr-FR')} L</b> d'eau à rattraper d'ici ce soir.`;
-  else if (reste >= 0 && reste <= t.target * 0.1) msg = `Objectif presque atteint, <b>${fr(reste)} kcal</b> restantes et des protéines au rendez-vous. Belle journée !`;
-  else if (manqueP <= 0) msg = `Protéines atteintes (<b>${fr(totals.p)} g</b>). Il te reste ${fr(Math.max(0, reste))} kcal à répartir comme tu veux.`;
-  else if (auj && retardP <= 10) msg = `Bon rythme pour les protéines : <b>${fr(totals.p)} g</b> déjà. Il te reste ${fr(Math.max(0, reste))} kcal et ${fr(manqueP)} g pour la suite de la journée.`;
-  else msg = `Il te reste <b>${fr(reste)} kcal</b> et ${fr(Math.max(0, manqueP))} g de protéines pour finir la journée.`;
+  const [principal, ...autres] = constats;
+  const analyse = autres.slice(0, 6);
   el.innerHTML = `<span class="coach-icone" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /></svg></span>
-    <div><small>Coach du jour</small><p>${msg}</p></div>`;
-  coachCalcule = { jour: todayStr(), heure: h };
+    <div class="coach-corps"><small>Coach du jour</small><p class="coach-texte">${principal.texte}</p>
+      ${principal.action ? `<div class="coach-actions">${boutonCoachHTML(principal.action)}</div>` : ''}
+      ${analyse.length ? `<button type="button" class="coach-plus" aria-expanded="${coachAnalyseOuverte}" onclick="basculerAnalyseCoach()">${coachAnalyseOuverte ? 'Masquer l\'analyse' : 'Voir l\'analyse complète'}<span class="coach-nb">${analyse.length}</span></button>
+      <ul class="coach-analyse"${coachAnalyseOuverte ? '' : ' hidden'}>${analyse.map(c => `<li><span class="coach-pt" aria-hidden="true">${iconeCoach(c.icone)}</span><div><p>${c.texte}</p>${boutonCoachHTML(c.action, true)}</div></li>`).join('')}</ul>` : ''}
+    </div>`;
+  ecrireCoach(el.querySelector('.coach-texte'), principal.texte);
+  coachCalcule = { jour: todayStr(), heure: new Date().getHours() };
+}
+function basculerAnalyseCoach() {
+  coachAnalyseOuverte = !coachAnalyseOuverte;
+  const el = document.getElementById('coach-jour');
+  const b = el && el.querySelector('.coach-plus'), l = el && el.querySelector('.coach-analyse');
+  if (!b || !l) return;
+  b.setAttribute('aria-expanded', String(coachAnalyseOuverte));
+  b.firstChild.textContent = coachAnalyseOuverte ? 'Masquer l\'analyse' : 'Voir l\'analyse complète';
+  l.hidden = !coachAnalyseOuverte;
+}
+/* Un nouveau message s'écrit : trois points le temps de « réfléchir », puis
+   les mots apparaissent un à un. La carte se redessine souvent : le même
+   message reste tel quel, et un redessin pendant l'écriture la reprend sur la
+   nouvelle carte au lieu de l'interrompre (au démarrage surtout). */
+var coachEcriture = { texte: '', enCours: false, p: null, minuteur: 0 };
+function ecrireCoach(p, texte) {
+  if (!p) return;
+  const e = coachEcriture;
+  if (texte === e.texte) {
+    if (e.enCours) { e.p = p; p.innerHTML = '<span class="coach-pense" aria-hidden="true"><i></i><i></i><i></i></span>'; }
+    return;
+  }
+  clearTimeout(e.minuteur);
+  e.texte = texte; e.enCours = false; e.p = p;
+  if (ecranActif !== 'repas' || document.visibilityState !== 'visible' || mouvementReduit()) return;
+  e.enCours = true;
+  p.innerHTML = '<span class="coach-pense" aria-hidden="true"><i></i><i></i><i></i></span>';
+  const lancer = () => {
+    // Pendant l'écran de démarrage, on attend qu'il s'efface.
+    if (document.documentElement.classList.contains('spl-actif')) { e.minuteur = setTimeout(lancer, 150); return; }
+    e.minuteur = setTimeout(() => {
+      e.enCours = false;
+      const cible = e.p;
+      if (!cible || !cible.isConnected) return;
+      cible.innerHTML = texte;
+      const mots = [];
+      const marcher = n => [...n.childNodes].forEach(c => {
+        if (c.nodeType === 3) {
+          const f = document.createDocumentFragment();
+          c.textContent.split(/(\s+)/).forEach(m => {
+            if (!m) return;
+            if (/^\s+$/.test(m)) { f.appendChild(document.createTextNode(m)); return; }
+            const sp = document.createElement('span'); sp.className = 'cm'; sp.textContent = m; f.appendChild(sp); mots.push(sp);
+          });
+          c.replaceWith(f);
+        } else if (c.nodeType === 1) marcher(c);
+      });
+      marcher(cible);
+      const pas = Math.max(14, Math.min(45, 1100 / Math.max(1, mots.length)));
+      mots.forEach((sp, i) => { sp.style.animationDelay = Math.round(i * pas) + 'ms'; });
+    }, 520);
+  };
+  lancer();
 }
 /* Le conseil dépend aussi de l'heure (petit-déjeuner avant 11 h, eau à partir
    de 16 h) et du jour : il est recalculé, avec le « Bonjour / Bonsoir », quand
@@ -13444,7 +13824,7 @@ const TOUR_ETAPES = [
   { titre: 'Bienvenue sur Askēsis', texte: "Un tour rapide de l'appli : la nutrition, l'activité, les statistiques et ton profil. Tu peux le quitter à tout moment et le revoir depuis Profil › Réglages (engrenage). Une visite dédiée à la musculation existe aussi." },
   { ecran: 'repas', cible: '#semaine-nav', titre: 'Ta semaine', texte: "Un mini-anneau par jour : il se remplit avec les calories du jour face à ton objectif. Touche un jour pour l'afficher, glisse pour changer de semaine. La flamme en haut compte tes jours d'affilée." },
   { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: "L'anneau extérieur, ce sont tes calories ; les trois intérieurs, protéines, glucides et lipides. Touche une macro pour sa courbe face à l'objectif, ou le reste de la carte pour ta dépense du jour et ta nutrition." },
-  { ecran: 'repas', cible: '#coach-jour', titre: 'Le coach du jour', texte: "Un conseil qui suit ta journée : ce qui te manque au bon moment, avec une idée pour le repas à venir qui change chaque jour (tes aliments et d'autres), ou un rappel pour boire. Calculé sur ton téléphone, sans IA." },
+  { ecran: 'repas', cible: '#coach-jour', titre: 'Le coach du jour', texte: "Ton coach analyse ta journée et ta semaine : repas, protéines, eau, pas, séances, récupération, poids. En tête, ce qui compte le plus maintenant ; « Voir l'analyse complète » montre tout le reste. Calculé sur ton téléphone, sans connexion." },
   { ecran: 'repas', cible: '#cartes-stats-repas', titre: 'Pas, eau et poids', texte: "Fais glisser pour passer d'une carte à l'autre : tes pas du jour, ton eau et ton poids. Touche la carte du centre pour noter tes pas ou ta pesée du jour ; le détail est dans Progrès." },
   { ecran: 'repas', cible: '#onglet-plus', titre: 'Le bouton +', texte: "Il fait l'action utile de l'écran : ici, une recette, un aliment, une photo ou un code-barres pour le repas du moment. Sur Activité, il lance une séance ; sur Profil, une mesure. Dans Progrès, il est grisé." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-recette', titre: 'Recette', texte: "Tes recettes enregistrées, et celles partagées par l'équipe : une portion s'ajoute en un toucher, macros déjà calculées. Tu y trouves aussi des idées de l'IA qui complètent tes macros du jour." },
