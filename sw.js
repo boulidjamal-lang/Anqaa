@@ -10,7 +10,7 @@
 const CACHE = 'anqaa-v1';
 const ATTENTE_RESEAU_MS = 3000;
 const BASE = new URL('./', self.location).href;
-const A_PRECHARGER = [BASE, BASE + 'index.html', BASE + 'assets/donnees.js'];
+const A_PRECHARGER = [BASE, BASE + 'index.html', BASE + 'assets/donnees.js', BASE + 'assets/recettes.js'];
 const CDN = /(^|\.)(cdn\.jsdelivr\.net|unpkg\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)$/;
 
 self.addEventListener('install', e => {

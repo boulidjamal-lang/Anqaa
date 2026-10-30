@@ -84,6 +84,17 @@ test('les versions des bibliothèques sont figées', () => {
   assert.ok(html.includes(`chart.js@${versionChart}/`), `les tests utilisent Chart.js ${versionChart}, l'appli une autre version`);
 });
 
+test('hors ligne : le service worker garde la page, ses données et ses recettes', () => {
+  const sw = fs.readFileSync(path.join(RACINE, 'sw.js'), 'utf8');
+  const liste = sw.match(/const A_PRECHARGER = \[([^\]]*)\]/)[1];
+  for (const f of ["'index.html'", "'assets/donnees.js'", "'assets/recettes.js'"]) assert.ok(liste.includes(f), f);
+  const html = fs.readFileSync(path.join(RACINE, 'index.html'), 'utf8');
+  for (const f of ['assets/donnees.js', 'assets/recettes.js']) {
+    assert.ok(html.includes(`<script src="${f}"></script>`), f);
+    assert.ok(fs.existsSync(path.join(RACINE, f)), f);
+  }
+});
+
 test('chaque script de la page se compile', () => {
   const html = fs.readFileSync(path.join(RACINE, 'index.html'), 'utf8');
   const blocs = [...html.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)];
@@ -2042,34 +2053,54 @@ test('Coach du jour : une recette pour le repas à venir, qui tient dans le rest
   assert.equal(perso.titre, '<img src=x onerror="window.__xss=1">Mon dahl');
 }));
 
-test('Recettes Askēsis : celles du repas visé d\'abord, la recherche, la fiche avec sa source, une portion ajoutée en un geste', () => avecAppli({}, async ({ page }) => {
+test('Recettes Askēsis : une catégorie à la fois (celle du repas visé), la recherche sur toutes, la fiche avec sa source, une portion ajoutée en un geste', () => avecAppli({}, async ({ page }) => {
   const r = await page.evaluate(() => {
     allerA('repas'); renderApp();
     ouvrirFeuilleRepas('snack'); depuisFeuille('recette');
     const liste = () => [...document.querySelectorAll('#choix-recette-askesis .off-suggestion')].map(b => b.querySelector('.off-nom').textContent);
-    const noms = liste(), collations = recettesAskesis().filter(x => x.repas.includes('snack')).length;
+    const puces = () => [...document.querySelectorAll('#choix-recette-categories button')].map(b => b.textContent + (b.getAttribute('aria-pressed') === 'true' ? '*' : ''));
+    const de = cat => recettesAskesis().filter(x => x.categorie === cat).map(x => x.nom);
     const champ = document.getElementById('choix-recette-recherche');
+    const compte = () => document.getElementById('choix-recette-compte').textContent;
     const chercher = q => { champ.value = q; champ.dispatchEvent(new Event('input', { bubbles: true })); return liste(); };
-    const res = { total: noms.length, attendu: recettesAskesis().length, collations,
-      premieres: noms.slice(0, collations).every(n => recettesAskesis().find(x => x.nom === n).repas.includes('snack')),
-      lentilles: chercher('LENTILLES'), oeufs: chercher('oeufs'), aucune: (chercher('zzzz'), document.getElementById('choix-recette-askesis').textContent),
-      police: getComputedStyle(champ).fontSize, imbriques: document.querySelectorAll('#feuille-choix-recette button button').length };
-    chercher('');
+    const res = { total: recettesAskesis().length, parCategorie: Object.fromEntries(['plat', 'entree', 'petit-dej', 'collation', 'dessert', 'accompagnement'].map(c => [c, de(c).length])),
+      puces: puces(), collations: liste(), attendu: de('collation').sort((a, b) => a.localeCompare(b, 'fr')), compte: compte() };
+    [...document.querySelectorAll('#choix-recette-categories button')].find(b => b.textContent === 'Desserts').click();
+    res.desserts = liste().length; res.pucesDesserts = puces().filter(p => p.endsWith('*'));
+    res.lentilles = chercher('LENTILLES'); res.pucesRecherche = puces().filter(p => p.endsWith('*')); res.compteRecherche = compte();
+    res.metas = [...document.querySelectorAll('#choix-recette-askesis .off-meta')].map(m => m.textContent);
+    res.oeufs = chercher('oeufs');
+    res.aucune = (chercher('zzzz'), document.getElementById('choix-recette-askesis').textContent);
+    res.police = getComputedStyle(champ).fontSize;
+    res.imbriques = document.querySelectorAll('#feuille-choix-recette button button').length;
+    // Rouverte pour le dîner : les plats, sans la recherche d'avant.
+    fermerFeuilles(); ouvrirFeuilleRepas('dinner'); depuisFeuille('recette');
+    res.diner = { puces: puces().filter(p => p.endsWith('*')), champ: champ.value, nb: liste().length };
     return res;
   });
-  assert.equal(r.total, r.attendu);
-  assert.ok(r.total >= 80, String(r.total));
-  assert.ok(r.collations >= 5 && r.premieres, 'les collations en premier');
-  assert.ok(r.lentilles.length >= 2 && r.lentilles.every(n => /lentilles/i.test(n)), r.lentilles.join(' | '));
-  assert.ok(r.oeufs.length >= 3 && r.oeufs.every(n => /œufs|oeufs/i.test(n)), 'œ cherché comme oe : ' + r.oeufs.join(' | '));
+  assert.ok(r.total >= 400, String(r.total));
+  Object.entries(r.parCategorie).forEach(([c, n]) => assert.ok(n >= 10, `${c} : ${n}`));
+  assert.deepEqual(r.puces, ['Plats', 'Entrées et soupes', 'Petit-déjeuner', 'Collations*', 'Desserts', 'Accompagnements']);
+  assert.deepEqual(r.collations, r.attendu, 'les collations, par ordre alphabétique');
+  assert.equal(r.compte, r.collations.length + ' recettes');
+  assert.deepEqual(r.pucesDesserts, ['Desserts*']);
+  assert.equal(r.desserts, r.parCategorie.dessert);
+  // La recherche porte sur toutes les catégories ; chaque résultat dit la sienne.
+  assert.ok(r.lentilles.length >= 4 && r.lentilles.every(n => /lentilles/i.test(n)), r.lentilles.join(' | '));
+  assert.deepEqual(r.pucesRecherche, [], 'aucune catégorie choisie pendant une recherche');
+  assert.equal(r.compteRecherche, r.lentilles.length + ' recettes trouvées');
+  r.metas.forEach(m => assert.match(m, /^(Plat|Entrée ou soupe|Petit-déjeuner|Collation|Dessert|Accompagnement) · \d+ kcal · P \d+ g · G \d+ g · L \d+ g — par portion$/, m));
+  assert.ok(r.oeufs.length >= 5 && r.oeufs.every(n => /œufs|oeufs/i.test(n)), 'œ cherché comme oe : ' + r.oeufs.join(' | '));
   assert.match(r.aucune, /Aucune recette ne correspond/);
   assert.equal(r.police, '16px', 'pas de zoom de l\'iPhone sur le champ');
   assert.equal(r.imbriques, 0);
+  assert.deepEqual(r.diner, { puces: ['Plats*'], champ: '', nb: r.parCategorie.plat });
 
   // Une recette de Wikilivres : valeurs par portion, ingrédients, étapes, la source et sa licence.
   const wl = await page.evaluate(() => {
-    const b = [...document.querySelectorAll('#choix-recette-askesis .off-suggestion')].find(x => x.querySelector('.off-nom').textContent === 'Blanquette de veau');
-    b.click();
+    const champ = document.getElementById('choix-recette-recherche');
+    champ.value = 'blanquette'; champ.dispatchEvent(new Event('input', { bubbles: true }));
+    [...document.querySelectorAll('#choix-recette-askesis .off-suggestion')].find(x => x.querySelector('.off-nom').textContent === 'Blanquette de veau').click();
     const f = document.getElementById('fiche-recette'), lien = f.querySelector('.recette-source a');
     return { titre: document.getElementById('fiche-recette-titre').textContent, tuiles: [...f.querySelectorAll('.recette-macros small')].map(x => x.textContent),
       portions: f.querySelector('.note').textContent, ingredients: f.querySelectorAll('.recette-liste li').length, etapes: f.querySelectorAll('.recette-etapes li').length,
@@ -2083,25 +2114,28 @@ test('Recettes Askēsis : celles du repas visé d\'abord, la recherche, la fiche
   assert.equal(wl.lien, 'https://fr.wikibooks.org/wiki/Livre_de_cuisine/Blanquette_de_veau');
   assert.match(wl.source, /^Recette « Blanquette de veau » des contributeurs du Livre de cuisine de Wikilivres, licence CC BY-SA 4\.0, texte adapté\. Valeurs nutritionnelles calculées avec la table CIQUAL 2020 \(Anses\)\.$/);
   assert.equal(wl.licence, 'https://creativecommons.org/licenses/by-sa/4.0/deed.fr');
-  assert.equal(wl.bouton, 'Ajouter une portion à la collation');
+  assert.equal(wl.bouton, 'Ajouter une portion au dîner');
   assert.deepEqual(wl.deux, [true, true], 'la fiche se pose sur la liste');
-  // La fermer ramène à la liste ; une recette Askēsis s'ajoute à la collation, tout se referme.
+  // La fermer ramène à la liste ; une recette Askēsis s'ajoute au dîner, tout se referme.
   const ak = await page.evaluate(() => {
     document.querySelector('#feuille-fiche-recette .feuille-fermer').click();
     const liste = document.getElementById('feuille-choix-recette').classList.contains('show') && !document.getElementById('feuille-fiche-recette').classList.contains('show');
+    const champ = document.getElementById('choix-recette-recherche');
+    champ.value = 'poke bowl'; champ.dispatchEvent(new Event('input', { bubbles: true }));
     const b = document.querySelector('#choix-recette-askesis .off-suggestion');
     const nom = b.querySelector('.off-nom').textContent, meta = b.querySelector('.off-meta').textContent;
     b.click();
     const source = document.querySelector('#fiche-recette .recette-source').textContent;
     document.querySelector('#fiche-recette .recette-ajouter').click();
-    const it = getDay(todayStr()).meals.snack.slice(-1)[0];
+    const it = getDay(todayStr()).meals.dinner.slice(-1)[0];
     return { liste, nom, meta, source, ajoute: it && it.name, kcal: it && Math.round(it.kcal), ouvertes: document.querySelectorAll('.feuille.show').length };
   });
   assert.equal(ak.liste, true);
-  assert.match(ak.meta, /^\d+ kcal · P \d+ g · G \d+ g · L \d+ g — par portion$/);
+  assert.equal(ak.nom, 'Poke bowl au saumon');
+  assert.match(ak.meta, /^Plat · \d+ kcal · P \d+ g · G \d+ g · L \d+ g — par portion$/);
   assert.match(ak.source, /^Recette Askēsis\. Valeurs nutritionnelles calculées avec la table CIQUAL 2020 \(Anses\)\.$/);
   assert.equal(ak.ajoute, ak.nom);
-  assert.equal(String(ak.kcal), ak.meta.split(' ')[0]);
+  assert.equal(String(ak.kcal), ak.meta.split(' ')[2]);
   assert.equal(ak.ouvertes, 0);
 }));
 
@@ -2705,7 +2739,7 @@ test('nouvelle version en ligne : bandeau « Mettre à jour » au retour dans l\
   assert.equal(r.memeEmpreinte, true);
   assert.deepEqual([r.identique, r.portail, r.tropTot, r.nouvelle], [false, false, false, true]);
   assert.equal(r.texte, 'Nouvelle version disponibleMettre à jour×');
-  assert.deepEqual(r.miseAJour, [true, [['', 'reload'], ['index.html', 'reload'], ['donnees.js', 'reload']]]);
+  assert.deepEqual(r.miseAJour, [true, [['', 'reload'], ['index.html', 'reload'], ['donnees.js', 'reload'], ['recettes.js', 'reload']]]);
 }));
 
 test('bilan de fin de séance : récapitulatif (tonnage, séries, records, écart), plus d\'avis IA', () => avecAppli({}, async ({ page }) => {
