@@ -8429,8 +8429,82 @@ function choisirJour(d) {
 }
 /* ---------- Coach du jour : un conseil calculé sur place, sans IA ----------
    Ce qui compte le plus à cet instant : rien de noté, objectif dépassé,
-   protéines en retard (avec des aliments riches que tu manges déjà),
-   eau en retard le soir, ou bravo. */
+   protéines en retard sur le rythme de la journée (avec une idée pour le
+   repas à venir), eau en retard le soir, ou bravo. */
+
+/* Idées de protéines pour varier, une par famille d'aliments : une portion
+   courante (valeurs moyennes) et les repas où elle a sa place. Tes propres
+   aliments riches en protéines passent devant, dans leur famille ; une idée
+   n'est proposée que dans une famille que tu as déjà mangée (pas de viande,
+   de poisson ou de fruits de mer à qui n'en note jamais), sauf les
+   légumineuses. */
+const IDEES_PROTEINES = [
+  { nom: 'Skyr nature', portion: '150 g', kcal: 95, p: 16, famille: '🥣', repas: ['breakfast', 'snack'] },
+  { nom: '2 œufs', portion: '', kcal: 150, p: 13, famille: '🥚', repas: ['breakfast', 'lunch', 'dinner'] },
+  { nom: 'Thon au naturel', portion: '1 boîte', kcal: 115, p: 26, famille: '🐟', repas: ['lunch', 'dinner'] },
+  { nom: 'Crevettes', portion: '150 g', kcal: 150, p: 32, famille: '🦐', repas: ['lunch', 'dinner'] },
+  { nom: 'Blanc de poulet', portion: '120 g', kcal: 160, p: 33, famille: '🍗', repas: ['lunch', 'dinner'] },
+  { nom: 'Lentilles', portion: '200 g cuites', kcal: 230, p: 18, famille: '🫘', repas: ['lunch', 'dinner'] },
+  { nom: 'Shaker de whey', portion: '30 g', kcal: 115, p: 23, famille: 'whey', repas: ['breakfast', 'snack'] },
+];
+const MOMENT_REPAS = { breakfast: 'le petit-déjeuner', lunch: 'midi', snack: 'le goûter', dinner: 'ce soir' };
+// Famille d'un aliment (volaille, poisson, œufs, laitages…), null si inconnue.
+function familleAliment(nom) {
+  if (/\b(whey|isolat|proteines? en poudre|shakers?)\b/.test(normaliserRecherche(nom))) return 'whey';
+  const i = iconeAliment(nom);
+  return i === '🍳' ? '🥚' : i === '🥛' ? '🥣' : i === '🍽️' ? null : i;
+}
+// Part des protéines du jour qu'on a en général à cette heure : avant, un manque est normal.
+function partProteinesAttendue(h) {
+  const pts = [[7, 0], [10, 0.2], [14, 0.55], [17, 0.65], [21, 1]];
+  if (h <= pts[0][0]) return 0;
+  for (let i = 1; i < pts.length; i++) {
+    const [h0, v0] = pts[i - 1], [h1, v1] = pts[i];
+    if (h <= h1) return v0 + (v1 - v0) * (h - h0) / (h1 - h0);
+  }
+  return 1;
+}
+// Le repas à venir selon l'heure, en sautant ceux déjà notés.
+function repasAVenir(day, h) {
+  let i = h < 10 ? 0 : h < 14 ? 1 : h < 17 ? 2 : 3;
+  while (i < 3 && ((day.meals || {})[MEALS[i]] || []).length) i++;
+  return MEALS[i];
+}
+/* Une ou deux idées pour combler le manque de protéines au repas à venir :
+   une autre famille chaque jour, pas une famille déjà au menu aujourd'hui,
+   et jamais plus de kcal qu'il n'en reste. */
+function ideesProteines(day, repas, reste, manque) {
+  const fr = n => Math.round(n).toLocaleString('fr-FR');
+  const deja = new Set();
+  Object.values(day.meals || {}).forEach(l => Array.isArray(l) && l.forEach(it => { const f = familleAliment(it && it.name); if (f) deja.add(f); }));
+  const parFamille = new Map(), recent = shiftDate(todayStr(), -60), connues = new Set();
+  // Tes aliments riches en protéines (8 g pour 100 kcal), déjà mangés à ce repas, le plus mangé d'abord.
+  historique().forEach(e => {
+    connues.add(familleAliment(e.nom));
+    if (!(e.kcal100 > 0) || e.p100 / e.kcal100 * 100 < 8 || e.fois < 2 || e.dernierJour < recent || !(e.repas && e.repas[repas])) return;
+    const g = Number(e.grammes) || 0, f = familleAliment(e.nom) || 'perso:' + e.cle;
+    const idee = { nom: e.nom, portion: fr(g) + (e.unite === 'ml' ? ' ml' : ' g'), kcal: e.kcal100 * g / 100, p: e.p100 * g / 100, famille: f };
+    if (idee.p >= 8 && !parFamille.has(f)) parFamille.set(f, idee);
+  });
+  IDEES_PROTEINES.forEach(i => {
+    if (i.repas.includes(repas) && !parFamille.has(i.famille) && (i.famille === '🫘' || connues.has(i.famille))) parFamille.set(i.famille, i);
+  });
+  let liste = [...parFamille.values()].filter(i => i.kcal <= reste);
+  const varie = liste.filter(i => !deja.has(i.famille));
+  if (varie.length) liste = varie;
+  if (!liste.length) return [];
+  liste.sort((a, b) => a.famille < b.famille ? -1 : a.famille > b.famille ? 1 : 0);
+  const [an, mo, jo] = currentDate.split('-').map(Number);
+  const k = (Date.UTC(an, mo - 1, jo) / 864e5 + MEALS.indexOf(repas)) % liste.length;
+  const idees = [liste[k]];
+  // La première ne suffit pas : une deuxième, d'une autre famille, si les kcal le permettent.
+  // Deux crans plus loin d'abord : ce n'est pas la première idée du lendemain.
+  for (let j = 2; j <= liste.length && idees[0].p < manque * 0.6; j++) {
+    const i = liste[(k + (j === liste.length ? 1 : j)) % liste.length];
+    if (i.kcal <= reste - idees[0].kcal) { idees.push(i); break; }
+  }
+  return idees;
+}
 function majCoach(day, totals, t) {
   const el = document.getElementById('coach-jour');
   if (!el) return;
@@ -8438,16 +8512,23 @@ function majCoach(day, totals, t) {
   const reste = t.target - totals.kcal, manqueP = t.protein - totals.p;
   const eau = Number(day.eauMl) || 0, quotaEau = quotaEauSuggere(currentDate);
   const fr = n => Math.round(n).toLocaleString('fr-FR');
-  // Aliments riches en protéines déjà mangés (g de protéines pour 100 kcal).
-  const riches = historique().filter(e => e.kcal100 > 0 && e.p100 / e.kcal100 * 100 >= 8 && e.fois >= 2)
-    .sort((a, b) => b.p100 / b.kcal100 - a.p100 / a.kcal100).slice(0, 2).map(e => e.nom);
+  // Aujourd'hui, les protéines comptent en retard sur le rythme de la journée, pas sur le total.
+  const retardP = auj ? t.protein * partProteinesAttendue(h) - totals.p : manqueP;
   let msg;
   if (totals.kcal === 0) msg = auj ? (h < 11 ? 'Commence ta journée : note ton <b>petit-déjeuner</b> avec le bouton +.' : 'Rien de noté pour l\'instant : ajoute ton premier repas avec le bouton +.') : 'Aucun repas noté ce jour-là.';
   else if (reste < -t.target * 0.05) msg = `Tu as dépassé ton objectif de <b>${fr(-reste)} kcal</b>. Pas de panique : une journée ne fait pas une tendance, reprends demain.`;
-  else if (manqueP > 20 && reste > 150) msg = `Il te manque <b>${fr(manqueP)} g de protéines</b>${riches.length ? ` : pense à ${riches.map(n => '<b>' + escapeHtml(n) + '</b>').join(' ou ')}` : ''}. Il te reste ${fr(reste)} kcal pour ça.`;
+  else if (manqueP > 20 && reste > 150 && retardP > 10) {
+    const repas = auj ? repasAVenir(day, h) : null;
+    const idees = repas ? ideesProteines(day, repas, reste, manqueP) : [];
+    // Insécables : « (150 g, +32 g) » ne se coupe pas en fin de ligne.
+    const portion = i => ((i.portion ? escapeHtml(i.portion) + ', ' : '') + '+' + fr(i.p) + ' g').replace(/ /g, '\u00a0');
+    msg = `Il te manque <b>${fr(manqueP)}\u00a0g de protéines</b>, il te reste ${fr(reste)}\u00a0kcal.`
+      + (idees.length ? ` Pour ${MOMENT_REPAS[repas]} : ${idees.map(i => `<b>${escapeHtml(i.nom)}</b> (${portion(i)})`).join(' et ')}.` : '');
+  }
   else if (auj && h >= 16 && eau < quotaEau * 0.6) msg = `Pense à boire : <b>${(Math.round((quotaEau - eau) / 100) / 10).toLocaleString('fr-FR')} L</b> d'eau à rattraper d'ici ce soir.`;
   else if (reste >= 0 && reste <= t.target * 0.1) msg = `Objectif presque atteint, <b>${fr(reste)} kcal</b> restantes et des protéines au rendez-vous. Belle journée !`;
   else if (manqueP <= 0) msg = `Protéines atteintes (<b>${fr(totals.p)} g</b>). Il te reste ${fr(Math.max(0, reste))} kcal à répartir comme tu veux.`;
+  else if (auj && retardP <= 10) msg = `Bon rythme pour les protéines : <b>${fr(totals.p)} g</b> déjà. Il te reste ${fr(Math.max(0, reste))} kcal et ${fr(manqueP)} g pour la suite de la journée.`;
   else msg = `Il te reste <b>${fr(reste)} kcal</b> et ${fr(Math.max(0, manqueP))} g de protéines pour finir la journée.`;
   el.innerHTML = `<span class="coach-icone" aria-hidden="true"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /></svg></span>
     <div><small>Coach du jour</small><p>${msg}</p></div>`;
@@ -10274,9 +10355,10 @@ function construireHistorique() {
         const code = it.code ? String(it.code).trim() : (codeParNom.get(nom.toLowerCase()) || '');
         const cle = code ? 'code:' + code : nom.toLowerCase();
         const f = 100 / g;
-        const e = parCle.get(cle) || { nom, fois: 0 };
+        const e = parCle.get(cle) || { nom, fois: 0, repas: {} };
         e.nom = (code && nomsParCode[code]) || nom;   // nom actuel, sinon le plus récent
         e.fois++;
+        e.repas[m] = (e.repas[m] || 0) + 1;     // à quels repas il est mangé (idées du coach)
         e.dernierJour = ds;
         e.grammes = Math.round(g * 10) / 10;    // la dernière quantité utilisée
         e.kcal100 = Math.round((Number(it.kcal) || 0) * f);
@@ -13362,7 +13444,7 @@ const TOUR_ETAPES = [
   { titre: 'Bienvenue sur Askēsis', texte: "Un tour rapide de l'appli : la nutrition, l'activité, les statistiques et ton profil. Tu peux le quitter à tout moment et le revoir depuis Profil › Réglages (engrenage). Une visite dédiée à la musculation existe aussi." },
   { ecran: 'repas', cible: '#semaine-nav', titre: 'Ta semaine', texte: "Un mini-anneau par jour : il se remplit avec les calories du jour face à ton objectif. Touche un jour pour l'afficher, glisse pour changer de semaine. La flamme en haut compte tes jours d'affilée." },
   { ecran: 'repas', cible: '.summary-card', titre: 'Ton résumé du jour', texte: "L'anneau extérieur, ce sont tes calories ; les trois intérieurs, protéines, glucides et lipides. Touche une macro pour sa courbe face à l'objectif, ou le reste de la carte pour ta dépense du jour et ta nutrition." },
-  { ecran: 'repas', cible: '#coach-jour', titre: 'Le coach du jour', texte: "Un conseil qui change avec ta journée : ce qui te manque, avec des aliments que tu manges déjà, ou un rappel pour boire. Calculé sur ton téléphone, sans IA." },
+  { ecran: 'repas', cible: '#coach-jour', titre: 'Le coach du jour', texte: "Un conseil qui suit ta journée : ce qui te manque au bon moment, avec une idée pour le repas à venir qui change chaque jour (tes aliments et d'autres), ou un rappel pour boire. Calculé sur ton téléphone, sans IA." },
   { ecran: 'repas', cible: '#cartes-stats-repas', titre: 'Pas, eau et poids', texte: "Fais glisser pour passer d'une carte à l'autre : tes pas du jour, ton eau et ton poids. Touche la carte du centre pour noter tes pas ou ta pesée du jour ; le détail est dans Progrès." },
   { ecran: 'repas', cible: '#onglet-plus', titre: 'Le bouton +', texte: "Il fait l'action utile de l'écran : ici, une recette, un aliment, une photo ou un code-barres pour le repas du moment. Sur Activité, il lance une séance ; sur Profil, une mesure. Dans Progrès, il est grisé." },
   { ecran: 'repas', feuille: 'feuille-repas', cible: '#opt-recette', titre: 'Recette', texte: "Tes recettes enregistrées, et celles partagées par l'équipe : une portion s'ajoute en un toucher, macros déjà calculées. Tu y trouves aussi des idées de l'IA qui complètent tes macros du jour." },

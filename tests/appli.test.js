@@ -1715,6 +1715,62 @@ test("Coach du jour : suit l'eau bue, l'heure qui passe et le nouveau jour, sans
   assert.match((await etat()).coach, /Rien de noté/);
 }));
 
+test('Coach du jour : une idée de protéines différente chaque jour, pour le repas à venir, et pas avant d\'être en retard', () => avecAppli({}, async ({ page }) => {
+  // Trois semaines de blanc de poulet presque tous les soirs, du skyr le matin, et une fois du thon, des œufs, des crevettes.
+  await page.clock.setFixedTime(new Date('2026-10-27T08:00:00'));
+  await page.evaluate(() => {
+    for (let k = 1; k <= 20; k++) {
+      const d = shiftDate(todayStr(), -k), j = getDay(d);
+      j.meals.dinner.push({ name: 'Blanc de poulet', grams: 150, kcal: 165, p: 35, c: 0, f: 3 });
+      j.meals.breakfast.push({ name: 'Skyr', grams: 150, kcal: 90, p: 15, c: 6, f: 0 });
+      if (k === 3) j.meals.lunch.push({ name: 'Thon au naturel', grams: 100, kcal: 110, p: 26, c: 0, f: 1 });
+      if (k === 5) j.meals.breakfast.push({ name: 'Oeufs brouillés', grams: 120, kcal: 180, p: 14, c: 1, f: 13 });
+      if (k === 8) j.meals.dinner.push({ name: 'Crevettes', grams: 150, kcal: 150, p: 32, c: 0, f: 2 });
+      saveData(d);
+    }
+    invaliderHistorique();
+  });
+  // Le coach à une date et une heure données, avec les repas de ce jour-là ([repas, aliment] ou une part des protéines visées).
+  const coach = async (quand, repas) => {
+    await page.clock.setFixedTime(new Date(quand));
+    return page.evaluate(repas => {
+      currentDate = todayStr();
+      const day = getDay(currentDate), cible = computeTargets(day, currentDate).protein;
+      MEALS.forEach(m => { day.meals[m] = []; });
+      repas.forEach(([m, it]) => day.meals[m].push(Object.assign({}, it, it.partP != null ? { p: Math.round(cible * it.partP) } : {})));
+      saveData(currentDate);
+      allerA('repas'); renderApp();
+      return document.querySelector('#coach-jour p').textContent;
+    }, repas);
+  };
+  const pates = ['lunch', { name: 'Pâtes bolognaise', grams: 350, kcal: 600, p: 20, c: 90, f: 15 }];
+  const soirs = [];
+  for (const d of ['2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31']) soirs.push(await coach(d + 'T19:00:00', [pates]));
+  soirs.forEach(m => assert.match(m, /^Il te manque \d+\sg de protéines, il te reste [\d\s]+\skcal\. Pour ce soir : .+ \((.+,\s)?\+\d+\sg\)/, m));
+  assert.ok(soirs.every(m => !/\(\S*[ ]/.test(m.split('Pour ce soir : ')[1].replace(/\) et /g, ')'))), 'parenthèses insécables');
+  const idees = soirs.map(m => m.split('Pour ce soir : ')[1].replace(/\.$/, '').split(' et ').map(x => x.split(' (')[0]));
+  const premieres = idees.map(i => i[0]);
+  // Cinq familles possibles le soir (ton poulet, poisson, œufs, crevettes, légumineuses) : une par soir.
+  assert.equal(new Set(premieres).size, 5, 'une idée différente chaque soir : ' + premieres.join(' | '));
+  // Et l'idée en plus d'un soir n'est pas la première du lendemain.
+  idees.slice(1).forEach((i, n) => assert.ok(!idees[n].includes(i[0]), 'deux soirs de suite : ' + idees.map(x => x.join(' + ')).join(' | ')));
+  assert.ok(idees.flat().includes('Blanc de poulet'), 'ton blanc de poulet reste dans le lot : ' + idees.map(x => x.join(' + ')).join(' | '));
+  assert.ok(soirs.every(m => !/Skyr|whey/.test(m)), 'pas d\'idée de petit-déjeuner le soir');
+  // Du thon déjà mangé à midi : pas de poisson ce soir.
+  const apresThon = await coach('2026-11-02T19:00:00', [['lunch', { name: 'Thon au naturel', grams: 140, kcal: 160, p: 36, c: 0, f: 1 }]]);
+  assert.match(apresThon, /Pour ce soir : /);
+  assert.doesNotMatch(apresThon, /Thon/);
+  // Midi, la moitié des protéines déjà prises au petit-déjeuner : dans le rythme, pas de reproche.
+  assert.match(await coach('2026-11-01T12:00:00', [['breakfast', { name: 'Omelette', grams: 300, kcal: 500, partP: 0.5, c: 5, f: 30 }]]), /^Bon rythme pour les protéines/);
+  // Midi avec presque rien : une idée pour midi ; déjà déjeuné à 13 h : une idée pour le goûter.
+  assert.match(await coach('2026-11-01T12:00:00', [['breakfast', { name: 'Croissant', grams: 60, kcal: 250, p: 5, c: 28, f: 13 }]]), /Pour midi : /);
+  assert.match(await coach('2026-11-01T13:00:00', [pates]), /Pour le goûter : /);
+  // Jamais de whey proposé à qui n'en a jamais noté ; les lentilles, si.
+  assert.doesNotMatch(await coach('2026-11-01T16:00:00', [pates]), /whey/);
+  const neuf = await page.evaluate(() => { appData = {}; invaliderHistorique(); return ideesProteines({ meals: {} }, 'dinner', 1500, 100).map(i => i.nom); });
+  assert.deepEqual(neuf, ['Lentilles'], 'compte neuf : ni viande, ni poisson, ni fruits de mer');
+}));
+
 test('Repas du jour : « 62/1 821 kcal » et la roulette Pas / Hydratation / Poids', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     const t = todayStr();
