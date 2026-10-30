@@ -1765,6 +1765,12 @@ test('Coach du jour : une idée de protéines différente chaque jour, pour le r
   // Midi avec presque rien : une idée pour midi ; déjà déjeuné à 13 h : une idée pour la collation.
   assert.match(await coach('2026-11-01T12:00:00', [['breakfast', { name: 'Croissant', grams: 60, kcal: 250, p: 5, c: 28, f: 13 }]]), /Pour midi : /);
   assert.match(await coach('2026-11-01T13:00:00', [pates]), /Pour la collation : /);
+  // Du poulet noté une fois en collation ne devient pas une idée de collation.
+  const collation = await page.evaluate(() => {
+    const d = shiftDate(todayStr(), -2); getDay(d).meals.snack.push({ name: 'Blanc de poulet', grams: 150, kcal: 165, p: 35, c: 0, f: 3 }); saveData(d); invaliderHistorique();
+    return ideesProteines({ meals: {} }, 'snack', 1500, 100).map(i => i.nom);
+  });
+  assert.ok(!collation.includes('Blanc de poulet'), collation.join(' | '));
   // Jamais de whey proposé à qui n'en a jamais noté ; les lentilles, si.
   assert.doesNotMatch(await coach('2026-11-01T16:00:00', [pates]), /whey/);
   const neuf = await page.evaluate(() => { appData = {}; invaliderHistorique(); return ideesProteines({ meals: {} }, 'dinner', 1500, 100).map(i => i.nom); });
@@ -1878,13 +1884,17 @@ test('Coach du jour : une analyse complète (programme, séance et record, récu
     const pense = !!p().querySelector('.coach-pense');
     renderApp();
     const toujours = !!p().querySelector('.coach-pense');
-    await new Promise(ok => setTimeout(ok, 1800));
-    return { pense, toujours, mots: p().querySelectorAll('.cm').length, texte: p().textContent };
+    await new Promise(ok => setTimeout(ok, 1200));
+    const mots = p().querySelectorAll('.cm').length;
+    // L'écriture finie, plus aucun mot animé : rien ne peut rester flou ou à moitié affiché.
+    await new Promise(ok => setTimeout(ok, 1600));
+    return { pense, toujours, mots, apres: p().querySelectorAll('.cm').length, texte: p().textContent };
   });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert.equal(ecrit.pense, true);
   assert.equal(ecrit.toujours, true, 'le redessin garde l\'écriture en cours');
   assert.ok(ecrit.mots > 5, String(ecrit.mots));
+  assert.equal(ecrit.apres, 0, 'texte simple une fois écrit');
   assert.match(ecrit.texte, /^Il te manque/);
 }));
 

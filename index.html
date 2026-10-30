@@ -4191,7 +4191,7 @@
     html:root body .coach-corps { flex: 1; min-width: 0; }
     html:root body .coach-texte { min-height: 1.42em; }
     html:root body .coach-texte .cm { opacity: 0; animation: coach-mot .35s ease-out forwards; }
-    @keyframes coach-mot { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: none; } }
+    @keyframes coach-mot { from { opacity: 0; } to { opacity: 1; } }
     html:root body .coach-pense { display: inline-flex; gap: 5px; height: 1.42em; align-items: center; }
     html:root body .coach-pense i { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); animation: coach-pense 1s ease-in-out infinite; }
     html:root body .coach-pense i:nth-child(2) { animation-delay: .15s; }
@@ -8507,7 +8507,12 @@ function ideesProteines(day, repas, reste, manque) {
   // Tes aliments riches en protéines (8 g pour 100 kcal), déjà mangés à ce repas, le plus mangé d'abord.
   historique().forEach(e => {
     connues.add(familleAliment(e.nom));
-    if (!(e.kcal100 > 0) || e.p100 / e.kcal100 * 100 < 8 || e.fois < 2 || e.dernierJour < recent || !(e.repas && e.repas[repas])) return;
+    if (!(e.kcal100 > 0) || e.p100 / e.kcal100 * 100 < 8 || e.fois < 2 || e.dernierJour < recent) return;
+    // Mangé à ce repas au moins 2 fois et un tiers du temps ; un plat (volaille,
+    // poisson, viande…) au petit-déjeuner ou en collation, seulement si c'est l'habitude.
+    const ici = (e.repas && e.repas[repas]) || 0;
+    const plat = ['🍗', '🐟', '🥩', '🦐', '🫘'].includes(familleAliment(e.nom));
+    if (ici < 2 || ici / e.fois < (plat && (repas === 'breakfast' || repas === 'snack') ? 0.5 : 0.3)) return;
     const g = Number(e.grammes) || 0, f = familleAliment(e.nom) || 'perso:' + e.cle;
     const idee = { nom: e.nom, portion: fr(g) + (e.unite === 'ml' ? ' ml' : ' g'), kcal: e.kcal100 * g / 100, p: e.p100 * g / 100, famille: f };
     if (idee.p >= 8 && !parFamille.has(f)) parFamille.set(f, idee);
@@ -8910,6 +8915,9 @@ function ecrireCoach(p, texte) {
       marcher(cible);
       const pas = Math.max(14, Math.min(45, 1100 / Math.max(1, mots.length)));
       mots.forEach((sp, i) => { sp.style.animationDelay = Math.round(i * pas) + 'ms'; });
+      // L'écriture finie, le texte redevient un texte simple : aucun mot ne
+      // peut rester à mi-chemin (Safari ne repeint pas toujours la fin).
+      e.minuteur = setTimeout(() => { if (cible.isConnected && e.texte === texte) cible.innerHTML = texte; }, Math.round(mots.length * pas) + 450);
     }, 520);
   };
   lancer();
