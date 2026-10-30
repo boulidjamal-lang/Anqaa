@@ -11254,9 +11254,14 @@ function ouvrirFicheRecette(id, repas) {
   const t = totauxRecettePerso(r), fr = n => Math.round(n).toLocaleString('fr-FR');
   document.getElementById('fiche-recette-titre').textContent = r.nom;
   const lignes = r.lignes && r.lignes.length ? r.lignes : (r.ingredients || []).map(i => `${fr(i.grammes)} g ${String(i.nom || '').toLowerCase()}`);
-  const page = r.source ? 'https://fr.wikibooks.org/wiki/Livre_de_cuisine/' + encodeURIComponent(String(r.source).replace(/ /g, '_')) : '';
-  const source = r.source ? `Recette « <a href="${escapeHtml(page)}" target="_blank" rel="noopener">${escapeHtml(r.source)}</a> » des contributeurs du Livre de cuisine de Wikilivres, licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-SA 4.0</a>, texte adapté. `
-    : String(r.id).startsWith('ak-') ? 'Recette Askēsis. ' : '';
+  // « en-… » : traduite du Cookbook anglais de Wikibooks ; sinon du Livre de cuisine de Wikilivres.
+  const anglais = String(r.id).startsWith('en-');
+  const page = !r.source ? '' : (anglais ? 'https://en.wikibooks.org/wiki/Cookbook:' : 'https://fr.wikibooks.org/wiki/Livre_de_cuisine/') + encodeURIComponent(String(r.source).replace(/ /g, '_'));
+  const licence = 'licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-SA 4.0</a>';
+  const lien = `« <a href="${escapeHtml(page)}" target="_blank" rel="noopener">${escapeHtml(r.source)}</a> »`;
+  const source = !r.source ? (String(r.id).startsWith('ak-') ? 'Recette Askēsis. ' : '')
+    : anglais ? `Recette ${lien} des contributeurs du Cookbook de Wikibooks (en anglais), ${licence}, traduite et adaptée. `
+    : `Recette ${lien} des contributeurs du Livre de cuisine de Wikilivres, ${licence}, texte adapté. `;
   document.getElementById('fiche-recette').innerHTML = `
     <div class="recette-macros">${[[fr(t.parPortionKcal), 'kcal'], [fr(t.parPortionP) + ' g', 'Protéines'], [fr(t.parPortionC) + ' g', 'Glucides'], [fr(t.parPortionF) + ' g', 'Lipides']]
       .map(([v, l]) => `<div><b>${v}</b><small>${l}</small></div>`).join('')}</div>
@@ -27240,18 +27245,19 @@ const ICONES_ALIMENTS = [
   [/\b(sushis?|makis?|sashimis?|california|poke)\b/, '🍣'], [/\b(nouilles|ramen|pho|udon|soba|pad thai|vermicelles?)\b/, '🍜'], [/\b(raviolis?|gyozas?|nems?|dim sum|samoussas?)\b/, '🥟'],
   [/\b(falafels?|houmous|hummus)\b/, '🧆'], [/\b(soupes?|potages?|veloutes?|bouillons?|gaspacho|minestrone)\b/, '🍲'],
   [/\b(pates|spaghettis?|penne|tagliatelles?|lasagnes?|macaronis?|fusilli|coquillettes|tortellinis?|gnocchis?|carbonara|bolognaise)\b/, '🍝'],
-  [/\b(curry|chili|tajine|couscous|ragout|blanquette|bourguignon|paella|risotto|hachis|gratin|moussaka|plats? cuisines?|cassoulet|choucroute)\b/, '🥘'],
+  [/\b(curry|chili|tajine|couscous|ragout|blanquette|bourguignon|paella|risotto|hachis parmentier|gratin|moussaka|plats? cuisines?|cassoulet|choucroute)\b/, '🥘'],
   [/\b(riz|quinoa|boulgour|semoule|ble|epeautre)\b/, '🍚'], [/\b(patates? douces?)\b/, '🍠'], [/\b(frites|potatoes)\b/, '🍟'], [/\b(pommes? de terre|patates?|puree|chips|rosti)\b/, '🥔'],
   [/\b(bagels?)\b/, '🥯'], [/\b(baguettes?|pains?|tartines?|biscottes?|toasts?|naans?|tortillas?|cracottes?|wasa)\b/, '🍞'],
   [/\b(yaourts?|yogourts?|skyr|fromage blanc|petits? suisses?|faisselle|kefir)\b/, '🥣'], [/\b(laits?|milk|creme fraiche|creme liquide|chantilly)\b/, '🥛'],
   [/\b(fromages?|emmental|comte|mozzarella|camembert|parmesan|feta|chevre|brie|raclette|gruyere|roquefort|cheddar|ricotta|mascarpone|burrata|reblochon|babybel)\b/, '🧀'],
-  [/\b(noix de coco|coco)\b/, '🥥'], [/\b(amandes?|noix|noisettes?|cacahuetes?|pistaches?|cajou|graines|oleagineux|chia)\b/, '🥜'], [/\b(beurre|margarine)\b/, '🧈'], [/\b(huiles?|olives?)\b/, '🫒'],
+  [/\b(noix de coco|coco)\b/, '🥥'], [/\b(amandes?|noix(?! de saint)|noisettes?|cacahuetes?|pistaches?|cajou|graines|oleagineux|chia)\b/, '🥜'], [/\b(beurre|margarine)\b/, '🧈'],
   [/\b(omelettes?|oeufs? brouilles|oeufs? au plat)\b/, '🍳'], [/\b(oeufs?)\b/, '🥚'], [/\b(bacon|lardons?)\b/, '🥓'],
   [/\b(poulet|dinde|volaille|nuggets?|cordon bleu|canard|pintade)\b/, '🍗'], [/\b(crevettes?|gambas|langoustines?|homard|crabe|surimi)\b/, '🦐'],
-  [/\b(huitres?|moules?|saint jacques|calamars?|poulpe|fruits de mer)\b/, '🦪'],
+  [/\b(huitres?|moules?|saint jacques|palourdes?|praires?|clams?|bulots?|bigorneaux?|coquillages?|calamars?|encornets?|seiches?|poulpe|fruits de mer)\b/, '🦪'],
   [/\b(poissons?|saumon|thon|cabillaud|sardines?|maquereaux?|colin|merlu|truite|dorade|hareng|anchois|tilapia|panga|eglefin|haddock)\b/, '🐟'],
-  [/\b(boeuf|steaks?|viandes?|porc|jambon|saucisses?|saucisson|chorizo|agneau|veau|entrecote|bavette|rumsteck|filet mignon|roti|merguez|chipolatas?|boulettes?|hache)\b/, '🥩'],
-  [/\b(lentilles?|pois chiches?|haricots rouges|haricots blancs|feves|flageolets|legumineuses|edamame|tofu|tempeh|soja)\b/, '🫘'],
+  [/\b(boeuf|steaks?|viandes?|porc|jambon|saucisses?|saucisson|chorizo|agneau|mouton|veau|entrecote|bavette|rumsteck|filet mignon|roti|merguez|chipolatas?|boulettes?|hache)\b/, '🥩'],
+  [/\b(huiles?|olives?)\b/, '🫒'],
+  [/\b(lentilles?|pois chiches?|pois casses|haricots?(?! (verts?|plats?|beurre)\b)|feves|flageolets|legumineuses|edamame|tofu|tempeh|soja)\b/, '🫘'],
   [/\b(avocats?|guacamole)\b/, '🥑'], [/\b(tomates?)\b/, '🍅'], [/\b(carottes?)\b/, '🥕'], [/\b(brocolis?|chou|choux|chou fleur)\b/, '🥦'], [/\b(champignons?)\b/, '🍄'],
   [/\b(mais)\b/, '🌽'], [/\b(concombres?|cornichons?|courgettes?)\b/, '🥒'], [/\b(aubergines?)\b/, '🍆'], [/\b(poivrons?|piments?)\b/, '🫑'], [/\b(oignons?|echalotes?)\b/, '🧅'],
   [/\b(ail)\b/, '🧄'], [/\b(courges?|potiron|potimarron|citrouille|butternut)\b/, '🎃'],
@@ -27259,7 +27265,7 @@ const ICONES_ALIMENTS = [
   [/\b(fraises?|framboises?|fruits rouges|groseilles?|mures)\b/, '🍓'], [/\b(myrtilles?|cassis)\b/, '🫐'], [/\b(cerises?)\b/, '🍒'], [/\b(peches?|abricots?|nectarines?|brugnons?)\b/, '🍑'],
   [/\b(ananas)\b/, '🍍'], [/\b(mangues?)\b/, '🥭'], [/\b(kiwis?)\b/, '🥝'], [/\b(raisins?)\b/, '🍇'], [/\b(pasteques?|melons?)\b/, '🍉'], [/\b(fruits?|dattes?|figues?|pruneaux?)\b/, '🍇'],
   [/\b(chataignes?|marrons?)\b/, '🌰'], [/\b(pop ?corn)\b/, '🍿'], [/\b(bretzels?)\b/, '🥨'],
-  [/\b(salades?|laitue|epinards?|roquette|mache|endives?|haricots verts|petits pois|legumes?|ratatouille|crudites|poireaux?|asperges?|artichauts?|celeri|radis|betteraves?|navets?|fenouil)\b/, '🥗'],
+  [/\b(salades?|laitue|epinards?|roquette|mache|endives?|haricots? verts?|haricots? plats?|petits pois|legumes?|ratatouille|crudites|poireaux?|asperges?|artichauts?|celeri|radis|betteraves?|navets?|fenouil)\b/, '🥗'],
   [/\b(sauces?|ketchup|mayonnaise|moutarde|vinaigrette|pesto)\b/, '🥫'], [/\b(sel)\b/, '🧂']
 ];
 function iconeAliment(nom) {

@@ -2078,7 +2078,7 @@ test('Recettes Askēsis : une catégorie à la fois (celle du repas visé), la r
     res.diner = { puces: puces().filter(p => p.endsWith('*')), champ: champ.value, nb: liste().length };
     return res;
   });
-  assert.ok(r.total >= 400, String(r.total));
+  assert.ok(r.total >= 650, String(r.total));
   Object.entries(r.parCategorie).forEach(([c, n]) => assert.ok(n >= 10, `${c} : ${n}`));
   assert.deepEqual(r.puces, ['Plats', 'Entrées et soupes', 'Petit-déjeuner', 'Collations*', 'Desserts', 'Accompagnements']);
   assert.deepEqual(r.collations, r.attendu, 'les collations, par ordre alphabétique');
@@ -2137,6 +2137,38 @@ test('Recettes Askēsis : une catégorie à la fois (celle du repas visé), la r
   assert.equal(ak.ajoute, ak.nom);
   assert.equal(String(ak.kcal), ak.meta.split(' ')[2]);
   assert.equal(ak.ouvertes, 0);
+}));
+
+test('Recettes traduites du Cookbook anglais : la fiche cite sa page, ses contributeurs et la licence ; chaque viande, poisson ou fruit de mer a sa famille pour le coach', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    allerA('repas'); renderApp();
+    ouvrirFeuilleRepas('dinner'); depuisFeuille('recette');
+    const champ = document.getElementById('choix-recette-recherche');
+    champ.value = 'chawarma'; champ.dispatchEvent(new Event('input', { bubbles: true }));
+    [...document.querySelectorAll('#choix-recette-askesis .off-suggestion')].find(x => x.querySelector('.off-nom').textContent === "Chawarma d'agneau").click();
+    const f = document.getElementById('fiche-recette'), liens = f.querySelectorAll('.recette-source a');
+    const en = recettesAskesis().filter(x => x.id.startsWith('en-'));
+    // Une viande, un poisson ou un fruit de mer sans famille : le coach le proposerait à qui n'en mange pas.
+    const animaux = /\b(poulet|dinde|canard|boeuf|veau|agneau|mouton|porc|jambon|lard|bacon|saucisses?|saindoux|poissons?|saumon|thon|cabillaud|haddock|crevettes?|crabe|surimi|palourdes?|moules?|huitres?|saint jacques|calamars?)\b/;
+    const sansFamille = recettesAskesis().flatMap(x => x.ingredients.map(i => i.nom))
+      .filter(n => animaux.test(normaliserRecherche(n)) && !estPorc(n) && !FAMILLES_ANIMALES.includes(familleAliment(n)));
+    return { titre: document.getElementById('fiche-recette-titre').textContent, source: f.querySelector('.recette-source').textContent,
+      lien: liens[0].href, licence: liens[1].href, lignes: [...f.querySelectorAll('.recette-liste li')].map(li => li.textContent),
+      etapes: f.querySelectorAll('.recette-etapes li').length, nbEn: en.length, sansSource: en.filter(x => !x.source).length,
+      categories: [...new Set(en.map(x => x.categorie))].sort(), sansFamille: [...new Set(sansFamille)],
+      familles: ['Noix de Saint-Jacques', 'Palourdes', 'Haricots secs', 'Haricots verts', 'Bière'].map(familleAliment) };
+  });
+  assert.equal(r.titre, "Chawarma d'agneau");
+  assert.match(r.source, /^Recette « Lamb Shawarma » des contributeurs du Cookbook de Wikibooks \(en anglais\), licence CC BY-SA 4\.0, traduite et adaptée\. Valeurs nutritionnelles calculées avec la table CIQUAL 2020 \(Anses\)\.$/);
+  assert.equal(r.lien, 'https://en.wikibooks.org/wiki/Cookbook:Lamb_Shawarma');
+  assert.equal(r.licence, 'https://creativecommons.org/licenses/by-sa/4.0/deed.fr');
+  assert.deepEqual(r.lignes.slice(0, 4), ["1,5\u00a0kg d'agneau", "3 gousses d'ail", '120\u00a0ml de jus de citron', '2 oignons (300\u00a0g)']);
+  assert.ok(r.etapes >= 5, String(r.etapes));
+  assert.ok(r.nbEn >= 240, String(r.nbEn));
+  assert.equal(r.sansSource, 0);
+  assert.deepEqual(r.categories, ['accompagnement', 'dessert', 'entree', 'petit-dej', 'plat']);
+  assert.deepEqual(r.sansFamille, []);
+  assert.deepEqual(r.familles, ['🦪', '🦪', '🫘', '🥗', '🍺']);
 }));
 
 test('Repas du jour : « 62/1 821 kcal » et la roulette Pas / Hydratation / Poids', () => avecAppli({}, async ({ page }) => {
