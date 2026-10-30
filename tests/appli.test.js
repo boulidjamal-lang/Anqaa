@@ -1715,10 +1715,12 @@ test("Coach du jour : suit l'eau bue, l'heure qui passe et le nouveau jour, sans
   assert.match((await etat()).coach, /Rien de noté/);
 }));
 
-test('Coach du jour : une idée de protéines différente chaque jour, pour le repas à venir, et pas avant d\'être en retard', () => avecAppli({}, async ({ page }) => {
+test('Coach du jour : sans recette qui convienne, une idée de protéines différente chaque jour, pour le repas à venir, et pas avant d\'être en retard', () => avecAppli({}, async ({ page }) => {
   // Trois semaines de blanc de poulet presque tous les soirs, du skyr le matin, et une fois du thon, des œufs, des crevettes.
+  // Aucune recette disponible : le coach propose des aliments.
   await page.clock.setFixedTime(new Date('2026-10-27T08:00:00'));
   await page.evaluate(() => {
+    recettesAskesisCache = [];
     for (let k = 1; k <= 20; k++) {
       const d = shiftDate(todayStr(), -k), j = getDay(d);
       j.meals.dinner.push({ name: 'Blanc de poulet', grams: 150, kcal: 165, p: 35, c: 0, f: 3 });
@@ -1746,9 +1748,9 @@ test('Coach du jour : une idée de protéines différente chaque jour, pour le r
   const pates = ['lunch', { name: 'Pâtes bolognaise', grams: 350, kcal: 600, p: 20, c: 90, f: 15 }];
   const soirs = [];
   for (const d of ['2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31']) soirs.push(await coach(d + 'T19:00:00', [pates]));
-  soirs.forEach(m => assert.match(m, /^Il te manque \d+\sg de protéines, il te reste [\d\s]+\skcal\. Pour ce soir : .+ \((.+,\s)?\+\d+\sg\)/, m));
-  assert.ok(soirs.every(m => !/\(\S*[ ]/.test(m.split('Pour ce soir : ')[1].replace(/\) et /g, ')'))), 'parenthèses insécables');
-  const idees = soirs.map(m => m.split('Pour ce soir : ')[1].split(').')[0].split(' et ').map(x => x.split(' (')[0]));
+  soirs.forEach(m => assert.match(m, /^Il te manque \d+\sg de protéines, il te reste [\d\s]+\skcal\. Pour ce soir\s:\s.+ \((.+,\s)?\+\d+\sg\)/, m));
+  assert.ok(soirs.every(m => !/\(\S*[ ]/.test(m.split(/Pour ce soir\s:\s/)[1].replace(/\) et /g, ')'))), 'parenthèses insécables');
+  const idees = soirs.map(m => m.split(/Pour ce soir\s:\s/)[1].split(').')[0].split(' et ').map(x => x.split(' (')[0]));
   const premieres = idees.map(i => i[0]);
   // Cinq familles possibles le soir (ton poulet, poisson, œufs, crevettes, légumineuses) : une par soir.
   assert.equal(new Set(premieres).size, 5, 'une idée différente chaque soir : ' + premieres.join(' | '));
@@ -1758,13 +1760,13 @@ test('Coach du jour : une idée de protéines différente chaque jour, pour le r
   assert.ok(soirs.every(m => !/Skyr|whey/.test(m)), 'pas d\'idée de petit-déjeuner le soir');
   // Du thon déjà mangé à midi : pas de poisson ce soir.
   const apresThon = await coach('2026-11-02T19:00:00', [['lunch', { name: 'Thon au naturel', grams: 140, kcal: 160, p: 36, c: 0, f: 1 }]]);
-  assert.match(apresThon, /Pour ce soir : /);
+  assert.match(apresThon, /Pour ce soir\s:\s/);
   assert.doesNotMatch(apresThon, /Thon/);
   // Midi, la moitié des protéines déjà prises au petit-déjeuner : dans le rythme, pas de reproche.
   assert.match(await coach('2026-11-01T12:00:00', [['breakfast', { name: 'Omelette', grams: 300, kcal: 500, partP: 0.5, c: 5, f: 30 }]]), /^Bon rythme pour les protéines/);
   // Midi avec presque rien : une idée pour midi ; déjà déjeuné à 13 h : une idée pour la collation.
-  assert.match(await coach('2026-11-01T12:00:00', [['breakfast', { name: 'Croissant', grams: 60, kcal: 250, p: 5, c: 28, f: 13 }]]), /Pour midi : /);
-  assert.match(await coach('2026-11-01T13:00:00', [pates]), /Pour la collation : /);
+  assert.match(await coach('2026-11-01T12:00:00', [['breakfast', { name: 'Croissant', grams: 60, kcal: 250, p: 5, c: 28, f: 13 }]]), /Pour midi\s:\s/);
+  assert.match(await coach('2026-11-01T13:00:00', [pates]), /Pour la collation\s:\s/);
   // Du poulet noté une fois en collation ne devient pas une idée de collation.
   const collation = await page.evaluate(() => {
     const d = shiftDate(todayStr(), -2); getDay(d).meals.snack.push({ name: 'Blanc de poulet', grams: 150, kcal: 165, p: 35, c: 0, f: 3 }); saveData(d); invaliderHistorique();
@@ -1802,10 +1804,10 @@ test('Coach du jour : une analyse complète (programme, séance et record, récu
   // Mercredi 8 h, rien de noté, jamais pesé : le plan du jour, la séance « Haut » ; la pesée dans l'analyse.
   const matin = await le('2026-11-04T08:00:00');
   assert.equal(matin[0][0], 'vide');
-  assert.match(matin[0][1], /Au programme aujourd'hui : [\d\s]+\skcal dont \d+\sg de protéines, et ta séance Haut \(pectoraux/);
-  assert.match(matin[0][1], /Commence ta journée/);
-  assert.equal(matin[0][2], 'Ajouter mon petit-déjeuner');
-  assert.match(constat(matin, 'seance'), /^Ta prochaine séance : Haut/);
+  assert.match(matin[0][1], /Au programme aujourd'hui\s:\s[\d\s]+\skcal dont \d+\sg de protéines, et ta séance Haut \(pectoraux/);
+  assert.match(matin[0][1], /Commence ta journée avec un petit-déjeuner protéiné\s:\s.+ \(1\sportion,\s\d+\skcal,\s\+\d+\sg\)\./);
+  assert.equal(matin[0][2], 'Voir la recette');
+  assert.match(constat(matin, 'seance'), /^Ta prochaine séance\s:\sHaut/);
   assert.match(constat(matin, 'pesee'), /Pèse-toi un matin, à jeun/);
   // La carte : le constat principal, son action, et l'analyse complète repliée puis dépliée.
   const carte = await page.evaluate(() => {
@@ -1818,7 +1820,7 @@ test('Coach du jour : une analyse complète (programme, séance et record, récu
       points: c.querySelectorAll('.coach-analyse li').length };
   });
   assert.equal(carte.texte, matin[0][1]);
-  assert.equal(carte.action, 'Ajouter mon petit-déjeuner');
+  assert.equal(carte.action, 'Voir la recette');
   assert.deepEqual(carte.avant, [true, 'false']);
   assert.deepEqual(carte.apres.slice(0, 2), [false, 'true']);
   assert.match(carte.apres[2], /^Masquer l'analyse/);
@@ -1834,8 +1836,8 @@ test('Coach du jour : une analyse complète (programme, séance et record, récu
     j.eauMl = quotaEauSuggere(todayStr()); saveData(todayStr());
   });
   assert.equal(soir[0][0], 'seance-faite');
-  assert.match(soir[0][1], /^(Belle séance|Bien joué|Séance validée) : 6 séries en 48\smin \(pectoraux/);
-  assert.match(soir[0][1], /Nouveau record : .+ \(60\skg × 8\)/);
+  assert.match(soir[0][1], /^(Belle séance|Bien joué|Séance validée)\s:\s6 séries en 48\smin \(pectoraux/);
+  assert.match(soir[0][1], /Nouveau record\s:\s.+ \(60\skg × 8\)/);
 
   // Jeudi 10 h : la veille, une séance libre a chargé les quadriceps ; la prochaine du programme (« Bas ») attendra.
   const jeudi = await le('2026-11-05T10:00:00', () => {
@@ -1859,9 +1861,11 @@ test('Coach du jour : une analyse complète (programme, séance et record, récu
   assert.match(reprise[0][1], /^Ça fait 8 jours sans séance\..+ta prochaine, c'est Bas\./);
   assert.match(constat(reprise, 'poids'), /^Tu perds 0,5\skg par semaine.+À ce rythme, 80\skg vers le \d+ \S+\./);
   assert.equal(constat(reprise, 'pesee'), '', 'pesé hier : pas de rappel');
+  // Typographie française : jamais une espace sécable avant « : ; ! ? » (un deux-points ne commence jamais une ligne).
+  [...matin, ...soir, ...jeudi, ...reprise].forEach(c => assert.doesNotMatch(c[1], / [:;!?]/, c[1]));
   // Midi : qui note son eau d'habitude est relancé au rythme de la journée ; le bouton ajoute 250 ml.
   const midi = await le('2026-11-12T12:00:00');
-  assert.match(constat(midi, 'eau'), /^Pense à boire : 0\sL sur/);
+  assert.match(constat(midi, 'eau'), /^Pense à boire\s:\s0\sL sur/);
   const eau = await page.evaluate(() => {
     allerA('repas'); renderApp();
     [...document.querySelectorAll('#coach-jour .coach-action')].find(b => b.textContent === '+250 ml d\'eau').click();
@@ -1896,6 +1900,209 @@ test('Coach du jour : une analyse complète (programme, séance et record, récu
   assert.ok(ecrit.mots > 5, String(ecrit.mots));
   assert.equal(ecrit.apres, 0, 'texte simple une fois écrit');
   assert.match(ecrit.texte, /^Il te manque/);
+}));
+
+test('Coach du jour : une recette pour le repas à venir, qui tient dans le reste du jour et suit ce que tu manges', () => avecAppli({}, async ({ page }) => {
+  // Trois semaines de poulet le soir et de skyr le matin, une fois du thon et des crevettes : ni bœuf, ni porc, ni alcool.
+  await page.clock.setFixedTime(new Date('2026-10-27T08:00:00'));
+  await page.evaluate(() => {
+    for (let k = 1; k <= 20; k++) {
+      const d = shiftDate(todayStr(), -k), j = getDay(d);
+      j.meals.dinner.push({ name: 'Blanc de poulet', grams: 150, kcal: 165, p: 35, c: 0, f: 3 });
+      j.meals.breakfast.push({ name: 'Skyr', grams: 150, kcal: 90, p: 15, c: 6, f: 0 });
+      if (k === 3) j.meals.lunch.push({ name: 'Thon au naturel', grams: 100, kcal: 110, p: 26, c: 0, f: 1 });
+      if (k === 8) j.meals.dinner.push({ name: 'Crevettes', grams: 150, kcal: 150, p: 32, c: 0, f: 2 });
+      saveData(d);
+    }
+    invaliderHistorique();
+  });
+  // Le coach à une date et une heure données, avec les repas de ce jour-là.
+  const coach = async (quand, repas) => {
+    await page.clock.setFixedTime(new Date(quand));
+    return page.evaluate(repas => {
+      currentDate = todayStr();
+      const day = getDay(currentDate);
+      MEALS.forEach(m => { day.meals[m] = []; });
+      repas.forEach(([m, it]) => day.meals[m].push(Object.assign({}, it)));
+      saveData(currentDate);
+      allerA('repas'); renderApp();
+      const b = document.querySelector('#coach-jour .coach-actions button');
+      return { texte: document.querySelector('#coach-jour p').textContent, action: b ? b.textContent : null, reste: computeTargets(day, currentDate).target - sumMeals(day).kcal };
+    }, repas);
+  };
+  // Ce que contient une recette : la famille de chaque ingrédient, « porc » en plus pour le porc.
+  const familles = noms => page.evaluate(noms => noms.map(n => {
+    const r = recettesAskesis().concat(recettesPerso).find(x => x.nom === n);
+    return r ? { repas: r.repas || [], kcal: totauxRecettePerso(r).parPortionKcal, f: r.ingredients.map(i => (familleAliment(i.nom) || '') + (estPorc(i.nom) ? 'porc' : '')) } : null;
+  }), noms);
+  const recette = (texte, moment) => (texte.split(new RegExp(`Pour ${moment}\\s:\\s`))[1] || '').split(' (1\u00a0portion')[0];
+  const interdites = /🥩|🦪|🥓|🍷|🍺|🍸|whey|porc/;
+
+  const pates = ['lunch', { name: 'Pâtes bolognaise', grams: 350, kcal: 600, p: 20, c: 90, f: 15 }];
+  const soirs = [];
+  for (const d of ['2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31']) soirs.push(await coach(d + 'T19:00:00', [pates]));
+  soirs.forEach(s => {
+    assert.match(s.texte, /^Il te manque \d+\sg de protéines, il te reste [\d\s]+\skcal\. Pour ce soir\s:\s.+ \(1\u00a0portion,\u00a0[\d\s]+\u00a0kcal,\u00a0\+\d+\u00a0g\)\./, s.texte);
+    assert.equal(s.action, 'Voir la recette');
+  });
+  const noms = soirs.map(s => recette(s.texte, 'ce soir'));
+  assert.equal(new Set(noms).size, 5, 'une recette différente chaque soir : ' + noms.join(' | '));
+  const details = await familles(noms);
+  details.forEach((d, i) => {
+    assert.ok(d, 'recette inconnue : ' + noms[i]);
+    assert.ok(d.repas.includes('dinner'), noms[i]);
+    assert.ok(d.kcal <= soirs[i].reste * 1.05, `${noms[i]} : ${d.kcal} kcal pour ${soirs[i].reste} restantes`);
+    assert.ok(!d.f.some(f => interdites.test(f)), `${noms[i]} : ${d.f.join(' ')}`);
+  });
+
+  // « Voir la recette » ouvre sa fiche ; « Ajouter une portion au dîner » l'ajoute au dîner et referme.
+  const ajout = await page.evaluate(() => {
+    document.querySelector('#coach-jour .coach-actions button').click();
+    const fiche = document.getElementById('feuille-fiche-recette');
+    const res = { ouverte: fiche.classList.contains('show'), titre: document.getElementById('fiche-recette-titre').textContent, bouton: fiche.querySelector('.recette-ajouter').textContent };
+    fiche.querySelector('.recette-ajouter').click();
+    const it = getDay(todayStr()).meals.dinner.slice(-1)[0];
+    const r = recettesAskesis().find(x => x.nom === it.name);
+    return Object.assign(res, { fermee: !fiche.classList.contains('show'), nom: it.name, kcal: it.kcal, attendu: totauxRecettePerso(r).parPortionKcal, ingredients: (it.ingredients || []).length, attenduIngr: r.ingredients.length });
+  });
+  assert.equal(ajout.ouverte, true);
+  assert.equal(ajout.titre, noms[4]);
+  assert.equal(ajout.bouton, 'Ajouter une portion au dîner');
+  assert.equal(ajout.fermee, true);
+  assert.equal(ajout.nom, noms[4]);
+  assert.ok(Math.abs(ajout.kcal - ajout.attendu) <= Math.max(5, ajout.attendu * 0.03), `${ajout.kcal} pour ${ajout.attendu}`);
+  assert.equal(ajout.ingredients, ajout.attenduIngr);
+
+  // Mangée hier soir : pas reproposée aujourd'hui.
+  const hier = await page.evaluate(nom => { const d = shiftDate(todayStr(), -1); getDay(d).meals.dinner.push({ name: nom, grams: 400, kcal: 500, p: 35, c: 40, f: 15 }); saveData(d); invaliderHistorique(); return nom; }, noms[4]);
+  const lendemain = await coach('2026-10-31T19:00:00', [pates]);
+  assert.equal(lendemain.action, 'Voir la recette');
+  assert.notEqual(recette(lendemain.texte, 'ce soir'), hier);
+
+  // Du poulet à midi : pas de poulet ce soir, quel que soit le jour.
+  const poulet = ['lunch', { name: 'Blanc de poulet', grams: 150, kcal: 165, p: 35, c: 0, f: 3 }];
+  const apresPoulet = [];
+  for (const d of ['2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05', '2026-11-06']) apresPoulet.push(recette((await coach(d + 'T19:00:00', [poulet, pates])).texte, 'ce soir'));
+  (await familles(apresPoulet.filter(Boolean))).forEach((d, i) => assert.ok(!d.f.includes('🍗'), apresPoulet[i]));
+
+  // Le matin, rien de noté : une recette de petit-déjeuner, un tiers des kcal du jour au plus.
+  const matin = await coach('2026-11-02T08:00:00', []);
+  assert.equal(matin.action, 'Voir la recette');
+  const [pdj] = await familles([recette(matin.texte.replace(/petit-déjeuner protéiné\s:\s/, 'Pour le petit-déjeuner : '), 'le petit-déjeuner')]);
+  assert.ok(pdj && pdj.repas.includes('breakfast'), matin.texte);
+  assert.ok(pdj.kcal <= matin.reste * 0.35 * 1.05, `${pdj.kcal} kcal sur ${matin.reste}`);
+  // L'après-midi, déjà déjeuné : une recette de collation (ou des aliments), jamais un plat.
+  const gouter = await coach('2026-11-02T16:00:00', [['breakfast', { name: 'Café', grams: 200, kcal: 5, p: 0, c: 0, f: 0 }], pates]);
+  assert.match(gouter.texte, /Pour la collation\s:\s/);
+  const rc = recette(gouter.texte, 'la collation');
+  if (gouter.action === 'Voir la recette') assert.ok((await familles([rc]))[0].repas.includes('snack'), rc);
+
+  // Compte neuf : ni viande, ni poisson, ni fruits de mer, ni porc, ni alcool ; mais toujours une recette.
+  const neuf = await page.evaluate(() => {
+    appData = {}; invaliderHistorique();
+    const res = [];
+    for (let k = 0; k < 30; k++) { currentDate = shiftDate('2026-11-01', k); const r = recetteProposee({ meals: {} }, 'dinner', 2000, 120); res.push(r ? r.r.nom : null); }
+    currentDate = todayStr();
+    return res;
+  });
+  assert.ok(neuf.every(Boolean), neuf.join(' | '));
+  assert.ok(new Set(neuf).size >= 4, neuf.join(' | '));
+  (await familles([...new Set(neuf)])).forEach(d => assert.ok(!d.f.some(f => /🍗|🐟|🦐|🥩|🦪|🥓|🍷|🍺|🍸|whey|porc/.test(f)), d.f.join(' ')));
+  // Du bœuf haché noté, jamais de porc : du bœuf peut venir, le porc jamais.
+  const boeuf = await page.evaluate(() => {
+    for (let k = 1; k <= 6; k++) { const d = shiftDate(todayStr(), -k); getDay(d).meals.dinner.push({ name: 'Steak haché 5%', grams: 125, kcal: 160, p: 26, c: 0, f: 6 }); saveData(d); }
+    invaliderHistorique();
+    const res = [];
+    for (let k = 0; k < 60; k++) { currentDate = shiftDate('2026-11-01', k); const r = recetteProposee({ meals: {} }, 'dinner', 2000, 120); if (r) res.push(r.r.nom); }
+    currentDate = todayStr();
+    return [...new Set(res)];
+  });
+  const fb = await familles(boeuf);
+  assert.ok(fb.some(d => d.f.includes('🥩')), 'le bœuf devient possible : ' + boeuf.join(' | '));
+  assert.ok(!fb.some(d => d.f.some(f => /porc/.test(f))), 'jamais de porc : ' + boeuf.join(' | '));
+
+  // Tes propres recettes en font partie ; leur nom reste du texte.
+  await page.clock.setFixedTime(new Date('2026-11-02T19:00:00'));
+  const perso = await page.evaluate(() => {
+    recettesAskesisCache = [];
+    recettesPerso = [{ id: 'p"1', nom: '<img src=x onerror="window.__xss=1">Mon dahl', portions: 2, ingredients: [
+      { nom: 'Lentilles corail', grammes: 200, kcal100: 340, p100: 24, c100: 50, f100: 2 }, { nom: 'Lait de coco', grammes: 100, kcal100: 180, p100: 2, c100: 3, f100: 18 }] }];
+    currentDate = todayStr();
+    const day = getDay(currentDate);
+    MEALS.forEach(m => { day.meals[m] = []; });
+    day.meals.lunch.push({ name: 'Pâtes', grams: 350, kcal: 600, p: 20, c: 90, f: 15 });
+    saveData(currentDate); renderApp();
+    const c = document.getElementById('coach-jour');
+    c.querySelector('.coach-actions button').click();
+    return { texte: c.querySelector('p').textContent, images: document.querySelectorAll('#coach-jour img, #feuille-fiche-recette img').length, xss: window.__xss || null,
+      titre: document.getElementById('fiche-recette-titre').textContent };
+  });
+  assert.match(perso.texte, /Pour ce soir\s:\s<img src=x onerror="window\.__xss=1">Mon dahl \(1\u00a0portion/);
+  assert.deepEqual([perso.images, perso.xss], [0, null]);
+  assert.equal(perso.titre, '<img src=x onerror="window.__xss=1">Mon dahl');
+}));
+
+test('Recettes Askēsis : celles du repas visé d\'abord, la recherche, la fiche avec sa source, une portion ajoutée en un geste', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    allerA('repas'); renderApp();
+    ouvrirFeuilleRepas('snack'); depuisFeuille('recette');
+    const liste = () => [...document.querySelectorAll('#choix-recette-askesis .off-suggestion')].map(b => b.querySelector('.off-nom').textContent);
+    const noms = liste(), collations = recettesAskesis().filter(x => x.repas.includes('snack')).length;
+    const champ = document.getElementById('choix-recette-recherche');
+    const chercher = q => { champ.value = q; champ.dispatchEvent(new Event('input', { bubbles: true })); return liste(); };
+    const res = { total: noms.length, attendu: recettesAskesis().length, collations,
+      premieres: noms.slice(0, collations).every(n => recettesAskesis().find(x => x.nom === n).repas.includes('snack')),
+      lentilles: chercher('LENTILLES'), oeufs: chercher('oeufs'), aucune: (chercher('zzzz'), document.getElementById('choix-recette-askesis').textContent),
+      police: getComputedStyle(champ).fontSize, imbriques: document.querySelectorAll('#feuille-choix-recette button button').length };
+    chercher('');
+    return res;
+  });
+  assert.equal(r.total, r.attendu);
+  assert.ok(r.total >= 80, String(r.total));
+  assert.ok(r.collations >= 5 && r.premieres, 'les collations en premier');
+  assert.ok(r.lentilles.length >= 2 && r.lentilles.every(n => /lentilles/i.test(n)), r.lentilles.join(' | '));
+  assert.ok(r.oeufs.length >= 3 && r.oeufs.every(n => /œufs|oeufs/i.test(n)), 'œ cherché comme oe : ' + r.oeufs.join(' | '));
+  assert.match(r.aucune, /Aucune recette ne correspond/);
+  assert.equal(r.police, '16px', 'pas de zoom de l\'iPhone sur le champ');
+  assert.equal(r.imbriques, 0);
+
+  // Une recette de Wikilivres : valeurs par portion, ingrédients, étapes, la source et sa licence.
+  const wl = await page.evaluate(() => {
+    const b = [...document.querySelectorAll('#choix-recette-askesis .off-suggestion')].find(x => x.querySelector('.off-nom').textContent === 'Blanquette de veau');
+    b.click();
+    const f = document.getElementById('fiche-recette'), lien = f.querySelector('.recette-source a');
+    return { titre: document.getElementById('fiche-recette-titre').textContent, tuiles: [...f.querySelectorAll('.recette-macros small')].map(x => x.textContent),
+      portions: f.querySelector('.note').textContent, ingredients: f.querySelectorAll('.recette-liste li').length, etapes: f.querySelectorAll('.recette-etapes li').length,
+      lien: lien && lien.href, licence: f.querySelectorAll('.recette-source a')[1].href, source: f.querySelector('.recette-source').textContent, bouton: f.querySelector('.recette-ajouter').textContent,
+      deux: ['feuille-choix-recette', 'feuille-fiche-recette'].map(id => document.getElementById(id).classList.contains('show')) };
+  });
+  assert.equal(wl.titre, 'Blanquette de veau');
+  assert.deepEqual(wl.tuiles, ['kcal', 'Protéines', 'Glucides', 'Lipides']);
+  assert.equal(wl.portions, 'Pour 4 portions : valeurs pour une portion.');
+  assert.ok(wl.ingredients >= 8 && wl.etapes >= 5, `${wl.ingredients} ingrédients, ${wl.etapes} étapes`);
+  assert.equal(wl.lien, 'https://fr.wikibooks.org/wiki/Livre_de_cuisine/Blanquette_de_veau');
+  assert.match(wl.source, /^Recette « Blanquette de veau » des contributeurs du Livre de cuisine de Wikilivres, licence CC BY-SA 4\.0, texte adapté\. Valeurs nutritionnelles calculées avec la table CIQUAL 2020 \(Anses\)\.$/);
+  assert.equal(wl.licence, 'https://creativecommons.org/licenses/by-sa/4.0/deed.fr');
+  assert.equal(wl.bouton, 'Ajouter une portion à la collation');
+  assert.deepEqual(wl.deux, [true, true], 'la fiche se pose sur la liste');
+  // La fermer ramène à la liste ; une recette Askēsis s'ajoute à la collation, tout se referme.
+  const ak = await page.evaluate(() => {
+    document.querySelector('#feuille-fiche-recette .feuille-fermer').click();
+    const liste = document.getElementById('feuille-choix-recette').classList.contains('show') && !document.getElementById('feuille-fiche-recette').classList.contains('show');
+    const b = document.querySelector('#choix-recette-askesis .off-suggestion');
+    const nom = b.querySelector('.off-nom').textContent, meta = b.querySelector('.off-meta').textContent;
+    b.click();
+    const source = document.querySelector('#fiche-recette .recette-source').textContent;
+    document.querySelector('#fiche-recette .recette-ajouter').click();
+    const it = getDay(todayStr()).meals.snack.slice(-1)[0];
+    return { liste, nom, meta, source, ajoute: it && it.name, kcal: it && Math.round(it.kcal), ouvertes: document.querySelectorAll('.feuille.show').length };
+  });
+  assert.equal(ak.liste, true);
+  assert.match(ak.meta, /^\d+ kcal · P \d+ g · G \d+ g · L \d+ g — par portion$/);
+  assert.match(ak.source, /^Recette Askēsis\. Valeurs nutritionnelles calculées avec la table CIQUAL 2020 \(Anses\)\.$/);
+  assert.equal(ak.ajoute, ak.nom);
+  assert.equal(String(ak.kcal), ak.meta.split(' ')[0]);
+  assert.equal(ak.ouvertes, 0);
 }));
 
 test('Repas du jour : « 62/1 821 kcal » et la roulette Pas / Hydratation / Poids', () => avecAppli({}, async ({ page }) => {
