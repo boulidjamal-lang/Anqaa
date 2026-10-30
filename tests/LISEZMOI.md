@@ -25,6 +25,14 @@ testé avec un faux Supabase écrit dans chaque test : les appels de l'appli
 y sont notés et les réponses des autres comptes simulées, y compris des
 données piégées (un nom d'exercice qui contient du HTML doit rester du texte).
 
+L'Administration a son propre faux Supabase (`installerFauxAdmin` dans
+`tests/appli.test.js`) : chaque test lui donne une fonction qui renvoie les
+réponses (« table:nom », « table:nom:compte », « table:nom:update »,
+« rpc:nom » : une valeur, une fonction de la requête ou `{ __erreur }`).
+Elle est exécutée dans la page, elle peut donc utiliser les variables de
+l'appli (`VERSION_APPLI`…). Les appels sont notés dans `window.__appels`,
+et un test vérifie que le bilan « Serveur et SQL » ne modifie rien.
+
 ## Lancer
 
 ```

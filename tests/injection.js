@@ -22,7 +22,9 @@ function installerFauxSupabase(page) {
     const ligne = k => ({
       utilisateur: 'u' + k + P, id: 'id' + k + P, email: P + '@x.fr', pseudo: P, nom: P, name: P, jour,
       createur_id: 'u' + P, createur_email: P, valide: k % 2 === 0, supprime: false, kcal100: 100, p100: 10, c100: 10, f100: 1, code_barre: P,
-      partage_seances: true, type: 'suspendu', action: P, details: P, cree_le: new Date().toISOString(), date: jour, maj: Date.now(),
+      partage_seances: true, type: 'suspendu', action: P, details: P,
+      motif: P, auteur: 'a' + P, cible: 'u' + k + P, auteur_pseudo: P, cible_pseudo: P, cible_bio: P, cible_avatar: P, cible_nb: 2, traite: false,
+      message: P, detail: P, ecran: P, appareil: P, plateforme: P, version: P, texte: P, ton: P, bouton: 'lien', lien: P, erreur: P, cree_le: new Date().toISOString(), date: jour, maj: Date.now(),
       derniere_connexion: new Date().toISOString(), created_at: new Date().toISOString(), last_sign_in_at: new Date().toISOString(),
       donnees: Object.assign({ id: 'd' + k + P, nom: P, notes: P, groupe: 'pectoraux', materiel: 'barre', image: P, video: P,
         ingredients: [{ nom: P, grammes: 100, kcal: 100 }], partagee: true, pseudo: P, geminiKey: P }, seance(k), journee)

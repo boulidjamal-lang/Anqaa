@@ -16,6 +16,52 @@ let navigateur;
 before(async () => { navigateur = await lancerNavigateur(); });
 after(async () => { if (navigateur) await navigateur.close(); });
 
+/* Faux Supabase de l'Administration : tables et fonctions répondent selon
+   window.__rep (« table:nom » ou « rpc:nom », valeur ou fonction de la
+   requête) ; chaque appel est noté dans window.__appels. */
+function installerFauxAdmin(page, fabrique) {
+  return page.evaluate(code => {
+    window.__appels = [];
+    window.__rep = Object.assign({}, (0, eval)('(' + code + ')')());
+    const repondre = (cle, q) => {
+      const r = window.__rep[cle];
+      const v = typeof r === 'function' ? r(q) : r;
+      if (v && v.__erreur) return { data: null, error: v.__erreur, count: null };
+      return { data: v === undefined ? (q.un ? null : []) : v, error: null, count: q.compte != null ? q.compte : Array.isArray(v) ? v.length : 0 };
+    };
+    const requete = table => {
+      const q = { table, op: 'select', filtres: [] };
+      const b = {
+        select: (c, o) => { if (q.op === 'select') q.cols = c; if (o && o.head) q.tete = true; return b; },
+        insert: v => { q.op = 'insert'; q.valeur = v; return b; },
+        update: v => { q.op = 'update'; q.valeur = v; return b; },
+        upsert: v => { q.op = 'upsert'; q.valeur = v; return b; },
+        delete: () => { q.op = 'delete'; return b; },
+        maybeSingle: () => { q.un = true; return b; }, single: () => { q.un = true; return b; },
+        then: (ok, ko) => {
+          window.__appels.push(['from', table, q.op, q.filtres, q.valeur === undefined ? null : JSON.parse(JSON.stringify(q.valeur))]);
+          const cle = 'table:' + table + (q.op === 'select' ? (q.tete ? ':compte' : '') : ':' + q.op);
+          const r = repondre(cle, q);
+          if (q.tete && !r.error) { r.count = typeof r.data === 'number' ? r.data : r.count; r.data = null; }
+          return Promise.resolve(r).then(ok, ko);
+        },
+      };
+      ['eq', 'neq', 'gte', 'lte', 'gt', 'lt', 'is', 'in', 'or', 'ilike', 'order', 'limit', 'range'].forEach(m => {
+        b[m] = (...a) => { if (!['order', 'limit', 'range'].includes(m)) q.filtres.push([m, ...a]); return b; };
+      });
+      return b;
+    };
+    supa = {
+      from: requete,
+      rpc: (nom, args) => { window.__appels.push(['rpc', nom, args === undefined ? null : JSON.parse(JSON.stringify(args))]); return Promise.resolve(repondre('rpc:' + nom, { args })); },
+      functions: { invoke: async () => ({ data: { pret: true }, error: null }) },
+      storage: { from: () => requete('stockage') },
+      auth: { getSession: async () => ({ data: { session: null } }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) }
+    };
+    sessionUtilisateur = { id: 'admin', email: ADMIN_EMAIL };
+  }, (fabrique || (() => ({}))).toString());
+}
+
 async function avecAppli(options, corps) {
   const appli = await ouvrirAppli(navigateur, options);
   try {
@@ -792,34 +838,317 @@ for (const visite of ['generale', 'muscu']) {
   }));
 }
 
-test('Administration : le pseudo de chaque compte est affiché et sert à la recherche', () => avecAppli({}, async ({ page }) => {
+test('Administration : les comptes en liste (pseudo, état, recherche, filtres), puis la page d\'un compte', () => avecAppli({}, async ({ page }) => {
+  await installerFauxAdmin(page, () => Object.assign({ 'rpc:admin_liste_comptes': [
+      { utilisateur: 'admin', email: 'moi@x.fr', maj: Date.now(), nb_journees: 40 },
+      { utilisateur: 'a1', email: 'alice@x.fr', maj: Date.now() - 1000, nb_journees: 12, cree_le: new Date(Date.now() - 90 * 864e5).toISOString(), derniere_connexion: new Date().toISOString() },
+      { utilisateur: 'b2', email: 'bob@x.fr', maj: Date.now() - 2000, statut: 'suspendu' },
+      { utilisateur: 'c3', email: 'carl@x.fr', maj: Date.now() - 40 * 864e5 }],
+    'table:pseudos': [{ utilisateur: 'a1', pseudo: 'alice.fit' }, { utilisateur: 'b2', pseudo: 'bob' }] }, { 'rpc:admin_compte_details': {
+    appareils: [{ appareil: 'x', plateforme: 'iPhone · app Askēsis', version: VERSION_APPLI, synchro_le: new Date().toISOString(), en_attente: 0 },
+      { appareil: 'y', plateforme: 'Mac · Safari', version: '2026-01-01', synchro_le: new Date(Date.now() - 6 * 864e5).toISOString(), en_attente: 2 }],
+    erreurs_7j: 3, erreur: 'délai dépassé', gymbros: 4, signale: 1, ia_mois: 2 } }));
   const r = await page.evaluate(async () => {
-    const comptes = [{ utilisateur: 'a1', email: 'alice@x.fr', maj: Date.now() }, { utilisateur: 'b2', email: 'bob@x.fr', maj: Date.now() - 1000 }];
-    const pseudos = [{ utilisateur: 'a1', pseudo: 'alice.fit' }];
-    const reponse = data => ({ then: ok => Promise.resolve({ data, error: null }).then(ok) });
-    supa = {
-      rpc: nom => reponse(nom === 'admin_liste_comptes' ? comptes : []),
-      from: table => ({ select: () => reponse(table === 'pseudos' ? pseudos : []) })
-    };
+    allerA('admin');
+    await chargerAdmin();
+    const lignes = () => [...document.querySelectorAll('#admin-liste-comptes .adm-compte')].map(b => [b.querySelector('b').textContent, b.querySelector('small').textContent, (b.querySelector('.adm-chip, .adm-droite') || {}).textContent]);
+    const res = { toutes: lignes() };
+    document.getElementById('admin-recherche').value = '@alice';
+    rafraichirListeComptes();
+    res.recherche = lignes();
+    document.getElementById('admin-recherche').value = '';
+    filtrerParStatut('suspendu');
+    res.suspendus = lignes();
+    filtrerParStatut('tous');
+    document.querySelector('#admin-liste-comptes [data-compte="a1"]').click();
+    await new Promise(ok => setTimeout(ok, 50));
+    const texte = id => document.getElementById(id).textContent;
+    res.page = { vue: adminVue, accueilCache: document.getElementById('admin-vue-accueil').classList.contains('hidden'), nom: texte('admin-compte-nom'), email: texte('admin-compte-email'),
+      chips: texte('admin-compte-chips'), faits: [...document.querySelectorAll('#admin-compte-faits > div')].map(d => d.textContent),
+      appareils: [...document.querySelectorAll('#admin-compte-diagnostic .ligne-reglage')].map(d => [d.querySelector('b').textContent, d.querySelector('small').textContent, (d.querySelector('.adm-etat, .adm-nb') || {}).textContent]),
+      sensible: !document.getElementById('admin-zone-sensible').classList.contains('hidden') };
+    ouvrirCompteAdmin('admin');
+    res.moiSensible = !document.getElementById('admin-zone-sensible').classList.contains('hidden');
+    afficherVueAdmin('accueil');
+    return res;
+  });
+  assert.deepEqual(r.toutes, [['moi@x.fr', 'Ton compte', 'Toi'], ['@alice.fit', 'alice@x.fr', "à l'instant"], ['@bob', 'bob@x.fr', 'Suspendu'], ['carl@x.fr', 'Sans nom d’utilisateur', 'Inactif']]);
+  assert.deepEqual(r.recherche, [['@alice.fit', 'alice@x.fr', "à l'instant"]]);
+  assert.deepEqual(r.suspendus, [['@bob', 'bob@x.fr', 'Suspendu']]);
+  assert.deepEqual([r.page.vue, r.page.accueilCache, r.page.nom, r.page.email, r.page.chips], ['compte', true, '@alice.fit', 'alice@x.fr', 'Actif']);
+  assert.deepEqual(r.page.faits, ['Inscritil y a 3 mois', "Connexionà l'instant", 'Journées12', 'Gymbros4', 'Signalé1 fois', 'IA ce mois2 essais']);
+  assert.equal(r.page.appareils[0][0], 'iPhone · app Askēsis');
+  assert.match(r.page.appareils[0][1], /^Version du \d{1,2} \S+ · synchro à l'instant$/);
+  assert.equal(r.page.appareils[0][2], 'À jour');
+  assert.deepEqual(r.page.appareils[1], ['Mac · Safari', 'Version du 1 janv. · synchro il y a 6 j · 2 journées pas envoyées', 'Ancienne']);
+  assert.deepEqual(r.page.appareils[2], ['Erreurs sur 7 jours', 'délai dépassé', '3']);
+  assert.equal(r.page.sensible, true);
+  assert.equal(r.moiSensible, false, 'pas de zone sensible sur son propre compte');
+}));
+
+test('Administration : « À surveiller » (tableau, signalements, erreurs, serveur) et la pastille des signalements', () => avecAppli({}, async ({ page }) => {
+  await installerFauxAdmin(page, () => Object.assign({ 'rpc:admin_liste_comptes': [
+      { utilisateur: 'admin', email: 'moi@x.fr', maj: Date.now(), nb_journees: 40 },
+      { utilisateur: 'a1', email: 'alice@x.fr', maj: Date.now() - 1000, nb_journees: 12, cree_le: new Date(Date.now() - 90 * 864e5).toISOString(), derniere_connexion: new Date().toISOString() },
+      { utilisateur: 'b2', email: 'bob@x.fr', maj: Date.now() - 2000, statut: 'suspendu' },
+      { utilisateur: 'c3', email: 'carl@x.fr', maj: Date.now() - 40 * 864e5 }],
+    'table:pseudos': [{ utilisateur: 'a1', pseudo: 'alice.fit' }, { utilisateur: 'b2', pseudo: 'bob' }] }, {
+    'rpc:admin_tableau_de_bord': { comptes: 4, actifs_jour: 3, actifs_7j: 4, par_jour: [], en_seance: [{ pseudo: 'alice.fit' }] },
+    'rpc:admin_signalements': q => q.args.p_traites ? [] : [{ id: 1, cible: 'a1', cible_pseudo: 'alice.fit', motif: 'Pub ou spam', cree_le: new Date().toISOString() }, { id: 2, cible: 'a1', cible_pseudo: 'alice.fit', cree_le: new Date().toISOString() }],
+    'table:erreurs_appli:compte': 5,
+    'rpc:admin_apercu': { __erreur: { code: 'PGRST202', message: 'Could not find the function public.admin_apercu' } },
+  }));
+  const r = await page.evaluate(async () => {
+    allerA('admin');
+    await chargerAdmin();
+    await chargerVeilleAdmin(true);
+    const tuile = c => [document.getElementById('adm-v-' + c).textContent, document.getElementById('adm-s-' + c).textContent, document.getElementById('adm-t-' + c).className];
+    return { tableau: tuile('tableau'), signal: tuile('signal'), erreurs: tuile('erreurs'), serveur: tuile('serveur'),
+      pastille: document.querySelector('#nav-admin > .pastille-gymbro')?.textContent || null,
+      alice: document.querySelector('#admin-liste-comptes [data-compte="a1"] .adm-chip').textContent };
+  });
+  assert.deepEqual(r.tableau, ['3', 'actifs aujourd’hui', '']);
+  assert.deepEqual(r.signal, ['2', 'à traiter sous 24 h', 'alerte']);
+  assert.deepEqual(r.erreurs, ['5', 'à regarder, sur 7 jours', '']);
+  assert.deepEqual(r.serveur, ['1', 'point à régler', 'attention']);
+  assert.equal(r.pastille, '2');
+  assert.equal(r.alice, 'Signalé ×2');
+}));
+
+test('Administration : Serveur et SQL sonde chaque SQL sans rien modifier, signale le manquant et donne son SQL', () => avecAppli({}, async ({ page }) => {
+  await installerFauxAdmin(page, () => ({ 'table:erreurs_appli:compte': { __erreur: { code: '42P01', message: 'relation "public.erreurs_appli" does not exist' } } }));
+  const r = await page.evaluate(async () => {
+    window.__appels = [];
+    ouvrirServeurAdmin();
+    await verifierServeurAdmin(true);
+    const lignes = [...document.querySelectorAll('#feuille-admin-serveur .adm-sql')].map(d => [d.dataset.sql, d.querySelector('[data-etat-sql]').textContent]);
+    const admin = document.querySelector('.adm-sql[data-sql="admin"] .ligne-reglage');
+    admin.click();
+    return { lignes, bilan: [document.querySelector('#serveur-bilan b').textContent, document.querySelector('#serveur-bilan small').textContent],
+      ouvert: admin.getAttribute('aria-expanded'), sql: document.getElementById('bloc-sql-admin').textContent,
+      ecritures: window.__appels.filter(a => a[0] === 'from' && a[2] !== 'select').length,
+      rpc: [...new Set(window.__appels.filter(a => a[0] === 'rpc').map(a => a[1]))].sort() };
+  });
+  assert.deepEqual(r.lignes, [['supabase', 'OK'], ['rls', 'OK'], ['accents', 'OK'], ['gymbro', 'OK'], ['pro', 'OK'], ['appstore', 'OK'], ['direct', 'OK'], ['admin', 'Manquant']]);
+  assert.equal(r.bilan[0], '1 point à régler');
+  assert.match(r.bilan[1], /^Vérifié à l'instant · Supabase répond en \d+ ms$/);
+  assert.equal(r.ouvert, 'true');
+  assert.match(r.sql, /create table if not exists public\.erreurs_appli/);
+  assert.match(r.sql, /jambou592@gmail\.com/);
+  assert.equal(r.ecritures, 0, 'le bilan ne modifie rien');
+  assert.deepEqual(r.rpc, ['admin_apercu', 'gymbro_direct', 'mon_statut_compte']);
+}));
+
+test('Administration : signalements (motif, bio, « 2e fois ») ; classer et suspendre les traitent', () => avecAppli({}, async ({ page }) => {
+  await installerFauxAdmin(page, () => Object.assign({ 'rpc:admin_liste_comptes': [
+      { utilisateur: 'admin', email: 'moi@x.fr', maj: Date.now(), nb_journees: 40 },
+      { utilisateur: 'a1', email: 'alice@x.fr', maj: Date.now() - 1000, nb_journees: 12, cree_le: new Date(Date.now() - 90 * 864e5).toISOString(), derniere_connexion: new Date().toISOString() },
+      { utilisateur: 'b2', email: 'bob@x.fr', maj: Date.now() - 2000, statut: 'suspendu' },
+      { utilisateur: 'c3', email: 'carl@x.fr', maj: Date.now() - 40 * 864e5 }],
+    'table:pseudos': [{ utilisateur: 'a1', pseudo: 'alice.fit' }, { utilisateur: 'b2', pseudo: 'bob' }] }, {
+    'rpc:admin_signalements': q => q.args.p_traites ? [] : [
+      { id: 7, cree_le: new Date(Date.now() - 5 * 3600e3).toISOString(), motif: 'Pub ou spam', traite: false, auteur: 'b2', auteur_pseudo: 'bob', cible: 'a1', cible_pseudo: 'alice.fit', cible_bio: 'Coaching 💸', cible_nb: 2 },
+      { id: 8, cree_le: new Date().toISOString(), motif: null, traite: false, auteur: 'a1', auteur_pseudo: 'alice.fit', cible: 'c3', cible_pseudo: null, cible_nb: 1 }],
+  }));
+  const r = await page.evaluate(async () => {
+    allerA('admin');
+    await chargerAdmin();
+    await ouvrirSignalementsAdmin();
+    const cartes = () => [...document.querySelectorAll('#admin-signal-liste .adm-signal')].map(c => [c.querySelector('.adm-qui b').textContent, c.querySelector('.adm-qui small').textContent,
+      [...c.querySelectorAll('.adm-signal-tete .adm-chip')].map(x => x.textContent).join('|'), c.querySelector('.adm-motif b').textContent, c.querySelector('.adm-profil p').textContent,
+      [...c.querySelectorAll('.adm-actions button')].map(b => b.textContent).join('|')]);
+    const res = { cartes: cartes(), onglet: document.getElementById('signal-onglet-nb').textContent };
+    window.__appels = [];
+    [...document.querySelectorAll('#admin-signal-liste .adm-signal')][1].querySelector('.adm-actions button:last-child').click();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.classer = window.__appels.filter(a => a[0] === 'from' && a[2] === 'update' || a[1] === 'admin_consigner');
+    window.__appels = [];
+    const suspendre = [...document.querySelectorAll('#admin-signal-liste .adm-signal')][0].querySelector('.adm-actions .danger');
+    adminComptes.a1.statut = null;
+    window.__rep['rpc:admin_definir_blocage'] = () => { adminComptes.a1.statut = 'suspendu'; return null; };
+    window.__rep['rpc:admin_liste_comptes'] = () => Object.values(adminComptes);
+    suspendre.click();
+    await new Promise(ok => setTimeout(ok, 200));
+    validerMotif();
+    await new Promise(ok => setTimeout(ok, 300));
+    res.suspendre = window.__appels.filter(a => (a[0] === 'rpc' && /blocage|consigner/.test(a[1])) || (a[0] === 'from' && a[2] === 'update')).map(a => a.slice(0, 4));
+    return res;
+  });
+  assert.equal(r.onglet, ' · 2');
+  assert.deepEqual(r.cartes[0], ['@alice.fit', 'Signalé par @bob · il y a 5 h', '2e fois', 'Pub ou spam', '« Coaching 💸 »', 'Voir le compte|Suspendre|Classer']);
+  assert.deepEqual(r.cartes[1], ['Compte sans nom d’utilisateur', "Signalé par @alice.fit · à l'instant", '', 'Non précisé', 'Pas de bio, pas de photo.', 'Voir le compte|Suspendre|Classer']);
+  assert.deepEqual(r.classer.map(a => a.slice(0, 5)), [['from', 'gymbros_signalements', 'update', [['eq', 'id', 8]], { traite: true }], ['rpc', 'admin_consigner', { p_action: 'signalement_classe', p_cible_id: 'c3', p_cible_libelle: null, p_motif: null, p_detail: { signale_par: '@alice.fit' } }]]);
+  assert.deepEqual(r.suspendre, [['rpc', 'admin_definir_blocage', { p_utilisateur: 'a1', p_type: 'suspendu' }], ['rpc', 'admin_consigner', { p_action: 'suspendre', p_cible_id: 'a1', p_cible_libelle: 'alice@x.fr', p_motif: 'Signalé : Pub ou spam', p_detail: null }],
+    ['from', 'gymbros_signalements', 'update', [['eq', 'cible', 'a1'], ['eq', 'traite', false]]]]);
+}));
+
+test('Erreurs : envoyées sans données perso, une fois, pas les coupures réseau ; regroupées pour l\'admin', () => avecAppli({}, async ({ page }) => {
+  await installerFauxAdmin(page, () => Object.assign({ 'rpc:admin_liste_comptes': [
+      { utilisateur: 'admin', email: 'moi@x.fr', maj: Date.now(), nb_journees: 40 },
+      { utilisateur: 'a1', email: 'alice@x.fr', maj: Date.now() - 1000, nb_journees: 12, cree_le: new Date(Date.now() - 90 * 864e5).toISOString(), derniere_connexion: new Date().toISOString() },
+      { utilisateur: 'b2', email: 'bob@x.fr', maj: Date.now() - 2000, statut: 'suspendu' },
+      { utilisateur: 'c3', email: 'carl@x.fr', maj: Date.now() - 40 * 864e5 }],
+    'table:pseudos': [{ utilisateur: 'a1', pseudo: 'alice.fit' }, { utilisateur: 'b2', pseudo: 'bob' }] }, { 'table:erreurs_appli': [
+    { id: 1, utilisateur: 'a1', cree_le: new Date(Date.now() - 12 * 60000).toISOString(), type: 'synchro', message: 'délai dépassé', appareil: 'iPhone · app Askēsis', ecran: 'repas', version: '2026-01-01', detail: 'pile' },
+    { id: 2, utilisateur: 'b2', cree_le: new Date(Date.now() - 3600e3).toISOString(), type: 'synchro', message: 'délai dépassé', appareil: 'Mac · Safari', ecran: 'stats', version: VERSION_APPLI },
+    { id: 3, utilisateur: 'a1', cree_le: new Date(Date.now() - 2 * 3600e3).toISOString(), type: 'ia', message: 'Quota atteint', appareil: 'iPhone · app Askēsis', ecran: 'repas', version: VERSION_APPLI },
+    { id: 4, utilisateur: 'a1', cree_le: new Date(Date.now() - 3 * 3600e3).toISOString(), type: 'js', message: 'déjà réglée', regle_le: new Date().toISOString() }] }));
+  const r = await page.evaluate(async () => {
+    sessionUtilisateur = { id: 'u1', email: 'u1@x.fr' };
+    window.__appels = [];
+    noterErreur('js', 'boum', 'pile 1');
+    noterErreur('js', 'boum', 'pile 2');
+    noterErreur('js', 'TypeError: Failed to fetch');
+    majEtatSync('erreur', 'Synchronisation impossible : délai dépassé — tes données restent sur cet appareil.');
+    await new Promise(ok => setTimeout(ok, 100));
+    const envois = window.__appels.filter(a => a[1] === 'noter_erreur').map(a => [a[2].p_type, a[2].p_message, a[2].p_detail, a[2].p_version === VERSION_APPLI, a[2].p_ecran]);
     sessionUtilisateur = { id: 'admin', email: ADMIN_EMAIL };
     allerA('admin');
     await chargerAdmin();
-    const options = () => [...document.getElementById('admin-user-select').options].slice(1).map(o => o.textContent);
-    const res = { toutes: options() };
-    document.getElementById('admin-recherche').value = '@alice';
-    rafraichirListeComptes();
-    res.recherche = options();
-    const sel = document.getElementById('admin-user-select');
-    sel.value = 'a1'; afficherFeuillUtilisateur();
-    res.titre = document.getElementById('admin-user-email').textContent;
-    remplirFicheCompteAdmin(adminComptes.a1);
-    res.fiche = document.getElementById('admin-stats-fiche').textContent;
+    await ouvrirErreursAdmin();
+    const res = { envois, resume: document.getElementById('erreurs-resume').textContent,
+      groupes: [...document.querySelectorAll('#admin-erreurs-liste .adm-err')].map(c => [c.querySelector('.adm-nb').textContent, c.querySelector('.adm-qui b').textContent, c.querySelector('.adm-qui small').textContent, c.querySelector('.adm-chips').textContent]) };
+    window.__appels = [];
+    const premier = document.querySelector('#admin-erreurs-liste .adm-err');
+    premier.querySelector('.adm-err-tete').click();
+    res.occurrences = [...premier.querySelectorAll('.adm-occ li')].map(l => l.textContent);
+    [...premier.querySelectorAll('.adm-actions button')][1].click();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.regle = window.__appels.filter(a => a[0] === 'from' && a[2] === 'update').map(a => [a[1], a[3]]);
     return res;
   });
-  assert.deepEqual(r.toutes, ['alice@x.fr · @alice.fit', 'bob@x.fr']);
-  assert.deepEqual(r.recherche, ['alice@x.fr · @alice.fit']);
-  assert.equal(r.titre, 'alice@x.fr · @alice.fit');
-  assert.match(r.fiche, /Pseudo@alice\.fit/);
+  assert.deepEqual(r.envois, [['js', 'boum', 'pile 1', true, 'repas'], ['synchro', 'délai dépassé', null, true, 'repas']]);
+  assert.equal(r.resume, '3 erreurs · 2 comptes touchés · dernière il y a 12 min · 1 réglée masquée');
+  assert.equal(r.groupes.length, 2);
+  assert.deepEqual(r.groupes[0].slice(0, 3), ['×2', 'Synchro : délai dépassé', '2 comptes · dernière il y a 12 min']);
+  assert.match(r.groupes[0][3], /iPhone · app Askēsis.*Mac · Safari.*Ancienne version/);
+  assert.deepEqual(r.occurrences, ["@alice.fit · iPhone · app Askēsis · Repas du jouril y a 12 min", '@bob · Mac · Safari · Progrèsil y a 1 h']);
+  assert.deepEqual(r.regle, [['erreurs_appli', [['eq', 'type', 'synchro'], ['eq', 'message', 'délai dépassé'], ['is', 'regle_le', null]]]]);
+}));
+
+test('Appareil : après une synchro réussie, sa version, sa dernière synchro et ce qui attend (au plus toutes les 10 min)', () => avecAppli({}, async ({ page }) => {
+  await installerFauxAdmin(page);
+  const r = await page.evaluate(async () => {
+    sessionUtilisateur = { id: 'u1', email: 'u1@x.fr' };
+    marquerJourModifie(todayStr());
+    window.__appels = [];
+    majEtatSync('ok', 'À jour');
+    await new Promise(ok => setTimeout(ok, 50));
+    majEtatSync('ok', 'À jour');
+    await new Promise(ok => setTimeout(ok, 50));
+    return window.__appels.filter(a => a[1] === 'noter_appareil').map(a => a[2]);
+  });
+  assert.equal(r.length, 1);
+  assert.equal(r[0].p_version, await page.evaluate(() => VERSION_APPLI));
+  assert.equal(r[0].p_en_attente, 1);
+  assert.ok(Math.abs(new Date(r[0].p_synchro_le).getTime() - Date.now()) < 60000);
+  assert.match(r[0].p_plateforme, / · /);
+  assert.match(r[0].p_appareil, /^[a-z0-9]{8,}$/);
+}));
+
+test('Message à tous : publié par l\'admin, affiché en haut de Repas du jour, fermé pour de bon', () => avecAppli({}, async ({ page }) => {
+  await installerFauxAdmin(page);
+  const r = await page.evaluate(async () => {
+    allerA('admin');
+    await ouvrirMessageAdmin();
+    document.getElementById('message-texte').value = 'Mettez à jour <b>maintenant</b>';
+    choisirOptionMessage('ton', 'important');
+    choisirOptionMessage('bouton', 'maj');
+    const a = document.getElementById('message-apercu');
+    const apercu = [a.querySelector('small').textContent, a.querySelector('p').textContent, a.querySelector('.annonce-txt button').textContent, a.querySelector('.annonce').dataset.ton];
+    window.__appels = [];
+    window.__rep['table:annonces:insert'] = { id: 5 };
+    await publierMessageAdmin();
+    const ecrit = window.__appels.filter(a => a[0] === 'from' && a[1] === 'annonces' && a[2] !== 'select').map(a => [a[2], a[3], a[4]]);
+    // Chez chacun.
+    sessionUtilisateur = { id: 'u1', email: 'u1@x.fr' };
+    window.__rep['table:annonces'] = [{ id: 5, texte: 'Mettez à jour <b>maintenant</b>', ton: 'important', bouton: 'maj', pour: 'tous', jusqua: null },
+      { id: 4, texte: 'Pour les Pro', ton: 'info', pour: 'pro', jusqua: null }];
+    allerA('repas');
+    await chargerAnnonce(true);
+    const el = document.getElementById('annonce');
+    const visible = [!el.classList.contains('hidden'), el.dataset.ton, el.querySelector('p').textContent, el.querySelector('.annonce-txt button').textContent, !!el.querySelector('b')];
+    fermerAnnonce();
+    await chargerAnnonce(true);
+    const apresFermeture = el.classList.contains('hidden');
+    window.__rep['table:annonces'] = [{ id: 6, texte: 'Périmé', pour: 'tous', jusqua: new Date(Date.now() - 1000).toISOString() }];
+    await chargerAnnonce(true);
+    return { apercu, ecrit, visible, apresFermeture, perime: el.classList.contains('hidden') };
+  });
+  assert.deepEqual(r.apercu, ['Important · Askēsis', 'Mettez à jour <b>maintenant</b>', 'Mettre à jour', 'important']);
+  assert.equal(r.ecrit[0][0], 'insert', 'le nouveau message d\'abord');
+  assert.deepEqual(Object.assign({}, r.ecrit[0][2], { jusqua: !!r.ecrit[0][2].jusqua }), { texte: 'Mettez à jour <b>maintenant</b>', ton: 'important', bouton: 'maj', lien: null, pour: 'tous', jusqua: true });
+  assert.deepEqual(r.ecrit[1].slice(0, 2), ['update', [['eq', 'retiree', false], ['neq', 'id', 5]]], 'puis les autres retirés');
+  assert.deepEqual(r.visible, [true, 'important', 'Mettez à jour <b>maintenant</b>', 'Mettre à jour', false]);
+  assert.equal(r.apresFermeture, true, 'fermé : il ne revient pas');
+  assert.equal(r.perime, true, 'périmé : pas affiché');
+}));
+
+test('Tableau de bord : les chiffres de la semaine et 30 jours d\'actifs, une barre touchée affiche sa valeur', () => avecAppli({}, async ({ page }) => {
+  await installerFauxAdmin(page);
+  const r = await page.evaluate(async () => {
+    const jours = Array.from({ length: 30 }, (_, k) => ({ jour: shiftDate(todayStr(), k - 29), n: k === 10 ? 8 : 3 }));
+    window.__rep['rpc:admin_tableau_de_bord'] = { comptes: 10, actifs_jour: 3, actifs_7j: 6, par_jour: jours, seances_7j: 23, seances_7j_avant: 19, repas_7j: 188, repas_7j_avant: 194,
+      en_seance: [{ pseudo: 'karim' }], duos_7j: 3, duos_comptes_7j: 2, nouveaux_7j: ['nora'], usage_7j: { repas: 6, musculation: 4, cardio: 1, gymbro: 2 }, pro: { total: 9, fondateur: 7, offert: 0, payant: 2 } };
+    allerA('admin');
+    await ouvrirTableauAdmin();
+    const c = document.getElementById('admin-tableau');
+    const res = { heros: [c.querySelector('.adm-heros b').textContent, c.querySelector('.adm-heros span').textContent, c.querySelector('.adm-heros small').textContent],
+      tuiles: [...c.querySelectorAll('.adm-tuiles > div')].map(d => [d.querySelector('small').textContent, d.querySelector('b').textContent, d.querySelector('em').textContent]),
+      barres: c.querySelectorAll('.barre').length, cibles: c.querySelectorAll('.cible').length, bulle: c.querySelector('.adm-bulle-txt').textContent,
+      usage: [...c.querySelectorAll('.adm-hbarres > span')].map(s => s.textContent) };
+    c.querySelector('.cible[data-k="10"]').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    res.bulle2 = c.querySelector('.adm-bulle-txt').textContent;
+    res.choisie = c.querySelectorAll('.barre--choisie').length;
+    return res;
+  });
+  assert.deepEqual(r.heros, ['3', 'actifs aujourd’hui', '6 sur 7 jours · 10 comptes']);
+  assert.deepEqual(r.tuiles, [['Séances · 7 j', '23', '▲ 4 vs les 7 jours d’avant'], ['Repas notés · 7 j', '188', '▼ 6 vs les 7 jours d’avant'], ['En séance maintenant', '1', '@karim'],
+    ['Séances à deux · 7 j', '3', '2 comptes'], ['Nouveaux comptes · 7 j', '1', '@nora'], ['Askēsis Pro', '9', '7 fondateurs, 2 abonnés']]);
+  assert.deepEqual([r.barres, r.cibles], [30, 30]);
+  assert.match(r.bulle, / · 3 actifs$/);
+  assert.match(r.bulle2, / · 8 actifs$/);
+  assert.equal(r.choisie, 1);
+  assert.deepEqual(r.usage, ['Repas', 'Musculation', 'Gymbro', 'Cardio']);
+}));
+
+test('Réglages : la version de l\'appli, et « Réparer l\'appli » oublie les fichiers gardés sans toucher aux données', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const t = todayStr();
+    getDay(t).steps = 1234; saveData(t);
+    const supprimes = [], desinscrits = [];
+    Object.defineProperty(window, 'caches', { configurable: true, value: { keys: async () => ['anqaa-v1', 'autre'], delete: async k => { supprimes.push(k); return true; } } });
+    Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: { getRegistrations: async () => [{ unregister: async () => { desinscrits.push(1); return true; } }] } });
+    rechargerPage = () => { window.__recharge = true; };
+    derniereVerifVersion = Date.now();
+    majVersionAffichee();
+    const version = [document.getElementById('reglages-version').textContent, document.getElementById('reglages-version-etat').textContent];
+    await reparerAppli();
+    return { version, supprimes, desinscrits: desinscrits.length, recharge: !!window.__recharge, pas: getDay(t).steps, attendue: libelleVersion(VERSION_APPLI) };
+  });
+  assert.deepEqual(r.version, [r.attendue, 'À jour']);
+  assert.match(r.attendue, /^\d{1,2} \S+ 20\d\d$/);
+  assert.deepEqual(r.supprimes, ['anqaa-v1', 'autre']);
+  assert.equal(r.desinscrits, 1);
+  assert.equal(r.recharge, true);
+  assert.equal(r.pas, 1234, 'les données restent');
+}));
+
+test('Administration : aliments à valider et base commune dans une seule fenêtre', () => avecAppli({}, async ({ page }) => {
+  await installerFauxAdmin(page);
+  const r = await page.evaluate(async () => {
+    allerA('admin');
+    const etat = () => [document.getElementById('feuille-admin-aliments').classList.contains('show'),
+      document.getElementById('aliments-panneau-valider').classList.contains('hidden'), document.getElementById('aliments-panneau-base').classList.contains('hidden'),
+      document.querySelector('#aliments-onglets [aria-pressed="true"]').dataset.onglet];
+    await afficherFeuillAlimentsPersonalises();
+    const valider = etat();
+    afficherFeuilleBaseAliments();
+    return { valider, base: etat(), titre: document.getElementById('feuille-admin-aliments-titre').textContent };
+  });
+  assert.deepEqual(r.valider, [true, false, true, 'valider']);
+  assert.deepEqual(r.base, [true, true, false, 'base']);
+  assert.equal(r.titre, 'Aliments');
 }));
 
 test('Gymbro : demande, pastille, acceptation, comparaison réservée aux gymbros acceptés', () => avecAppli({}, async ({ page }) => {
@@ -1091,7 +1420,16 @@ test("des données piégées venant d'autres comptes ne s'exécutent jamais (Adm
   await installerFauxSupabase(page);
   const etapes = [
     () => { allerA('admin'); return chargerAdmin(); },
-    () => { const sel = document.getElementById('admin-user-select'); sel.value = sel.options[1].value; afficherFeuillUtilisateur(); },
+    () => ouvrirCompteAdmin(Object.keys(adminComptes)[1]),
+    () => chargerDetailsCompteAdmin(Object.keys(adminComptes)[1]),
+    () => { afficherVueAdmin('accueil'); return chargerVeilleAdmin(true); },
+    () => ouvrirSignalementsAdmin(),
+    () => ouvrirErreursAdmin().then(() => document.querySelectorAll('.adm-err-tete').forEach(b => b.click())),
+    () => ouvrirErreursAdmin(Object.keys(adminComptes)[1]),
+    () => ouvrirMessageAdmin(),
+    () => chargerAnnonce(true),
+    () => { tableauAdmin = { comptes: 2, actifs_jour: 1, actifs_7j: 1, par_jour: [{ jour: todayStr(), n: 1 }], en_seance: [{ pseudo: __seancePiegee(1).notes }], nouveaux_7j: [__seancePiegee(1).notes] }; return ouvrirTableauAdmin(); },
+    () => ouvrirServeurAdmin(),
     () => chargerApercuAdmin(),
     () => ouvrirJournalAdmin(),
     () => chargerAlimentsAdmin(),
@@ -3080,13 +3418,17 @@ test('compte : accord avant l\'IA (un refus n\'envoie rien), suppression du comp
     gymbroLiensActifs = [];
     await comparerGymbro('bob');
     const boutons = [...document.querySelectorAll('#gymbro-comparaison .gb-moderation button')].map(b => b.textContent);
-    await signalerGymbro('bob');
+    const signal = signalerGymbro('bob');
+    const titre = document.getElementById('titre-signaler').textContent;
+    document.querySelector('#modal-signaler [onclick="choisirMotifSignalement(\'Pub ou spam\')"]').click();
+    await signal;
     await bloquerGymbro('bob');
     supa = null;
-    return { boutons, rpc: rpc.filter(([n]) => /signaler|bloquer/.test(n)) };
+    return { boutons, titre, rpc: rpc.filter(([n]) => /signaler|bloquer/.test(n)) };
   });
   assert.deepEqual(gb.boutons, ['Signaler', 'Bloquer']);
-  assert.deepEqual(gb.rpc, [['gymbro_signaler', { p_pseudo: 'bob', p_motif: null }], ['gymbro_bloquer', { p_pseudo: 'bob' }]]);
+  assert.equal(gb.titre, 'Signaler @bob');
+  assert.deepEqual(gb.rpc, [['gymbro_signaler', { p_pseudo: 'bob', p_motif: 'Pub ou spam' }], ['gymbro_bloquer', { p_pseudo: 'bob' }]]);
 }));
 
 test('app iOS : Pro se paie via Apple (prix d\'Apple, achat relié au compte puis vérifié par le serveur)', () => avecAppli({ natif: true }, async ({ page }) => {
