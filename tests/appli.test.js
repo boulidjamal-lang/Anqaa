@@ -18,7 +18,9 @@ after(async () => { if (navigateur) await navigateur.close(); });
 
 /* Faux Supabase de l'Administration : tables et fonctions répondent selon
    window.__rep (« table:nom » ou « rpc:nom », valeur ou fonction de la
-   requête) ; chaque appel est noté dans window.__appels. */
+   requête) ; chaque appel est noté dans window.__appels. { __404vide: true }
+   imite supabase-js face à une table absente comptée en « head » : ni
+   erreur, ni compte. */
 function installerFauxAdmin(page, fabrique) {
   return page.evaluate(code => {
     window.__appels = [];
@@ -27,6 +29,7 @@ function installerFauxAdmin(page, fabrique) {
       const r = window.__rep[cle];
       const v = typeof r === 'function' ? r(q) : r;
       if (v && v.__erreur) return { data: null, error: v.__erreur, count: null };
+      if (v && v.__404vide) return { data: null, error: null, count: null, status: 204, statusText: 'No Content' };
       return { data: v === undefined ? (q.un ? null : []) : v, error: null, count: q.compte != null ? q.compte : Array.isArray(v) ? v.length : 0 };
     };
     const requete = table => {
@@ -896,6 +899,7 @@ test('Administration : « À surveiller » (tableau, signalements, erreurs, serv
     'rpc:admin_tableau_de_bord': { comptes: 4, actifs_jour: 3, actifs_7j: 4, par_jour: [], en_seance: [{ pseudo: 'alice.fit' }] },
     'rpc:admin_signalements': q => q.args.p_traites ? [] : [{ id: 1, cible: 'a1', cible_pseudo: 'alice.fit', motif: 'Pub ou spam', cree_le: new Date().toISOString() }, { id: 2, cible: 'a1', cible_pseudo: 'alice.fit', cree_le: new Date().toISOString() }],
     'table:erreurs_appli:compte': 5,
+    'table:abonnements:compte': { __404vide: true },
     'rpc:admin_apercu': { __erreur: { code: 'PGRST202', message: 'Could not find the function public.admin_apercu' } },
   }));
   const r = await page.evaluate(async () => {
@@ -916,16 +920,18 @@ test('Administration : « À surveiller » (tableau, signalements, erreurs, serv
 }));
 
 test('Administration : Serveur et SQL sonde chaque SQL sans rien modifier, signale le manquant et donne son SQL', () => avecAppli({}, async ({ page }) => {
-  await installerFauxAdmin(page, () => ({ 'table:erreurs_appli:compte': { __erreur: { code: '42P01', message: 'relation "public.erreurs_appli" does not exist' } } }));
+  await installerFauxAdmin(page, () => ({ 'table:erreurs_appli:compte': { __404vide: true } }));
   const r = await page.evaluate(async () => {
     window.__appels = [];
     ouvrirServeurAdmin();
     await verifierServeurAdmin(true);
+    await compterErreursAdmin();
+    const tuileErreurs = [document.getElementById('adm-v-erreurs').textContent, document.getElementById('adm-s-erreurs').textContent];
     const lignes = [...document.querySelectorAll('#feuille-admin-serveur .adm-sql')].map(d => [d.dataset.sql, d.querySelector('[data-etat-sql]').textContent]);
     const admin = document.querySelector('.adm-sql[data-sql="admin"] .ligne-reglage');
     admin.click();
     return { lignes, bilan: [document.querySelector('#serveur-bilan b').textContent, document.querySelector('#serveur-bilan small').textContent],
-      ouvert: admin.getAttribute('aria-expanded'), sql: document.getElementById('bloc-sql-admin').textContent,
+      ouvert: admin.getAttribute('aria-expanded'), sql: document.getElementById('bloc-sql-admin').textContent, tuileErreurs,
       ecritures: window.__appels.filter(a => a[0] === 'from' && a[2] !== 'select').length,
       rpc: [...new Set(window.__appels.filter(a => a[0] === 'rpc').map(a => a[1]))].sort() };
   });
@@ -936,7 +942,8 @@ test('Administration : Serveur et SQL sonde chaque SQL sans rien modifier, signa
   assert.match(r.sql, /create table if not exists public\.erreurs_appli/);
   assert.match(r.sql, /jambou592@gmail\.com/);
   assert.equal(r.ecritures, 0, 'le bilan ne modifie rien');
-  assert.deepEqual(r.rpc, ['admin_apercu', 'gymbro_direct', 'mon_statut_compte']);
+  assert.deepEqual(r.rpc, ['admin_signalements', 'gymbro_direct', 'mon_statut_compte']);
+  assert.deepEqual(r.tuileErreurs, ['—', 'SQL « Administration » à passer'], 'table absente : pas « 0 erreur »');
 }));
 
 test('Administration : signalements (motif, bio, « 2e fois ») ; classer et suspendre les traitent', () => avecAppli({}, async ({ page }) => {

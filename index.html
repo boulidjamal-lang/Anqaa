@@ -14940,6 +14940,14 @@ function copierSqlGymbro() {
   }
 }
 /* Table ou fonction absente : le SQL ci-dessus n'a pas encore été exécuté. */
+/* Compter sans rapatrier (requête « head ») une table absente : le serveur
+   répond 404 sans corps, et supabase-js en fait un succès vide (ni erreur,
+   ni compte). Un compte demandé mais pas reçu veut donc dire : table
+   introuvable. */
+function compteRecu(r) {
+  if (r && !r.error && r.count == null) return Object.assign({}, r, { error: { code: 'PGRST205', message: 'Could not find the table in the schema cache' } });
+  return r;
+}
 function estErreurSqlManquant(e) {
   const m = ((e && (e.message || e.code)) || '') + ' ' + ((e && e.code) || '');
   return /42P01|PGRST20[0-9]|42883|does not exist|could not find|schema cache|bucket not found/i.test(m);
@@ -18972,8 +18980,8 @@ async function compterAliments() {
     return;
   }
   try {
-    const { count, error } = await supa.from(nomTable)
-      .select('*', { count: 'exact', head: true });
+    const { count, error } = compteRecu(await supa.from(nomTable)
+      .select('*', { count: 'exact', head: true }));
     if (error) throw error;
     nbAlimentsBase = Number(count) || 0;
     if (n) {
@@ -29597,8 +29605,8 @@ async function compterSignalementsAdmin() {
 }
 async function compterErreursAdmin() {
   try {
-    const { count, error } = await supa.from('erreurs_appli').select('id', { count: 'exact', head: true })
-      .gte('cree_le', new Date(Date.now() - 7 * 864e5).toISOString()).is('regle_le', null);
+    const { count, error } = compteRecu(await supa.from('erreurs_appli').select('id', { count: 'exact', head: true })
+      .gte('cree_le', new Date(Date.now() - 7 * 864e5).toISOString()).is('regle_le', null));
     if (error) throw error;
     const n = Number(count) || 0;
     tuileVeilleAdmin('erreurs', String(n), n ? 'à regarder, sur 7 jours' : 'aucune sur 7 jours', '');
@@ -29618,7 +29626,7 @@ function estErreurReseauAdmin(e) {
 async function sonderAdmin(type, nom, args) {
   try {
     const r = type === 'table'
-      ? await supa.from(nom).select('*', { count: 'exact', head: true }).limit(1)
+      ? compteRecu(await supa.from(nom).select('*', { count: 'exact', head: true }))
       : await supa.rpc(nom, args || {});
     const e = r && r.error;
     if (!e) return 'ok';
@@ -29641,7 +29649,7 @@ const SONDES_SQL_ADMIN = {
   appstore: () => sonderAdmin('table', 'gymbros_signalements'),
   direct: () => sonderAdmin('rpc', 'gymbro_direct'),
   admin: async () => {
-    const [a, b] = await Promise.all([sonderAdmin('rpc', 'admin_apercu'), sonderAdmin('table', 'erreurs_appli')]);
+    const [a, b] = await Promise.all([sonderAdmin('rpc', 'admin_signalements', { p_traites: true }), sonderAdmin('table', 'erreurs_appli')]);
     return a === 'ok' && b === 'ok' ? 'ok' : (a === 'inconnu' || b === 'inconnu') ? 'inconnu' : 'ko';
   },
 };
@@ -30245,8 +30253,8 @@ async function compterAValiderAdmin() {
   adminAValiderDernier = Date.now();
   await fusionnerDoublonsAliments();
   try {
-    const { count, error } = await supa.from('aliments_partages').select('id', { count: 'exact', head: true })
-      .eq('valide', false).or('supprime.is.null,supprime.eq.false');
+    const { count, error } = compteRecu(await supa.from('aliments_partages').select('id', { count: 'exact', head: true })
+      .eq('valide', false).or('supprime.is.null,supprime.eq.false'));
     if (error) throw error;
     adminAValider.aliments = Math.max(0, Number(count) || 0);
   } catch (e) {
