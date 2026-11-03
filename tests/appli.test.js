@@ -2079,7 +2079,7 @@ test('Recettes Askēsis : une catégorie à la fois (celle du repas visé), la r
     res.diner = { puces: puces().filter(p => p.endsWith('*')), champ: champ.value, nb: liste().length };
     return res;
   });
-  assert.ok(r.total >= 650, String(r.total));
+  assert.ok(r.total >= 1700, String(r.total));
   Object.entries(r.parCategorie).forEach(([c, n]) => assert.ok(n >= 10, `${c} : ${n}`));
   assert.deepEqual(r.puces, ['Plats', 'Entrées et soupes', 'Petit-déjeuner', 'Collations*', 'Desserts', 'Accompagnements']);
   assert.deepEqual(r.collations, r.attendu, 'les collations, par ordre alphabétique');
@@ -2165,9 +2165,9 @@ test('Recettes traduites du Cookbook anglais : la fiche cite sa page, ses contri
   assert.equal(r.licence, 'https://creativecommons.org/licenses/by-sa/4.0/deed.fr');
   assert.deepEqual(r.lignes.slice(0, 4), ["1,5\u00a0kg d'agneau", "3 gousses d'ail", '120\u00a0ml de jus de citron', '2 oignons (300\u00a0g)']);
   assert.ok(r.etapes >= 5, String(r.etapes));
-  assert.ok(r.nbEn >= 240, String(r.nbEn));
+  assert.ok(r.nbEn >= 1280, String(r.nbEn));
   assert.equal(r.sansSource, 0);
-  assert.deepEqual(r.categories, ['accompagnement', 'dessert', 'entree', 'petit-dej', 'plat']);
+  assert.deepEqual(r.categories, ['accompagnement', 'collation', 'dessert', 'entree', 'petit-dej', 'plat']);
   assert.deepEqual(r.sansFamille, []);
   assert.deepEqual(r.familles, ['🦪', '🦪', '🫘', '🥗', '🍺']);
 }));
