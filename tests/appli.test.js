@@ -1823,6 +1823,8 @@ test('Coach du jour : une analyse complète (programme, séance et record, récu
     const exos = toutesLesExercices();
     window.__pecs = exos.filter(e => e.groupe === 'pectoraux').slice(0, 2);
     window.__quads = exos.filter(e => e.groupe === 'quadriceps').slice(0, 2);
+    // D'autres exercices de quadriceps que ceux de « Bas » : une vraie séance libre, pas le programme.
+    window.__quadsLibres = exos.filter(e => e.groupe === 'quadriceps').slice(2, 4);
     const prog = (id, nom, liste) => ({ id, nom, maj: Date.now(), exercices: liste.map(e => ({ exerciceId: e.id, nom: e.nom, series: [{ poids: 40, reps: 10 }, { poids: 40, reps: 10 }, { poids: 40, reps: 10 }] })) });
     musculationProgrammes.push(prog('pa', 'Haut', window.__pecs), prog('pb', 'Bas', window.__quads));
     window.__seance = (date, programmeId, exos, poids) => {
@@ -1872,7 +1874,7 @@ test('Coach du jour : une analyse complète (programme, séance et record, récu
 
   // Jeudi 10 h : la veille, une séance libre a chargé les quadriceps ; la prochaine du programme (« Bas ») attendra.
   const jeudi = await le('2026-11-05T10:00:00', () => {
-    window.__seance('2026-11-04', 'libre', window.__quads, 80);
+    window.__seance('2026-11-04', 'libre', window.__quadsLibres, 80);
     const j = getDay(todayStr()), t = computeTargets(j, todayStr());
     j.meals.breakfast = [{ name: 'Omelette', grams: 300, kcal: 500, p: Math.round(t.protein * 0.4), c: 5, f: 30 }]; saveData(todayStr());
   });
@@ -2022,7 +2024,7 @@ test('Séances prévues : la séance du soir comptée dès le matin, remplacée 
   assert.equal(journee.cache, false);
   assert.equal(journee.lignes.length, 3);
   assert.match(journee.lignes[0], new RegExp(`^${mer.prevue.nom} \\+${mer.prevue.kcal}\\skcal$`));
-  assert.match(journee.repere, /^Repérés sur tes 6 dernières semaines\s:\slundi, mercredi et vendredi\.$/);
+  assert.match(journee.repere, /^Repérés sur tes 6 dernières semaines\s:\slundi \(Jambes\), mercredi \(Push\) et vendredi \(Pull\)\.$/);
   assert.match(journee.detail, new RegExp(`Séance prévue \\(${mer.prevue.nom}, estimée\\)\\+ ${mer.prevue.kcal} kcal`));
   assert.deepEqual(journee.apres, { exception: false, prevue: false, bouton: true, heros: true });
   assert.deepEqual(journee.retour, { exceptions: null, prevue: true }, 'revenir à la règle efface l\'exception');
@@ -2094,6 +2096,76 @@ test('Séances prévues : la séance du soir comptée dès le matin, remplacée 
   await page.clock.setFixedTime(new Date('2026-11-20T09:00:00'));
   const pause = await page.evaluate(() => ({ jours: habitudesSeance().jours, pause: habitudesSeance().pause, prevues: prochainesSeances(7).length }));
   assert.deepEqual(pause, { jours: [], pause: true, prevues: 0 });
+}));
+
+test('Séances prévues : chaque jour son programme, appris de tes séances (séances libres et programmes recréés reconnus), et ton ordre réel plutôt que celui de ta liste', () => avecAppli({}, async ({ page }) => {
+  // Un split fixe sur 6 semaines : lundi Pecs Triceps (en séance libre), mercredi Jambes, jeudi Épaules,
+  // samedi matin Dos Biceps (un programme supprimé puis recréé). La liste, elle, est dans un autre ordre.
+  // L'ancien calcul (le suivant dans la liste après la dernière séance reconnue, Épaules) annonçait Pecs Triceps mercredi.
+  await page.clock.setFixedTime(new Date('2026-11-03T20:00:00'));
+  const r = await page.evaluate(() => {
+    // Des exercices de groupes distincts : aucun muscle n'est « fatigué » d'une séance à la suivante.
+    const exos = toutesLesExercices(), de = (g, n) => exos.filter(e => e.groupe === g).slice(0, n);
+    const prog = (id, nom, liste) => ({ id, nom, maj: Date.now(), exercices: liste.map(e => ({ exerciceId: e.id, nom: e.nom, series: [0, 1, 2].map(() => ({ poids: 40, reps: 10 })) })) });
+    musculationProgrammes.push(prog('pt', 'Pecs Triceps', [...de('pectoraux', 2), ...de('triceps', 2)]), prog('db', 'Dos Biceps', [...de('dos', 2), ...de('biceps', 2)]),
+      prog('jb', 'Jambes', [...de('quadriceps', 2), ...de('ischios', 2)]), prog('ep', 'Épaules', de('epaules', 4)));
+    const plan = { 1: ['pt', null, 'Séance libre', 3, '19:00'], 3: ['jb', 'jb', 'Jambes', 4, '19:00'], 4: ['ep', 'ep', 'Épaules', 4, '19:00'], 6: ['db', 'ancien-db', 'Dos Biceps', 4, '10:30'] };
+    const auj = todayStr();
+    for (let d = shiftDate(auj, -42); d < auj; d = shiftDate(d, 1)) {
+      const x = plan[dateLocale(d).getDay()];
+      if (!x) continue;
+      const [pid, programmeId, programmeNom, nbExos, heure] = x, p = musculationProgrammes.find(q => q.id === pid);
+      const debut = new Date(d + 'T' + heure + ':00').getTime();
+      musculationHistorique.unshift({ id: 'h' + d, programmeId, programmeNom, date: d, debut, fin: debut + 3600e3, dureeMin: 60, maj: debut,
+        exercices: p.exercices.slice(0, nbExos).map(e => ({ exerciceId: e.exerciceId, nom: e.nom, series: e.series.map(() => ({ poids: 40, reps: 10, fait: true })) })) });
+    }
+    sauvegarderHistorique();
+    currentDate = auj; allerA('repas'); renderApp();
+    const j = getDay(auj), t = computeTargets(j, auj);
+    const lundi = prochainesSeances(7).find(x => x.date === '2026-11-09');
+    ouvrirDepense();
+    const note = document.querySelector('#bloc-seances-prevues .sp-note:last-child').textContent;
+    fermerModal('depense-modal');
+    return {
+      prevues: prochainesSeances(7).map(x => [x.date, x.nom, momentSeance(x)]),
+      sdj: programmeSuggere().p.nom,
+      repos: (analyseCoach(j, sumMeals(j), t).find(c => c.cle === 'repos') || {}).texte,
+      note, lundi: [lundi.origine, lundi.nbBase, lundi.series]
+    };
+  });
+  assert.deepEqual(r.prevues, [
+    ['2026-11-04', 'Jambes', 'demain soir'], ['2026-11-05', 'Épaules', 'jeudi soir'],
+    ['2026-11-07', 'Dos Biceps', 'samedi matin'], ['2026-11-09', 'Pecs Triceps', 'lundi soir']]);
+  assert.equal(r.sdj, 'Jambes', 'la séance du jour suit ton ordre réel : après Pecs Triceps, Jambes');
+  assert.match(r.repos.replace(/<[^>]+>/g, ''), /^Jour de repos aujourd'hui\s:\sta prochaine séance, Jambes, est prévue demain soir\.$/);
+  assert.match(r.note, /^Repérés sur tes 5 dernières semaines\s:\slundi \(Pecs Triceps\), mercredi \(Jambes\), jeudi \(Épaules\) et samedi \(Dos Biceps\)\.$/);
+  assert.deepEqual(r.lundi, ['historique', 3, 9], 'les séances libres du lundi servent à estimer Pecs Triceps (3 exercices × 3 séries)');
+
+  // Mercredi matin : la séance du jour et la séance prévue, c'est Jambes.
+  await page.clock.setFixedTime(new Date('2026-11-04T09:00:00'));
+  const mer = await page.evaluate(() => ({ sdj: programmeSuggere().p.nom, prevue: computeTargets(getDay(todayStr()), todayStr()).seancePrevue.nom }));
+  assert.deepEqual(mer, { sdj: 'Jambes', prevue: 'Jambes' });
+
+  // Une rotation qui ne tombe pas sur les mêmes jours (4 programmes, 3 séances par semaine) : ton ordre réel
+  // (A, C, B, D) plutôt que celui de la liste (A, B, C, D).
+  const rotation = await page.evaluate(() => {
+    musculationProgrammes.length = 0; musculationHistorique.length = 0;
+    const exos = toutesLesExercices();
+    ['A', 'B', 'C', 'D'].forEach((n, k) => musculationProgrammes.push({ id: 'r' + n, nom: n, maj: Date.now(),
+      exercices: exos.slice(20 + k * 3, 23 + k * 3).map(e => ({ exerciceId: e.id, nom: e.nom, series: [0, 1, 2].map(() => ({ poids: 40, reps: 10 })) })) }));
+    const ordre = ['A', 'C', 'B', 'D'], auj = todayStr();
+    let i = 0;
+    for (let d = shiftDate(auj, -44); d < auj; d = shiftDate(d, 1)) {
+      if (![1, 3, 5].includes(dateLocale(d).getDay())) continue;
+      const nom = ordre[i++ % 4], p = musculationProgrammes.find(q => q.nom === nom), debut = new Date(d + 'T18:00:00').getTime();
+      musculationHistorique.unshift({ id: 'r' + d, programmeId: p.id, programmeNom: p.nom, date: d, debut, fin: debut + 3600e3, dureeMin: 60, maj: debut,
+        exercices: p.exercices.map(e => ({ exerciceId: e.exerciceId, nom: e.nom, series: e.series.map(() => ({ poids: 40, reps: 10, fait: true })) })) });
+    }
+    sauvegarderHistorique();
+    return { derniere: musculationHistorique[0].programmeNom, prevues: prochainesSeances(7).map(x => x.nom) };
+  });
+  const ordre = ['A', 'C', 'B', 'D'], k = ordre.indexOf(rotation.derniere);
+  assert.deepEqual(rotation.prevues, [1, 2, 3].map(n => ordre[(k + n) % 4]));
 }));
 
 test('Coach du jour : une recette pour le repas à venir, qui tient dans le reste du jour et suit ce que tu manges', () => avecAppli({}, async ({ page }) => {
