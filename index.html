@@ -6710,12 +6710,14 @@
             notée. On retire ton propre métabolisme de repos (âge, sexe, taille, poids
             ou masse maigre) sur la durée de la séance : l'heure de sport remplace une
             heure de repos déjà comptée, elle ne s'y ajoute pas.
-            Pour une séance de musculation trackée dans l'onglet Activité, le temps de
-            repos entre les séries n'est pas compté comme de l'effort (il se passe à
-            un rythme proche du repos, déjà compté ailleurs) : seul le nombre de
-            séries réellement faites compte, à raison d'environ 40 secondes d'effort
-            par série. Une séance de musculation ajoutée à la main dans Activité
-            (sans détail des séries) reste calculée sur sa durée totale déclarée.
+            Pour une séance de musculation suivie dans l'onglet Activité, on compte
+            3,5 MET (le chiffre du Compendium pour une séance de plusieurs exercices
+            de 8 à 15 répétitions) sur toute la séance, repos entre les séries compris :
+            entre deux séries, ton corps récupère et dépense bien plus qu'au repos.
+            La durée comptée suit tes séries (entre 2 et 4 minutes par série faite) :
+            une séance restée ouverte ne compte pas plus. Une séance de musculation
+            ajoutée à la main dans Activité (sans détail des séries) reste calculée
+            sur sa durée totale déclarée.
           </p>
         </details>
       </div>
@@ -7788,20 +7790,22 @@ const MEAL_ICONS = { breakfast: '<svg class="icone-ui" viewBox="0 0 24 24" fill=
    = 336 kcal nettes, au lieu de 420 kcal auparavant.
    --------------------------------------------------------------------- */
 const SPORT_MET = { musculation: 5.0, course: 9.0, natation: 7.0, cyclisme: 7.5, hiit: 8.0, foot: 8.0, marche_rapide: 4.5, rameur: 7.0 };
-/* Pour une séance de musculation trackée dans l'appli (donc dont on connaît
-   le nombre de séries réellement faites), le temps total entre le début et
-   la fin inclut le repos entre les séries — souvent 60 à 70 % de la durée.
-   Ce repos se passe debout/assis, à un rythme proche du métabolisme de base
-   déjà compté ailleurs : l'inclure dans une durée à MET 5,0 (une moyenne
-   pensée pour une séance "au rythme habituel", repos compris) surestimait
-   la dépense. On calcule donc plutôt le temps actif (nombre de séries x
-   une durée moyenne par série, exécution + mise en place) avec le MET d'un
-   effort vigoureux (le repos n'étant plus dans la durée, l'effort qui reste
-   l'est réellement). Sans nombre de séries connu (séance non trackée,
-   saisie à la main dans Activité), on retombe sur l'ancien calcul basé sur
-   la durée totale saisie. */
-const SECONDES_PAR_SERIE_MUSCU = 40;
-const MET_MUSCULATION_ACTIF = 6.0;
+/* Séance de musculation suivie dans l'appli (séries réellement faites
+   connues) : 3,5 MET sur toute la séance, repos entre les séries compris.
+   C'est le chiffre du Compendium (2024, code 02054 : plusieurs exercices,
+   8 à 15 répétitions), mesuré sur des séances entières. Entre deux séries,
+   le corps ne revient pas au repos : il récupère (souffle, cœur, réserves
+   des muscles) et dépense bien plus qu'au métabolisme de base.
+   L'ancien calcul ne comptait que 40 s d'effort par série à 6 MET, le
+   repos valant zéro : une séance de 18 séries en 70 min donnait 88 kcal,
+   quand les séances mesurées en laboratoire donnent plutôt 200 à 300 kcal.
+   La durée comptée suit les séries : au plus 4 min par série faite (une
+   séance restée ouverte, une longue pause ne comptent pas), au moins 2 min
+   (une séance très dense, en supersets, coûte plus à la minute). Sans
+   durée connue : 3 min par série. Sans nombre de séries (séance ajoutée à
+   la main dans Activité), on garde le calcul sur la durée déclarée. */
+const MET_MUSCULATION_SEANCE = 3.5;
+const MINUTES_PAR_SERIE_MUSCU = { min: 2, max: 4, sansDuree: 3 };
 /* Intensité notée sur une séance cardio (1 facile, 2 modérée, 3 intense) :
    le MET du Compendium correspond à un rythme « habituel », on l'ajuste
    d'environ 20 % vers le bas ou le haut. Sans intensité (anciennes
@@ -7846,7 +7850,9 @@ function kcalSeance(type, minutes, poids, seriesFaites, intensite, options) {
   const reposParMin = Number(options.bmr) > 0 ? options.bmr / 1440 : 3.5 * poids / 200;
   const net = (met, min) => Math.max(0, met * 3.5 * poids / 200 - reposParMin) * min;
   if (type === 'musculation' && Number(seriesFaites) > 0) {
-    return net(MET_MUSCULATION_ACTIF, (Number(seriesFaites) * SECONDES_PAR_SERIE_MUSCU) / 60);
+    const n = Number(seriesFaites), m = Number(minutes);
+    const { min, max, sansDuree } = MINUTES_PAR_SERIE_MUSCU;
+    return net(MET_MUSCULATION_SEANCE, m > 0 ? Math.min(Math.max(m, n * min), n * max) : n * sansDuree);
   }
   if (!SPORT_MET[type]) return 0;
   const met = metSelonVitesse(type, minutes, options.distance)

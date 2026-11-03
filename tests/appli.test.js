@@ -164,6 +164,25 @@ test('une séance de musculation se fait et se termine', () => avecAppli({}, asy
   assert.deepEqual(r, { enCours: false, historique: 1, seanceDuJour: 1 });
 }));
 
+test('musculation : une séance suivie compte toute sa durée, repos compris (3,5 MET), entre 2 et 4 min par série', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const poids = 80, bmr = 1800;
+    const k = (min, series) => kcalSeance('musculation', min, poids, series, null, { bmr });
+    return {
+      parMin: 3.5 * 3.5 * poids / 200 - bmr / 1440,
+      normale: k(70, 18), ouverte: k(180, 18), dense: k(20, 18), sansDuree: k(0, 18),
+      aLaMain: kcalSeance('musculation', 60, poids, 0, null, { bmr })
+    };
+  });
+  // 18 séries en 70 min : toute la durée, soit 200 à 300 kcal comme les séances mesurées (l'ancien calcul : 88).
+  assert.equal(Math.round(r.normale), Math.round(r.parMin * 70));
+  assert.ok(r.normale > 200 && r.normale < 300, `séance complète : ${Math.round(r.normale)} kcal`);
+  assert.equal(Math.round(r.ouverte), Math.round(r.parMin * 18 * 4), 'restée ouverte : 4 min par série au plus');
+  assert.equal(Math.round(r.dense), Math.round(r.parMin * 18 * 2), 'en supersets : 2 min par série au moins');
+  assert.equal(Math.round(r.sansDuree), Math.round(r.parMin * 18 * 3), 'sans durée : 3 min par série');
+  assert.equal(Math.round(r.aLaMain), Math.round((5 * 3.5 * 80 / 200 - 1800 / 1440) * 60), 'ajoutée à la main : sa durée déclarée, comme avant');
+}));
+
 async function glisser(page, selecteur, dx) {
   // Au milieu de l'écran, comme un utilisateur qui fait défiler : pas sous la barre d'onglets.
   await page.locator(selecteur).first().evaluate(el => el.scrollIntoView({ block: 'center' }));
