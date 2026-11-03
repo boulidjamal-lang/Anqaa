@@ -2318,11 +2318,13 @@ test('Recettes Askēsis : une catégorie à la fois (celle du repas visé), la r
     const champ = document.getElementById('choix-recette-recherche');
     const compte = () => document.getElementById('choix-recette-compte').textContent;
     const chercher = q => { champ.value = q; champ.dispatchEvent(new Event('input', { bubbles: true })); return liste(); };
-    const res = { total: recettesAskesis().length, parCategorie: Object.fromEntries(['plat', 'entree', 'petit-dej', 'collation', 'dessert', 'accompagnement'].map(c => [c, de(c).length])),
+    const res = { total: recettesAskesis().length, parCategorie: Object.fromEntries(['plat', 'entree', 'petit-dej', 'collation', 'dessert', 'accompagnement', 'pain', 'sauce', 'boisson'].map(c => [c, de(c).length])),
       puces: puces(), collations: liste(), attendu: de('collation').sort((a, b) => a.localeCompare(b, 'fr')), compte: compte() };
     [...document.querySelectorAll('#choix-recette-categories button')].find(b => b.textContent === 'Desserts').click();
     res.desserts = liste().length; res.pucesDesserts = puces().filter(p => p.endsWith('*'));
     res.lentilles = chercher('LENTILLES'); res.pucesRecherche = puces().filter(p => p.endsWith('*')); res.compteRecherche = compte();
+    // Le nom d'abord, puis les ingrédients : pour chaque résultat, [dans le nom, dans les ingrédients].
+    res.lentillesOu = res.lentilles.map(n => { const x = recettesAskesis().find(y => y.nom === n); return [/lentilles/i.test(n), x.ingredients.some(i => /lentilles/i.test(i.nom)) || (x.lignes || []).some(l => /lentilles/i.test(l))]; });
     res.metas = [...document.querySelectorAll('#choix-recette-askesis .off-meta')].map(m => m.textContent);
     res.oeufs = chercher('oeufs');
     res.aucune = (chercher('zzzz'), document.getElementById('choix-recette-askesis').textContent);
@@ -2335,17 +2337,19 @@ test('Recettes Askēsis : une catégorie à la fois (celle du repas visé), la r
   });
   assert.ok(r.total >= 1700, String(r.total));
   Object.entries(r.parCategorie).forEach(([c, n]) => assert.ok(n >= 10, `${c} : ${n}`));
-  assert.deepEqual(r.puces, ['Plats', 'Entrées et soupes', 'Petit-déjeuner', 'Collations*', 'Desserts', 'Accompagnements']);
+  assert.deepEqual(r.puces, ['Toutes', 'Plats', 'Entrées et soupes', 'Petit-déjeuner', 'Collations*', 'Desserts', 'Accompagnements', 'Pains', 'Sauces et tartinades', 'Boissons']);
   assert.deepEqual(r.collations, r.attendu, 'les collations, par ordre alphabétique');
   assert.equal(r.compte, r.collations.length + ' recettes');
   assert.deepEqual(r.pucesDesserts, ['Desserts*']);
   assert.equal(r.desserts, r.parCategorie.dessert);
   // La recherche porte sur toutes les catégories ; chaque résultat dit la sienne.
-  assert.ok(r.lentilles.length >= 4 && r.lentilles.every(n => /lentilles/i.test(n)), r.lentilles.join(' | '));
+  const parNom = r.lentillesOu.findIndex(([nom]) => !nom);
+  assert.ok(parNom >= 4, 'les recettes aux lentilles dans leur nom en tête : ' + r.lentilles.join(' | '));
+  assert.ok(r.lentillesOu.slice(parNom).length >= 3 && r.lentillesOu.slice(parNom).every(([nom, ingr]) => !nom && ingr), 'puis celles qui en contiennent');
   assert.deepEqual(r.pucesRecherche, [], 'aucune catégorie choisie pendant une recherche');
   assert.equal(r.compteRecherche, r.lentilles.length + ' recettes trouvées');
-  r.metas.forEach(m => assert.match(m, /^(Plat|Entrée ou soupe|Petit-déjeuner|Collation|Dessert|Accompagnement) · \d+ kcal · P \d+ g · G \d+ g · L \d+ g — par portion$/, m));
-  assert.ok(r.oeufs.length >= 5 && r.oeufs.every(n => /œufs|oeufs/i.test(n)), 'œ cherché comme oe : ' + r.oeufs.join(' | '));
+  r.metas.forEach(m => assert.match(m, /^(Plat|Entrée ou soupe|Petit-déjeuner|Collation|Dessert|Accompagnement|Pain|Sauce ou tartinade|Boisson) · \d+ kcal · P \d+ g · G \d+ g · L \d+ g — par portion$/, m));
+  assert.ok(r.oeufs.length >= 5 && r.oeufs.slice(0, 5).every(n => /œufs|oeufs/i.test(n)), 'œ cherché comme oe : ' + r.oeufs.join(' | '));
   assert.match(r.aucune, /Aucune recette ne correspond/);
   assert.equal(r.police, '16px', 'pas de zoom de l\'iPhone sur le champ');
   assert.equal(r.imbriques, 0);
@@ -2421,9 +2425,69 @@ test('Recettes traduites du Cookbook anglais : la fiche cite sa page, ses contri
   assert.ok(r.etapes >= 5, String(r.etapes));
   assert.ok(r.nbEn >= 1280, String(r.nbEn));
   assert.equal(r.sansSource, 0);
-  assert.deepEqual(r.categories, ['accompagnement', 'collation', 'dessert', 'entree', 'petit-dej', 'plat']);
+  assert.deepEqual(r.categories, ['accompagnement', 'boisson', 'collation', 'dessert', 'entree', 'pain', 'petit-dej', 'plat', 'sauce']);
   assert.deepEqual(r.sansFamille, []);
   assert.deepEqual(r.familles, ['🦪', '🦪', '🫘', '🥗', '🍺']);
+}));
+
+test('Recettes Askēsis : bien rangées, affinages cumulables (protéinées, dans mon reste, végétariennes), tri et recherche dans les ingrédients, gardés d\'une fois sur l\'autre', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    // Des recettes qui étaient mal rangées.
+    const cat = n => (recettesAskesis().find(x => x.nom === n) || {}).categorie;
+    const rangees = ['Moussaka grecque', 'Guacamole', 'Pain de maïs', "Smoothie à l'orange", 'Croissants', 'Houmous et crudités', 'Riz basmati au citron', 'Soupe de lentilles corail et carottes'].map(cat);
+    // Il reste 600 kcal aujourd'hui.
+    const j = getDay(currentDate = todayStr()), t = computeTargets(j, currentDate);
+    j.meals.lunch = [{ name: 'Repas', grams: 500, kcal: t.target - 600, p: 60, c: 100, f: 30 }]; saveData(currentDate);
+    allerA('repas'); renderApp();
+    ouvrirFeuilleRepas('dinner'); depuisFeuille('recette');
+    const noms = () => [...document.querySelectorAll('#choix-recette-askesis .off-suggestion .off-nom')].map(b => b.textContent);
+    const valeurs = () => [...document.querySelectorAll('#choix-recette-askesis .off-meta')].map(m => { const x = m.textContent.match(/(\d+) kcal · P (\d+) g/); return [Number(x[1]), Number(x[2])]; });
+    const affinage = debut => [...document.querySelectorAll('#choix-recette-affinages button')].find(b => b.textContent.startsWith(debut));
+    const tri = libelle => [...document.querySelectorAll('#choix-recette-tri button')].find(b => b.textContent === libelle);
+    const res = { rangees, affinages: [...document.querySelectorAll('#choix-recette-affinages button')].map(b => b.textContent), plats: noms().length };
+    affinage('Protéinées').click();
+    res.proteinees = { nb: noms().length, min: Math.min(...valeurs().map(v => v[1])), presse: affinage('Protéinées').getAttribute('aria-pressed') };
+    affinage('Mon reste').click();
+    res.reste = { nb: noms().length, max: Math.max(...valeurs().map(v => v[0])) };
+    affinage('Végétariennes').click();
+    const animal = /\b(poulet|bœuf|boeuf|porc|veau|agneau|dinde|canard|jambon|lardons|bacon|saucisses?|thon|saumon|cabillaud|crevettes|poisson|moules)\b/i;
+    res.vege = { nb: noms().length, avecAnimal: noms().filter(n => recettesAskesis().find(x => x.nom === n).ingredients.some(i => animal.test(i.nom))) };
+    // Le tri : les plus protéinées d'abord, puis les moins caloriques.
+    affinage('Végétariennes').click(); affinage('Mon reste').click();
+    tri('Protéines').click();
+    const p = valeurs().map(v => v[1]);
+    res.triP = p.every((x, i) => !i || x <= p[i - 1]);
+    tri('kcal').click();
+    const k = valeurs().map(v => v[0]);
+    res.triK = k.every((x, i) => !i || x >= k[i - 1]);
+    // « Toutes » : chaque recette dit sa catégorie.
+    [...document.querySelectorAll('#choix-recette-categories button')].find(b => b.textContent === 'Toutes').click();
+    res.toutes = { nb: noms().length, meta: document.querySelector('#choix-recette-askesis .off-meta').textContent };
+    // Gardés à la prochaine ouverture (sur cet appareil).
+    fermerFeuilles(); ouvrirFeuilleRepas('lunch'); depuisFeuille('recette');
+    res.gardes = { proteinees: affinage('Protéinées').getAttribute('aria-pressed'), tri: tri('kcal').getAttribute('aria-pressed'), memo: JSON.parse(localStorage.getItem('recettesFiltres')) };
+    affinage('Protéinées').click(); tri('A–Z').click();
+    // Une recherche sur un ingrédient : « tofu » trouve aussi les recettes au tofu qui ne le disent pas dans leur nom.
+    const champ = document.getElementById('choix-recette-recherche');
+    champ.value = 'tofu'; champ.dispatchEvent(new Event('input', { bubbles: true }));
+    res.tofu = noms().map(n => { const x = recettesAskesis().find(y => y.nom === n); return [/tofu/i.test(n), x.ingredients.some(i => /tofu/i.test(i.nom)) || (x.lignes || []).some(l => /tofu/i.test(l))]; });
+    return res;
+  });
+  assert.deepEqual(r.rangees, ['plat', 'sauce', 'pain', 'boisson', 'petit-dej', 'collation', 'accompagnement', 'entree']);
+  assert.deepEqual(r.affinages, ['Protéinées ≥\u00a020\u00a0g', 'Mon reste ≤\u00a0600\u00a0kcal', 'Végétariennes']);
+  assert.ok(r.proteinees.nb > 50 && r.proteinees.nb < r.plats, `${r.proteinees.nb} sur ${r.plats}`);
+  assert.ok(r.proteinees.min >= 20);
+  assert.equal(r.proteinees.presse, 'true');
+  assert.ok(r.reste.nb > 0 && r.reste.nb < r.proteinees.nb && r.reste.max <= 600, JSON.stringify(r.reste));
+  assert.ok(r.vege.nb > 0 && r.vege.nb < r.reste.nb, JSON.stringify(r.vege));
+  assert.deepEqual(r.vege.avecAnimal, []);
+  assert.equal(r.triP, true);
+  assert.equal(r.triK, true);
+  assert.ok(r.toutes.nb > r.proteinees.nb);
+  assert.match(r.toutes.meta, /^(Plat|Entrée ou soupe|Petit-déjeuner|Collation|Dessert|Accompagnement|Pain|Sauce ou tartinade|Boisson) · /);
+  assert.deepEqual(r.gardes, { proteinees: 'true', tri: 'true', memo: { tri: 'kcal', proteinees: true, reste: false, vege: false } });
+  const parNom = r.tofu.findIndex(([nom]) => !nom);
+  assert.ok(parNom >= 3 && r.tofu.slice(parNom).length >= 1 && r.tofu.slice(parNom).every(([nom, ingr]) => !nom && ingr), JSON.stringify(r.tofu));
 }));
 
 test('Repas du jour : « 62/1 821 kcal » et la roulette Pas / Hydratation / Poids', () => avecAppli({}, async ({ page }) => {

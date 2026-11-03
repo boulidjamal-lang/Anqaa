@@ -4214,6 +4214,17 @@
     html:root body .recette-recherche { margin-bottom: 10px; }
     html:root body .recette-categories { margin: 0 0 8px; padding: 2px 2px 4px; }
     html:root body .recette-compte { margin: 0 2px 8px; font-size: .74rem; }
+    /* Affinages cumulables : des puces au contour, pleines quand elles sont actives. */
+    html:root body .recette-affinages { flex-wrap: wrap; overflow: visible; margin: -2px 0 8px; padding: 2px 2px 4px; }
+    html:root body .recette-affinages button { display: inline-flex; align-items: center; gap: 6px; background: transparent; box-shadow: inset 0 0 0 1.5px var(--verre-brd); }
+    html:root body .recette-affinages button[aria-pressed="true"] { background: var(--inv); color: var(--sur-inv); box-shadow: none; }
+    html:root body .recette-affinages button:disabled { opacity: .45; }
+    html:root body .recette-affinages .icone-ui { width: 14px; height: 14px; flex: none; color: currentColor; }
+    html:root body .recette-compte-ligne { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 2px 8px; }
+    html:root body .recette-compte-ligne .recette-compte { margin: 0; min-width: 0; }
+    html:root body .recette-tri { display: inline-flex; flex: none; padding: 3px; gap: 2px; border-radius: 99px; background: var(--s1); box-shadow: var(--ombre-carte); }
+    html:root body .recette-tri button { border: 0; border-radius: 99px; padding: 6px 10px; background: transparent; color: var(--text-muted); font: inherit; font-size: .74rem; font-weight: 700; cursor: pointer; }
+    html:root body .recette-tri button[aria-pressed="true"] { background: var(--inv); color: var(--sur-inv); }
     html:root body #choix-recette-askesis { max-height: 46vh; overflow-y: auto; }
     html:root body .recette-macros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 4px 0 10px; }
     html:root body .recette-macros > div { padding: 10px 6px; border-radius: 14px; background: var(--s2); text-align: center; }
@@ -5525,9 +5536,14 @@
     <!-- Recettes livrées avec l'appli (voir recettesAskesis) : plats de
          Wikilivres et recettes protéinées, valeurs CIQUAL. -->
     <h4 class="recette-section">Recettes Askēsis</h4>
-    <label class="adm-recherche recette-recherche"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg><input type="search" id="choix-recette-recherche" placeholder="Chercher une recette…" autocomplete="off" oninput="renderBibliothequeRecettes()" aria-label="Chercher une recette"></label>
+    <label class="adm-recherche recette-recherche"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg><input type="search" id="choix-recette-recherche" placeholder="Une recette, un ingrédient…" autocomplete="off" oninput="renderBibliothequeRecettes()" aria-label="Chercher une recette ou un ingrédient"></label>
     <div class="adm-filtres recette-categories" id="choix-recette-categories" role="group" aria-label="Catégories de recettes"></div>
-    <p class="note recette-compte" id="choix-recette-compte" aria-live="polite"></p>
+    <!-- Affinages cumulables (voir AFFINAGES_RECETTES) et tri de la liste. -->
+    <div class="adm-filtres recette-affinages" id="choix-recette-affinages" role="group" aria-label="Affiner les recettes"></div>
+    <div class="recette-compte-ligne">
+      <p class="note recette-compte" id="choix-recette-compte" aria-live="polite"></p>
+      <div class="recette-tri" id="choix-recette-tri" role="group" aria-label="Trier les recettes"><button type="button" onclick="choisirTriRecettes('nom')" aria-label="Trier par nom">A–Z</button><button type="button" onclick="choisirTriRecettes('proteines')" aria-label="Les plus protéinées d'abord">Protéines</button><button type="button" onclick="choisirTriRecettes('kcal')" aria-label="Les moins caloriques d'abord">kcal</button></div>
+    </div>
     <div id="choix-recette-askesis" class="carte-liste"></div>
   </div>
 </div>
@@ -11746,11 +11762,58 @@ function ajouterFicheRecette() {
   fermerFeuilles();
 }
 // « Recettes Askēsis » dans la feuille Recette : une catégorie à la fois
-// (celle du repas visé en ouvrant), une recherche porte sur toutes.
-const CATEGORIES_RECETTES = [['plat', 'Plats', 'plat'], ['entree', 'Entrées et soupes', 'entrée ou soupe'], ['petit-dej', 'Petit-déjeuner', 'petit-déjeuner'],
-  ['collation', 'Collations', 'collation'], ['dessert', 'Desserts', 'dessert'], ['accompagnement', 'Accompagnements', 'accompagnement']];
+// (celle du repas visé en ouvrant, ou toutes), des affinages qui se cumulent
+// et un tri ; une recherche porte sur toutes les catégories, sur le nom et
+// sur les ingrédients.
+const CATEGORIES_RECETTES = [['toutes', 'Toutes', ''], ['plat', 'Plats', 'plat'], ['entree', 'Entrées et soupes', 'entrée ou soupe'],
+  ['petit-dej', 'Petit-déjeuner', 'petit-déjeuner'], ['collation', 'Collations', 'collation'], ['dessert', 'Desserts', 'dessert'],
+  ['accompagnement', 'Accompagnements', 'accompagnement'], ['pain', 'Pains', 'pain'], ['sauce', 'Sauces et tartinades', 'sauce ou tartinade'],
+  ['boisson', 'Boissons', 'boisson']];
 let categorieRecettes = 'plat';
 function categorieDuRepas(repas) { return { breakfast: 'petit-dej', snack: 'collation' }[repas] || 'plat'; }
+/* Les affinages, cumulables, et le tri : gardés d'une ouverture à l'autre
+   (sur cet appareil). « Protéinées » : au moins 20 g par portion ; « Dans
+   mon reste » : une portion qui tient dans les calories qui restent
+   aujourd'hui ; « Végétariennes » : ni viande, ni poisson, ni fruits de mer. */
+const PROTEINES_RECETTE_MIN = 20;
+const AFFINAGES_RECETTES = ['proteinees', 'reste', 'vege'];
+let affinagesRecettes = { proteinees: false, reste: false, vege: false }, triRecettes = 'nom';
+try {
+  const memo = JSON.parse(localStorage.getItem('recettesFiltres') || 'null');
+  if (memo && typeof memo === 'object') {
+    AFFINAGES_RECETTES.forEach(k => { affinagesRecettes[k] = memo[k] === true; });
+    if (['nom', 'proteines', 'kcal'].includes(memo.tri)) triRecettes = memo.tri;
+  }
+} catch (e) {}
+function memoriserFiltresRecettes() {
+  try { localStorage.setItem('recettesFiltres', JSON.stringify(Object.assign({ tri: triRecettes }, affinagesRecettes))); } catch (e) {}
+}
+// Viande, poisson ou fruits de mer parmi les ingrédients ; et, dans la recette
+// écrite, un bouillon, un fond ou une sauce qui en contiennent.
+const RE_VIANDE_POISSON = /\b(boeuf|porc|veau|agneau|mouton|poulet|poule|coq|dinde|canard|magrets?|oie|caille|pintade|lapin|bison|gibier|chevreuil|sanglier|jambon|lard|lardons?|bacon|saindoux|pancetta|guanciale|prosciutto|coppa|chorizo|salami|pepperoni|saucisses?|saucisson|merguez|andouille|boudin|rillettes|viandes?|steak|hachis|paleron|macreuse|faux filet|entrecote|escalope|cuisses? de poulet|ailes de poulet|haut de cuisse|pilons?|foie|gesiers?|rognons?|corned|pansettes?|graisse de (poulet|canard|boeuf)|poissons?|saumon|thon|cabillaud|morue|colin|merlu|lieu|sole|bar|dorade|daurade|rouget|vivaneau|fletan|haddock|hareng|maquereau|sardines?|anchois|truite|tilapia|rascasse|loup|espadon|crevettes?|gambas|crabe|homard|langouste|langoustines?|moules?|huitres?|palourdes?|coques|calamars?|encornets?|poulpe|seiche|saint jacques|petoncles?|surimi|ecrevisses?|gelatine|chair)\b/;
+const RE_VIANDE_POISSON_TEXTE = /(bouillon de (volaille|poulet|boeuf|viande)|fond de (veau|volaille)|jus de viande|sauce (de )?poisson|nuoc|worcestershire|pate de crevettes|anchois|gelatine)/;
+// Ce qu'on calcule une fois par recette : valeurs par portion, végétarienne ou
+// non, textes de recherche (nom, ingrédients).
+const infosRecettes = new Map();
+function infosRecette(r) {
+  let x = infosRecettes.get(r);
+  if (!x) {
+    const ingredients = (r.ingredients || []).map(i => normaliserRecherche(i.nom));
+    const lignes = (r.lignes || []).map(l => normaliserRecherche(l));
+    x = { t: totauxRecettePerso(r), nom: normaliserRecherche(r.nom),
+      vege: !ingredients.some(n => RE_VIANDE_POISSON.test(n)) && !lignes.some(l => RE_VIANDE_POISSON_TEXTE.test(l)),
+      ingredients: ingredients.concat(lignes).join(' | ') };
+    infosRecettes.set(r, x);
+  }
+  return x;
+}
+// Les calories qui restent aujourd'hui (le jour affiché), pour « Dans mon reste ».
+function resteKcalRecettes() {
+  try {
+    const j = getDay(currentDate);
+    return Math.round(computeTargets(j, currentDate).target - sumMeals(j).kcal);
+  } catch (e) { return 0; }
+}
 // À chaque ouverture de la feuille : la catégorie du repas, sans recherche.
 function preparerBibliothequeRecettes(repas) {
   categorieRecettes = categorieDuRepas(repas);
@@ -11767,32 +11830,89 @@ function choisirCategorieRecettes(cat) {
   if (c) c.scrollTop = 0;
   renderBibliothequeRecettes();
 }
+function basculerAffinageRecettes(k) {
+  if (!AFFINAGES_RECETTES.includes(k)) return;
+  affinagesRecettes[k] = !affinagesRecettes[k];
+  memoriserFiltresRecettes();
+  const c = document.getElementById('choix-recette-askesis');
+  if (c) c.scrollTop = 0;
+  renderBibliothequeRecettes();
+}
+function choisirTriRecettes(tri) {
+  if (!['nom', 'proteines', 'kcal'].includes(tri)) return;
+  triRecettes = tri;
+  memoriserFiltresRecettes();
+  const c = document.getElementById('choix-recette-askesis');
+  if (c) c.scrollTop = 0;
+  renderBibliothequeRecettes();
+}
+const ICONE_COCHE = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>';
 function renderBibliothequeRecettes() {
   const c = document.getElementById('choix-recette-askesis');
   if (!c) return;
   const champ = document.getElementById('choix-recette-recherche');
   const q = normaliserRecherche(champ ? champ.value : '');
+  const mots = q ? q.split(' ') : [];
   const repas = repasFeuille || repasDuMoment();
   const toutes = recettesAskesis();
+  const fr = n => Math.round(n).toLocaleString('fr-FR');
   const puces = document.getElementById('choix-recette-categories');
-  if (puces) puces.innerHTML = CATEGORIES_RECETTES.filter(([k]) => toutes.some(r => r.categorie === k))
+  if (puces) puces.innerHTML = CATEGORIES_RECETTES.filter(([k]) => k === 'toutes' || toutes.some(r => r.categorie === k))
     .map(([k, l]) => `<button type="button" aria-pressed="${!q && k === categorieRecettes}" onclick="choisirCategorieRecettes('${k}')">${l}</button>`).join('');
-  const liste = toutes.filter(r => q ? q.split(' ').every(m => normaliserRecherche(r.nom).includes(m)) : r.categorie === categorieRecettes)
-    .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
+  // Les affinages : leur critère exact dans leur libellé.
+  const reste = resteKcalRecettes();
+  const resteActif = affinagesRecettes.reste && reste > 0;
+  const affinages = document.getElementById('choix-recette-affinages');
+  if (affinages) affinages.innerHTML = [
+    ['proteinees', `Protéinées ≥\u00a0${PROTEINES_RECETTE_MIN}\u00a0g`, false],
+    ['reste', reste > 0 ? `Mon reste ≤\u00a0${fr(reste)}\u00a0kcal` : 'Mon reste\u00a0: 0\u00a0kcal', !(reste > 0)],
+    ['vege', 'Végétariennes', false]
+  ].map(([k, l, off]) => {
+    const actif = k === 'reste' ? resteActif : affinagesRecettes[k];
+    return `<button type="button" aria-pressed="${actif}"${off ? ' disabled' : ''} onclick="basculerAffinageRecettes('${k}')">${actif ? ICONE_COCHE : ''}${l}</button>`;
+  }).join('');
+  const tri = document.getElementById('choix-recette-tri');
+  if (tri) [...tri.querySelectorAll('button')].forEach((b, i) => b.setAttribute('aria-pressed', String(['nom', 'proteines', 'kcal'][i] === triRecettes)));
+  // Une recherche : le nom d'abord, puis les ingrédients (« poulet » trouve aussi le poulet basquaise et le riz cantonais au poulet).
+  const rang = r => {
+    const x = infosRecette(r);
+    if (!mots.length) return 0;
+    if (mots.every(m => x.nom.includes(m))) return 1;
+    if (mots.every(m => x.nom.includes(m) || x.ingredients.includes(m))) return 2;
+    return 0;
+  };
+  const ordre = {
+    nom: (a, b) => a.nom.localeCompare(b.nom, 'fr'),
+    proteines: (a, b) => infosRecette(b).t.parPortionP - infosRecette(a).t.parPortionP || a.nom.localeCompare(b.nom, 'fr'),
+    kcal: (a, b) => infosRecette(a).t.parPortionKcal - infosRecette(b).t.parPortionKcal || a.nom.localeCompare(b.nom, 'fr')
+  }[triRecettes];
+  const liste = toutes.filter(r => {
+    const x = infosRecette(r);
+    if (q ? !rang(r) : (categorieRecettes !== 'toutes' && r.categorie !== categorieRecettes)) return false;
+    if (affinagesRecettes.proteinees && !(x.t.parPortionP >= PROTEINES_RECETTE_MIN)) return false;
+    if (resteActif && !(x.t.parPortionKcal <= reste)) return false;
+    if (affinagesRecettes.vege && !x.vege) return false;
+    return true;
+  }).sort((a, b) => (rang(a) - rang(b)) || ordre(a, b));
   const compte = document.getElementById('choix-recette-compte');
   if (compte) compte.textContent = `${liste.length}\u00a0recette${liste.length > 1 ? 's' : ''}` + (q ? ' trouvée' + (liste.length > 1 ? 's' : '') : '');
   c.innerHTML = '';
-  if (!liste.length) { c.innerHTML = '<p class="note" style="padding:10px 14px; margin:0;">Aucune recette ne correspond.</p>'; return; }
+  if (!liste.length) {
+    const filtres = AFFINAGES_RECETTES.some(k => k === 'reste' ? resteActif : affinagesRecettes[k]);
+    c.innerHTML = `<p class="note" style="padding:10px 14px; margin:0;">Aucune recette ne correspond${filtres ? ' : retire un filtre pour en voir plus' : ''}.</p>`;
+    return;
+  }
   const libelle = Object.fromEntries(CATEGORIES_RECETTES.map(([k, , l]) => [k, l]));
+  const avecCategorie = q || categorieRecettes === 'toutes';
   liste.forEach(r => {
-    const t = totauxRecettePerso(r);
+    const t = infosRecette(r).t;
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'off-suggestion';
     b.innerHTML = '<div class="off-nom"></div><div class="off-meta"></div>';
     b.querySelector('.off-nom').textContent = r.nom;
-    // Pendant une recherche, toutes catégories mêlées : la sienne en tête.
-    const cat = q && libelle[r.categorie] ? libelle[r.categorie].charAt(0).toUpperCase() + libelle[r.categorie].slice(1) + ' · ' : '';
+    // Toutes catégories mêlées (recherche, « Toutes ») : la sienne en tête.
+    const cat = avecCategorie && libelle[r.categorie] ? libelle[r.categorie].charAt(0).toUpperCase() + libelle[r.categorie].slice(1) + ' · ' : '';
     b.querySelector('.off-meta').textContent = `${cat}${Math.round(t.parPortionKcal)} kcal · P ${Math.round(t.parPortionP)} g · G ${Math.round(t.parPortionC)} g · L ${Math.round(t.parPortionF)} g — par portion`;
     b.addEventListener('click', () => ouvrirFicheRecette(r.id, repas));
     c.appendChild(b);
