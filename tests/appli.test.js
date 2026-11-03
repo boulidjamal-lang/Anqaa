@@ -975,7 +975,8 @@ test('Administration : signalements (motif, bio, « 2e fois ») ; classer et sus
     const cartes = () => [...document.querySelectorAll('#admin-signal-liste .adm-signal')].map(c => [c.querySelector('.adm-qui b').textContent, c.querySelector('.adm-qui small').textContent,
       [...c.querySelectorAll('.adm-signal-tete .adm-chip')].map(x => x.textContent).join('|'), c.querySelector('.adm-motif b').textContent, c.querySelector('.adm-profil p').textContent,
       [...c.querySelectorAll('.adm-actions button')].map(b => b.textContent).join('|')]);
-    const res = { cartes: cartes(), onglet: document.getElementById('signal-onglet-nb').textContent };
+    // Avant 5 h du matin, « il y a 5 h » tombe la veille : l'appli écrit alors « hier ».
+    const res = { cartes: cartes(), onglet: document.getElementById('signal-onglet-nb').textContent, avant5h: new Date().getHours() < 5 };
     window.__appels = [];
     [...document.querySelectorAll('#admin-signal-liste .adm-signal')][1].querySelector('.adm-actions button:last-child').click();
     await new Promise(ok => setTimeout(ok, 50));
@@ -993,7 +994,7 @@ test('Administration : signalements (motif, bio, « 2e fois ») ; classer et sus
     return res;
   });
   assert.equal(r.onglet, ' · 2');
-  assert.deepEqual(r.cartes[0], ['@alice.fit', 'Signalé par @bob · il y a 5 h', '2e fois', 'Pub ou spam', '« Coaching 💸 »', 'Voir le compte|Suspendre|Classer']);
+  assert.deepEqual(r.cartes[0], ['@alice.fit', 'Signalé par @bob · ' + (r.avant5h ? 'hier' : 'il y a 5 h'), '2e fois', 'Pub ou spam', '« Coaching 💸 »', 'Voir le compte|Suspendre|Classer']);
   assert.deepEqual(r.cartes[1], ['Compte sans nom d’utilisateur', "Signalé par @alice.fit · à l'instant", '', 'Non précisé', 'Pas de bio, pas de photo.', 'Voir le compte|Suspendre|Classer']);
   assert.deepEqual(r.classer.map(a => a.slice(0, 5)), [['from', 'gymbros_signalements', 'update', [['eq', 'id', 8]], { traite: true }], ['rpc', 'admin_consigner', { p_action: 'signalement_classe', p_cible_id: 'c3', p_cible_libelle: null, p_motif: null, p_detail: { signale_par: '@alice.fit' } }]]);
   assert.deepEqual(r.suspendre, [['rpc', 'admin_definir_blocage', { p_utilisateur: 'a1', p_type: 'suspendu' }], ['rpc', 'admin_consigner', { p_action: 'suspendre', p_cible_id: 'a1', p_cible_libelle: 'alice@x.fr', p_motif: 'Signalé : Pub ou spam', p_detail: null }],
