@@ -1914,6 +1914,169 @@ test('Coach du jour : une analyse complète (programme, séance et record, récu
   assert.match(ecrit.texte, /^Il te manque/);
 }));
 
+test('Séances prévues : la séance du soir comptée dès le matin, remplacée par la vraie, jamais un jour passé, un jour de repos ou une pause', () => avecAppli({}, async ({ page }) => {
+  // Six semaines de séances le lundi, le mercredi et le vendredi vers 19 h, en tournant entre trois programmes.
+  await page.clock.setFixedTime(new Date('2026-11-04T09:00:00'));
+  await page.evaluate(() => {
+    const exos = toutesLesExercices().slice(0, 5);
+    const prog = (id, nom, n) => ({ id, nom, maj: Date.now(), exercices: exos.slice(0, n).map(e => ({ exerciceId: e.id, nom: e.nom, series: [0, 1, 2, 3].map(() => ({ poids: 40, reps: 10 })) })) });
+    musculationProgrammes.push(prog('pa', 'Push', 5), prog('pb', 'Pull', 4), prog('pc', 'Jambes', 3));
+    const auj = todayStr();
+    let k = 0;
+    for (let d = shiftDate(auj, -42); d < auj; d = shiftDate(d, 1)) {
+      if (![1, 3, 5].includes(dateLocale(d).getDay())) continue;
+      const p = musculationProgrammes[k++ % 3], debut = new Date(d + 'T19:05:00').getTime();
+      musculationHistorique.unshift({ id: 'h' + k, programmeId: p.id, programmeNom: p.nom, date: d, debut, fin: debut + 3600e3, dureeMin: 60, maj: debut,
+        exercices: p.exercices.map(e => ({ exerciceId: e.exerciceId, nom: e.nom, series: e.series.map(() => ({ poids: 40, reps: 10, fait: true })) })) });
+      getDay(d).workouts.push({ type: 'musculation', time: 60, seriesFaites: p.exercices.length * 4, source: 'seance', nom: p.nom });
+    }
+    sauvegarderHistorique(); saveData();
+  });
+  // L'état du jour : la séance prévue, l'objectif avec et sans elle, la ligne sous « Il te reste », le coach.
+  const etat = () => page.evaluate(() => {
+    currentDate = todayStr(); allerA('repas'); renderApp();
+    const j = getDay(currentDate), t = computeTargets(j, currentDate);
+    const sauve = userProfile.seancesPrevues;
+    userProfile.seancesPrevues = { mode: 'off' };
+    const sans = computeTargets(j, currentDate).target;
+    userProfile.seancesPrevues = sauve;
+    const c = analyseCoach(j, sumMeals(j), t).map(x => [x.cle, x.texte.replace(/<[^>]+>/g, '')]);
+    const heros = document.getElementById('seance-prevue-heros');
+    const s = t.seancePrevue;
+    return { prevue: s ? { nom: s.nom, kcal: s.kcal, series: s.series, moment: momentSeance(s), heure: heureSeanceTexte(s.heure) } : null, target: t.target, sans, prevueObjectif: t.prevueObjectif,
+      attendu: programmeSuggere().p.nom, heros: heros.classList.contains('hidden') ? null : heros.textContent, coach: c,
+      a_venir: prochainesSeances(7).map(x => [x.date, x.nom]) };
+  });
+  const constat = (e, cle) => (e.coach.find(c => c[0] === cle) || [])[1] || '';
+
+  // Mercredi 9 h : la séance de ce soir est déjà dans l'objectif, avec la même formule que la vraie séance.
+  const mer = await etat();
+  assert.ok(mer.prevue, 'une séance prévue ce mercredi');
+  assert.equal(mer.prevue.nom, mer.attendu, 'le programme qui suit dans la liste');
+  assert.equal(mer.prevue.moment, 'ce soir');
+  assert.equal(mer.prevue.heure, 'vers 19\u00a0h');
+  const formule = await page.evaluate(s => { const p = dernierPoidsConnu(todayStr()); return Math.round(kcalSeance('musculation', 60, p, s, null, { bmr: metabolismeDeBase(p, todayStr()) })); }, mer.prevue.series);
+  assert.equal(mer.prevue.kcal, formule);
+  assert.ok(mer.prevue.kcal > 0);
+  assert.equal(mer.target, mer.sans + mer.prevueObjectif, 'l\'objectif monte de la séance prévue');
+  assert.match(mer.heros, /^\+\d+\skcal · séance ce soir$/);
+  assert.match(constat(mer, 'seance'), new RegExp(`^Ce soir, ta séance ${mer.prevue.nom} \\(.+\\)\\s:\\s\\+${mer.prevueObjectif}\\skcal déjà dans ton objectif, à manger au fil de la journée plutôt que tard le soir\\.`));
+  assert.equal(constat(mer, 'seance-pas-faite'), '', 'le matin, pas de rappel');
+
+  // En sèche avec peu de pas, l'objectif est relevé au métabolisme de base : la séance
+  // prévue n'ajoute que ce qui dépasse ce plancher, jamais un chiffre faux.
+  const plancher = await page.evaluate(() => {
+    const j = getDay(todayStr()), avant = { goal: j.goal, steps: j.steps };
+    j.goal = 'seche'; j.steps = 100;
+    const t = computeTargets(j, todayStr());
+    const sauve = userProfile.seancesPrevues;
+    userProfile.seancesPrevues = { mode: 'off' };
+    const sans = computeTargets(j, todayStr());
+    userProfile.seancesPrevues = sauve;
+    if (avant.goal === undefined) delete j.goal; else j.goal = avant.goal;
+    j.steps = avant.steps;
+    return { target: t.target, sans: sans.target, sansPlancher: sans.sousPlancher, ajout: t.prevueObjectif, moins20: Math.round(t.prevueKcal * 0.8) };
+  });
+  assert.equal(plancher.sansPlancher, true, 'sans la séance, la sèche passait sous le métabolisme de base');
+  assert.equal(plancher.target, plancher.sans + plancher.ajout);
+  assert.ok(plancher.ajout >= 0 && plancher.ajout < plancher.moins20, 'moins que la dépense −20 % : le plancher relevait déjà l\'objectif');
+  // Les suivantes dans l'ordre des programmes : vendredi puis lundi.
+  assert.deepEqual(mer.a_venir.map(x => x[0]), ['2026-11-04', '2026-11-06', '2026-11-09']);
+  const ordre = await page.evaluate(() => musculationProgrammes.map(p => p.nom));
+  const i = ordre.indexOf(mer.prevue.nom);
+  assert.deepEqual(mer.a_venir.map(x => x[1]), [0, 1, 2].map(k => ordre[(i + k) % 3]));
+
+  // « Ta journée » : la séance du jour, les suivantes, les jours repérés ; « Pas de séance aujourd'hui » la retire.
+  const journee = await page.evaluate(() => {
+    ouvrirDepense();
+    const b = document.getElementById('bloc-seances-prevues');
+    const res = { cache: b.classList.contains('hidden'), lignes: [...b.querySelectorAll('.sp-ligne')].map(l => l.querySelector('.sp-nom b').textContent + ' ' + l.querySelector('.sp-kcal').textContent),
+      repere: b.querySelector('.sp-note:last-child').textContent, detail: document.getElementById('detail-depense').textContent };
+    [...b.querySelectorAll('button')].find(x => x.textContent === "Pas de séance aujourd'hui").click();
+    res.apres = { exception: userProfile.seancesPrevues.exceptions[todayStr()], prevue: !!computeTargets(getDay(todayStr()), todayStr()).seancePrevue,
+      bouton: [...b.querySelectorAll('button')].map(x => x.textContent).includes("J'ai une séance aujourd'hui"), heros: document.getElementById('seance-prevue-heros').classList.contains('hidden') };
+    [...b.querySelectorAll('button')].find(x => x.textContent === "J'ai une séance aujourd'hui").click();
+    res.retour = { exceptions: userProfile.seancesPrevues.exceptions || null, prevue: !!computeTargets(getDay(todayStr()), todayStr()).seancePrevue };
+    fermerModal('depense-modal');
+    return res;
+  });
+  assert.equal(journee.cache, false);
+  assert.equal(journee.lignes.length, 3);
+  assert.match(journee.lignes[0], new RegExp(`^${mer.prevue.nom} \\+${mer.prevue.kcal}\\skcal$`));
+  assert.match(journee.repere, /^Repérés sur tes 6 dernières semaines\s:\slundi, mercredi et vendredi\.$/);
+  assert.match(journee.detail, new RegExp(`Séance prévue \\(${mer.prevue.nom}, estimée\\)\\+ ${mer.prevue.kcal} kcal`));
+  assert.deepEqual(journee.apres, { exception: false, prevue: false, bouton: true, heros: true });
+  assert.deepEqual(journee.retour, { exceptions: null, prevue: true }, 'revenir à la règle efface l\'exception');
+
+  // Mercredi 21 h 30, toujours pas de séance : le coach propose de la retirer d'un geste.
+  await page.clock.setFixedTime(new Date('2026-11-04T21:30:00'));
+  const soir = await etat();
+  assert.equal(constat(soir, 'seance'), '', 'plus de « Ce soir, ta séance… » à cette heure');
+  assert.match(constat(soir, 'seance-pas-faite'), new RegExp(`^Ta séance ${soir.prevue.nom} n'est pas encore enregistrée\\. Si tu ne la fais pas aujourd'hui, retire-la\\s:\\ston objectif baissera de ${soir.prevueObjectif}\\skcal\\.$`));
+  const retiree = await page.evaluate(() => {
+    coachAnalyseOuverte = true; renderApp();
+    const b = [...document.querySelectorAll('#coach-jour button')].find(x => x.textContent === "Pas de séance aujourd'hui");
+    const avant = computeTargets(getDay(todayStr()), todayStr()).target;
+    b.click();
+    const t = computeTargets(getDay(todayStr()), todayStr());
+    const r = { bouton: !!b, prevue: t.seancePrevue, baisse: avant - t.target, rappel: analyseCoach(getDay(todayStr()), sumMeals(getDay(todayStr())), t).some(c => c.cle === 'seance-pas-faite') };
+    definirSeanceDuJour(true); coachAnalyseOuverte = false;
+    return r;
+  });
+  assert.deepEqual(retiree, { bouton: true, prevue: null, baisse: soir.prevueObjectif, rappel: false });
+
+  // Mercredi 21 h, la séance faite : sa vraie dépense remplace l'estimation.
+  await page.clock.setFixedTime(new Date('2026-11-04T21:00:00'));
+  const faite = await page.evaluate(() => {
+    const j = getDay(todayStr());
+    j.workouts.push({ type: 'musculation', time: 70, seriesFaites: 14, source: 'seance', nom: 'Push' }); saveData(todayStr());
+    allerA('repas'); renderApp();
+    const t = computeTargets(j, todayStr());
+    return { prevue: t.seancePrevue, workout: t.workoutKcal, heros: document.getElementById('seance-prevue-heros').classList.contains('hidden') };
+  });
+  assert.equal(faite.prevue, null);
+  assert.ok(faite.workout > 0);
+  assert.equal(faite.heros, true);
+
+  // Un jour passé n'a jamais de séance prévue, même un lundi sans séance.
+  const passe = await page.evaluate(() => {
+    const d = '2026-10-26';
+    getDay(d).workouts = [];
+    musculationHistorique.splice(0, musculationHistorique.length, ...musculationHistorique.filter(h => h.date !== d));
+    return computeTargets(getDay(d), d).seancePrevue;
+  });
+  assert.equal(passe, null);
+
+  // Jeudi : jour de repos, rien de prévu ; le coach annonce la prochaine.
+  await page.clock.setFixedTime(new Date('2026-11-05T12:00:00'));
+  const jeu = await etat();
+  assert.equal(jeu.prevue, null);
+  assert.equal(jeu.target, jeu.sans);
+  assert.equal(jeu.heros, null);
+  assert.match(constat(jeu, 'repos'), /^Jour de repos aujourd'hui\s:\sta prochaine séance, .+, est prévue demain soir\.$/);
+
+  // Jours choisis (le jeudi en plus) puis aucun.
+  const choisis = await page.evaluate(() => {
+    choisirModeSeances('jours');
+    const avant = userProfile.seancesPrevues.jours.slice();
+    basculerJourSeance(4);
+    const r = { avant, apres: userProfile.seancesPrevues.jours.slice(), prevue: !!computeTargets(getDay(todayStr()), todayStr()).seancePrevue };
+    choisirModeSeances('off');
+    r.off = prochainesSeances(7).length;
+    choisirModeSeances('auto');
+    return r;
+  });
+  assert.deepEqual(choisis.avant, [1, 3, 5], 'les jours choisis partent des jours repérés');
+  assert.deepEqual(choisis.apres, [1, 3, 4, 5]);
+  assert.equal(choisis.prevue, true);
+  assert.equal(choisis.off, 0);
+
+  // Deux semaines sans séance : c'est une pause, on ne prévoit plus rien.
+  await page.clock.setFixedTime(new Date('2026-11-20T09:00:00'));
+  const pause = await page.evaluate(() => ({ jours: habitudesSeance().jours, pause: habitudesSeance().pause, prevues: prochainesSeances(7).length }));
+  assert.deepEqual(pause, { jours: [], pause: true, prevues: 0 });
+}));
+
 test('Coach du jour : une recette pour le repas à venir, qui tient dans le reste du jour et suit ce que tu manges', () => avecAppli({}, async ({ page }) => {
   // Trois semaines de poulet le soir et de skyr le matin, une fois du thon et des crevettes : ni bœuf, ni porc, ni alcool.
   await page.clock.setFixedTime(new Date('2026-10-27T08:00:00'));

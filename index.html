@@ -2424,6 +2424,28 @@
        (d'un bloc : sur un écran trop étroit, ils passent ensemble à la ligne). */
     .reste-kcal em { display: inline-block; white-space: nowrap; font-style: normal; font-size: 0.9rem; font-weight: 700; color: var(--text-muted); margin-left: 2px; letter-spacing: 0; }
     .reste-kcal.depasse { color: var(--danger) !important; }
+    /* Séance prévue comptée dans l'objectif : une ligne discrète sous « Il te reste ». */
+    .seance-prevue-heros { display: flex; align-items: center; gap: 5px; margin-top: 5px; min-width: 0; font-size: 0.72rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+    .seance-prevue-heros span { overflow: hidden; text-overflow: ellipsis; }
+    .seance-prevue-heros .icone-ui { width: 14px; height: 14px; flex: none; color: var(--primary); }
+    .seance-prevue-heros b { color: var(--text); font-weight: 800; }
+    /* Séances prévues (Ta journée) : aujourd'hui, les jours à venir, les jours de séance. */
+    .sp-ligne { display: grid; grid-template-columns: 3.4em 1fr auto; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--verre-brd); }
+    .sp-titre + .sp-ligne { border-top: 0; }
+    .sp-quand { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); line-height: 1.25; }
+    .sp-quand small { display: block; font-size: 0.72rem; font-weight: 600; text-transform: none; letter-spacing: 0; }
+    .sp-nom { min-width: 0; }
+    .sp-nom b { display: block; font-size: 0.92rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sp-nom small { display: block; font-size: 0.74rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sp-kcal { font-size: 0.9rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .sp-ligne--jour .sp-quand { color: var(--text); }
+    .sp-note { font-size: 0.78rem; color: var(--text-muted); margin: 2px 0 10px; line-height: 1.45; }
+    .sp-titre { margin: 12px 0 2px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); }
+    .sp-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 2px 0 6px; }
+    .sp-actions .btn { width: auto; margin: 0; padding: 9px 14px; font-size: 0.82rem; }
+    .sp-jours { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 8px 0 4px; }
+    .sp-jours button { min-height: 40px; border-radius: 12px; border: 1px solid var(--verre-brd); background: transparent; color: var(--text-muted); font: inherit; font-size: 0.82rem; font-weight: 800; cursor: pointer; }
+    .sp-jours button[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--bg); }
     /* stretch : les lignes prennent toute la colonne (le space-around hérité les centrait, décalées de « Il te reste »). */
     #ecran-repas .heros-droite .macros-bar { display: grid !important; justify-content: stretch; gap: 4px !important; margin-top: 10px; padding: 0 !important; background: none !important; box-shadow: none !important; }
     #ecran-repas .heros-droite .macro-item { display: flex; flex-direction: row; align-items: center; gap: 8px; padding: 4px 6px !important; margin: 0 -6px; border: 0 !important; border-radius: 10px; text-align: left; }
@@ -4788,6 +4810,8 @@
           <span class="libelle" id="reste-libelle">Il te reste</span>
           <!-- « 62/1 821 kcal » : ce qui reste (le compteur n'écrit que le premier texte), puis l'objectif. -->
           <div class="reste-kcal" id="reste-kcals">—<em>/<span id="target-kcals-display">0</span>&nbsp;kcal</em></div>
+          <!-- Séance prévue aujourd'hui, déjà comptée dans l'objectif (voir prochainesSeances). -->
+          <div class="seance-prevue-heros hidden" id="seance-prevue-heros"></div>
           <div class="macros-bar">
           <div class="macro-item" role="button" tabindex="0" aria-label="Protéines : voir la courbe et l'objectif" onclick="event.stopPropagation(); ouvrirMacro('p')" onkeydown="if(event.key==='Enter'){event.stopPropagation(); ouvrirMacro('p');}">
             <i class="macro-point" style="background:var(--protein);color:var(--protein)"></i><span class="macro-lbl">Protéines</span><span class="macro-val" id="total-p">0 / 0 g</span>
@@ -6695,6 +6719,12 @@
           </p>
         </details>
       </div>
+      <!-- Séances prévues : leur dépense compte dans l'objectif dès le matin
+           (voir prochainesSeances, renderSeancesPrevues). Seulement pour aujourd'hui. -->
+      <div class="bloc-verre" id="bloc-seances-prevues">
+        <h3 style="margin-top:0;margin-bottom:10px;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.8px;"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg> Séances prévues</h3>
+        <div id="seances-prevues-contenu"></div>
+      </div>
       <div class="titre-depliant titre-section ia-seulement" role="button" tabindex="0" aria-expanded="false" onclick="basculerNotesRepliees(this, 'note-bilan-jour')" onkeydown="if(event.key==='Enter')basculerNotesRepliees(this, 'note-bilan-jour')"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" /></svg> Bilan de la journée</div>
       <div class="analysis-card ia-seulement" id="carte-bilan-jour">
         <p class="note note-repliee" id="note-bilan-jour">Un bilan de ta nutrition et de ton activité (pas, séances, et le détail de ta séance de musculation si tu en as fait une) pour le jour affiché dans Repas du jour.</p>
@@ -8030,6 +8060,176 @@ function metabolismeDeBase(weight, dateStr) {
   }
   return bmr;
 }
+/* =====================================================================
+   SÉANCES PRÉVUES : la dépense d'une séance comptée dès le matin
+   =====================================================================
+   Sans prévision, la dépense d'une séance n'entrait dans l'objectif qu'une
+   fois la séance terminée : pour qui s'entraîne le soir, l'objectif montait
+   d'un coup vers 21 h et les calories de la séance se mangeaient tard. On
+   repère donc les jours où une séance de musculation est probable (tes
+   habitudes des 8 dernières semaines, ou les jours que tu as choisis), on
+   prend le programme qui suit dans l'ordre de ta liste (comme la « Séance
+   du jour ») et on estime sa dépense avec la même formule que la vraie
+   séance (kcalSeance, avec les séries de tes dernières séances de ce
+   programme). Elle compte dans l'objectif d'aujourd'hui tant que la séance
+   n'est pas faite ; la vraie dépense la remplace dès la fin de la séance.
+   Jamais pour un jour passé : un jour sans séance reste un jour sans séance.
+
+   Réglage (userProfile.seancesPrevues, synchronisé avec le compte) :
+   { mode: 'auto' | 'jours' | 'off', jours: [0..6] (0 = dimanche),
+     exceptions: { 'AAAA-MM-JJ': true | false } }. Sans réglage : 'auto'.
+   ===================================================================== */
+const PREVUES_SEMAINES = 8;      // fenêtre où l'on observe les habitudes
+const PREVUES_PART = 0.5;        // un jour habituel : au moins une semaine sur deux…
+const PREVUES_MIN = 2;           // … et au moins deux fois
+const PREVUES_PAUSE_JOURS = 10;  // plus de séance depuis 10 jours : pause, on ne prévoit plus rien
+const NOMS_JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+const ORDRE_JOURS = [1, 2, 3, 4, 5, 6, 0];
+function seriesFaitesSeance(h) {
+  return ((h && h.exercices) || []).reduce((n, e) => n + ((e && e.series) || []).filter(s => s && s.fait).length, 0);
+}
+function mediane(valeurs) {
+  const v = valeurs.filter(x => Number.isFinite(x)).sort((a, b) => a - b);
+  if (!v.length) return null;
+  const m = v.length >> 1;
+  return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+}
+function reglageSeancesPrevues() {
+  const r = userProfile.seancesPrevues || {};
+  return {
+    mode: ['auto', 'jours', 'off'].includes(r.mode) ? r.mode : 'auto',
+    jours: Array.isArray(r.jours) ? r.jours.map(Number).filter(j => j >= 0 && j <= 6) : [],
+    exceptions: r.exceptions && typeof r.exceptions === 'object' ? r.exceptions : {}
+  };
+}
+// Les variables de la musculation sont déclarées plus loin dans le script.
+function historiqueMuscu() { try { return Array.isArray(musculationHistorique) ? musculationHistorique : []; } catch (e) { return []; } }
+function programmesMuscu() { try { return Array.isArray(musculationProgrammes) ? musculationProgrammes : []; } catch (e) { return []; } }
+function seanceMuscuFaite(date) {
+  const j = appData[date];
+  if (j && Array.isArray(j.workouts) && j.workouts.some(w => w && w.type === 'musculation')) return true;
+  return historiqueMuscu().some(h => h.date === date && seriesFaitesSeance(h) > 0);
+}
+/* Jours de la semaine où tu t'entraînes d'habitude : sur les 8 dernières
+   semaines (ou depuis ta première séance, si c'est plus récent, et au moins
+   deux semaines), ceux où une séance a eu lieu au moins une semaine sur deux
+   et au moins deux fois. Rien pendant une pause (aucune séance depuis 10
+   jours) : on ne compte pas une séance qui n'aura pas lieu. Mis en cache
+   jusqu'à la prochaine séance ou au lendemain. */
+let cacheHabitudesSeance = null;
+function habitudesSeance() {
+  const auj = todayStr(), histo = historiqueMuscu();
+  const cle = auj + '|' + histo.length + '|' + (histo[0] ? histo[0].id + '/' + (histo[0].maj || '') : '') + '|' + Object.keys(appData).length;
+  if (cacheHabitudesSeance && cacheHabitudesSeance.cle === cle) return cacheHabitudesSeance;
+  const dates = new Set();
+  histo.forEach(h => { if (h.date && seriesFaitesSeance(h) > 0) dates.add(h.date); });
+  Object.keys(appData).forEach(d => {
+    const ws = appData[d] && appData[d].workouts;
+    if (Array.isArray(ws) && ws.some(w => w && w.type === 'musculation')) dates.add(d);
+  });
+  const passees = [...dates].filter(d => d < auj).sort();
+  const res = { cle, jours: [], semaines: 0, pause: false };
+  if (passees.length) {
+    let debut = shiftDate(auj, -7 * PREVUES_SEMAINES);
+    if (passees[0] > debut) debut = passees[0];
+    const duree = numeroJour(auj) - numeroJour(debut);
+    res.semaines = Math.floor(duree / 7);
+    res.pause = passees[passees.length - 1] < shiftDate(auj, -PREVUES_PAUSE_JOURS);
+    if (duree >= 14 && !res.pause) {
+      const occ = [0, 0, 0, 0, 0, 0, 0], faits = [0, 0, 0, 0, 0, 0, 0];
+      for (let d = debut; d < auj; d = shiftDate(d, 1)) {
+        const w = dateLocale(d).getDay();
+        occ[w]++;
+        if (dates.has(d)) faits[w]++;
+      }
+      res.jours = ORDRE_JOURS.filter(w => faits[w] >= PREVUES_MIN && faits[w] / occ[w] >= PREVUES_PART);
+    }
+  }
+  cacheHabitudesSeance = res;
+  return res;
+}
+/* Ce que coûtera la séance `p` (un programme, ou null pour une séance sans
+   programme) le jour `date` : les séries réellement faites lors de tes 3
+   dernières séances de ce programme (à défaut, celles qu'il prévoit), la
+   durée de ces séances, et la même formule que la vraie séance. */
+function estimationSeance(p, date) {
+  const histo = historiqueMuscu();
+  const faites = histo.filter(h => seriesFaitesSeance(h) > 0);
+  let base = p ? faites.filter(h => h.programmeId === p.id).slice(0, 3) : faites.slice(0, 5);
+  let origine = base.length ? 'historique' : null;
+  let series = base.length ? mediane(base.map(seriesFaitesSeance)) : null;
+  if (!(series > 0) && p) {
+    series = (p.exercices || []).reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
+    origine = 'programme';
+  }
+  if (!(series > 0)) { series = 18; origine = 'defaut'; }
+  series = Math.round(series);
+  const duree = Math.round((base.length && mediane(base.map(h => Number(h.dureeMin)).filter(x => x > 0))) || series * 3);
+  const poids = Number(appData[date] && appData[date].weight) || dernierPoidsConnu(date);
+  const kcal = Math.round(kcalSeance('musculation', duree, poids, series, null, { bmr: metabolismeDeBase(poids, date) }));
+  // L'heure habituelle : la médiane des débuts de tes dernières séances.
+  const heures = histo.slice(0, 8).filter(h => Number(h.debut) > 0).map(h => { const d = new Date(Number(h.debut)); return d.getHours() + d.getMinutes() / 60; });
+  return {
+    programme: p ? { id: p.id, nom: p.nom } : null, nom: p ? p.nom : 'Séance',
+    series, duree, kcal, origine, nbBase: base.length,
+    heure: heures.length >= 2 ? mediane(heures) : null
+  };
+}
+/* Les séances prévues d'aujourd'hui à dans `nbJours` - 1 jours, dans
+   l'ordre ; chacune avec son programme (le suivant dans la liste à partir
+   de la « Séance du jour ») et sa dépense estimée. La séance d'aujourd'hui
+   n'y est plus dès qu'elle est faite : c'est sa vraie dépense qui compte. */
+function prochainesSeances(nbJours) {
+  const auj = todayStr(), r = reglageSeancesPrevues(), progs = programmesMuscu();
+  let sug = null;
+  try { sug = progs.length ? programmeSuggere() : null; } catch (e) {}
+  const i0 = sug ? progs.findIndex(p => p.id === sug.p.id) : -1;
+  let hab = null, rang = 0;
+  const res = [];
+  for (let k = 0; k < nbJours; k++) {
+    const date = shiftDate(auj, k), w = dateLocale(date).getDay();
+    if (k === 0 && seanceMuscuFaite(date)) continue;
+    const exc = r.exceptions[date];
+    let source = null;
+    if (exc === false) continue;
+    if (exc === true) source = 'toi';
+    else if (r.mode === 'off') continue;
+    else if (r.mode === 'jours') { if (r.jours.includes(w)) source = 'jours'; }
+    else { hab = hab || habitudesSeance(); if (hab.jours.includes(w)) source = 'habitude'; }
+    if (!source) continue;
+    const p = i0 >= 0 ? progs[(i0 + rang) % progs.length] : null;
+    rang++;
+    res.push(Object.assign({ date, source }, estimationSeance(p, date)));
+  }
+  return res;
+}
+/* Les jours de séance sont-ils connus (repérés ou choisis) ? Sinon, on ne
+   sait pas dire « jour de repos » : le coach garde son ancien discours. */
+function seancesPrevuesConnues() {
+  const r = reglageSeancesPrevues();
+  if (r.mode === 'off') return false;
+  if (r.mode === 'jours') return r.jours.length > 0;
+  const h = habitudesSeance();
+  return !h.pause && h.jours.length > 0;
+}
+/* La séance prévue aujourd'hui et pas encore faite, ou null. */
+function seancePrevueDuJour(date) {
+  if (date !== todayStr()) return null;
+  try { return prochainesSeances(1)[0] || null; } catch (e) { return null; }
+}
+/* « ce soir », « cet après-midi », « ce matin » ; un autre jour : « mercredi soir ». */
+function momentSeance(s) {
+  const h = s && s.heure;
+  const partie = h == null ? '' : h < 12 ? 'matin' : h < 17 ? 'après-midi' : 'soir';
+  if (s.date === todayStr()) return !partie ? "aujourd'hui" : partie === 'matin' ? 'ce matin' : partie === 'soir' ? 'ce soir' : 'cet après-midi';
+  const jour = s.date === shiftDate(todayStr(), 1) ? 'demain' : NOMS_JOURS[dateLocale(s.date).getDay()];
+  return partie ? jour + ' ' + partie : jour;
+}
+function heureSeanceTexte(h) {
+  if (h == null) return '';
+  const q = Math.round(h * 4) / 4, hh = Math.floor(q) % 24, mm = Math.round((q - Math.floor(q)) * 60);
+  return 'vers ' + hh + ' h' + (mm ? String(mm).padStart(2, '0') : '');
+}
 function computeTargets(day, dateStr) {
   const weight = Number(day.weight) || dernierPoidsConnu(dateStr || todayStr());
   const bmr = metabolismeDeBase(weight, dateStr);
@@ -8057,7 +8257,13 @@ function computeTargets(day, dateStr) {
   if (day.workouts && day.workouts.length > 0) {
     day.workouts.forEach(w => { workoutKcal += kcalSeance(w.type, w.time, weight, w.seriesFaites, w.intensite, { distance: w.distance, bmr }); });
   }
-  let tdee = bmr * 1.2 + stepsKcal + workoutKcal;
+  // Séance prévue aujourd'hui, pas encore faite : sa dépense estimée compte
+  // dès le matin (voir prochainesSeances). Seulement pour la vraie journée
+  // d'aujourd'hui, jamais pour une journée fabriquée le temps d'un calcul
+  // (bilan initial) ni pour un jour passé.
+  const prevue = dateStr && dateStr === todayStr() && day === appData[dateStr] ? seancePrevueDuJour(dateStr) : null;
+  const prevueKcal = prevue ? prevue.kcal : 0;
+  let tdee = bmr * 1.2 + stepsKcal + workoutKcal + prevueKcal;
 
   // L'objectif s'hérite du dernier changement explicite (comme le poids),
   // il ne dépend jamais de la date affichée : changer l'objectif aujourd'hui
@@ -8071,6 +8277,9 @@ function computeTargets(day, dateStr) {
   const plancher = Math.round(bmr);
   const sousPlancher = target < plancher;
   if (sousPlancher) target = plancher;
+  // Ce que la séance prévue ajoute vraiment à l'objectif : après le −20 % /
+  // +15 %, et moins (voire rien) quand le plancher relevait déjà l'objectif.
+  const prevueObjectif = prevueKcal ? target - Math.max(plancher, Math.round((tdee - prevueKcal) * (1 + adj))) : 0;
 
   // Sur la masse maigre quand elle est connue : la graisse n'a pas besoin de
   // protéines pour se maintenir, seul le tissu maigre (muscle, organes...) en
@@ -8087,6 +8296,7 @@ function computeTargets(day, dateStr) {
   return {
     target, protein, carbs, fat,
     workoutKcal: Math.round(workoutKcal),
+    seancePrevue: prevue, prevueKcal: Math.round(prevueKcal), prevueObjectif,
     bmr: plancher, tdee: Math.round(tdee),
     stepsKcal: Math.round(stepsKcal), poids: weight,
     poidsEstime: !(Number(day.weight) > 0),
@@ -8703,6 +8913,11 @@ function analyseCoach(day, totals, t) {
   const aEntraine = seancesDuJour.some(s => seriesFaites(s) > 0);
   let prochaine = null;
   try { prochaine = auj && typeof programmeSuggere === 'function' ? programmeSuggere() : null; } catch (e) {}
+  // La séance prévue aujourd'hui n'est toujours pas faite, deux heures après
+  // l'heure habituelle (entre 20 h et 23 h ; 21 h sans heure connue).
+  const sp = t.seancePrevue;
+  const prevueEnRetard = !!(auj && sp && t.prevueObjectif > 0
+    && h >= (sp.heure != null ? Math.max(20, Math.min(23, Math.floor(sp.heure) + 2)) : 21));
   const groupesDe = seances => {
     const acc = {}, cache = new Map();
     seances.forEach(s => ajouterSeriesParGroupe(acc, s.exercices || [], { date: s.date, historique: histo, cache }));
@@ -8723,7 +8938,10 @@ function analyseCoach(day, totals, t) {
     if (h < 11) {
       const rec = recetteProposee(day, 'breakfast', t.target, t.protein);
       const idees = rec ? [] : ideesProteines(day, 'breakfast', t.target, t.protein);
-      const seance = prochaine && !aEntraine ? `, et ta séance <b>${escapeHtml(prochaine.p.nom)}</b> (${escapeHtml(liste(libGroupes(groupesProgramme(prochaine.p))))})` : '';
+      // La séance prévue aujourd'hui est déjà dans l'objectif ; un jour de repos repéré, on n'en parle pas.
+      const prevue = t.seancePrevue;
+      const seance = prevue ? `, et ta séance <b>${escapeHtml(prevue.nom)}</b> ${escapeHtml(momentSeance(prevue))}${t.prevueObjectif > 0 ? ` (+${fr(t.prevueObjectif)}\u00a0kcal déjà comptées)` : ''}`
+        : prochaine && !aEntraine && !seancesPrevuesConnues() ? `, et ta séance <b>${escapeHtml(prochaine.p.nom)}</b> (${escapeHtml(liste(libGroupes(groupesProgramme(prochaine.p))))})` : '';
       const salut = variante('salut', [`Bonjour${qui ? ' ' + escapeHtml(qui) : ''}.`, `Bien dormi${qui ? ' ' + escapeHtml(qui) : ''} ?`, `C'est parti${qui ? ' ' + escapeHtml(qui) : ''}.`]);
       ajouter({ cle: 'vide', prio: 100, icone: 'repas', action: rec ? actionRecette(rec, 'breakfast') : { libelle: 'Ajouter mon petit-déjeuner', faire: "ouvrirFeuilleRepas('breakfast')" },
         texte: `${salut} Au programme aujourd'hui : <b>${fr(t.target)}\u00a0kcal</b> dont <b>${fr(t.protein)}\u00a0g de protéines</b>${seance}. Commence ta journée avec un petit-déjeuner protéiné${rec ? ' : ' + texteRecette(rec) : idees.length ? ' : ' + texteIdeesProteines(idees.slice(0, 1)) : ''}.` });
@@ -8808,6 +9026,8 @@ function analyseCoach(day, totals, t) {
   // 7. Prochaine séance du programme, récupération, reprise après une pause.
   regle(() => {
     if (!prochaine || aEntraine || h >= 22 || (typeof musculationSessionActive !== 'undefined' && musculationSessionActive)) return;
+    // Tard le soir, avec une séance prévue pas faite : c'est la règle 7 bis qui parle.
+    if (prevueEnRetard) return;
     const p = prochaine.p, g = groupesProgramme(p);
     const nbSeries = (p.exercices || []).reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
     const derniere = histo.reduce((d, s) => s.date > d && s.date < currentDate ? s.date : d, '');
@@ -8828,8 +9048,34 @@ function analyseCoach(day, totals, t) {
         texte: `Ça fait <b>${sansSeance} jours</b> sans séance. ${variante('reprise', ['Même 30 minutes aujourd\'hui relancent la machine', 'Une séance courte suffit pour reprendre le rythme', 'Le plus dur, c\'est d\'y retourner : la suite vient toute seule'])} : ta prochaine, c'est <b>${escapeHtml(p.nom)}</b>.${glucides}` });
       return;
     }
+    // Séance prévue aujourd'hui : ses calories sont déjà dans l'objectif, autant
+    // les manger avant. Tard le soir, c'est la règle 7 bis qui en parle.
+    const prevue = t.seancePrevue;
+    if (prevue) {
+      const kcal = t.prevueObjectif > 0 ? ` : <b>+${fr(t.prevueObjectif)}\u00a0kcal</b> déjà dans ton objectif, à manger au fil de la journée plutôt que tard le soir` : '';
+      ajouter({ cle: 'seance', prio: 34, icone: 'seance', action,
+        texte: `${escapeHtml(momentSeance(prevue).replace(/^./, c => c.toUpperCase()))}, ta séance <b>${escapeHtml(p.nom)}</b> (${escapeHtml(liste(libGroupes(g)))}, ${nbSeries}\u00a0séries)${kcal}.${glucides}` });
+      return;
+    }
+    // Jour de repos repéré : la prochaine séance prévue, sans pousser à y aller aujourd'hui.
+    if (seancesPrevuesConnues()) {
+      const suivante = prochainesSeances(7)[0];
+      if (suivante) {
+        ajouter({ cle: 'repos', prio: 20, icone: 'repos', action: suivante.programme ? { libelle: 'Voir la séance ' + suivante.nom, faire: `apercuProgramme(${JSON.stringify(suivante.programme.id)})` } : null,
+          texte: `Jour de repos aujourd'hui : ta prochaine séance, <b>${escapeHtml(suivante.nom)}</b>, est prévue ${escapeHtml(momentSeance(suivante))}.` });
+        return;
+      }
+    }
     ajouter({ cle: 'seance', prio: 34, icone: 'seance', action,
       texte: `Ta prochaine séance : <b>${escapeHtml(p.nom)}</b> (${escapeHtml(liste(libGroupes(g)))}, ${nbSeries}\u00a0séries).${sansSeance != null && sansSeance >= 1 ? ` Dernière séance il y a ${sansSeance === 1 ? 'un jour' : sansSeance + ' jours'}.` : ''}${glucides}` });
+  });
+
+  // 7 bis. Le soir, la séance prévue n'est toujours pas faite : d'un geste, on
+  // la retire, sinon ses calories resteraient dans l'objectif jusqu'à minuit.
+  regle(() => {
+    if (!prevueEnRetard || (typeof musculationSessionActive !== 'undefined' && musculationSessionActive)) return;
+    ajouter({ cle: 'seance-pas-faite', prio: 62, icone: 'seance', action: { libelle: 'Pas de séance aujourd\'hui', faire: 'definirSeanceDuJour(false)' },
+      texte: `Ta séance <b>${escapeHtml(t.seancePrevue.nom)}</b> n'est pas encore enregistrée. Si tu ne la fais pas aujourd'hui, retire-la : ton objectif baissera de <b>${fr(t.prevueObjectif)}\u00a0kcal</b>.` });
   });
 
   // 8. Volume de la semaine par muscle (à partir du jeudi) : trop peu, ou trop.
@@ -9725,6 +9971,113 @@ function pourcent(v, max) {
   return Math.max(0, Math.min(100, (v / max) * 100));
 }
 
+/* « +36 kcal · séance ce soir » sous « Il te reste » : la séance prévue
+   aujourd'hui est déjà dans l'objectif (voir prochainesSeances). */
+const ICONE_HALTERE = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg>';
+function majSeancePrevueHeros(t) {
+  const el = document.getElementById('seance-prevue-heros');
+  if (!el) return;
+  const s = t && t.seancePrevue && t.prevueObjectif > 0 ? t.seancePrevue : null;
+  el.classList.toggle('hidden', !s);
+  el.innerHTML = s ? `${ICONE_HALTERE}<span><b>+${Math.round(t.prevueObjectif).toLocaleString('fr-FR')}\u00a0kcal</b> · séance ${escapeHtml(momentSeance(s))}</span>` : '';
+}
+/* « Séances prévues » dans Ta journée : la séance d'aujourd'hui (avec de
+   quoi la retirer ou en ajouter une), celles des 6 jours suivants, et les
+   jours de séance (repérés tout seuls, choisis, ou aucun). */
+function renderSeancesPrevues() {
+  const bloc = document.getElementById('bloc-seances-prevues'), el = document.getElementById('seances-prevues-contenu');
+  if (!bloc || !el) return;
+  const auj = todayStr();
+  // Ça ne concerne qu'aujourd'hui et les jours qui viennent.
+  bloc.classList.toggle('hidden', currentDate !== auj);
+  if (currentDate !== auj) return;
+  const r = reglageSeancesPrevues(), liste = prochainesSeances(7);
+  const fr = n => Math.round(n).toLocaleString('fr-FR');
+  const duree = m => m >= 60 ? Math.floor(m / 60) + '\u00a0h' + (m % 60 ? '\u00a0' + String(m % 60).padStart(2, '0') : '') : m + '\u00a0min';
+  // « Mer. » et l'heure habituelle en dessous ; « Dem. » pour demain.
+  const quand = s => (s.date === shiftDate(auj, 1) ? 'Dem.' : dateLocale(s.date).toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '') + '.')
+    + (s.heure != null ? `<small>${heureSeanceTexte(s.heure).replace('vers ', '')}</small>` : '');
+  const ligne = (s, duJour) => `<div class="sp-ligne${duJour ? ' sp-ligne--jour' : ''}">
+      <span class="sp-quand">${quand(s)}</span>
+      <span class="sp-nom"><b>${escapeHtml(s.nom)}</b><small>≈\u00a0${s.series}\u00a0séries · ${duree(s.duree)}</small></span>
+      <span class="sp-kcal">+${fr(s.kcal)}\u00a0kcal</span></div>`;
+  const duJour = liste.find(s => s.date === auj), avenir = liste.filter(s => s.date !== auj);
+  let html = '';
+  if (seanceMuscuFaite(auj)) {
+    html += `<p class="sp-note" style="margin-top:0;">Séance du jour faite : c'est sa vraie dépense qui compte maintenant.</p>`;
+  } else if (duJour) {
+    const origine = duJour.origine === 'historique'
+      ? `d'après ${duJour.nbBase > 1 ? 'tes ' + duJour.nbBase + ' dernières séances' : 'ta dernière séance'}${duJour.programme ? ' ' + escapeHtml(duJour.nom) : ''}`
+      : duJour.origine === 'programme' ? `d'après les séries prévues dans ${escapeHtml(duJour.nom)}` : 'faute de séance passée, sur une séance type';
+    html += `<div class="sp-titre" style="margin-top:0;">Aujourd'hui</div>` + ligne(duJour, true)
+      + `<p class="sp-note">Déjà comptée dans ton objectif (estimation ${origine}) : mange ces calories dans la journée plutôt que tard le soir. Quand tu finis la séance, sa vraie dépense remplace l'estimation.</p>`
+      + `<div class="sp-actions"><button type="button" class="btn btn-secondaire" onclick="definirSeanceDuJour(false)">Pas de séance aujourd'hui</button></div>`;
+  } else {
+    html += `<p class="sp-note" style="margin-top:0;">Pas de séance prévue aujourd'hui.</p>`
+      + `<div class="sp-actions"><button type="button" class="btn btn-secondaire" onclick="definirSeanceDuJour(true)">J'ai une séance aujourd'hui</button></div>`;
+  }
+  if (avenir.length) html += `<div class="sp-titre">À venir</div>` + avenir.map(s => ligne(s)).join('');
+  html += `<div class="sp-titre">Jours de séance</div>
+    <div class="segment" id="sp-mode" role="group" aria-label="Jours de séance" style="margin:6px 0 4px;">
+      <button type="button" onclick="choisirModeSeances('auto')">Repérés</button><button type="button" onclick="choisirModeSeances('jours')">Choisis</button><button type="button" onclick="choisirModeSeances('off')">Aucun</button>
+    </div>`;
+  if (r.mode === 'auto') {
+    const hab = habitudesSeance();
+    const noms = hab.jours.map(w => NOMS_JOURS[w]);
+    const enTexte = noms.length > 1 ? noms.slice(0, -1).join(', ') + ' et ' + noms[noms.length - 1] : noms.join('');
+    html += `<p class="sp-note">${hab.pause ? 'Pas de séance depuis plus de 10 jours : rien n\'est prévu tant que tu n\'as pas repris.'
+      : noms.length ? `Repérés sur tes ${Math.min(hab.semaines, PREVUES_SEMAINES)} dernières semaines : <b>${enTexte}</b>.`
+      : hab.semaines >= 2 ? 'Pas encore de jour régulier repéré dans tes séances : choisis tes jours si tu en as.'
+      : 'Après deux semaines de séances, tes jours habituels seront repérés tout seuls. Tu peux aussi les choisir.'}</p>`;
+  } else if (r.mode === 'jours') {
+    html += `<div class="sp-jours" role="group" aria-label="Tes jours de séance">${ORDRE_JOURS.map(w => `<button type="button" aria-pressed="${r.jours.includes(w)}" aria-label="${NOMS_JOURS[w]}" onclick="basculerJourSeance(${w})">${LETTRES_JOURS[w]}</button>`).join('')}</div>`;
+  } else {
+    html += `<p class="sp-note">Aucune séance n'est comptée à l'avance : la dépense d'une séance s'ajoute quand tu la termines.</p>`;
+  }
+  el.innerHTML = html;
+  majSegment('sp-mode', ['auto', 'jours', 'off'], r.mode);
+}
+function modifierReglageSeances(f) {
+  const r = Object.assign({}, userProfile.seancesPrevues || {});
+  const auj = todayStr();
+  r.exceptions = Object.assign({}, r.exceptions || {});
+  // Les exceptions des jours passés ne servent plus.
+  Object.keys(r.exceptions).forEach(d => { if (d < auj) delete r.exceptions[d]; });
+  f(r);
+  if (!Object.keys(r.exceptions).length) delete r.exceptions;
+  userProfile.seancesPrevues = r;
+  cacheHabitudesSeance = null;
+  saveData();
+  renderApp();
+  renderSeancesPrevues();
+}
+/* Aujourd'hui : séance (oui) ou pas (non), même si ce n'est pas l'habitude.
+   L'exception disparaît quand elle redit la même chose que la règle. */
+function definirSeanceDuJour(oui) {
+  const auj = todayStr();
+  modifierReglageSeances(r => {
+    delete r.exceptions[auj];
+    userProfile.seancesPrevues = r;
+    const parDefaut = prochainesSeances(1).some(s => s.date === auj);
+    if (parDefaut !== oui) r.exceptions[auj] = oui;
+  });
+  vibrer('selection');
+}
+function choisirModeSeances(mode) {
+  modifierReglageSeances(r => {
+    r.mode = mode;
+    // Premiers jours choisis : ceux déjà repérés, à ajuster d'un toucher.
+    if (mode === 'jours' && !(Array.isArray(r.jours) && r.jours.length)) r.jours = habitudesSeance().jours.slice();
+  });
+}
+function basculerJourSeance(w) {
+  modifierReglageSeances(r => {
+    const jours = new Set(Array.isArray(r.jours) ? r.jours : []);
+    if (jours.has(w)) jours.delete(w); else jours.add(w);
+    r.jours = ORDRE_JOURS.filter(j => jours.has(j));
+  });
+  vibrer('selection');
+}
 function updateSummary(day) {
   const totals = sumMeals(day);
   const t = computeTargets(day, currentDate);
@@ -9752,6 +10105,7 @@ function updateSummary(day) {
   majAnneau('c', totals.c, t.carbs);
   majAnneau('f', totals.f, t.fat);
 
+  majSeancePrevueHeros(t);
   majDetailDepense(day, t);
   updateLiquidFill(totals.kcal, t.target);
   majJaugeEau(day);
@@ -10124,16 +10478,19 @@ function majDetailDepense(day, t) {
     ['Métabolisme de base', t.bmr + ' kcal'],
     ['Vie courante (× 1,2)', Math.round(t.bmr * 0.2) + ' kcal'],
     ['Pas au-delà de 4 000', '+ ' + t.stepsKcal + ' kcal'],
-    ['Séances de sport', '+ ' + t.workoutKcal + ' kcal'],
-    ['Dépense totale estimée', t.tdee + ' kcal'],
-    ['Objectif (' + ({ seche: 'sèche −20 %', masse: 'masse +15 %', maintien: 'maintien', recomposition: 'recomposition' }[t.goal] || t.goal) + ')', t.target + ' kcal']
+    ['Séances de sport', '+ ' + t.workoutKcal + ' kcal']
   ];
+  // La séance prévue aujourd'hui, comptée d'avance (voir prochainesSeances).
+  if (t.seancePrevue) lignes.push(['Séance prévue (' + t.seancePrevue.nom + ', estimée)', '+ ' + t.prevueKcal + ' kcal']);
+  const nbDetail = lignes.length;
+  lignes.push(['Dépense totale estimée', t.tdee + ' kcal'],
+    ['Objectif (' + ({ seche: 'sèche −20 %', masse: 'masse +15 %', maintien: 'maintien', recomposition: 'recomposition' }[t.goal] || t.goal) + ')', t.target + ' kcal']);
   if (t.sousPlancher) lignes.push(['<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg> Ramené au métabolisme de base', 'plancher']);
   el.innerHTML = '';
   lignes.forEach(([g, d], i) => {
     const r = document.createElement('div');
     r.style.cssText = 'display:flex;justify-content:space-between;gap:12px;padding:6px 0;'
-      + (i >= 4 ? 'border-top:1px solid var(--verre-brd);font-weight:700;color:var(--text);' : '');
+      + (i >= nbDetail ? 'border-top:1px solid var(--verre-brd);font-weight:700;color:var(--text);' : '');
     const a = document.createElement('span');
     // La ligne "Ramené au métabolisme de base" embarque une icône SVG dans
     // son libellé (toutes les autres sont du texte brut) : textContent
@@ -10150,6 +10507,7 @@ function majDetailDepense(day, t) {
   const aEau = document.createElement('span'); aEau.innerHTML = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg> Objectif eau';
   const bEau = document.createElement('span'); bEau.textContent = quotaEauSuggere(currentDate).toLocaleString('fr-FR') + ' ml';
   ligneEau.appendChild(aEau); ligneEau.appendChild(bEau); el.appendChild(ligneEau);
+  renderSeancesPrevues();
   const note = document.getElementById('note-poids');
   if (note) {
     note.textContent = t.poidsEstime
@@ -12345,9 +12703,11 @@ async function lancerAnalyseJour() {
     workoutsDesc = day.workouts.map(w => `${SPORT_LABELS[w.type] || w.type} (${w.time} min)`).join(', ');
   }
   const seanceMuscuDesc = resumeSeanceMuscuJour(currentDate);
+  // Séance prévue plus tard dans la journée : déjà comptée dans l'objectif.
+  const prevueDesc = t.seancePrevue ? ` Séance de musculation prévue ${momentSeance(t.seancePrevue)} (${t.seancePrevue.nom}, ~${t.prevueKcal} kcal), déjà comptée dans l'objectif.` : '';
 
   const prompt = `Tu es un coach nutrition & sport haut de gamme. Analyse cette journée et donne un clair, motivant et actionnable en français (max 180 mots, sans markdown).
-Objectif: ${t.goal}. Poids: ${t.poids} kg. Pas: ${day.steps}. Eau bue: ${Number(day.eauMl) || 0} / ${quotaEauSuggere(currentDate)} ml. Sports: ${workoutsDesc}.${seanceMuscuDesc ? `
+Objectif: ${t.goal}. Poids: ${t.poids} kg. Pas: ${day.steps}. Eau bue: ${Number(day.eauMl) || 0} / ${quotaEauSuggere(currentDate)} ml. Sports: ${workoutsDesc}.${prevueDesc}${seanceMuscuDesc ? `
 Détail de la séance de musculation du jour: ${seanceMuscuDesc}.` : ''}
 Calories consommées: ${totals.kcal} / objectif ${t.target} kcal. Protéines ${totals.p}/${t.protein}g, Glucides ${totals.c}/${t.carbs}g, Lipides ${totals.f}/${t.fat}g.`;
   try {
