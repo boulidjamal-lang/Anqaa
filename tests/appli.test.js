@@ -180,7 +180,7 @@ test('musculation : une séance suivie compte toute sa durée, repos compris (3,
   assert.equal(Math.round(r.ouverte), Math.round(r.parMin * 18 * 4), 'restée ouverte : 4 min par série au plus');
   assert.equal(Math.round(r.dense), Math.round(r.parMin * 18 * 2), 'en supersets : 2 min par série au moins');
   assert.equal(Math.round(r.sansDuree), Math.round(r.parMin * 18 * 3), 'sans durée : 3 min par série');
-  assert.equal(Math.round(r.aLaMain), Math.round((5 * 3.5 * 80 / 200 - 1800 / 1440) * 60), 'ajoutée à la main : sa durée déclarée, comme avant');
+  assert.equal(Math.round(r.aLaMain), Math.round(r.parMin * 60), 'ajoutée à la main : sa durée déclarée, au même MET qu\'une séance suivie');
 }));
 
 async function glisser(page, selecteur, dx) {
@@ -2020,7 +2020,7 @@ test('Séances prévues : la séance du soir comptée dès le matin, remplacée 
     ouvrirDepense();
     const b = document.getElementById('bloc-seances-prevues');
     const res = { cache: b.classList.contains('hidden'), lignes: [...b.querySelectorAll('.sp-ligne')].map(l => l.querySelector('.sp-nom b').textContent + ' ' + l.querySelector('.sp-kcal').textContent),
-      repere: b.querySelector('.sp-note:last-child').textContent, detail: document.getElementById('detail-depense').textContent };
+      repere: b.querySelector('.sp-reperes').textContent, detail: document.getElementById('detail-depense').textContent };
     [...b.querySelectorAll('button')].find(x => x.textContent === "Pas de séance aujourd'hui").click();
     res.apres = { exception: userProfile.seancesPrevues.exceptions[todayStr()], prevue: !!computeTargets(getDay(todayStr()), todayStr()).seancePrevue,
       bouton: [...b.querySelectorAll('button')].map(x => x.textContent).includes("J'ai une séance aujourd'hui"), heros: document.getElementById('seance-prevue-heros').classList.contains('hidden') };
@@ -2132,7 +2132,7 @@ test('Séances prévues : chaque jour son programme, appris de tes séances (sé
     const j = getDay(auj), t = computeTargets(j, auj);
     const lundi = prochainesSeances(7).find(x => x.date === '2026-11-09');
     ouvrirDepense();
-    const note = document.querySelector('#bloc-seances-prevues .sp-note:last-child').textContent;
+    const note = document.querySelector('#bloc-seances-prevues .sp-reperes').textContent;
     fermerModal('depense-modal');
     allerA('seance'); choisirModeSeance('muscu');
     const carte = document.querySelector('#vitrine-muscu .sdj');
@@ -2154,6 +2154,26 @@ test('Séances prévues : chaque jour son programme, appris de tes séances (sé
   assert.match(r.repos.replace(/<[^>]+>/g, ''), /^Jour de repos aujourd'hui\s:\sta prochaine séance, Jambes, est prévue demain soir\.$/);
   assert.match(r.note, /^Repérés sur tes 5 dernières semaines\s:\slundi \(Pecs Triceps\), mercredi \(Jambes\), jeudi \(Épaules\) et samedi \(Dos Biceps\)\.$/);
   assert.deepEqual(r.lundi, ['historique', 3, 9], 'les séances libres du lundi servent à estimer Pecs Triceps (3 exercices × 3 séries)');
+
+  // Le programme d'un jour fixé à la main l'emporte ; « Auto » le rend aux séances.
+  const fixe = await page.evaluate(() => {
+    ouvrirDepense();
+    const menus = () => [...document.querySelectorAll('#bloc-seances-prevues .sp-prog')].map(l => [l.querySelector('span').textContent, l.querySelector('select').selectedOptions[0].textContent]);
+    const avant = menus();
+    const sel = [...document.querySelectorAll('#bloc-seances-prevues .sp-prog')].find(l => l.querySelector('span').textContent === 'Mercredi').querySelector('select');
+    sel.value = 'ep'; sel.dispatchEvent(new Event('change', { bubbles: true }));
+    const res = { avant, demain: prochainesSeances(7)[0].nom, carte: seanceAAfficher().p.nom, note: document.querySelector('#bloc-seances-prevues .sp-reperes').textContent, reglage: userProfile.seancesPrevues.programmes };
+    choisirProgrammeJour(3, '');
+    res.apres = { demain: prochainesSeances(7)[0].nom, reglage: userProfile.seancesPrevues.programmes || null };
+    fermerModal('depense-modal');
+    return res;
+  });
+  assert.deepEqual(fixe.avant, [['Lundi', 'Auto · Pecs Triceps'], ['Mercredi', 'Auto · Jambes'], ['Jeudi', 'Auto · Épaules'], ['Samedi', 'Auto · Dos Biceps']]);
+  assert.equal(fixe.demain, 'Épaules');
+  assert.equal(fixe.carte, 'Épaules');
+  assert.match(fixe.note, /mercredi \(Épaules\)/);
+  assert.deepEqual(fixe.reglage, { 3: 'ep' });
+  assert.deepEqual(fixe.apres, { demain: 'Jambes', reglage: null });
 
   // Mercredi matin : la séance du jour et la séance prévue, c'est Jambes.
   await page.clock.setFixedTime(new Date('2026-11-04T09:00:00'));
@@ -2506,6 +2526,41 @@ test('Recettes Askēsis : bien rangées, affinages cumulables (protéinées, dan
   assert.deepEqual(r.gardes, { proteinees: 'true', tri: 'true', memo: { tri: 'kcal', proteinees: true, reste: false, vege: false } });
   const parNom = r.tofu.findIndex(([nom]) => !nom);
   assert.ok(parNom >= 3 && r.tofu.slice(parNom).length >= 1 && r.tofu.slice(parNom).every(([nom, ingr]) => !nom && ingr), JSON.stringify(r.tofu));
+}));
+
+test('Recette : choisir le nombre de portions (½ à 4) avant de l\'ajouter, les valeurs suivent', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const rec = recettesAskesis().find(x => x.nom === 'Blanquette de veau'), t = totauxRecettePerso(rec);
+    currentDate = todayStr(); allerA('repas'); renderApp();
+    ouvrirFicheRecette(rec.id, 'dinner');
+    const f = document.getElementById('fiche-recette');
+    const etat = () => ({ nb: document.getElementById('fiche-recette-nb').textContent, kcal: f.querySelector('.recette-macros b').textContent,
+      note: document.getElementById('fiche-recette-portions-note').textContent, bouton: f.querySelector('.recette-ajouter').textContent,
+      moins: f.querySelector('.recette-portions button').disabled });
+    const plus = () => f.querySelectorAll('.recette-portions button')[1].click(), moins = () => f.querySelector('.recette-portions button').click();
+    const res = { parPortion: Math.round(t.parPortionKcal), un: etat() };
+    moins(); res.demi = etat(); moins(); res.toujoursDemi = etat().nb;
+    plus(); plus(); res.unEtDemi = etat();
+    for (let k = 0; k < 8; k++) plus();
+    res.max = etat().nb;
+    moins(); moins(); moins(); moins(); moins(); // 1,5
+    f.querySelector('.recette-ajouter').click();
+    const it = getDay(todayStr()).meals.dinner.slice(-1)[0];
+    res.ajoute = { nom: it.name, kcal: Math.round(it.kcal) };
+    return res;
+  });
+  const fr = n => n.toLocaleString('fr-FR');
+  assert.deepEqual(r.un, { nb: '1 portion', kcal: fr(r.parPortion), note: 'Pour 4 portions : valeurs pour une portion.', bouton: 'Ajouter une portion au dîner', moins: false });
+  assert.equal(r.demi.nb, '½ portion');
+  assert.equal(r.demi.bouton, 'Ajouter ½ portion au dîner');
+  assert.equal(r.demi.moins, true);
+  assert.equal(r.toujoursDemi, '½ portion', 'jamais moins d\'une demi-portion');
+  assert.equal(r.unEtDemi.bouton, 'Ajouter 1,5 portion au dîner');
+  assert.equal(r.unEtDemi.note, 'Pour 4 portions : valeurs pour 1,5 portion.');
+  assert.ok(Math.abs(Number(r.unEtDemi.kcal.replace(/\s/g, '')) - r.parPortion * 1.5) <= 1, r.unEtDemi.kcal);
+  assert.equal(r.max, '4 portions');
+  assert.equal(r.ajoute.nom, 'Blanquette de veau');
+  assert.ok(Math.abs(r.ajoute.kcal - r.parPortion * 1.5) <= r.parPortion * 0.03, JSON.stringify(r.ajoute));
 }));
 
 test('Repas du jour : « 62/1 821 kcal » et la roulette Pas / Hydratation / Poids', () => avecAppli({}, async ({ page }) => {
@@ -2912,6 +2967,24 @@ test('séance : pavé de saisie à la salle (− / +, pas selon le matériel, va
   await page.click('#menu-technique-popup button[onclick="choisirTechniqueMenu(\'degressif\')"]');
   r = await page.evaluate(() => ({ technique: musculationSessionActive.exercices[0].series[1].technique, titre: document.querySelector('#pave-0_1 .pave-titre').textContent }));
   assert.deepEqual(r, { technique: 'degressif', titre: 'Série 2 · Dégressif' });
+}));
+
+test('Bibliothèque : chaque exercice compté pour le bon muscle, le cardio hors du volume, aucun nom en double', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const g = nom => (EXERCICES_BASE.find(e => e.nom === nom) || {}).groupe;
+    const noms = EXERCICES_BASE.map(e => e.nom);
+    return {
+      groupes: ['Soulevé de terre roumain', 'Soulevé de terre', 'Hip thrust à la barre', 'Hip thrust avec haltère', 'Good morning avec barre', 'Butterfly inversé',
+        'Développé poussé avec barre', 'Rameur', 'Course à pied', 'Extension du dos', 'Squat', 'Développé couché avec barre', 'Traction'].map(g),
+      doublons: noms.filter((n, i) => noms.indexOf(n) !== i),
+      cardioAvecSecondaires: EXERCICES_BASE.filter(e => e.groupe === 'cardio' && (e.secondaires || []).length).map(e => e.nom),
+      principalEnSecondaire: EXERCICES_BASE.filter(e => (e.secondaires || []).includes(e.groupe)).map(e => e.nom)
+    };
+  });
+  assert.deepEqual(r.groupes, ['ischios', 'ischios', 'fessiers', 'fessiers', 'ischios', 'epaules', 'epaules', 'cardio', 'cardio', 'lombaires', 'quadriceps', 'pectoraux', 'dos']);
+  assert.deepEqual(r.doublons, []);
+  assert.deepEqual(r.cardioAvecSecondaires, [], 'une course ne compte pas dans le volume de musculation');
+  assert.deepEqual(r.principalEnSecondaire, []);
 }));
 
 test('séance du jour : le programme suivant dans l\'ordre de la liste', () => avecAppli({}, async ({ page }) => {
