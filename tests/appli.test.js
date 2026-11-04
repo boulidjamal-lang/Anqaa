@@ -4968,3 +4968,37 @@ test('Administration : l\'historique de l\'objectif adapté d\'un compte, semain
   assert.match(r.pied, /^Réglage : désactivé par l'utilisateur ; ne s'applique qu'avec Pro\. \* semaine reconstituée/);
   assert.ok(r.demande.some(f => JSON.stringify(f) === JSON.stringify([['eq', 'utilisateur', 'a1']])), JSON.stringify(r.demande));
 }));
+
+test('photo IA : chaque poids compté au haut de la marge d\'erreur donnée par Gemini, pour ne pas sous-estimer les calories', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    geminiKey = 'cle-test';
+    let envoye = '';
+    window.geminiGenerate = async parts => {
+      envoye = parts[0].text;
+      return JSON.stringify({ type: 'aliment', aliments: [
+        { name: 'Riz cuit', grams: 150, marge: 25, kcal100: 130, p100: 2.7, c100: 28, f100: 0.3 },
+        { name: 'Pomme', grams: 180, marge: 2, kcal100: 52, p100: 0.3, c100: 14, f100: 0.2 },
+        { name: 'Huile d\'olive', grams: 10, kcal100: 900, p100: 0, c100: 0, f100: 100 },
+        { name: 'Sauce', grams: 50, marge: 90, kcal100: 200, p100: 1, c100: 10, f100: 17 }] });
+    };
+    ouvrirModal('ai-modal', true);
+    document.getElementById('ai-description').value = 'du riz, une pomme et un filet d\'huile';
+    await analyserRepasGemini();
+    const res = {
+      prompt: /"marge": number \(marge d'erreur de ton estimation de grams, en %\)/.test(envoye) && /Une marge trop faible ferait sous-estimer les calories/.test(envoye),
+      retenus: detectedBufferGemini.map(a => [a.name, a.estime, a.marge, a.grams]),
+      lignes: [...document.querySelectorAll('#detected-ingredients-list .detected-row')].map(l => [l.querySelector('span').textContent, l.querySelector('input').value]),
+      note: document.getElementById('ai-note-marge').textContent
+    };
+    activeMealId = 'lunch';
+    ajouterIngredientsGemini();
+    res.repas = getDay(currentDate).meals.lunch.map(i => [i.name, i.grams, Math.round(i.kcal)]);
+    return res;
+  });
+  assert.equal(r.prompt, true, 'Gemini donne une marge d\'erreur pour chaque poids');
+  // 150 g ±25 % → 188 g ; une marge trop faible remonte à 5 %, absente à 20 %, trop grande plafonnée à 60 %.
+  assert.deepEqual(r.retenus, [['Riz cuit', 150, 25, 188], ['Pomme', 180, 5, 189], ['Huile d\'olive', 10, 20, 12], ['Sauce', 50, 60, 80]]);
+  assert.deepEqual(r.lignes[0], ['Riz cuitestimé 150 g · +25 %', '188']);
+  assert.match(r.note, /^Poids comptés au haut de la marge d'erreur de l'IA/);
+  assert.deepEqual(r.repas, [['Riz cuit', 188, 244], ['Pomme', 189, 98], ['Huile d\'olive', 12, 108], ['Sauce', 80, 160]]);
+}));

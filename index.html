@@ -2806,6 +2806,7 @@
     input.rappel-heure::-webkit-calendar-picker-indicator { display: none; }
     .rappel-ligne .ligne-txt b { overflow-wrap: normal; word-break: normal; }
     html:root input.rappel-heure:disabled { opacity: .4; }
+    .ai-marge { display: block; font-size: .72rem; font-weight: 500; color: var(--text-muted); }
     .hist-ajust { margin-top: 8px; }
     .hist-ajust summary { cursor: pointer; font-size: .75rem; font-weight: 700; color: var(--text-muted); }
     .hist-ajust ul { list-style: none; margin: 6px 0 0; padding: 0; }
@@ -13185,7 +13186,16 @@ function fichierVersBase64(file) {
   });
 }
 
-const PROMPT_JSON_ALIMENTS = "Renvoie UNIQUEMENT un objet JSON (sans texte autour), de la forme {\"type\": \"aliment\" ou \"recette\", \"nom\": string (nom du plat, uniquement si type est \"recette\"), \"aliments\": tableau}. Mets \"recette\" si c'est un plat composé de plusieurs ingrédients assemblés ou cuisinés ensemble (ex: gratin, curry, salade composée, plat mijoté, pâtes en sauce, sushis/makis, sandwich, wrap, burger, pizza, onigiri) qui mérite d'être enregistré comme recette réutilisable — même si le plat se présente en plusieurs morceaux identiques côte à côte (ex: un plateau de makis, plusieurs parts de pizza, plusieurs sandwichs identiques) : ce sont toujours les ingrédients d'une seule recette, pas des aliments séparés. Mets \"aliment\" uniquement si les éléments visibles sont réellement distincts et non assemblés entre eux (ex: un yaourt posé à côté d'une pomme, un fruit seul, une boisson seule). Le tableau \"aliments\" liste dans les deux cas les éléments détectés : les ingrédients si \"recette\", les aliments séparés si \"aliment\". Chaque élément du tableau doit être UN SEUL aliment réel et précis, correspondant à une entrée qu'on trouverait dans une base nutritionnelle (ex: \"Saumon\", \"Thon\", \"Surimi\") — jamais un regroupement ou une description combinant plusieurs aliments entre parenthèses ou avec \"et\"/\"ou\" (proscris par exemple \"Garniture de poisson (saumon, thon et surimi)\" ou \"Légumes (carotte, courgette)\") : si plusieurs aliments distincts composent une garniture ou un mélange, crée une entrée séparée pour chacun, avec sa propre estimation de poids et ses propres valeurs nutritionnelles. Pour chaque élément du tableau : {\"name\": string en français, \"grams\": number (portion estimée en g), \"kcal100\": number (kcal pour 100g), \"p100\": number, \"c100\": number, \"f100\": number}. Pour estimer grams le plus précisément possible : si une photo est fournie, examine d'abord l'intégralité de l'image (pas seulement l'aliment) pour repérer tous les objets de référence disponibles — assiette, bol, couverts, verre, main, emballage, table, etc. Sers-toi de tailles standards connues pour calibrer l'échelle de la photo : assiette plate ~24-27cm de diamètre, assiette à dessert ~18-20cm, fourchette ou couteau ~20cm, verre standard ~8-10cm de diamètre, main d'adulte ~18-20cm de longueur. Quand plusieurs repères sont visibles, croise-les entre eux plutôt que de te fier à un seul, pour fiabiliser l'échelle avant d'estimer le poids. Tiens compte aussi du volume apparent de l'aliment (hauteur et empilement dans l'assiette, pas seulement la surface occupée vue de dessus) et de sa densité (un féculent cuit ou une viande pèsent plus qu'un légume vert pour un volume équivalent) ; sans photo, base-toi sur une portion individuelle standard pour ce type d'aliment.";
+const PROMPT_JSON_ALIMENTS = "Renvoie UNIQUEMENT un objet JSON (sans texte autour), de la forme {\"type\": \"aliment\" ou \"recette\", \"nom\": string (nom du plat, uniquement si type est \"recette\"), \"aliments\": tableau}. Mets \"recette\" si c'est un plat composé de plusieurs ingrédients assemblés ou cuisinés ensemble (ex: gratin, curry, salade composée, plat mijoté, pâtes en sauce, sushis/makis, sandwich, wrap, burger, pizza, onigiri) qui mérite d'être enregistré comme recette réutilisable — même si le plat se présente en plusieurs morceaux identiques côte à côte (ex: un plateau de makis, plusieurs parts de pizza, plusieurs sandwichs identiques) : ce sont toujours les ingrédients d'une seule recette, pas des aliments séparés. Mets \"aliment\" uniquement si les éléments visibles sont réellement distincts et non assemblés entre eux (ex: un yaourt posé à côté d'une pomme, un fruit seul, une boisson seule). Le tableau \"aliments\" liste dans les deux cas les éléments détectés : les ingrédients si \"recette\", les aliments séparés si \"aliment\". Chaque élément du tableau doit être UN SEUL aliment réel et précis, correspondant à une entrée qu'on trouverait dans une base nutritionnelle (ex: \"Saumon\", \"Thon\", \"Surimi\") — jamais un regroupement ou une description combinant plusieurs aliments entre parenthèses ou avec \"et\"/\"ou\" (proscris par exemple \"Garniture de poisson (saumon, thon et surimi)\" ou \"Légumes (carotte, courgette)\") : si plusieurs aliments distincts composent une garniture ou un mélange, crée une entrée séparée pour chacun, avec sa propre estimation de poids et ses propres valeurs nutritionnelles. Pour chaque élément du tableau : {\"name\": string en français, \"grams\": number (portion estimée en g), \"marge\": number (marge d'erreur de ton estimation de grams, en %), \"kcal100\": number (kcal pour 100g), \"p100\": number, \"c100\": number, \"f100\": number}. Pour \"marge\" : donne honnêtement l'incertitude de ton estimation du poids, en pourcentage — environ 10 pour un aliment entier facile à juger (une pomme, un yaourt, une tranche de pain), 20 à 30 pour une portion en vrac dans une assiette, 30 à 50 pour un aliment en partie caché, empilé, dans une sauce, ou une matière grasse de cuisson invisible. Une marge trop faible ferait sous-estimer les calories. Pour estimer grams le plus précisément possible : si une photo est fournie, examine d'abord l'intégralité de l'image (pas seulement l'aliment) pour repérer tous les objets de référence disponibles — assiette, bol, couverts, verre, main, emballage, table, etc. Sers-toi de tailles standards connues pour calibrer l'échelle de la photo : assiette plate ~24-27cm de diamètre, assiette à dessert ~18-20cm, fourchette ou couteau ~20cm, verre standard ~8-10cm de diamètre, main d'adulte ~18-20cm de longueur. Quand plusieurs repères sont visibles, croise-les entre eux plutôt que de te fier à un seul, pour fiabiliser l'échelle avant d'estimer le poids. Tiens compte aussi du volume apparent de l'aliment (hauteur et empilement dans l'assiette, pas seulement la surface occupée vue de dessus) et de sa densité (un féculent cuit ou une viande pèsent plus qu'un légume vert pour un volume équivalent) ; sans photo, base-toi sur une portion individuelle standard pour ce type d'aliment.";
+
+/* Marge d'erreur de l'IA sur un poids, en % : celle qu'elle donne, entre 5
+   et 60 ; 20 si elle n'en donne pas. Le poids retenu en est le haut, pour
+   ne jamais sous-estimer les calories d'une photo. */
+const MARGE_IA_DEFAUT = 20, MARGE_IA_MIN = 5, MARGE_IA_MAX = 60;
+function margeIA(v) {
+  const m = Number(v);
+  return Math.round(Number.isFinite(m) && m > 0 ? Math.min(MARGE_IA_MAX, Math.max(MARGE_IA_MIN, m)) : MARGE_IA_DEFAUT);
+}
 
 /* Photo, description, ou les deux : les deux champs sont maintenant
    indépendants (avant, seule une photo pouvait déclencher l'analyse — pas
@@ -13220,11 +13230,16 @@ async function analyserRepasGemini() {
 
     typeDetectionGemini = data.type === 'recette' ? 'recette' : 'aliment';
     nomRecetteGemini = String(data.nom || '').trim() || 'Recette détectée';
-    detectedBufferGemini = aliments.map(a => ({
-      name: a.name || 'Aliment', grams: Number(a.grams) || 100,
-      kcal100: Number(a.kcal100) || 0, p100: Number(a.p100) || 0,
-      c100: Number(a.c100) || 0, f100: Number(a.f100) || 0
-    }));
+    // Le poids retenu est le haut de la marge d'erreur donnée par l'IA :
+    // mieux vaut compter un peu trop que pas assez (voir margeIA).
+    detectedBufferGemini = aliments.map(a => {
+      const estime = Number(a.grams) > 0 ? Number(a.grams) : 100, marge = margeIA(a.marge);
+      return {
+        name: a.name || 'Aliment', grams: Math.round(estime * (1 + marge / 100)), estime: Math.round(estime), marge,
+        kcal100: Number(a.kcal100) || 0, p100: Number(a.p100) || 0,
+        c100: Number(a.c100) || 0, f100: Number(a.f100) || 0
+      };
+    });
 
     /* Une recette est enregistrée comme réutilisable : avant de la créer, on
        vérifie si chaque ingrédient existe déjà dans la base (historique,
@@ -13278,9 +13293,9 @@ function renderDetectedRows() {
   groupeNom.classList.toggle('hidden', !estRecette);
   if (estRecette) document.getElementById('ai-recette-nom').value = nomRecetteGemini;
 
-  document.getElementById('detected-ingredients-list').innerHTML = detectedBufferGemini.map((a, i) => `
+  document.getElementById('detected-ingredients-list').innerHTML = `<p class="note" id="ai-note-marge" style="margin:0 0 8px;">Poids comptés au haut de la marge d'erreur de l'IA, pour ne pas sous-estimer tes calories. Corrige-les si tu les connais.</p>` + detectedBufferGemini.map((a, i) => `
     <div class="detected-row">
-      <span style="font-weight:600;font-size:0.88rem;">${escapeHtml(a.name)}${estRecette && a.dejaEnBase ? ' <span style="font-weight:400;color:var(--text-muted);font-size:0.75rem;">(déjà en base)</span>' : ''}</span>
+      <span style="font-weight:600;font-size:0.88rem;">${escapeHtml(a.name)}${estRecette && a.dejaEnBase ? ' <span style="font-weight:400;color:var(--text-muted);font-size:0.75rem;">(déjà en base)</span>' : ''}${a.marge ? `<small class="ai-marge">estimé ${a.estime}\u00a0g · +${a.marge}\u00a0%</small>` : ''}</span>
       <div style="display:flex;align-items:center;gap:6px;">
         <input type="number" value="${Math.round(a.grams)}" onchange="detectedBufferGemini[${i}].grams=Number(this.value)"> <span style="font-size:0.75rem;color:var(--text-muted);">g</span>
       </div>
