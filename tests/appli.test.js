@@ -1990,17 +1990,25 @@ test('Séances prévues : la séance du soir comptée dès le matin, remplacée 
     const j = getDay(todayStr()), avant = { goal: j.goal, steps: j.steps };
     j.goal = 'seche'; j.steps = 100;
     const t = computeTargets(j, todayStr());
+    // « Ta journée » dit pourquoi l'objectif monte moins que la dépense.
+    renderSeancesPrevues(); ouvrirDepense();
+    const note = document.querySelector('#bloc-seances-prevues .sp-ligne--jour + .sp-note').textContent;
+    fermerModal('depense-modal');
     const sauve = userProfile.seancesPrevues;
     userProfile.seancesPrevues = { mode: 'off' };
     const sans = computeTargets(j, todayStr());
     userProfile.seancesPrevues = sauve;
     if (avant.goal === undefined) delete j.goal; else j.goal = avant.goal;
     j.steps = avant.steps;
-    return { target: t.target, sans: sans.target, sansPlancher: sans.sousPlancher, ajout: t.prevueObjectif, moins20: Math.round(t.prevueKcal * 0.8) };
+    return { target: t.target, sans: sans.target, sansPlancher: sans.sousPlancher, ajout: t.prevueObjectif, moins20: Math.round(t.prevueKcal * 0.8), depense: t.prevueKcal, bmr: t.bmr, note };
   });
   assert.equal(plancher.sansPlancher, true, 'sans la séance, la sèche passait sous le métabolisme de base');
   assert.equal(plancher.target, plancher.sans + plancher.ajout);
   assert.ok(plancher.ajout >= 0 && plancher.ajout < plancher.moins20, 'moins que la dépense −20 % : le plancher relevait déjà l\'objectif');
+  const nb = n => n.toLocaleString('fr-FR');
+  assert.ok(plancher.note.startsWith(`Elle ajoute ${nb(plancher.depense)}\u00a0kcal à ta dépense, mais `), plancher.note);
+  assert.ok(plancher.note.includes(`sans jamais descendre sous ton métabolisme de base (${nb(plancher.bmr)}\u00a0kcal)`), plancher.note);
+  if (plancher.ajout > 0) assert.ok(plancher.note.includes(`la séance le fait passer de ${nb(plancher.sans)} à ${nb(plancher.target)}\u00a0kcal`), plancher.note);
   // Les suivantes dans l'ordre des programmes : vendredi puis lundi.
   assert.deepEqual(mer.a_venir.map(x => x[0]), ['2026-11-04', '2026-11-06', '2026-11-09']);
   const ordre = await page.evaluate(() => musculationProgrammes.map(p => p.nom));

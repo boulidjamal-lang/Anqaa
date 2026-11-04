@@ -10128,8 +10128,17 @@ function renderSeancesPrevues() {
     const origine = duJour.origine === 'historique'
       ? `d'après ${duJour.nbBase > 1 ? 'tes ' + duJour.nbBase + ' dernières séances' : 'ta dernière séance'}${duJour.programme ? ' ' + escapeHtml(duJour.nom) : ''}`
       : duJour.origine === 'programme' ? `d'après les séries prévues dans ${escapeHtml(duJour.nom)}` : 'faute de séance passée, sur une séance type';
+    // Ce que la séance ajoute à l'objectif n'est pas toujours sa dépense : en
+    // sèche, l'objectif est la dépense −20 % (en masse +15 %), et jamais sous
+    // le métabolisme de base. On dit lequel, chiffres à l'appui.
+    const t = computeTargets(getDay(auj), auj), ajout = t.prevueObjectif, dep = duJour.kcal, sans = t.target - ajout;
+    const facteur = t.goal === 'seche' ? 0.8 : t.goal === 'masse' ? 1.15 : 1;
+    const effet = ajout === dep ? 'Déjà comptée dans ton objectif'
+      : ajout < Math.round(dep * facteur) - 1
+        ? `Elle ajoute ${fr(dep)}\u00a0kcal à ta dépense, mais ${ajout > 0 ? 'seulement ' + fr(ajout) + '\u00a0kcal' : 'rien'} à ton objectif : en sèche, ton objectif est ta dépense −20\u00a0%, sans jamais descendre sous ton métabolisme de base (${fr(t.bmr)}\u00a0kcal). Sans séance, il y serait déjà relevé ; ${ajout > 0 ? `la séance le fait passer de ${fr(sans)} à ${fr(t.target)}\u00a0kcal` : 'la séance ne le dépasse pas'}`
+        : `Elle ajoute ${fr(dep)}\u00a0kcal à ta dépense et ${fr(ajout)}\u00a0kcal à ton objectif (${t.goal === 'seche' ? 'sèche, dépense −20\u00a0%' : 'masse, dépense +15\u00a0%'})`;
     html += `<div class="sp-titre" style="margin-top:0;">Aujourd'hui</div>` + ligne(duJour, true)
-      + `<p class="sp-note">Déjà comptée dans ton objectif (estimation ${origine}) : mange ces calories dans la journée plutôt que tard le soir. Quand tu finis la séance, sa vraie dépense remplace l'estimation.</p>`
+      + `<p class="sp-note">${effet}. Mange ces calories dans la journée plutôt que tard le soir ; quand tu finis la séance, sa vraie dépense remplace l'estimation (faite ${origine}).</p>`
       + `<div class="sp-actions"><button type="button" class="btn btn-secondaire" onclick="definirSeanceDuJour(false)">Pas de séance aujourd'hui</button></div>`;
   } else {
     html += `<p class="sp-note" style="margin-top:0;">Pas de séance prévue aujourd'hui.</p>`
