@@ -2126,7 +2126,12 @@ test('Séances prévues : chaque jour son programme, appris de tes séances (sé
     ouvrirDepense();
     const note = document.querySelector('#bloc-seances-prevues .sp-note:last-child').textContent;
     fermerModal('depense-modal');
+    allerA('seance'); choisirModeSeance('muscu');
+    const carte = document.querySelector('#vitrine-muscu .sdj');
+    const carteMardi = [carte.querySelector('small').textContent, carte.querySelector('h4').textContent];
+    allerA('repas');
     return {
+      carteMardi,
       prevues: prochainesSeances(7).map(x => [x.date, x.nom, momentSeance(x)]),
       sdj: programmeSuggere().p.nom,
       repos: (analyseCoach(j, sumMeals(j), t).find(c => c.cle === 'repos') || {}).texte,
@@ -2137,14 +2142,19 @@ test('Séances prévues : chaque jour son programme, appris de tes séances (sé
     ['2026-11-04', 'Jambes', 'demain soir'], ['2026-11-05', 'Épaules', 'jeudi soir'],
     ['2026-11-07', 'Dos Biceps', 'samedi matin'], ['2026-11-09', 'Pecs Triceps', 'lundi soir']]);
   assert.equal(r.sdj, 'Jambes', 'la séance du jour suit ton ordre réel : après Pecs Triceps, Jambes');
+  assert.deepEqual(r.carteMardi, ['Prochaine séance · demain soir', 'Jambes'], 'un mardi de repos, pas de « Séance du jour »');
   assert.match(r.repos.replace(/<[^>]+>/g, ''), /^Jour de repos aujourd'hui\s:\sta prochaine séance, Jambes, est prévue demain soir\.$/);
   assert.match(r.note, /^Repérés sur tes 5 dernières semaines\s:\slundi \(Pecs Triceps\), mercredi \(Jambes\), jeudi \(Épaules\) et samedi \(Dos Biceps\)\.$/);
   assert.deepEqual(r.lundi, ['historique', 3, 9], 'les séances libres du lundi servent à estimer Pecs Triceps (3 exercices × 3 séries)');
 
   // Mercredi matin : la séance du jour et la séance prévue, c'est Jambes.
   await page.clock.setFixedTime(new Date('2026-11-04T09:00:00'));
-  const mer = await page.evaluate(() => ({ sdj: programmeSuggere().p.nom, prevue: computeTargets(getDay(todayStr()), todayStr()).seancePrevue.nom }));
-  assert.deepEqual(mer, { sdj: 'Jambes', prevue: 'Jambes' });
+  const mer = await page.evaluate(() => {
+    allerA('seance'); choisirModeSeance('muscu');
+    const carte = document.querySelector('#vitrine-muscu .sdj');
+    return { sdj: programmeSuggere().p.nom, prevue: computeTargets(getDay(todayStr()), todayStr()).seancePrevue.nom, carte: carte.querySelector('small').textContent };
+  });
+  assert.deepEqual(mer, { sdj: 'Jambes', prevue: 'Jambes', carte: 'Séance du jour' });
 
   // Une rotation qui ne tombe pas sur les mêmes jours (4 programmes, 3 séances par semaine) : ton ordre réel
   // (A, C, B, D) plutôt que celui de la liste (A, B, C, D).

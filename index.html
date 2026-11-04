@@ -26178,6 +26178,24 @@ function groupesProgramme(p) {
 // Le programme à faire : le suivant, dans l'ordre de la liste, de celui de
 // la dernière séance faite avec un programme (après le dernier, retour au
 // premier). Aucune séance avec un programme encore : le premier de la liste.
+/* La carte de la séance à faire (Activité, « Lancer une activité ») : un
+   jour de séance, « Séance du jour » ; un jour de repos repéré, ou une fois
+   la séance du jour faite, la prochaine séance prévue, avec son jour
+   (« Prochaine séance · demain soir »). Sans jours de séance connus, la
+   séance du jour comme avant. */
+function seanceAAfficher() {
+  const sug = programmeSuggere();
+  if (!sug) return null;
+  const auj = todayStr();
+  try {
+    if (!seancePrevueDuJour(auj) && seancesPrevuesConnues()) {
+      const s = prochainesSeances(8).find(x => x.date !== auj && x.programme);
+      const p = s && musculationProgrammes.find(x => x.id === s.programme.id);
+      if (p) return { p, d: (dernierePerfProgramme(p.id) || {}).date || '', titre: 'Prochaine séance · ' + momentSeance(s) };
+    }
+  } catch (e) {}
+  return Object.assign({ titre: 'Séance du jour' }, sug);
+}
 /* La séance du jour : un jour de séance prévue (pas encore faite), le
    programme prévu, celui que tu fais d'habitude ce jour de la semaine ;
    sinon celui qui suit ta dernière séance dans ton ordre habituel, et à
@@ -26217,15 +26235,15 @@ function renderVitrineMuscu() {
   const total = seancesSem.reduce((n, h) => n + (h.exercices || []).reduce((m, e) => m + (e.series || []).filter(s => s.fait).length, 0), 0);
   const zones = Object.keys(ZONES_VOLUME).map(g => cleZoneVolume(g, series[g] || 0));
   const ideal = zones.filter(z => z === 'mav').length, aTravailler = zones.filter(z => z === 'sous' || z === 'mv').length;
-  // Séance du jour
-  const sug = programmeSuggere();
+  // Séance du jour (ou, un jour de repos, la prochaine)
+  const sug = seanceAAfficher();
   let sdj;
   if (sug) {
     const g = groupesProgramme(sug.p), noms = Object.keys(g).sort((a, b) => g[b] - g[a]).slice(0, 3).map(k => GROUPES_MUSCULAIRES[k] || k);
     const nbSeries = sug.p.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
-    sdj = `<div class="sdj" onclick="apercuProgramme(${argJs(sug.p.id)})"><button type="button" class="carte-action" aria-label="Séance du jour, ${escapeHtml(sug.p.nom)} : voir et démarrer"></button>
+    sdj = `<div class="sdj" onclick="apercuProgramme(${argJs(sug.p.id)})"><button type="button" class="carte-action" aria-label="${escapeHtml(sug.titre)}, ${escapeHtml(sug.p.nom)} : voir et démarrer"></button>
       <div class="sdj-corps">${corpsGroupesSVG(g, 'buste')}</div>
-      <small>Séance du jour</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(noms.join(', '))}<br>${sug.p.exercices.length}&nbsp;exercice${sug.p.exercices.length > 1 ? 's' : ''}</p>
+      <small>${escapeHtml(sug.titre)}</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(noms.join(', '))}<br>${sug.p.exercices.length}&nbsp;exercice${sug.p.exercices.length > 1 ? 's' : ''}</p>
       <div class="sdj-bas"><span class="sdj-puce">${nbSeries} séries</span><span class="sdj-puce">${sug.d ? escapeHtml(formatDateDisplay(sug.d)) : 'Jamais faite'}</span><button type="button" class="sdj-play" onclick="event.stopPropagation(); demarrerSeance(${argJs(sug.p.id)})" aria-label="Commencer ${escapeHtml(sug.p.nom)} maintenant">${svgV('play')}</button></div></div>`;
   } else {
     sdj = `<div class="sdj" onclick="demarrerSeanceLibre()"><button type="button" class="carte-action" aria-label="Démarrer une séance vide"></button>
@@ -27679,7 +27697,7 @@ function majBoutonPlus() {
   b.title = l;
 }
 function ouvrirFeuilleActivite() {
-  const sug = programmeSuggere();
+  const sug = seanceAAfficher();
   const btn = document.getElementById('opt-seance-jour');
   if (btn) {
     btn.classList.toggle('hidden', !sug);
@@ -27688,9 +27706,9 @@ function ouvrirFeuilleActivite() {
       const nbSeries = sug.p.exercices.reduce((n, e) => n + normaliserSeriesProgramme(e).length, 0);
       btn.className = 'sdj';
       btn.style.background = teinteProgramme(sug.p.id);
-      btn.setAttribute('aria-label', 'Séance du jour : ' + sug.p.nom);
+      btn.setAttribute('aria-label', sug.titre + ' : ' + sug.p.nom);
       btn.innerHTML = `<span class="sdj-corps" aria-hidden="true">${corpsGroupesSVG(g, 'buste')}</span>
-        <small>Séance du jour</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(cles.slice(0, 3).map(k => GROUPES_MUSCULAIRES[k] || k).join(', '))}</p>
+        <small>${escapeHtml(sug.titre)}</small><h4>${escapeHtml(sug.p.nom)}</h4><p>${escapeHtml(cles.slice(0, 3).map(k => GROUPES_MUSCULAIRES[k] || k).join(', '))}</p>
         <span class="sdj-bas"><span class="sdj-puce">${nbSeries} séries</span><span class="sdj-puce">${sug.d ? escapeHtml(formatDateDisplay(sug.d)) : 'Jamais faite'}</span><span class="sdj-play" role="button" aria-label="Commencer maintenant" onclick="event.stopPropagation(); fermerFeuilles(); demarrerSeance(${argJs(sug.p.id)})">${svgV('play')}</span></span>`;
     }
   }
@@ -27701,7 +27719,7 @@ function ouvrirFeuilleActivite() {
 }
 function depuisFeuilleActivite(choix) {
   fermerFeuilles();
-  if (choix === 'jour') { const sug = programmeSuggere(); if (sug) apercuProgramme(sug.p.id); }
+  if (choix === 'jour') { const sug = seanceAAfficher(); if (sug) apercuProgramme(sug.p.id); }
   else if (choix === 'vide') { if (ecranActif !== 'seance') allerA('seance'); choisirModeSeance('muscu'); demarrerSeanceLibre(); }
   else if (choix === 'cardio') ouvrirCardio();
 }
