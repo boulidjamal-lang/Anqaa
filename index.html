@@ -1625,6 +1625,11 @@
     .fiche-exo-image img.actif { opacity: 1; }
     .fiche-exo-image .schema-repli { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
     .fiche-exo-image .schema-repli svg { width: 55%; height: 90%; }
+    .fiche-exo-image.fiche-exo-corps { background: var(--s2); }
+    .corps-exo { display: flex; justify-content: center; gap: 6%; width: 100%; height: 100%; padding: 14px 10px 8px; box-sizing: border-box; }
+    .corps-exo figure { margin: 0; flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+    :is(.fiche-exo-image, #video-zoom-media) .corps-exo svg { flex: 1; min-height: 0; width: 100%; height: 100%; }
+    .corps-exo figcaption { margin-top: 4px; font-size: .75rem; color: var(--text-muted); }
     .fiche-exo-anim-btn {
       position: absolute; right: 10px; bottom: 10px; width: 34px; height: 34px;
       border-radius: 50%; border: none; background: rgba(20,24,33,0.72); color: #fff;
@@ -3847,6 +3852,9 @@
 
     /* Fenêtre de dialogue de l'appli (confirmer / informer) */
     #modal-dialogue { z-index: 4000; }
+    #accord-modal { z-index: 1350; }
+    .case-accord { margin: 12px 2px 0; }
+    .case-accord input { width: 20px; height: 20px; accent-color: var(--accent); }
     html:root .dialogue-carte { max-width: 360px; padding: 22px 20px 18px; text-align: center; }
     #dialogue-texte { margin: 0 0 18px; font-size: .98rem; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; color: var(--text); }
     .dialogue-copie { display: flex; gap: 8px; margin: -6px 0 16px; }
@@ -6389,6 +6397,10 @@
         <input type="text" id="compte-pseudo-input" placeholder="ex : jamal.fit" autocomplete="nickname" autocapitalize="none" spellcheck="false" maxlength="20">
         <small class="note" style="display:block; margin-top:6px;">3 à 20 caractères : minuscules, chiffres, point ou tiret bas. Tes gymbros te trouveront avec ce nom.</small>
       </div>
+      <div class="hidden" id="compte-accord-wrap">
+      <label class="pro-accord case-accord"><input type="checkbox" id="compte-accord-conditions"> <span>J'accepte les <a href="cgv.html" target="_blank" rel="noopener">conditions d'utilisation</a> (aucun contenu choquant toléré dans Gymbro) et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>.</span></label>
+      <label class="pro-accord case-accord"><input type="checkbox" id="compte-accord-sante"> <span>J'accepte que mes données de santé (poids, mensurations, repas, séances) soient enregistrées sur mon compte pour faire fonctionner l'appli.</span></label>
+      </div>
       <p class="note" id="note-compte"></p>
       <div style="display:flex; gap:10px;">
         <button class="btn btn-primary" style="flex:1;" onclick="connexionOuCreerCompte()">Se connecter</button>
@@ -6603,7 +6615,7 @@
       <div class="ligne-reglage"><span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg></span><span class="ligne-txt"><small>Version</small><b id="reglages-version">&mdash;</b></span><span id="reglages-version-etat"></span></div>
       <button type="button" class="ligne-reglage ligne-reglage--bouton" onclick="reparerAppli()"><span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg></span><span class="ligne-txt"><b>Réparer l'appli</b><small>Recharge la dernière version · tes données restent</small></span><span class="ligne-chevron"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></span></button>
     </div>
-    <p class="note reglages-legal"><a href="mentions-legales.html" target="_blank" rel="noopener">Mentions légales</a> · <a href="cgv.html" target="_blank" rel="noopener">Conditions de vente</a> · <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a></p>
+    <p class="note reglages-legal"><a href="mentions-legales.html" target="_blank" rel="noopener">Mentions légales</a> · <a href="cgv.html" target="_blank" rel="noopener">Conditions d'utilisation</a> · <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a></p>
   </div>
 </div>
 
@@ -6672,6 +6684,20 @@
     </div>
     <p class="note" id="pseudo-note" style="color:var(--danger);"></p>
     <button class="btn btn-primary" onclick="validerPseudoModal()">Enregistrer</button>
+  </div>
+</div>
+
+<!-- ================= CONDITIONS : acceptées une fois par compte ================= -->
+<div id="accord-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="titre-accord">
+  <div class="modal-content" style="max-width:420px;">
+    <div class="modal-entete">
+      <h3 id="titre-accord">Avant de continuer</h3>
+    </div>
+    <p class="note">Lis et accepte les conditions d'Askēsis. Gymbro ne tolère aucun contenu choquant : chaque signalement est examiné sous 24 h.</p>
+    <label class="pro-accord case-accord"><input type="checkbox" id="accord-conditions" onchange="majBoutonAccord()"> <span>J'accepte les <a href="cgv.html" target="_blank" rel="noopener">conditions d'utilisation</a> (aucun contenu choquant toléré dans Gymbro) et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>.</span></label>
+      <label class="pro-accord case-accord"><input type="checkbox" id="accord-sante" onchange="majBoutonAccord()"> <span>J'accepte que mes données de santé (poids, mensurations, repas, séances) soient enregistrées sur mon compte pour faire fonctionner l'appli.</span></label>
+    <button class="btn btn-primary" id="accord-ok" onclick="validerAccord()" disabled>Continuer</button>
+    <button class="btn btn-secondaire" style="margin-top:10px;" onclick="refuserAccord()">Me déconnecter</button>
   </div>
 </div>
 
@@ -7738,7 +7764,10 @@ function urlRetourEmail() { return NATIF ? URL_SITE_WEB : window.location.origin
 // vue de l'appli elle-même), un nouvel onglet sur le web. Une page de
 // l'appli (pages légales) s'ouvre sur le site.
 function ouvrirLienExterne(url) {
-  const absolue = new URL(url, NATIF ? URL_SITE_WEB : location.href).href;
+  const lien = new URL(url, NATIF ? URL_SITE_WEB : location.href);
+  // Pages légales ouvertes depuis l'app : leur version iPhone (paiement par Apple).
+  if (NATIF && lien.href.startsWith(URL_SITE_WEB) && /\/(cgv|confidentialite|mentions-legales)\.html$/.test(lien.pathname)) lien.searchParams.set('app', 'ios');
+  const absolue = lien.href;
   if (NATIF) { appelNatif('Browser', 'open', { url: absolue }); return; }
   const fenetre = window.open(absolue, '_blank', 'noopener');
   if (!fenetre) location.href = absolue;
@@ -11258,6 +11287,7 @@ function ecranDemarrageAffiche() {
 let bilanForce = false;
 function fermerModal(id) {
   if (id === 'compte-modal' && connexionObligatoire) return;
+  if (id === 'accord-modal' && accordObligatoire) return;
   if (id === 'modal-bienvenue' && bilanForce) return;
   if (id === 'fiche-exercice-modal') { arreterAnimationFiche(); if (typeof fermerCourbePleinEcran === 'function') fermerCourbePleinEcran(); }
   // Sinon, fermer la séance/le programme en cours d'édition sans avoir
@@ -13628,7 +13658,7 @@ function majAffichageIA() {
   if (iaServeur && iaServeur.pret && !iaServeur.pro && typeof iaServeur.restant === 'number') {
     const r = iaServeur.restant;
     document.querySelectorAll('.puce-ia').forEach(el => {
-      el.textContent = r ? `${r} essai${r > 1 ? 's' : ''} IA gratuit${r > 1 ? 's' : ''} ce mois-ci` : 'Essais IA du mois utilisés · Pro pour continuer';
+      el.textContent = r ? `${r} essai${r > 1 ? 's' : ''} IA gratuit${r > 1 ? 's' : ''} ce mois-ci` : 'Essais IA du mois utilisés' + (proVenduIci() ? ' · Pro pour continuer' : '');
       el.classList.toggle('proche', r === 1);
       el.classList.toggle('atteint', r === 0);
     });
@@ -13684,6 +13714,7 @@ async function geminiParServeur(parts, type, candidats) {
   if (corps && 'restant' in corps && iaServeur) { iaServeur.restant = corps.restant; majAffichageIA(); }
   const lisible = m => Object.assign(new Error(m), { lisible: true });
   if (statut === 402) {
+    if (!proVenduIci()) throw lisible(`Tes ${IA_ESSAIS_GRATUITS} essais IA du mois sont utilisés : ils reviennent le mois prochain.`);
     if (corps.code === 'pro_requis') ouvrirPro('ia');
     throw lisible(corps.erreur || 'Essais IA du mois utilisés.');
   }
@@ -15730,6 +15761,7 @@ function definirSessionUtilisateur(user) {
     // faisait tourner plusieurs chargements à la fois, dont un qui
     // redemandait le nom d'utilisateur qu'on venait d'enregistrer.
     if (memeCompte) return;
+    verifierAccord(user);
     chargerMonPseudo();
     chargerMonProfil();
     chargerLiensGymbro().then(() => { ouvrirInvitationGymbro(); chargerDirect(true); demarrerBoucleDirect(); });
@@ -15752,6 +15784,8 @@ function definirSessionUtilisateur(user) {
     // Déconnexion (ou aucune session au tout premier chargement) : l'appli
     // se reverrouille immédiatement, sans exception.
     connexionObligatoire = true;
+    accordObligatoire = false;
+    fermerModal('accord-modal');
     monPseudo = null;
     oublierPro();
     ouvrirModal('compte-modal', true);
@@ -15918,14 +15952,18 @@ async function connexionOuCreerCompte() {
   const caseCachee = wrapPseudo.classList.contains('hidden');
   if (caseCachee || /@/.test(champPseudo.value)) champPseudo.value = '';
   const pseudoSaisi = normaliserPseudo(champPseudo.value);
+  const cases = ['compte-accord-conditions', 'compte-accord-sante'].map(id => document.getElementById(id));
+  if (caseCachee) cases.forEach(c => { c.checked = false; });
   if (!pseudoSaisi) {
     wrapPseudo.classList.remove('hidden');
+    document.getElementById('compte-accord-wrap').classList.remove('hidden');
     if (note) note.textContent = "Identifiants inconnus. Nouveau compte ? Choisis un nom d'utilisateur ci-dessus puis appuie à nouveau sur le bouton. Sinon, vérifie ton mot de passe.";
     champPseudo.focus();
     return;
   }
   const errPseudo = erreurFormatPseudo(pseudoSaisi);
   if (errPseudo) { if (note) note.textContent = errPseudo; champPseudo.focus(); return; }
+  if (!cases.every(c => c.checked)) { if (note) note.textContent = 'Coche les deux cases pour créer ton compte.'; return; }
   try {
     const { data: dispo, error: eDispo } = await supa.rpc('pseudo_disponible', { p: pseudoSaisi });
     if (!eDispo && dispo === false) { if (note) note.textContent = 'Ce nom d\'utilisateur est déjà pris : choisis-en un autre.'; return; }
@@ -15943,7 +15981,7 @@ async function connexionOuCreerCompte() {
       // à rien". Il faut aussi que cette URL soit dans la liste blanche
       // "Redirect URLs" du projet Supabase (Authentication URL
       // Configuration), sinon Supabase l'ignore et retombe sur Site URL.
-      options: { emailRedirectTo: urlRetourEmail() }
+      options: { emailRedirectTo: urlRetourEmail(), data: { consentement: consentementActuel() } }
     });
     if (sonde.error) throw sonde.error;
   } catch (e) { if (note) note.textContent = messageAuth(e); return; }
@@ -15979,6 +16017,48 @@ async function connexionOuCreerCompte() {
   } else {
     if (note) note.textContent = 'Compte créé : vérifie ta boîte mail pour confirmer ton adresse, puis reviens te connecter avec ce même mot de passe.';
   }
+}
+
+/* Conditions d'utilisation et consentement aux données de santé (RGPD,
+   article 9 ; Apple exige que les règles de Gymbro soient acceptées).
+   Cochés à la création du compte et gardés dans ses métadonnées ; un
+   compte plus ancien (ou des conditions qui changent : VERSION_CONDITIONS)
+   les accepte une fois, à la connexion. */
+const VERSION_CONDITIONS = 1;
+const ACCORD_LS = 'askesis_accord';
+var accordObligatoire = false; // var : lu par fermerModal(), défini plus haut
+function consentementActuel() { return { conditions: VERSION_CONDITIONS, sante: true, le: new Date().toISOString() }; }
+function accordValide(c) { return !!(c && c.conditions >= VERSION_CONDITIONS && c.sante); }
+function verifierAccord(user) {
+  if (!user || accordValide(user.user_metadata && user.user_metadata.consentement)) return;
+  // Accepté sur cet appareil mais pas encore enregistré (hors ligne) : on réessaie.
+  let local = null;
+  try { local = JSON.parse(localStorage.getItem(ACCORD_LS) || 'null'); } catch (e) {}
+  if (local && local.id === user.id && accordValide(local)) { enregistrerAccord(local); return; }
+  ['accord-conditions', 'accord-sante'].forEach(id => { document.getElementById(id).checked = false; });
+  majBoutonAccord();
+  accordObligatoire = true;
+  ouvrirModal('accord-modal', true);
+}
+function majBoutonAccord() {
+  document.getElementById('accord-ok').disabled = !['accord-conditions', 'accord-sante'].every(id => document.getElementById(id).checked);
+}
+async function enregistrerAccord(c) {
+  if (!supa || !supa.auth || typeof supa.auth.updateUser !== 'function') return;
+  try { await supa.auth.updateUser({ data: { consentement: { conditions: c.conditions, sante: true, le: c.le } } }); } catch (e) {}
+}
+function validerAccord() {
+  if (!sessionUtilisateur) return;
+  const c = consentementActuel();
+  try { localStorage.setItem(ACCORD_LS, JSON.stringify(Object.assign({ id: sessionUtilisateur.id }, c))); } catch (e) {}
+  accordObligatoire = false;
+  fermerModal('accord-modal');
+  enregistrerAccord(c);
+}
+async function refuserAccord() {
+  accordObligatoire = false;
+  fermerModal('accord-modal');
+  if (supa) { try { await supa.auth.signOut(); } catch (e) {} }
 }
 
 /* Supprimer mon compte (exigé par Apple, et un droit partout) : les photos
@@ -22336,6 +22416,18 @@ function svgSilhouetteGroupe(groupe) {
    l'ouverture d'une fiche ; la vignette sert d'image dans les listes.
    [identifiant vidéo, identifiant vignette, page de l'exercice]. */
 const SW_ASSET = 'https://api.smartworkout.app/asset/';
+/* App iPhone : ni vidéo ni image SmartWorkout (contenus d'un autre
+   éditeur, sans licence pour une app vendue sur l'App Store), ni GIF
+   ExerciseDB (usage non commercial seulement), ni image wger (licence
+   propre à chaque image). Le site les garde. Les exercices concernés
+   montrent le schéma de leurs muscles, consignes comprises. */
+const MEDIAS_TIERS = !NATIF;
+function mediaTiersInterdit(url) {
+  return !MEDIAS_TIERS && /smartworkout\.app|exercisedb\.dev|wger\.de/i.test(url || '');
+}
+function videoSmartWorkout(id) {
+  return MEDIAS_TIERS ? VIDEOS_SMARTWORKOUT[id] : null;
+}
 /* Images SmartWorkout -> vidéo de la même page. Coller par erreur le lien
    de l'image d'une page SmartWorkout (…/asset/image/<id>, celle qu'on
    obtient en partageant ou en copiant l'image) à la place de sa vidéo
@@ -22356,16 +22448,16 @@ function videoExercice(exo) {
   // Lien saisi dans Administration (exercice perso, ou correction d'un
   // exercice de la base) : prioritaire ; vide = pas de vidéo du tout.
   if (exo && typeof exo.video === 'string') {
-    if (!exo.video) return null;
+    if (!exo.video || mediaTiersInterdit(exo.video)) return null;
     // Une image collée à la place de la vidéo : on retrouve la vidéo de la
     // même page SmartWorkout si possible, sinon on l'affiche comme image.
     if (estLienImage(exo.video)) {
       const v = videoDepuisLienImageSW(exo.video);
       return { video: v, poster: exo.video, page: v || exo.video };
     }
-    return { video: exo.video, poster: exo.videoPoster || null, page: exo.video };
+    return { video: exo.video, poster: exo.videoPoster && !mediaTiersInterdit(exo.videoPoster) ? exo.videoPoster : null, page: exo.video };
   }
-  const v = exo && VIDEOS_SMARTWORKOUT[exo.id];
+  const v = exo && videoSmartWorkout(exo.id);
   if (!v) return null;
   return {
     video: SW_ASSET + 'video/' + v[0] + '.mp4',
@@ -22374,8 +22466,11 @@ function videoExercice(exo) {
   };
 }
 function mediaExercice(exo) {
-  if (exo.img && exo.img.length) return { img: exo.img, ins: exo.ins || [] };
-  return EXERCICE_MEDIA[exo.id];
+  const m = exo.img && exo.img.length ? { img: exo.img, ins: exo.ins || [] } : EXERCICE_MEDIA[exo.id];
+  // App iPhone : une image d'une source interdite emporte ses consignes,
+  // tirées de la même fiche.
+  if (m && m.img && m.img.some(mediaTiersInterdit)) return m === EXERCICE_MEDIA[exo.id] ? null : { img: [], ins: exo.ins || [] };
+  return m;
 }
 /* Vignette utilisée dans les listes (bibliothèque, sélecteurs) : la photo
    de EXERCICE_MEDIA si l'exercice y est reconnu, sinon le schéma corps. */
@@ -22389,7 +22484,7 @@ function medaillonExercice(exo, anime) {
   // Full HD de ~1 Mo, trop lente à charger pour une vignette. Ailleurs
   // (bibliothèque, sélecteurs : des centaines de lignes) elle reste une image.
   const sw = !exo.perso && videoExercice(exo);
-  const swBase = !exo.perso && typeof exo.video !== 'string' && VIDEOS_SMARTWORKOUT[exo.id];
+  const swBase = !exo.perso && typeof exo.video !== 'string' && videoSmartWorkout(exo.id);
   if (swBase) {
     const mini = 'assets/miniatures/' + swBase[0];
     if (anime) return `<video src="${mini}.mp4" poster="${mini}.jpg" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" style="background:#2b2c30;"></video>`;
@@ -22515,11 +22610,41 @@ function videoVignetteHTML(url, poster, anime) {
   const src = escapeHtml(url) + (anime ? '' : '#t=0.1');
   return `<video src="${src}"${poster ? ` poster="${escapeHtml(poster)}"` : ''}${anime ? ' autoplay loop' : ''} muted playsinline disablepictureinpicture disableremoteplayback preload="${anime ? 'auto' : 'metadata'}" aria-hidden="true" style="background:#2b2c30;"></video>`;
 }
+/* Fiche sans image (la plupart, dans l'app iPhone) : le mannequin de face
+   et de dos, le muscle principal en vif, ceux qui travaillent aussi
+   atténués. Un groupe que le mannequin ne connaît pas : l'ancien schéma. */
+function corpsExerciceHTML(e) {
+  const couleurs = {};
+  (e.secondaires || []).forEach(g => { if (g !== e.groupe) couleurs[g] = 'color-mix(in srgb, var(--corps-cible) 38%, var(--corps-neutre))'; });
+  if (e.groupe) couleurs[e.groupe] = 'var(--corps-cible)';
+  const connus = new Set(Object.values(GROUPE_PAR_SLUG));
+  if (!connus.has(e.groupe)) return { mannequin: false, html: svgSilhouetteGroupe(e.groupe) };
+  const aussi = Object.keys(couleurs).some(g => g !== e.groupe && connus.has(g));
+  return {
+    mannequin: true,
+    legende: aussi ? 'En vif, le muscle principal ; atténués, ceux qui travaillent aussi.' : 'En vif, le muscle travaillé.',
+    html: `<div class="corps-exo"><figure>${silhouetteSVG('face', couleurs)}<figcaption>Face</figcaption></figure><figure>${silhouetteSVG('dos', couleurs)}<figcaption>Dos</figcaption></figure></div>`
+  };
+}
 function estIllustrationVectorielle(url) {
   return url.includes('/workout-guide/');
 }
 function estGifExerciseDb(url) {
   return url.includes('static.exercisedb.dev');
+}
+/* Mention de la source sous l'image d'une fiche, exigée par leurs
+   licences (CC BY-SA 4.0 pour les illustrations, attribution pour
+   RepDB et ExerciseDB). Rien pour une photo ajoutée à la main. */
+const SOURCES_IMAGES_EXERCICE = [
+  [/\/workout-guide\//, 'Illustration', 'Everkinetic, adaptée par Bryl Lim', 'https://github.com/bryllim/workout-guide', ' (CC BY-SA 4.0)'],
+  [/\/RepDB\//, 'Image', 'RepDB', 'https://github.com/RepDB/exercise-dataset', ''],
+  [/\/free-exercise-db\//, 'Photo', 'free-exercise-db', 'https://github.com/yuhonas/free-exercise-db', ' (domaine public)'],
+  [/exercisedb\.dev/, 'Animation', 'ExerciseDB', 'https://exercisedb.dev', ''],
+  [/wger\.de/, 'Image', 'wger', 'https://wger.de', '']
+];
+function sourceImageExercice(url) {
+  const s = SOURCES_IMAGES_EXERCICE.find(x => x[0].test(url || ''));
+  return s ? `<p class="note fiche-exo-note-source">${s[1]} : <a href="${s[3]}" target="_blank" rel="noopener" style="color:var(--accent);">${s[2]}</a>${s[4]}</p>` : '';
 }
 
 /* --- Animation de la grande image dans la fiche exercice ---
@@ -25059,7 +25184,7 @@ function exercicesSimilaires(exerciceId, combien) {
     (c.secondaires || []).forEach(g => { if (secA.has(g)) score += 1.5; });
     if (pratiques.has(c.id)) score += 2;
     if (c.materiel === a.materiel) score += 1;
-    if (VIDEOS_SMARTWORKOUT[c.id]) score += 0.5;
+    if (videoSmartWorkout(c.id)) score += 0.5;
     return { c, score };
   }).sort((x, y) => y.score - x.score).slice(0, combien || 6).map(x => x.c);
 }
@@ -25149,10 +25274,10 @@ function afficherFicheExerciceBiblio(id, options) {
     // (~10 Ko) joue tout de suite, la vidéo HD distante (~1 Mo) la recouvre
     // en fondu dès qu'elle peut jouer. Avant, la fiche restait sur une image
     // fixe distante pendant tout le téléchargement.
-    const brutFiche = !e.perso && typeof e.video !== 'string' && VIDEOS_SMARTWORKOUT[e.id];
+    const brutFiche = !e.perso && typeof e.video !== 'string' && videoSmartWorkout(e.id);
     const miniFiche = brutFiche ? 'assets/miniatures/' + brutFiche[0] : null;
     html += `<div class="fiche-exo-video${miniFiche ? ' fiche-exo-video--mini' : ''}">${miniFiche ? `<video class="mini" src="${miniFiche}.mp4" poster="${miniFiche}.jpg" autoplay muted loop playsinline disablepictureinpicture aria-hidden="true"></video>` : ''}<span class="hd-place" data-url="${escapeHtml(video.video)}"${video.poster && !miniFiche ? ` data-poster="${escapeHtml(video.poster)}"` : ''} data-label="Démonstration : ${escapeHtml(libelleExercice(e))}"></span></div>
-    <p class="note fiche-exo-note-source">Vidéo : <a href="${escapeHtml(video.page)}" target="_blank" rel="noopener" style="color:var(--accent);">SmartWorkout</a></p>`;
+    ${/smartworkout\.app/i.test(video.page) ? `<p class="note fiche-exo-note-source">Vidéo : <a href="${escapeHtml(video.page)}" target="_blank" rel="noopener" style="color:var(--accent);">SmartWorkout</a></p>` : ''}`;
   } else if (media && media.img && media.img.length) {
     // Deux photos (départ/arrivée) qui alternent, comme Strong et la
     // plupart des applis du genre — ce n'est déjà pas un vrai GIF chez
@@ -25163,10 +25288,12 @@ function afficherFicheExerciceBiblio(id, options) {
       ${media.img[1] ? `<img src="${escapeHtml(media.img[1])}" alt="">` : ''}
       ${media.img[1] ? `<button type="button" class="fiche-exo-anim-btn" id="fiche-exo-anim-btn" onclick="basculerPauseFiche()" aria-label="Pause"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="14" y="3" width="5" height="18" rx="1" /><rect x="5" y="3" width="5" height="18" rx="1" /></svg></button>` : ''}
     </div>
+    ${sourceImageExercice(media.img[0])}
 `;
   } else {
-    html += `<div class="fiche-exo-image"><div class="schema-repli">${svgSilhouetteGroupe(e.groupe)}</div></div>
-    <p class="note fiche-exo-note-source">Pas de photo pour cet exercice précis : schéma du groupe musculaire ciblé.</p>`;
+    const corps = corpsExerciceHTML(e);
+    html += `<div class="fiche-exo-image${corps.mannequin ? ' fiche-exo-corps' : ''}"><div class="schema-repli">${corps.html}</div></div>
+    <p class="note fiche-exo-note-source">${corps.mannequin ? corps.legende : 'Pas de photo pour cet exercice précis : schéma du groupe musculaire ciblé.'}</p>`;
   }
 
   html += `<div class="fiche-bloc">
@@ -25472,7 +25599,7 @@ function agrandirVideoExercice(exerciceId) {
   const zone = document.getElementById('video-zoom-media');
   document.getElementById('video-zoom-titre').textContent = libelleExercice(exo);
   const v = videoExercice(exo);
-  const brut = !exo.perso && typeof exo.video !== 'string' && VIDEOS_SMARTWORKOUT[exo.id];
+  const brut = !exo.perso && typeof exo.video !== 'string' && videoSmartWorkout(exo.id);
   if (v && v.video) {
     const mini = brut ? 'assets/miniatures/' + brut[0] : null;
     zone.innerHTML = (mini ? `<video src="${mini}.mp4" poster="${mini}.jpg" autoplay muted loop playsinline disablepictureinpicture aria-hidden="true" style="filter:blur(1px);"></video>` : '')
@@ -25482,7 +25609,7 @@ function agrandirVideoExercice(exerciceId) {
   } else {
     const media = mediaExercice(exo);
     const img = (media && media.img && media.img[0]) || (v && v.poster);
-    zone.innerHTML = img ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(libelleExercice(exo))}">` : `<div class="schema-repli" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">${svgSilhouetteGroupe(exo.groupe)}</div>`;
+    zone.innerHTML = img ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(libelleExercice(exo))}">` : `<div class="schema-repli" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">${corpsExerciceHTML(exo).html}</div>`;
   }
   document.getElementById('video-zoom').classList.remove('hidden');
 }
@@ -26908,10 +27035,13 @@ const PRO_PAIEMENT_LS = 'askesis_pro_paiement';
 // est annoncé « bientôt ».
 const PRO_LIENS = { an: '', mois: '', portail: '' };
 // App iOS : Pro se paie via Apple (achats intégrés). Identifiants des deux
-// abonnements créés dans App Store Connect (même groupe, essai de 14 jours) ;
-// vides tant que ce n'est pas fait : la fenêtre affiche « bientôt disponible ».
-const PRO_APPLE = { an: '', mois: '' };
+// abonnements à créer tels quels dans App Store Connect (même groupe,
+// essai de 14 jours) : voir ios-app/GUIDE_iOS.md (dépôt Anqa).
+const PRO_APPLE = { an: 'askesis.pro.an', mois: 'askesis.pro.mois' };
 var produitsApple = null; // { an, mois } : les produits lus chez Apple (prix localisés)
+// '' : pas encore demandés ; 'chargement' ; 'erreur' (réseau, ou produits
+// pas encore validés par Apple) : la fenêtre propose alors de réessayer.
+var produitsAppleEtat = '';
 const PRO_TARIFS = { an: '29,99 €', anParMois: '2,50 €', mois: '3,99 €', remise: '−37 %', essaiJours: 14 };
 const IA_ESSAIS_GRATUITS = 3;
 const RAISONS_PRO = {
@@ -26939,8 +27069,15 @@ var formuleProChoisie = 'an', accordPro = false;
 function lireEtatPro() {
   try { return JSON.parse(localStorage.getItem(PRO_LS) || 'null'); } catch (e) { return null; }
 }
+/* App iPhone : Pro n'y est pas encore vendu (pas d'achats intégrés tant
+   que l'éditeur n'a pas de statut pour vendre). En attendant, rien n'y est
+   verrouillé et Pro n'y est jamais mentionné ; seuls les essais d'IA restent
+   comptés par le serveur. À passer à true une fois les abonnements créés
+   dans App Store Connect (ios-app/GUIDE_iOS.md, dépôt Anqa). */
+var PRO_EN_VENTE_APP = false;
+function proVenduIci() { return !NATIF || PRO_EN_VENTE_APP; }
 function proEnPlace() {
-  return !!(etatPro && etatPro.systeme && sessionUtilisateur && etatPro.utilisateur === sessionUtilisateur.id);
+  return proVenduIci() && !!(etatPro && etatPro.systeme && sessionUtilisateur && etatPro.utilisateur === sessionUtilisateur.id);
 }
 function abonnementProValide(a) {
   return !!a && ['actif', 'essai', 'annule', 'impaye'].includes(a.statut) && (!a.fin || new Date(a.fin) > new Date());
@@ -26957,7 +27094,10 @@ function exigerPro(raison) {
 async function chargerAbonnementPro() {
   if (!supa || !sessionUtilisateur) return;
   const moi = sessionUtilisateur.id;
-  const { data, error } = await supa.from('abonnements').select('formule, statut, fin').eq('utilisateur', moi).maybeSingle();
+  // « * » : la colonne source (achat Apple ou non) n'existe pas sur un
+  // serveur qui n'a pas encore le dernier SQL Pro ; la nommer ferait échouer la lecture.
+  const { data: ligne, error } = await supa.from('abonnements').select('*').eq('utilisateur', moi).maybeSingle();
+  const data = ligne ? { formule: ligne.formule, statut: ligne.statut, fin: ligne.fin, source: ligne.source || null } : null;
   if (error) {
     // Table absente : le SQL Pro n'est pas encore exécuté. Autre erreur
     // (réseau…) : on garde ce qu'on savait.
@@ -27027,6 +27167,7 @@ function majLignePro() {
 /* La fenêtre « Askēsis Pro » : l'offre (avantages, formule, essai) pour un
    compte gratuit ; l'état de l'abonnement pour un compte Pro. */
 function ouvrirPro(raison) {
+  if (produitsAppleEtat === 'erreur') produitsAppleEtat = ''; // nouvel essai à chaque ouverture
   renderPro(raison || '');
   ouvrirModal('pro-modal', true);
 }
@@ -27047,7 +27188,7 @@ function renderPro(raison) {
     c.innerHTML = `<p class="pro-statut-grand">${escapeHtml(texteAbonnementPro())}</p>
       ${a.formule === 'fondateur' ? `<p class="note pro-merci">Merci d'avoir été là dès le début : Pro est à toi, pour toujours.</p>` : ''}
       ${avantages}
-      ${abonnementProPaye() && (NATIF || PRO_LIENS.portail) ? `<button type="button" class="btn btn-secondaire" onclick="gererAbonnementPro()">Gérer mon abonnement</button>
+      ${abonnementProPaye() && (NATIF ? a.source === 'apple' : PRO_LIENS.portail) ? `<button type="button" class="btn btn-secondaire" onclick="gererAbonnementPro()">Gérer mon abonnement</button>
       <p class="note pro-pied">${NATIF ? 'Changer de formule ou résilier : dans les abonnements de ton compte Apple.' : 'Changer de formule ou de carte, résilier : chez Stripe, notre prestataire de paiement.'}</p>` : ''}`;
     return;
   }
@@ -27059,12 +27200,12 @@ function renderPro(raison) {
       ${formule('an', 'Annuel', prixPro('an') + ' / an', produitsApple ? '' : 'soit ' + PRO_TARIFS.anParMois + ' / mois', PRO_TARIFS.remise)}
       ${formule('mois', 'Mensuel', prixPro('mois') + ' / mois', 'sans engagement', '')}
     </div>
-    <label class="pro-accord seulement-web"><input type="checkbox" id="pro-accord"${accordPro ? ' checked' : ''} onchange="accordPro = this.checked; majBoutonPro()"> <span>J'accepte les <a href="cgv.html" target="_blank" rel="noopener">conditions de vente</a> et je demande l'accès immédiat à Pro.</span></label>
+    <label class="pro-accord seulement-web"><input type="checkbox" id="pro-accord"${accordPro ? ' checked' : ''} onchange="accordPro = this.checked; majBoutonPro()"> <span>J'accepte les <a href="cgv.html" target="_blank" rel="noopener">conditions d'utilisation et de vente</a> et je demande l'accès immédiat à Pro.</span></label>
     <button type="button" class="btn btn-primary" id="pro-essai" onclick="commencerPro()" disabled></button>
     <p class="note pro-pied" id="pro-pied"></p>
     <button type="button" class="lien-depliant pro-actualiser" onclick="${NATIF ? 'restaurerAchatsApple()' : 'actualiserPro()'}">${NATIF ? 'Restaurer mes achats' : 'Déjà abonné ? Actualiser'}</button>`;
   majBoutonPro();
-  if (NATIF && !produitsApple) chargerProduitsApple();
+  if (NATIF && !produitsApple && !produitsAppleEtat) chargerProduitsApple();
 }
 function choisirFormulePro(cle) { formuleProChoisie = cle; renderPro(); }
 function paiementProPret() { return NATIF ? !!produitsApple : !!(PRO_LIENS.an && PRO_LIENS.mois); }
@@ -27073,17 +27214,21 @@ function majBoutonPro() {
   const b = document.getElementById('pro-essai'), pied = document.getElementById('pro-pied');
   if (!b) return;
   const pret = paiementProPret();
-  b.textContent = pret ? `Essayer ${PRO_TARIFS.essaiJours} jours gratuitement` : 'Paiement bientôt disponible';
-  b.disabled = !pret || !(accordPro || NATIF) || !sessionUtilisateur;
   const prix = formuleProChoisie === 'an' ? prixPro('an') + ' / an' : prixPro('mois') + ' / mois';
   // App iOS : les mentions qu'Apple demande sous un abonnement (prix, renouvellement, résiliation, liens).
   if (NATIF) {
+    const erreur = !pret && produitsAppleEtat === 'erreur';
+    b.textContent = pret ? `Essayer ${PRO_TARIFS.essaiJours} jours gratuitement` : erreur ? 'Réessayer' : produitsAppleEtat === 'chargement' ? 'Chargement des offres…' : 'Paiement bientôt disponible';
+    b.disabled = !(pret || erreur) || !sessionUtilisateur;
     pied.innerHTML = (pret
       ? `${PRO_TARIFS.essaiJours} jours gratuits, puis ${prix}, payé avec ton compte Apple. L'abonnement se renouvelle tout seul sauf si tu le résilies au moins 24 h avant la fin de la période, dans Réglages › ton nom › Abonnements.`
-      : 'Le paiement arrive très bientôt.')
-      + ' <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" target="_blank" rel="noopener">Conditions d\'utilisation</a> · <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a>';
+      : erreur ? "Les offres d'Apple ne se chargent pas. Vérifie ta connexion, puis réessaie." : '')
+      + (sessionUtilisateur ? '' : ' Connecte-toi pour t\'abonner.')
+      + ' <a href="cgv.html" target="_blank" rel="noopener">Conditions d\'utilisation</a> · <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a>';
     return;
   }
+  b.textContent = pret ? `Essayer ${PRO_TARIFS.essaiJours} jours gratuitement` : 'Paiement bientôt disponible';
+  b.disabled = !pret || !accordPro || !sessionUtilisateur;
   pied.innerHTML = (pret
     ? `${PRO_TARIFS.essaiJours} jours gratuits, puis ${prix}. Sans engagement : résiliable à tout moment, pendant l'essai aussi.`
     : 'Le paiement en ligne arrive très bientôt.') + ' <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a>';
@@ -27094,7 +27239,7 @@ function ouvrirPageStripe(url) {
   if (fenetre) { try { fenetre.opener = null; } catch (e) {} } else location.href = url;
 }
 function commencerPro() {
-  if (NATIF) { acheterProApple(); return; }
+  if (NATIF) { if (produitsApple) acheterProApple(); else { produitsAppleEtat = ''; chargerProduitsApple(); } return; }
   const lien = PRO_LIENS[formuleProChoisie];
   if (!lien || !sessionUtilisateur || !accordPro) return;
   const url = new URL(lien);
@@ -27117,11 +27262,15 @@ function gererAbonnementPro() {
    vérifie chez Apple puis remplit la table abonnements : l'appli relit
    ensuite son statut Pro comme pour Stripe. */
 async function chargerProduitsApple() {
-  if (!NATIF || !PRO_APPLE.an || !PRO_APPLE.mois) return;
+  if (!NATIF || !PRO_APPLE.an || !PRO_APPLE.mois || produitsAppleEtat === 'chargement') return;
+  produitsAppleEtat = 'chargement';
+  majBoutonPro();
   const r = await appelNatif('NativePurchases', 'getProducts', { productIdentifiers: [PRO_APPLE.an, PRO_APPLE.mois], productType: 'subs' });
   const liste = (r && r.products) || [];
   const p = { an: liste.find(x => x.identifier === PRO_APPLE.an), mois: liste.find(x => x.identifier === PRO_APPLE.mois) };
-  if (p.an && p.mois) { produitsApple = p; if (document.getElementById('pro-contenu')) renderPro(); }
+  if (p.an && p.mois) produitsApple = p;
+  produitsAppleEtat = produitsApple ? '' : 'erreur';
+  if (document.getElementById('pro-contenu')) renderPro();
 }
 async function validerAchatApple(transactionId) {
   if (!transactionId || !supa) return false;
@@ -30514,6 +30663,7 @@ function fermerBackdropSiCible(target) {
   if (!target || !target.classList) return false;
   if (target.classList.contains('modal')) {
     if (target.id === 'compte-modal' && connexionObligatoire) return false;
+    if (target.id === 'accord-modal' && accordObligatoire) return false;
     if (target.id === 'modal-bienvenue' && bilanForce) return false;
     if (target.id === 'barcode-modal') stopperScanner();
     if (target.id === 'fiche-exercice-modal') arreterAnimationFiche();
@@ -30572,6 +30722,7 @@ window.addEventListener('keydown', (e) => {
     ouvertes.forEach(el => { zMax = Math.max(zMax, parseInt(getComputedStyle(el).zIndex, 10) || 0); });
     const dessus = ouvertes.filter(el => (parseInt(getComputedStyle(el).zIndex, 10) || 0) === zMax).pop();
     if (dessus.id === 'compte-modal' && connexionObligatoire) return;
+    if (dessus.id === 'accord-modal' && accordObligatoire) return;
     if (dessus.id === 'modal-bienvenue' && bilanForce) return;
     if (dessus.id === 'barcode-modal') stopperScanner();
     if (dessus.id === 'fiche-exercice-modal') arreterAnimationFiche();

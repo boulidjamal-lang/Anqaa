@@ -19,45 +19,84 @@
     .a-completer { padding: 0 4px; border-radius: 4px; background: var(--marque); font-weight: 600; }
     .brouillon { margin: 12px 0 0; padding: 10px 12px; border-radius: 14px; box-shadow: 0 0 0 1px var(--ligne); color: var(--muted); font-size: .85rem; }
     a { color: inherit; }
+    h3 { margin: 16px 0 4px; font-size: .95rem; }
+    /* Ouverte depuis l'app iPhone (?app=ios) : seulement ce qui concerne l'app. */
+    html:not(.ios) .ios-seul, html.ios .web-seul { display: none; }
   </style>
-  <title>Conditions générales de vente — Askēsis</title>
+  <script>
+    if (/[?&]app=ios\b/.test(location.search)) document.documentElement.classList.add('ios');
+    document.addEventListener('DOMContentLoaded', function () {
+      if (!document.documentElement.classList.contains('ios')) return;
+      document.querySelectorAll('a[href$=".html"]').forEach(function (a) { a.setAttribute('href', a.getAttribute('href') + '?app=ios'); });
+    });
+  </script>
+  <title>Conditions d'utilisation et de vente — Askēsis</title>
 </head>
 <body>
 <main>
-  <a class="retour" href="./">‹ Askēsis</a>
-  <h1>Conditions générales de vente</h1>
+  <a class="retour web-seul" href="./">‹ Askēsis</a>
+  <h1>Conditions d'utilisation et de vente</h1>
   <p class="maj">Version du <span class="a-completer">[À compléter : date de mise en ligne]</span></p>
-  <p class="brouillon">Brouillon préparé pour le lancement d'Askēsis Pro : les passages surlignés sont à compléter, et l'ensemble est à faire relire avant la mise en vente.</p>
+  <p class="brouillon">Brouillon : les passages surlignés sont à compléter, et l'ensemble est à faire relire avant la mise en vente.</p>
 
-  <h2>1. Objet</h2>
-  <p>Les présentes conditions encadrent l'abonnement « Askēsis Pro », vendu par <span class="a-completer">[À compléter : prénom et nom, SIRET]</span> (ci-après « Askēsis »). L'application reste utilisable gratuitement ; Pro y ajoute : l'intelligence artificielle sans limite pratique (photo d'un repas, programme sur mesure, analyses de la journée et de la période), les analyses avancées de Progrès (maintenance réelle, prévisions, constats, zones de volume, niveau de force, périodes de plus de 3 mois), les photos de progression et la connexion d'une balance Withings. Sans Pro, l'intelligence artificielle est limitée à 3 essais par mois.</p>
+  <h2>1. Objet et acceptation</h2>
+  <p>Ces conditions encadrent l'utilisation d'Askēsis (le site et l'app iPhone) et l'abonnement « Askēsis Pro », proposés par Jamal Bouli (ci-après « Askēsis »). Tu les acceptes en cochant la case prévue à la création de ton compte, ou à ta première connexion pour un compte plus ancien.<span class="ios-seul"> Dans l'app iPhone, le <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/">contrat de licence standard d'Apple</a> s'applique aussi.</span></p>
 
-  <h2>2. Prix</h2>
-  <p>Mensuel : 3,99 € par mois. Annuel : 29,99 € par an. Prix toutes taxes comprises <span class="a-completer">[À compléter : mention de TVA : par exemple « TVA non applicable, article 293 B du CGI » en franchise, ou TVA collectée par le prestataire de paiement]</span>. Le prix affiché au moment de la souscription est celui qui s'applique ; un changement de prix est annoncé au moins 30 jours avant le renouvellement concerné, avec la possibilité de résilier.</p>
+  <h2>2. Compte</h2>
+  <p>Il faut avoir au moins 15 ans. Un compte par personne, avec des informations exactes ; ton mot de passe reste secret. Tu peux supprimer ton compte et toutes ses données à tout moment : Réglages › Compte › Gérer › Supprimer mon compte.</p>
 
-  <h2>3. Essai gratuit</h2>
-  <p>Toute première souscription commence par 14 jours d'essai gratuit. Aucun montant n'est prélevé pendant l'essai. Sans résiliation avant sa fin, l'abonnement choisi démarre et le premier paiement est prélevé à cette date.</p>
+  <h2>3. Santé</h2>
+  <p>Askēsis n'est pas un dispositif médical. Les estimations de calories, de besoins et de dépense, et les analyses de l'intelligence artificielle sont indicatives et ne constituent pas un avis médical. Demande l'avis d'un médecin avant de commencer un régime ou un programme d'entraînement, surtout en cas de grossesse, de maladie ou de trouble du comportement alimentaire, et arrête l'exercice en cas de douleur.</p>
 
-  <h2>4. Paiement et renouvellement</h2>
-  <p>Le paiement est traité par Stripe <span class="a-completer">[À compléter : si Stripe Managed Payments est activé : Stripe agit comme vendeur officiel (merchant of record) et émet les factures]</span>. Askēsis n'a jamais accès aux numéros de carte. L'abonnement se renouvelle automatiquement à la fin de chaque période (mois ou année), et le montant est prélevé au début de la nouvelle période.</p>
+  <h2>4. Gymbro et ce que tu publies</h2>
+  <p>Ton nom d'utilisateur, ta photo, ta bio, les séances que tu partages, tes encouragements et les recettes que tu proposes sont visibles par d'autres comptes. Tu en restes propriétaire ; tu autorises seulement Askēsis à les afficher dans l'appli, le temps qu'ils y sont publiés.</p>
 
-  <h2>5. Résiliation</h2>
-  <p>L'abonnement se résilie à tout moment, en quelques secondes, depuis l'application (Profil › Réglages › Askēsis Pro › Gérer), y compris pendant l'essai. La résiliation prend effet à la fin de la période déjà payée : Pro reste actif jusque-là, puis le compte repasse en version gratuite sans perte de données. Les périodes entamées ne sont pas remboursées, sauf disposition légale contraire.</p>
+  <h2>5. Règles de la communauté : tolérance zéro</h2>
+  <p>Aucun contenu choquant ni comportement abusif n'est toléré. Sont interdits en particulier : le harcèlement, les menaces et les insultes ; les propos haineux ou discriminatoires ; les contenus sexuels, la nudité et la violence ; tout contenu illégal ; l'usurpation d'identité ; la publication d'informations personnelles d'autrui ; la publicité et le spam ; l'incitation à des pratiques dangereuses (dopage, privation alimentaire).</p>
+  <p>Chaque profil peut être signalé ou bloqué depuis l'appli. Bloquer un compte le retire aussitôt de tes gymbros et l'empêche de te recontacter. Chaque signalement est examiné sous 24 heures : le contenu en cause est retiré et son auteur exclu, sans préavis, quand il enfreint ces règles.</p>
 
-  <h2>6. Droit de rétractation</h2>
+  <h2>6. Askēsis Pro</h2>
+  <p class="ios-seul"><strong>Pro n'est pas encore vendu dans l'app iPhone :</strong> en attendant, toutes ses fonctions y sont incluses, sauf l'intelligence artificielle, limitée à 3 essais par mois. Les conditions de vente ci-dessous s'appliqueront à son ouverture.</p>
+  <p class="web-seul"><strong>Le paiement de Pro n'est pas encore ouvert.</strong> Les conditions de vente ci-dessous s'appliqueront à son ouverture.</p>
+  <p>L'appli reste utilisable gratuitement. Pro y ajoute : l'intelligence artificielle sans limite pratique (photo d'un repas, programme sur mesure, analyses de la journée et de la période), l'objectif adapté à ta balance, les analyses avancées de Progrès (maintenance réelle, prévisions, constats, zones de volume, niveau de force, périodes de plus de 3 mois) et les photos de progression<span class="web-seul">, ainsi que la connexion d'une balance Withings sur le site</span>. Sans Pro, l'intelligence artificielle est limitée à 3 essais par mois.</p>
+  <p>Formules : mensuelle (3,99 € par mois) ou annuelle (29,99 € par an), prix toutes taxes comprises en France<span class="ios-seul"> ; dans l'app iPhone, le prix qui s'applique est celui affiché par Apple au moment de l'achat, dans la monnaie de ton pays</span>. Un changement de prix est annoncé avant le renouvellement concerné, avec la possibilité de résilier.</p>
+  <p>Toute première souscription commence par 14 jours d'essai gratuit. Aucun montant n'est prélevé pendant l'essai.</p>
+
+  <div class="ios-seul">
+  <h3>Dans l'app iPhone : abonnement Apple</h3>
+  <p>L'abonnement s'achète et se paie avec ton identifiant Apple. Le paiement est prélevé sur ton compte Apple à la fin de l'essai gratuit. L'abonnement se renouvelle automatiquement à la fin de chaque période (mois ou année), sauf si tu le résilies au moins 24 heures avant ; le renouvellement est prélevé dans les 24 heures qui précèdent la fin de la période. Tu gères et résilies ton abonnement dans Réglages de l'iPhone › ton nom › Abonnements ; Pro reste actif jusqu'à la fin de la période payée. Les remboursements se demandent à Apple (reportaproblem.apple.com). Dans l'Union européenne, Apple applique le droit de rétractation de 14 jours prévu par ses conditions.</p>
+  </div>
+
+  <div class="web-seul">
+  <h3>Sur le site : paiement par Stripe</h3>
+  <p>Le paiement est traité par Stripe. Askēsis n'a jamais accès aux numéros de carte. Sans résiliation avant la fin de l'essai, l'abonnement choisi démarre et le premier paiement est prélevé à cette date. L'abonnement se renouvelle automatiquement à la fin de chaque période (mois ou année), et le montant est prélevé au début de la nouvelle période.</p>
+  <p>L'abonnement se résilie à tout moment, en quelques secondes, depuis l'application (Profil › Réglages › Askēsis Pro › Gérer), y compris pendant l'essai. La résiliation prend effet à la fin de la période déjà payée : Pro reste actif jusque-là, puis le compte repasse en version gratuite sans perte de données. Les périodes entamées ne sont pas remboursées, sauf disposition légale contraire. Un abonnement payé via Apple dans l'app iPhone se gère chez Apple.</p>
   <p>Le consommateur dispose d'un délai de 14 jours à compter de la souscription pour se rétracter (article L221-18 du Code de la consommation), en écrivant à <span class="a-completer">[À compléter : adresse email de contact]</span>. En demandant l'accès immédiat à Pro lors de la souscription, il reconnaît que son droit de rétractation prend fin dès le début de l'exécution pour les contenus numériques fournis (article L221-28, 13°). L'essai gratuit de 14 jours permet en pratique d'arrêter sans aucun frais.</p>
+  </div>
 
-  <h2>7. Service</h2>
-  <p>Askēsis fait ses meilleurs efforts pour que l'application et ses fonctions Pro soient disponibles et exactes, sans pouvoir garantir une disponibilité permanente. Les estimations nutritionnelles et les analyses de l'intelligence artificielle sont indicatives et ne constituent pas un avis médical.</p>
+  <h3>Membres fondateurs</h3>
+  <p>Les comptes créés avant l'ouverture de Pro bénéficient de Pro gratuitement et sans limite de durée, tant que leur compte existe.</p>
 
-  <h2>8. Membres fondateurs</h2>
-  <p>Les comptes créés avant l'ouverture de Pro (<span class="a-completer">[À compléter : date]</span>) bénéficient de Pro gratuitement et sans limite de durée, tant que leur compte existe.</p>
+  <h2>7. Service et responsabilité</h2>
+  <p>Askēsis fait ses meilleurs efforts pour que l'application et ses fonctions soient disponibles et exactes, sans pouvoir garantir une disponibilité permanente ni l'exactitude des estimations. Askēsis n'est pas responsable des contenus publiés par les utilisateurs, qu'elle retire dès qu'ils lui sont signalés et qu'ils enfreignent ces conditions.</p>
 
-  <h2>9. Données personnelles</h2>
+  <h2>8. Propriété intellectuelle</h2>
+  <p>L'application, ses textes, ses schémas et son code appartiennent à Askēsis. Les contenus venus d'autres sources (images d'exercices, recettes, données nutritionnelles) restent sous leurs licences, citées dans les <a href="mentions-legales.html">mentions légales</a> et sur chaque fiche.</p>
+
+  <h2>9. Suspension</h2>
+  <p>En cas de manquement grave à ces conditions, notamment aux règles de la communauté, Askēsis peut suspendre ou supprimer le compte en cause. Un abonnement en cours peut alors être résilié, sans remboursement de la période entamée sauf disposition légale contraire.</p>
+
+  <h2>10. Évolution des conditions</h2>
+  <p>Ces conditions peuvent évoluer. Les changements importants sont annoncés dans l'appli et acceptés à la connexion suivante ; sans acceptation, tu peux supprimer ton compte.</p>
+
+  <h2>11. Données personnelles</h2>
   <p>Voir la <a href="confidentialite.html">politique de confidentialité</a>.</p>
 
-  <h2>10. Litiges</h2>
-  <p>Les présentes conditions sont soumises au droit français. En cas de litige, le consommateur peut recourir gratuitement au médiateur de la consommation <span class="a-completer">[À compléter : nom et coordonnées du médiateur choisi]</span>, ou à la plateforme européenne de règlement en ligne des litiges.</p>
+  <h2>12. Droit applicable et litiges</h2>
+  <p>Ces conditions sont soumises au droit français. En cas de désaccord, écris d'abord à l'adresse de contact ci-dessous : une solution amiable est toujours cherchée en premier.</p>
+
+  <h2>Contact</h2>
+  <p><span class="a-completer">[À compléter : adresse email de contact]</span></p>
 
 </main>
 </body>

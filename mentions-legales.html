@@ -19,32 +19,45 @@
     .a-completer { padding: 0 4px; border-radius: 4px; background: var(--marque); font-weight: 600; }
     .brouillon { margin: 12px 0 0; padding: 10px 12px; border-radius: 14px; box-shadow: 0 0 0 1px var(--ligne); color: var(--muted); font-size: .85rem; }
     a { color: inherit; }
+    h3 { margin: 16px 0 4px; font-size: .95rem; }
+    /* Ouverte depuis l'app iPhone (?app=ios) : seulement ce qui concerne l'app. */
+    html:not(.ios) .ios-seul, html.ios .web-seul { display: none; }
   </style>
+  <script>
+    if (/[?&]app=ios\b/.test(location.search)) document.documentElement.classList.add('ios');
+    document.addEventListener('DOMContentLoaded', function () {
+      if (!document.documentElement.classList.contains('ios')) return;
+      document.querySelectorAll('a[href$=".html"]').forEach(function (a) { a.setAttribute('href', a.getAttribute('href') + '?app=ios'); });
+    });
+  </script>
   <title>Mentions légales — Askēsis</title>
 </head>
 <body>
 <main>
-  <a class="retour" href="./">‹ Askēsis</a>
+  <a class="retour web-seul" href="./">‹ Askēsis</a>
   <h1>Mentions légales</h1>
   <p class="maj">Version du <span class="a-completer">[À compléter : date de mise en ligne]</span></p>
-  <p class="brouillon">Brouillon préparé pour le lancement d'Askēsis Pro : les passages surlignés sont à compléter, et l'ensemble est à faire relire avant la mise en vente.</p>
+  <p class="brouillon">Brouillon : les passages surlignés sont à compléter, et l'ensemble est à faire relire avant la mise en vente.</p>
 
   <h2>Éditeur</h2>
-  <p>Askēsis est édité par <span class="a-completer">[À compléter : prénom et nom]</span>, entrepreneur individuel (micro-entreprise), SIRET <span class="a-completer">[À compléter : numéro SIRET]</span>, <span class="a-completer">[À compléter : adresse postale]</span>.<br>
+  <p>Askēsis est édité par Jamal Bouli, à titre non professionnel. Comme le permet l'article 6, III, 2 de la loi pour la confiance dans l'économie numérique, ses coordonnées personnelles ne sont pas publiées : elles sont connues de l'hébergeur, dont l'adresse figure ci-dessous.<br>
   Contact : <span class="a-completer">[À compléter : adresse email de contact]</span>.<br>
-  Directeur de la publication : <span class="a-completer">[À compléter : prénom et nom]</span>.</p>
+  Directeur de la publication : Jamal Bouli.</p>
 
   <h2>Hébergement</h2>
-  <p>L'application est hébergée par GitHub, Inc. (GitHub Pages) et Netlify, Inc. <span class="a-completer">[À compléter : adresses et téléphones des hébergeurs, à reprendre de leurs sites]</span>.<br>
-  Les données des comptes sont hébergées par Supabase, Inc., dans la région <span class="a-completer">[À compléter : région du projet Supabase, par exemple Francfort (Union européenne)]</span>.</p>
+  <p>Le site d'Askēsis, et les pages que l'app iPhone ouvre (comme celle-ci), sont hébergés par GitHub, Inc. (GitHub Pages), 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis, et par Netlify, Inc., 101 2nd Street, San Francisco, CA 94105, États-Unis.<br>
+  Les comptes et leurs données sont hébergés par Supabase, Inc. (supabase.com), dans la région <span class="a-completer">[À compléter : région du projet Supabase, par exemple Francfort (Union européenne)]</span>.<br>
+  L'app iPhone est distribuée par l'App Store d'Apple.</p>
 
   <h2>Contenus</h2>
-  <p>Les vidéos d'exercices proviennent de SmartWorkout. Les informations nutritionnelles des produits viennent en partie d'Open Food Facts (licence ODbL).</p>
+  <p>Images des exercices : <a href="https://github.com/RepDB/exercise-dataset">RepDB</a> ; <a href="https://github.com/yuhonas/free-exercise-db">free-exercise-db</a> (domaine public) ; illustrations d'Everkinetic adaptées par Bryl Lim (<a href="https://github.com/bryllim/workout-guide">workout-guide</a>, licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr">CC BY-SA 4.0</a>)<span class="web-seul"> ; animations d'<a href="https://exercisedb.dev">ExerciseDB</a> et images de <a href="https://wger.de">wger</a></span>. La fiche de chaque exercice cite la source de son image. Sans image, elle montre le mannequin des muscles travaillés, tracé d'après <a href="https://github.com/HichamELBSI/react-native-body-highlighter">react-native-body-highlighter</a> (Hicham Elabbassi, licence MIT).</p>
+  <p class="web-seul">Sur le site, les vidéos de démonstration des exercices sont lues depuis SmartWorkout (smartworkout.app).</p>
+  <p>Les informations nutritionnelles des produits viennent en partie d'<a href="https://fr.openfoodfacts.org">Open Food Facts</a> (licence ODbL).</p>
   <p>Une partie des recettes vient du <a href="https://fr.wikibooks.org/wiki/Livre_de_cuisine">Livre de cuisine de Wikilivres</a>, écrit par ses contributeurs et publié sous licence <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr">Creative Commons Attribution – Partage dans les mêmes conditions 4.0</a> (CC BY-SA 4.0) ; chaque fiche cite sa page d'origine. Ces recettes sont reprises avec un texte légèrement adapté et restent sous la même licence. D'autres sont traduites de l'anglais depuis le <a href="https://en.wikibooks.org/wiki/Cookbook:Table_of_Contents">Cookbook de Wikibooks</a>, écrit par ses contributeurs et publié sous la même licence CC BY-SA 4.0 : Askēsis les a traduites et adaptées, elles restent sous cette licence et chaque fiche cite sa page d'origine. Les valeurs nutritionnelles des recettes sont calculées par Askēsis avec la <a href="https://ciqual.anses.fr/">table de composition nutritionnelle des aliments Ciqual 2020</a> de l'Anses (licence CC BY 4.0).</p>
   <p>Les estimations de calories, de macronutriments et les analyses produites par l'intelligence artificielle sont indicatives : elles ne remplacent pas l'avis d'un médecin ou d'un diététicien.</p>
 
   <h2>Voir aussi</h2>
-  <p><a href="cgv.html">Conditions générales de vente</a> · <a href="confidentialite.html">Politique de confidentialité</a></p>
+  <p><a href="cgv.html">Conditions d'utilisation et de vente</a> · <a href="confidentialite.html">Politique de confidentialité</a></p>
 
 </main>
 </body>

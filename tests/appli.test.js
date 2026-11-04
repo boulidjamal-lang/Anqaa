@@ -3543,11 +3543,11 @@ test('compte : le remplissage automatique (email dans la case cachée du nom) ne
     const appels = [];
     supa = { auth: {
       signInWithPassword: async () => ({ error: { message: 'Invalid login credentials' } }),
-      signUp: async o => { appels.push(o.email); return { data: { user: { identities: [{}] }, session: null }, error: null }; },
+      signUp: async o => { appels.push(o.email); out.consentement = o.options.data.consentement; return { data: { user: { identities: [{}] }, session: null }, error: null }; },
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) },
       rpc: async () => ({ data: true, error: null }) };
     const champ = id => document.getElementById(id);
-    const out = { autocompletes: [champ('compte-email-input').autocomplete, champ('compte-pseudo-input').autocomplete] };
+    var out = { autocompletes: [champ('compte-email-input').autocomplete, champ('compte-pseudo-input').autocomplete] };
     champ('compte-email-input').value = 'nouveau@exemple.fr';
     champ('compte-mdp-input').value = 'secret123';
     champ('compte-pseudo-input').value = 'nouveau@exemple.fr';   // ce que Safari y mettait
@@ -3555,7 +3555,14 @@ test('compte : le remplissage automatique (email dans la case cachée du nom) ne
     out.caseVisible = !champ('compte-pseudo-wrap').classList.contains('hidden');
     out.caseVidee = champ('compte-pseudo-input').value;
     out.note1 = champ('note-compte').textContent;
+    out.casesVisibles = !champ('compte-accord-wrap').classList.contains('hidden');
     champ('compte-pseudo-input').value = 'jamal.fit';
+    // Sans les deux cases cochées, rien n'est créé.
+    champ('compte-accord-conditions').checked = true;
+    await connexionOuCreerCompte();
+    out.noteCases = champ('note-compte').textContent;
+    out.appelsSansCases = appels.length;
+    champ('compte-accord-sante').checked = true;
     await connexionOuCreerCompte();
     out.appels = appels;
     out.note2 = champ('note-compte').textContent;
@@ -3565,9 +3572,96 @@ test('compte : le remplissage automatique (email dans la case cachée du nom) ne
   assert.equal(r.caseVisible, true);
   assert.equal(r.caseVidee, '');
   assert.match(r.note1, /Choisis un nom d'utilisateur/);
+  assert.equal(r.casesVisibles, true);
+  assert.equal(r.noteCases, 'Coche les deux cases pour créer ton compte.');
+  assert.equal(r.appelsSansCases, 0);
   assert.deepEqual(r.appels, ['nouveau@exemple.fr']);
   assert.match(r.note2, /Compte créé/);
+  assert.equal(r.consentement.conditions, 1);
+  assert.equal(r.consentement.sante, true);
+  assert.match(r.consentement.le, /^\d{4}-\d\d-\d\dT/);
 }));
+
+test("compte plus ancien : les conditions s'acceptent une fois (deux cases), sinon déconnexion ; un compte qui les a acceptées n'est pas dérangé", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const maj = [], sorties = [];
+    supa = { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }), then: (ok) => ok({ data: [], error: null }) }), then: (ok) => ok({ data: [], error: null }) }) }),
+      rpc: async () => ({ data: [], error: null }), functions: { invoke: async () => ({ data: null, error: { context: { status: 404 } } }) },
+      storage: { from: () => ({ list: async () => ({ data: [], error: null }) }) },
+      auth: { updateUser: async o => { maj.push(o.data.consentement); return { data: {}, error: null }; },
+        signOut: async () => { sorties.push(1); definirSessionUtilisateur(null); return { error: null }; },
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) } };
+    const ouverte = () => document.getElementById('accord-modal').classList.contains('show');
+    const out = {};
+    // Déjà accepté : rien ne s'ouvre.
+    definirSessionUtilisateur({ id: 'a', email: 'a@x.fr', user_metadata: { consentement: { conditions: 1, sante: true, le: '2026-11-01T00:00:00Z' } } });
+    out.dejaAccepte = ouverte();
+    definirSessionUtilisateur(null);
+    // Ancien compte : la fenêtre s'ouvre, ne se ferme ni par Échap ni à côté.
+    definirSessionUtilisateur({ id: 'b', email: 'b@x.fr', user_metadata: {} });
+    out.ouverte = ouverte();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fermerBackdropSiCible(document.getElementById('accord-modal'));
+    fermerModal('accord-modal');
+    out.toujoursOuverte = ouverte();
+    out.boutonAvant = document.getElementById('accord-ok').disabled;
+    document.getElementById('accord-conditions').click();
+    out.boutonUneCase = document.getElementById('accord-ok').disabled;
+    document.getElementById('accord-sante').click();
+    out.boutonDeuxCases = document.getElementById('accord-ok').disabled;
+    document.getElementById('accord-ok').click();
+    await new Promise(ok => setTimeout(ok, 50));
+    out.fermee = !ouverte();
+    out.maj = maj.map(c => [c.conditions, c.sante]);
+    // Hors ligne au moment d'accepter : pas redemandé sur cet appareil, enregistré à la connexion suivante.
+    definirSessionUtilisateur(null);
+    definirSessionUtilisateur({ id: 'b', email: 'b@x.fr', user_metadata: {} });
+    out.redemande = ouverte();
+    out.majApres = maj.length;
+    // Refus : déconnexion.
+    definirSessionUtilisateur(null);
+    definirSessionUtilisateur({ id: 'c', email: 'c@x.fr' });
+    document.querySelector('#accord-modal .btn-secondaire').click();
+    await new Promise(ok => setTimeout(ok, 50));
+    out.refus = { sorties: sorties.length, ouverte: ouverte(), session: sessionUtilisateur };
+    return out;
+  });
+  assert.equal(r.dejaAccepte, false);
+  assert.deepEqual([r.ouverte, r.toujoursOuverte], [true, true]);
+  assert.deepEqual([r.boutonAvant, r.boutonUneCase, r.boutonDeuxCases], [true, true, false]);
+  assert.equal(r.fermee, true);
+  assert.deepEqual(r.maj, [[1, true]]);
+  assert.deepEqual([r.redemande, r.majApres], [false, 2]);
+  assert.deepEqual(r.refus, { sorties: 1, ouverte: false, session: null });
+}));
+
+test("pages légales : dans l'app, la version iPhone (Apple, Apple Santé, sans Stripe) ; sur le site, la version web", async () => {
+  const nav = await lancerNavigateur();
+  try {
+    const page = await nav.newPage();
+    const lire = async (fichier, ios) => {
+      await page.goto('file://' + path.join(__dirname, '..', fichier) + (ios ? '?app=ios' : ''));
+      return page.evaluate(() => ({ texte: document.body.innerText, liens: [...document.querySelectorAll('a[href$="html"], a[href*=".html?"]')].map(a => a.getAttribute('href')) }));
+    };
+    const cgvIos = await lire('cgv.html', true), cgvWeb = await lire('cgv.html', false);
+    assert.match(cgvIos.texte, /Réglages de l'iPhone › ton nom › Abonnements/);
+    assert.match(cgvIos.texte, /au moins 24 heures avant/);
+    assert.match(cgvIos.texte, /tolérance zéro/i);
+    assert.doesNotMatch(cgvIos.texte, /Stripe|Withings|‹ Askēsis/);
+    assert.match(cgvWeb.texte, /Stripe/);
+    assert.doesNotMatch(cgvWeb.texte, /reportaproblem/);
+    assert.ok(cgvIos.liens.length && cgvIos.liens.every(h => h.endsWith('?app=ios')), 'les liens entre pages gardent la version iPhone');
+    const confIos = await lire('confidentialite.html', true), confWeb = await lire('confidentialite.html', false);
+    assert.match(confIos.texte, /Apple Santé/);
+    assert.match(confIos.texte, /ne les stocke pas dans iCloud/);
+    assert.doesNotMatch(confIos.texte, /Stripe|Withings/);
+    assert.match(confWeb.texte, /Stripe/);
+    const mentIos = await lire('mentions-legales.html', true), mentWeb = await lire('mentions-legales.html', false);
+    assert.doesNotMatch(mentIos.texte, /SmartWorkout|ExerciseDB|wger/);
+    assert.match(mentWeb.texte, /SmartWorkout/);
+    assert.match(mentIos.texte, /CC BY-SA 4\.0/);
+  } finally { await nav.close(); }
+});
 
 test('compte : le nom choisi à la création n\'est pas redemandé quand Supabase annonce la session plusieurs fois', () => avecAppli({}, async ({ page }) => {
   const r = await page.evaluate(async () => {
@@ -4172,7 +4266,7 @@ test('app iOS : démarrage, barre d\'état, liens externes et partage passent pa
   assert.deepEqual(r, { fenetre: true, installee: true, retour: 'https://boulidjamal-lang.github.io/mon-coach/', classe: true });
   const liste = await appelsNatifs(page);
   assert.deepEqual(liste.filter(a => a.m === 'Browser').map(a => a.o.url),
-    ['https://boulidjamal-lang.github.io/mon-coach/confidentialite.html', 'https://world.openfoodfacts.org/']);
+    ['https://boulidjamal-lang.github.io/mon-coach/confidentialite.html?app=ios', 'https://world.openfoodfacts.org/']);
   const ecrit = liste.find(a => a.m === 'Filesystem' && a.f === 'writeFile');
   assert.deepEqual([ecrit.o.path, ecrit.o.directory, ecrit.o.data], ['bilan-askesis.png', 'CACHE', Buffer.from('png').toString('base64')]);
   assert.deepEqual(liste.find(a => a.m === 'Share').o.files, ['file:///cache/bilan-askesis.png']);
@@ -4304,8 +4398,9 @@ test('compte : accord avant l\'IA (un refus n\'envoie rien), suppression du comp
   assert.deepEqual(gb.rpc, [['gymbro_signaler', { p_pseudo: 'bob', p_motif: 'Pub ou spam' }], ['gymbro_bloquer', { p_pseudo: 'bob' }]]);
 }));
 
-test('app iOS : Pro se paie via Apple (prix d\'Apple, achat relié au compte puis vérifié par le serveur)', () => avecAppli({ natif: true }, async ({ page }) => {
+test('app iOS, Pro en vente : Pro se paie via Apple (prix d\'Apple, achat relié au compte puis vérifié par le serveur)', () => avecAppli({ natif: true }, async ({ page }) => {
   await page.evaluate(() => {
+    PRO_EN_VENTE_APP = true;
     PRO_APPLE.an = 'askesis.pro.an'; PRO_APPLE.mois = 'askesis.pro.mois';
     window.__reponsesNatives['NativePurchases.getProducts'] = { products: [
       { identifier: 'askesis.pro.an', priceString: '29,99 €' }, { identifier: 'askesis.pro.mois', priceString: '3,99 €' }] };
@@ -4327,7 +4422,7 @@ test('app iOS : Pro se paie via Apple (prix d\'Apple, achat relié au compte pui
   await page.waitForFunction(() => produitsApple && document.querySelector('.pro-formule span').textContent.includes('29,99'));
   const fenetre = await page.evaluate(() => ({ prix: [...document.querySelectorAll('.pro-formule span')].map(s => s.textContent),
     pied: document.getElementById('pro-pied').textContent, restaurer: document.querySelector('.pro-actualiser').textContent,
-    cgv: getComputedStyle(document.querySelector('.pro-accord')).display, bouton: document.getElementById('pro-essai').disabled,
+    cgv: getComputedStyle(document.querySelector('#pro-contenu .pro-accord')).display, bouton: document.getElementById('pro-essai').disabled,
     balance: document.getElementById('pro-contenu').textContent.includes('Withings') }));
   assert.deepEqual(fenetre.prix, ['29,99 € / an', '3,99 € / mois']);
   assert.match(fenetre.pied, /14 jours gratuits, puis 29,99 € \/ an.*Réglages › ton nom › Abonnements.*Conditions d'utilisation · Confidentialité/);
@@ -4338,6 +4433,140 @@ test('app iOS : Pro se paie via Apple (prix d\'Apple, achat relié au compte pui
   assert.deepEqual(achat, { productIdentifier: 'askesis.pro.an', productType: 'subs', appAccountToken: '6f1c2b8e-0000-4000-8000-000000000001' });
   assert.deepEqual(await page.evaluate(() => window.__invocations[0]), ['achats-apple', { transactionId: '1000' }]);
   await page.evaluate(() => { supa = null; });
+}));
+
+test("app iOS : ni vidéo SmartWorkout, ni GIF ExerciseDB, ni image wger ; les autres images gardent leur source", () => avecAppli({ natif: true }, async ({ page }) => {
+  const requetes = [];
+  page.on('request', r => requetes.push(r.url()));
+  const r = await page.evaluate(async () => {
+    const fiche = id => {
+      afficherFicheExerciceBiblio(id);
+      choisirOngletFiche('technique');
+      const z = document.querySelector('.fiche-onglet[data-onglet="technique"]');
+      const res = { videos: z.querySelectorAll('video').length, img: (z.querySelector('.fiche-exo-image img') || {}).src || null,
+        schema: !!z.querySelector('.schema-repli'), source: [...z.querySelectorAll('.fiche-exo-note-source')].map(p => p.textContent.trim()),
+        sw: /smartworkout/i.test(z.innerHTML), corps: [...z.querySelectorAll('.corps-exo figcaption')].map(f => f.textContent) };
+      fermerModal('fiche-exercice-modal');
+      return res;
+    };
+    const res = {
+      swSeul: fiche('sw-crunch-avec-ramene-de-genoux'),
+      swEtImage: fiche('e130'),
+      gif: fiche('e96'),
+      wger: fiche('e168'),
+      vignette: medaillonExercice(trouverExercice('sw-crunch-avec-ramene-de-genoux'), true),
+      lienSW: videoExercice({ id: 'x', video: 'https://api.smartworkout.app/asset/video/1e4902a0-05fc-4ab0-8fcd-5e745eb096af.mp4' }),
+      autreVideo: videoExercice({ id: 'y', video: 'https://exemple.fr/demo.mp4', videoPoster: 'https://api.smartworkout.app/asset/image/4e939dab' })
+    };
+    agrandirVideoExercice('sw-crunch-avec-ramene-de-genoux');
+    res.agrandi = document.getElementById('video-zoom-media').innerHTML;
+    fermerVideoExercice();
+    prechargerVideosExercices(['sw-crunch-avec-ramene-de-genoux', 'e130']);
+    ouvrirBibliotheque();
+    await new Promise(ok => setTimeout(ok, 900));
+    res.listeSW = /smartworkout|miniatures/.test(document.getElementById('picker-liste-exercices').innerHTML);
+    return res;
+  });
+  assert.deepEqual(r.swSeul, { videos: 0, img: null, schema: true, source: ['En vif, le muscle travaillé.'], sw: false, corps: ['Face', 'Dos'] });
+  assert.equal(r.swEtImage.videos, 0);
+  assert.match(r.swEtImage.img, /RepDB/);
+  assert.deepEqual(r.swEtImage.source, ['Image : RepDB']);
+  assert.deepEqual([r.gif.img, r.gif.schema, r.wger.img, r.wger.schema], [null, true, null, true]);
+  assert.match(r.vignette, /^<svg/);
+  assert.doesNotMatch(r.agrandi, /video|smartworkout/i);
+  assert.match(r.agrandi, /schema-repli/);
+  assert.equal(r.lienSW, null);
+  assert.deepEqual(r.autreVideo, { video: 'https://exemple.fr/demo.mp4', poster: null, page: 'https://exemple.fr/demo.mp4' });
+  assert.equal(r.listeSW, false);
+  assert.deepEqual(requetes.filter(u => /smartworkout|exercisedb|wger|miniatures/i.test(u)), []);
+}));
+
+test("site : les vidéos SmartWorkout restent ; chaque image d'exercice cite sa source", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const fiche = id => {
+      afficherFicheExerciceBiblio(id);
+      choisirOngletFiche('technique');
+      const z = document.querySelector('.fiche-onglet[data-onglet="technique"]');
+      const res = { video: !!z.querySelector('.fiche-exo-video'), source: [...z.querySelectorAll('.fiche-exo-note-source')].map(p => p.textContent.trim()) };
+      fermerModal('fiche-exercice-modal');
+      return res;
+    };
+    return { sw: fiche('sw-crunch-avec-ramene-de-genoux'), repdb: fiche('e1'), illustration: fiche('e336'), photo: fiche('e1001'), gif: fiche('e96'),
+      vignette: medaillonExercice(trouverExercice('sw-crunch-avec-ramene-de-genoux'), true) };
+  });
+  assert.deepEqual(r.sw, { video: true, source: ['Vidéo : SmartWorkout'] });
+  assert.deepEqual(r.repdb, { video: false, source: ['Image : RepDB'] });
+  assert.deepEqual(r.illustration, { video: false, source: ['Illustration : Everkinetic, adaptée par Bryl Lim (CC BY-SA 4.0)'] });
+  assert.deepEqual(r.photo, { video: false, source: ['Image : RepDB'] });
+  assert.deepEqual(r.gif, { video: false, source: ['Animation : ExerciseDB'] });
+  assert.match(r.vignette, /assets\/miniatures\//);
+}));
+
+test("app iOS, Pro pas encore en vente : rien n'est verrouillé ni ne parle de Pro, seuls les essais d'IA restent comptés", () => avecAppli({ natif: true }, async ({ page }) => {
+  await installerFauxPro(page, null);
+  const lire = () => page.evaluate(async () => {
+    await chargerAbonnementPro();
+    document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+    const res = { verrous: document.documentElement.classList.contains('verrous-pro'), acces: accesPro(), ajustement: ajustementActif(),
+      ligne: !document.getElementById('ligne-pro').classList.contains('hidden') };
+    ouvrirPhotosProgression();
+    res.photos = document.getElementById('photos-modal').classList.contains('show');
+    document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+    return res;
+  });
+  assert.deepEqual(await lire(), { verrous: false, acces: true, ajustement: true, ligne: false, photos: true });
+  // Essais d'IA du mois épuisés : un message, sans fenêtre Pro ni mention de Pro.
+  const ia = await page.evaluate(async () => {
+    iaServeur = { pret: true, pro: false, restant: 1 };
+    window.__pro.ia.push(() => ({ data: null, error: { context: { status: 402, json: async () => ({ code: 'pro_requis', restant: 0, erreur: 'Tes 3 essais IA du mois sont utilisés. Passe à Pro pour continuer.' }) } } }));
+    let message = '';
+    try { await geminiParServeur([{ text: 'x' }], 'texte'); } catch (e) { message = e.message; }
+    return { message, fenetrePro: document.getElementById('pro-modal').classList.contains('show'),
+      puces: [...document.querySelectorAll('.puce-ia')].map(p => p.textContent).filter(Boolean) };
+  });
+  assert.equal(ia.message, 'Tes 3 essais IA du mois sont utilisés : ils reviennent le mois prochain.');
+  assert.equal(ia.fenetrePro, false);
+  assert.ok(ia.puces.length && ia.puces.every(t => t === 'Essais IA du mois utilisés'), ia.puces.join(' | '));
+  // Le jour où Pro est mis en vente dans l'app : les verrous reviennent pour un compte gratuit.
+  await page.evaluate(() => { PRO_EN_VENTE_APP = true; });
+  const enVente = await lire();
+  assert.deepEqual([enVente.verrous, enVente.acces, enVente.ligne], [true, false, true]);
+}));
+
+test("app iOS, Pro en vente : offres d'Apple introuvables (réseau, produits pas encore validés) : « Réessayer », jamais de paiement externe", () => avecAppli({ natif: true }, async ({ page }) => {
+  const lire = () => page.evaluate(() => ({ bouton: document.getElementById('pro-essai').textContent, actif: !document.getElementById('pro-essai').disabled,
+    pied: document.getElementById('pro-pied').textContent.trim(), externe: /stripe|carte bancaire|site web/i.test(document.getElementById('pro-contenu').textContent) }));
+  await page.evaluate(() => {
+    PRO_EN_VENTE_APP = true;
+    sessionUtilisateur = { id: '6f1c2b8e-0000-4000-8000-000000000001', email: 'moi@test.fr' };
+    delete window.__reponsesNatives['NativePurchases.getProducts'];
+    ouvrirPro();
+  });
+  await page.waitForFunction(() => produitsAppleEtat === 'erreur');
+  const avant = await lire();
+  assert.deepEqual([avant.bouton, avant.actif, avant.externe], ['Réessayer', true, false]);
+  assert.match(avant.pied, /^Les offres d'Apple ne se chargent pas\. Vérifie ta connexion, puis réessaie\./);
+  assert.deepEqual(await page.evaluate(() => PRO_APPLE), { an: 'askesis.pro.an', mois: 'askesis.pro.mois' });
+  await page.evaluate(() => {
+    window.__reponsesNatives['NativePurchases.getProducts'] = { products: [
+      { identifier: 'askesis.pro.an', priceString: '29,99 €' }, { identifier: 'askesis.pro.mois', priceString: '3,99 €' }] };
+  });
+  await page.click('#pro-essai');
+  await page.waitForFunction(() => !!produitsApple);
+  const apres = await lire();
+  assert.deepEqual([apres.bouton, apres.actif, apres.externe], ['Essayer 14 jours gratuitement', true, false]);
+  assert.equal((await appelsDe(page, 'NativePurchases', 'purchaseProduct')).length, 0, "réessayer ne lance pas d'achat");
+}));
+
+test("app iOS : les pages légales s'ouvrent dans leur version iPhone, les autres liens tels quels", () => avecAppli({ natif: true }, async ({ page }) => {
+  const URL_SITE = await page.evaluate(() => URL_SITE_WEB);
+  await page.evaluate(() => {
+    ouvrirLienExterne('cgv.html');
+    ouvrirLienExterne('confidentialite.html');
+    ouvrirLienExterne('https://exemple.fr/cgv.html');
+  });
+  const urls = (await appelsDe(page, 'Browser', 'open')).map(a => a.o.url);
+  assert.deepEqual(urls, [URL_SITE + 'cgv.html?app=ios', URL_SITE + 'confidentialite.html?app=ios', 'https://exemple.fr/cgv.html']);
 }));
 
 /* ---------------- Gymbro en direct et séance à deux ---------------- */
