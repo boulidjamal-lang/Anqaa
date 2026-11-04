@@ -2808,6 +2808,9 @@
     html:root input.rappel-heure:disabled { opacity: .4; }
     .obj-ajust { display: flex; align-items: flex-start; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--trait); cursor: pointer; }
     .obj-ajust input { margin-top: 1px; }
+    button.obj-ajust { width: 100%; border: 0; border-top: 1px solid var(--trait); background: none; font: inherit; color: inherit; text-align: left; padding-left: 0; padding-right: 0; padding-bottom: 0; }
+    .obj-ajust-ic { flex: none; width: 22px; height: 22px; display: grid; place-items: center; color: var(--text-muted); }
+    .obj-ajust-ic .icone-ui { width: 18px; height: 18px; }
     .obj-ajust b { display: block; font-size: .84rem; font-weight: 800; }
     .obj-ajust small { display: block; margin-top: 2px; font-size: .74rem; font-weight: 500; line-height: 1.4; color: var(--text-muted); }    /* Les tuiles remplacent la carte « Objectif » (son sélecteur reste la source) */
     #vitrine-profil:not(:empty) ~ #carte-objectif { display: none; }
@@ -6755,7 +6758,7 @@
           <p class="note" style="margin:10px 0 0;"><b>Métabolisme de base</b> : formule de Mifflin-St Jeor (poids, taille, âge, sexe), ou Katch-McArdle si ton % de masse grasse est noté (calcul sur ta masse maigre, protéines aussi).</p>
           <p class="note" style="margin:6px 0 0;"><b>Vie courante</b> : × 1,2, soit environ 4 000 pas. Seuls les pas au-delà s'ajoutent.</p>
           <p class="note" style="margin:6px 0 0;"><b>Séances</b> : MET du <em>Compendium of Physical Activities</em> × ton poids, moins ce que tu aurais dépensé au repos. Cardio : selon ta vitesse si la distance est notée. Musculation : 3,5 MET repos compris, 2 à 4 min par série faite.</p>
-          <p class="note" style="margin:6px 0 0;"><b>Ajustement</b> : chaque lundi, tes repas notés et ta balance des 4 dernières semaines corrigent la formule (±15 % au plus, 100 kcal par semaine). Il faut 10 jours notés et 4 pesées.</p>
+          <p class="note" style="margin:6px 0 0;"><b>Ajustement</b><span class="pastille-pro">Pro</span> : chaque lundi, tes repas notés et ta balance des 4 dernières semaines corrigent la formule (±15 % au plus, 100 kcal par semaine). Il faut 10 jours notés et 4 pesées.</p>
           <p class="note" style="margin:6px 0 0;"><b>Objectif</b> : sèche −20 % (jamais sous le métabolisme de base), masse +15 %. Recomposition : calories du maintien, protéines de sèche.</p>
         </details>
       </div>
@@ -8627,7 +8630,8 @@ const AJUST_FENETRE = 28, AJUST_JOURS_MIN = 10, AJUST_PESEES_MIN = 4, AJUST_ETEN
 const AJUST_PAS_SEMAINE = 100, AJUST_PLAFOND = 0.15, AJUST_SEMAINES_MAX = 104;
 var versionDonnees = 0, cacheAjustement = { version: -1, semaines: new Map() }; // var : saveData peut passer avant cette ligne
 function invaliderAjustement() { versionDonnees++; }
-function ajustementActif() { return userProfile.ajustementBalance !== false; }
+// Réservé à Pro (comme tout le Pro : ouvert tant qu'il n'est pas en place sur le serveur).
+function ajustementActif() { return userProfile.ajustementBalance !== false && accesPro(); }
 /* La correction de la semaine de `dateStr` : { kcal, facteur, … } ou null. */
 function correctionMaintenance(dateStr) {
   if (!ajustementActif()) return null;
@@ -11013,6 +11017,7 @@ function majNoteRecomposition() {
 /* Objectif adapté à la balance (voir correctionMaintenance) : activé par
    défaut, désactivable dans le Profil. Gardé dans le profil, donc synchronisé. */
 function texteAjustement() {
+  if (!accesPro()) return "Avec Pro, ton objectif est corrigé chaque lundi d'après tes repas notés et ta balance.";
   const a = ajustementActif() ? correctionMaintenance(todayStr()) : null;
   return !ajustementActif() ? 'Désactivé : ton objectif suit la formule seule.'
     : a && a.kcal ? `Cette semaine : ${a.kcal > 0 ? '+' : '−'}${Math.abs(a.kcal).toLocaleString('fr-FR')}\u00a0kcal sur ta dépense. Recalculé chaque lundi d'après tes repas notés et tes pesées.`
@@ -11021,7 +11026,7 @@ function texteAjustement() {
 }
 function majReglageAjustement() {
   const c = document.getElementById('ajustement-balance');
-  if (c) c.checked = ajustementActif();
+  if (c) { c.checked = ajustementActif(); c.disabled = !accesPro(); }
   const note = document.getElementById('note-ajustement-profil');
   if (note) note.textContent = texteAjustement();
 }
@@ -26330,6 +26335,7 @@ function couleursZones(seriesParGroupe) {
    profil…) restent en dessous, inchangés.
    ===================================================================== */
 const ICO_V = {
+  cadenas: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />',
   play: '<path d="M6 3l14 9-14 9V3z" fill="currentColor" stroke="none" />',
   plus: '<path d="M5 12h14" /><path d="M12 5v14" />',
   trophee: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />',
@@ -26768,9 +26774,11 @@ const RAISONS_PRO = {
   photos: 'Les photos de progression font partie de Pro.',
   withings: 'La balance Withings fait partie de Pro.',
   analyses: 'Cette analyse fait partie de Pro.',
+  ajustement: "L'objectif adapté à ta balance fait partie de Pro.",
   periodes: 'Les périodes de plus de 3 mois font partie de Pro.'
 };
 const ICONES_PRO = {
+  ajustement: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>',
   progres: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="m19 9-5 5-4-4-3 3" /></svg>',
   photos: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>',
   balance: '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="3" /><path d="M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z" /></svg>'
@@ -26842,7 +26850,9 @@ function appliquerEtatPro() {
   document.documentElement.classList.toggle('est-pro', estPro());
   if (verrous && periodePro(periodeStats)) choisirPeriodeStats('90');
   majLignePro();
-  renderVitrineProfil();
+  // L'objectif adapté est réservé à Pro : l'objectif du jour en dépend.
+  if (document.readyState === 'complete' && typeof renderApp === 'function') renderApp();
+  else renderVitrineProfil();
   const fenetre = document.getElementById('pro-modal');
   if (fenetre && fenetre.classList.contains('show')) renderPro();
 }
@@ -26882,6 +26892,7 @@ function renderPro(raison) {
   raison = c.dataset.raison || '';
   const avantages = `<div class="carte-liste pro-avantages">${[
     ['ia', "L'IA sans limite", "Photo d'un repas, programme sur mesure, analyse de ta journée et de ta période"],
+    ['ajustement', 'Objectif adapté à ta balance', "Corrigé chaque lundi d'après tes repas notés et tes pesées"],
     ['progres', 'Progrès avancé', 'Maintenance réelle, prévisions, constats, zones de volume, niveau de force, périodes longues'],
     ['photos', 'Photos de progression', 'Avant / après, côte à côte'],
     ...(NATIF ? [] : [['balance', 'Balance Withings', 'Tes pesées arrivent toutes seules']])
@@ -27963,7 +27974,8 @@ function renderVitrineProfil() {
     <div class="vitrine-sec"><h3>Mon objectif</h3></div>
     <div class="carte-objectifs"><div class="obj-tuiles">${tuile('seche', 'Sèche', 'bas', 'linear-gradient(135deg,#22d3ee,#0ea5e9)')}${tuile('maintien', 'Maintien', 'cible', 'linear-gradient(135deg,#34d399,#10b981)')}${tuile('masse', 'Masse', 'haut', 'linear-gradient(135deg,#fbbf24,#f97316)')}${tuile('recomposition', 'Recompo', 'recomp', 'linear-gradient(135deg,#a78bfa,#6366f1)')}</div>
       <div class="obj-cibles"><span><b>${nombreFr(t.target)}</b> kcal</span><span><b>${t.protein}</b> g prot.</span><span><b>${t.carbs}</b> g gluc.</span><span><b>${t.fat}</b> g lip.</span></div>
-      <label class="obj-ajust"><input type="checkbox" id="vitrine-ajustement"${ajustementActif() ? ' checked' : ''} onchange="basculerAjustementBalance(this.checked)"><span><b>Ajuster d'après ma balance</b><small>${escapeHtml(texteAjustement())}</small></span></label></div>`;
+      ${accesPro() ? `<label class="obj-ajust"><input type="checkbox" id="vitrine-ajustement"${ajustementActif() ? ' checked' : ''} onchange="basculerAjustementBalance(this.checked)"><span><b>Ajuster d'après ma balance</b><small>${escapeHtml(texteAjustement())}</small></span></label>`
+        : `<button type="button" class="obj-ajust obj-ajust--pro" id="vitrine-ajustement-pro" onclick="ouvrirPro('ajustement')"><span class="obj-ajust-ic">${svgV('cadenas')}</span><span><b>Ajuster d'après ma balance<span class="pastille-pro">Pro</span></b><small>${escapeHtml(texteAjustement())}</small></span></button>`}</div>`;
   animerComptes(c);
   // En bas de la page : le niveau en détail, puis les badges.
   const b = document.getElementById('vitrine-badges');

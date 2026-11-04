@@ -4864,3 +4864,40 @@ test('rappels sur l\'iPhone : activés avec l\'autorisation, recalculés à chaq
   assert.equal(r.touchePesee, true);
   assert.deepEqual(r.coupe, { dernier: 'cancel', programmes: null });
 }));
+
+test('objectif adapté : réservé à Pro (cadenas et fenêtre Pro pour un compte gratuit, actif pour un fondateur)', () => avecAppli({}, async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-11-04T09:00:00'));
+  await installerFauxPro(page, null);
+  const r = await page.evaluate(async () => {
+    userProfile.height = 180; userProfile.age = 30; userProfile.gender = 'm';
+    const auj = todayStr();
+    for (let k = 56; k >= 1; k--) {
+      const j = getDay(shiftDate(auj, -k));
+      j.meals.lunch.push({ name: 'Repas', grams: 500, kcal: 2000, p: 150, c: 200, f: 60 });
+      if (k % 2 === 0) j.weight = Math.round((85 - (56 - k) * 0.5 / 7) * 10) / 10;
+    }
+    saveData();
+    await chargerAbonnementPro();
+    document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+    allerA('reglages'); renderApp();
+    const res = { acces: accesPro(), correction: computeTargets(getDay(auj), auj).correction,
+      verrou: document.getElementById('vitrine-ajustement-pro') && document.getElementById('vitrine-ajustement-pro').textContent, caseLibre: !!document.getElementById('vitrine-ajustement') };
+    document.getElementById('vitrine-ajustement-pro').click();
+    res.fenetre = document.getElementById('pro-modal').classList.contains('show') ? document.querySelector('#pro-contenu .pro-raison').textContent : null;
+    res.avantage = document.getElementById('pro-contenu').textContent.includes("Objectif adapté à ta balanceCorrigé chaque lundi d'après tes repas notés et tes pesées");
+    fermerModal('pro-modal');
+    window.__pro.etat = { formule: 'fondateur', statut: 'actif', fin: null };
+    await chargerAbonnementPro();
+    res.fondateur = { acces: accesPro(), correction: computeTargets(getDay(auj), auj).correction, case: !!document.getElementById('vitrine-ajustement'), cadenas: !!document.getElementById('vitrine-ajustement-pro') };
+    return res;
+  });
+  assert.equal(r.acces, false);
+  assert.equal(r.correction, 0, 'compte gratuit : la formule seule');
+  assert.match(r.verrou, /^Ajuster d'après ma balanceProAvec Pro, ton objectif est corrigé chaque lundi/);
+  assert.equal(r.caseLibre, false);
+  assert.equal(r.fenetre, "L'objectif adapté à ta balance fait partie de Pro.");
+  assert.equal(r.avantage, true, 'listé dans les avantages de Pro');
+  assert.equal(r.fondateur.acces, true);
+  assert.ok(r.fondateur.correction > 0, 'Pro : l\'ajustement s\'applique');
+  assert.deepEqual([r.fondateur.case, r.fondateur.cadenas], [true, false]);
+}));
