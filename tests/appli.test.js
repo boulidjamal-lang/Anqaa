@@ -1738,7 +1738,7 @@ test("Coach du jour : suit l'eau bue, l'heure qui passe et le nouveau jour, sans
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   const matin = await etat();
   assert.equal(matin.jour, '2026-10-28');
-  assert.match(matin.coach, /Commence ta journée/);
+  assert.match(matin.coach, /Aujourd'hui\s:\s[\d\s]+\skcal/);
   assert.match(matin.salut, /^Bonjour/);
   // Toujours rien de noté à 11 h 30 : le conseil suit l'heure.
   await page.clock.setFixedTime(new Date('2026-10-28T11:30:00'));
@@ -1794,7 +1794,7 @@ test('Coach du jour : sans recette qui convienne, une idée de protéines diffé
   assert.match(apresThon, /Pour ce soir\s:\s/);
   assert.doesNotMatch(apresThon, /Thon/);
   // Midi, la moitié des protéines déjà prises au petit-déjeuner : dans le rythme, pas de reproche.
-  assert.match(await coach('2026-11-01T12:00:00', [['breakfast', { name: 'Omelette', grams: 300, kcal: 500, partP: 0.5, c: 5, f: 30 }]]), /^Bon rythme pour les protéines/);
+  assert.match(await coach('2026-11-01T12:00:00', [['breakfast', { name: 'Omelette', grams: 300, kcal: 500, partP: 0.5, c: 5, f: 30 }]]), /^Bon rythme\s:\s\d+\sg de protéines déjà\./);
   // Midi avec presque rien : une idée pour midi ; déjà déjeuné à 13 h : une idée pour la collation.
   assert.match(await coach('2026-11-01T12:00:00', [['breakfast', { name: 'Croissant', grams: 60, kcal: 250, p: 5, c: 28, f: 13 }]]), /Pour midi\s:\s/);
   assert.match(await coach('2026-11-01T13:00:00', [pates]), /Pour la collation\s:\s/);
@@ -1837,8 +1837,8 @@ test('Coach du jour : une analyse complète (programme, séance et record, récu
   // Mercredi 8 h, rien de noté, jamais pesé : le plan du jour, la séance « Haut » ; la pesée dans l'analyse.
   const matin = await le('2026-11-04T08:00:00');
   assert.equal(matin[0][0], 'vide');
-  assert.match(matin[0][1], /Au programme aujourd'hui\s:\s[\d\s]+\skcal dont \d+\sg de protéines, et ta séance Haut \(pectoraux/);
-  assert.match(matin[0][1], /Commence ta journée avec un petit-déjeuner protéiné\s:\s.+ \(1\sportion,\s\d+\skcal,\s\+\d+\sg\)\./);
+  assert.match(matin[0][1], /Aujourd'hui\s:\s[\d\s]+\skcal dont \d+\sg de protéines, et ta séance Haut \(pectoraux/);
+  assert.match(matin[0][1], /Petit-déjeuner protéiné\s:\s.+ \(1\sportion,\s\d+\skcal,\s\+\d+\sg\)\.$/);
   assert.equal(matin[0][2], 'Voir la recette');
   assert.match(constat(matin, 'seance'), /^Ta prochaine séance\s:\sHaut/);
   assert.match(constat(matin, 'pesee'), /Pèse-toi un matin, à jeun/);
@@ -1981,7 +1981,7 @@ test('Séances prévues : la séance du soir comptée dès le matin, remplacée 
   assert.ok(mer.prevue.kcal > 0);
   assert.equal(mer.target, mer.sans + mer.prevueObjectif, 'l\'objectif monte de la séance prévue');
   assert.match(mer.heros, /^\+\d+\skcal · séance ce soir$/);
-  assert.match(constat(mer, 'seance'), new RegExp(`^Ce soir, ta séance ${mer.prevue.nom} \\(.+\\)\\s:\\s\\+${mer.prevueObjectif}\\skcal déjà dans ton objectif, à manger au fil de la journée plutôt que tard le soir\\.`));
+  assert.match(constat(mer, 'seance'), new RegExp(`^Ce soir, ta séance ${mer.prevue.nom} \\(.+\\)\\s:\\s\\+${mer.prevueObjectif}\\skcal déjà dans ton objectif\\.`));
   assert.equal(constat(mer, 'seance-pas-faite'), '', 'le matin, pas de rappel');
 
   // En sèche avec peu de pas, l'objectif est relevé au métabolisme de base : la séance
@@ -2006,9 +2006,8 @@ test('Séances prévues : la séance du soir comptée dès le matin, remplacée 
   assert.equal(plancher.target, plancher.sans + plancher.ajout);
   assert.ok(plancher.ajout >= 0 && plancher.ajout < plancher.moins20, 'moins que la dépense −20 % : le plancher relevait déjà l\'objectif');
   const nb = n => n.toLocaleString('fr-FR');
-  assert.ok(plancher.note.startsWith(`Elle ajoute ${nb(plancher.depense)}\u00a0kcal à ta dépense, mais `), plancher.note);
-  assert.ok(plancher.note.includes(`sans jamais descendre sous ton métabolisme de base (${nb(plancher.bmr)}\u00a0kcal)`), plancher.note);
-  if (plancher.ajout > 0) assert.ok(plancher.note.includes(`la séance le fait passer de ${nb(plancher.sans)} à ${nb(plancher.target)}\u00a0kcal`), plancher.note);
+  assert.ok(plancher.note.startsWith(plancher.ajout > 0 ? `Objectif +${nb(plancher.ajout)}\u00a0kcal seulement :` : 'Objectif inchangé'), plancher.note);
+  assert.ok(plancher.note.includes(`il ne descend jamais sous ton métabolisme de base (${nb(plancher.bmr)}\u00a0kcal)`), plancher.note);
   // Les suivantes dans l'ordre des programmes : vendredi puis lundi.
   assert.deepEqual(mer.a_venir.map(x => x[0]), ['2026-11-04', '2026-11-06', '2026-11-09']);
   const ordre = await page.evaluate(() => musculationProgrammes.map(p => p.nom));
@@ -2041,7 +2040,7 @@ test('Séances prévues : la séance du soir comptée dès le matin, remplacée 
   await page.clock.setFixedTime(new Date('2026-11-04T21:30:00'));
   const soir = await etat();
   assert.equal(constat(soir, 'seance'), '', 'plus de « Ce soir, ta séance… » à cette heure');
-  assert.match(constat(soir, 'seance-pas-faite'), new RegExp(`^Ta séance ${soir.prevue.nom} n'est pas encore enregistrée\\. Si tu ne la fais pas aujourd'hui, retire-la\\s:\\ston objectif baissera de ${soir.prevueObjectif}\\skcal\\.$`));
+  assert.match(constat(soir, 'seance-pas-faite'), new RegExp(`^Ta séance ${soir.prevue.nom} n'est pas faite\\. Si tu ne la fais pas, retire-la\\s:\\sobjectif −${soir.prevueObjectif}\\skcal\\.$`));
   const retiree = await page.evaluate(() => {
     coachAnalyseOuverte = true; renderApp();
     const b = [...document.querySelectorAll('#coach-jour button')].find(x => x.textContent === "Pas de séance aujourd'hui");
@@ -2292,7 +2291,7 @@ test('Coach du jour : une recette pour le repas à venir, qui tient dans le rest
   // Le matin, rien de noté : une recette de petit-déjeuner, un tiers des kcal du jour au plus.
   const matin = await coach('2026-11-02T08:00:00', []);
   assert.equal(matin.action, 'Voir la recette');
-  const [pdj] = await familles([recette(matin.texte.replace(/petit-déjeuner protéiné\s:\s/, 'Pour le petit-déjeuner : '), 'le petit-déjeuner')]);
+  const [pdj] = await familles([recette(matin.texte.replace(/Petit-déjeuner protéiné\s:\s/, 'Pour le petit-déjeuner : '), 'le petit-déjeuner')]);
   assert.ok(pdj && pdj.repas.includes('breakfast'), matin.texte);
   assert.ok(pdj.kcal <= matin.reste * 0.35 * 1.05, `${pdj.kcal} kcal sur ${matin.reste}`);
   // L'après-midi, déjà déjeuné : une recette de collation (ou des aliments), jamais un plat.
