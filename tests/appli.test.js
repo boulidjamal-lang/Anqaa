@@ -4195,7 +4195,8 @@ test('app iOS : en séance, écran gardé allumé, retour tactile, et rappel de 
   await page.waitForFunction(() => window.__appelsNatifs.some(a => a[0] === 'LocalNotifications' && a[1] === 'schedule'));
   assert.equal((await appelsDe(page, 'KeepAwake', 'keepAwake')).length, 1);
   assert.ok((await appelsDe(page, 'Haptics', 'impact')).some(a => a.o.style === 'MEDIUM'), 'un petit choc quand la série est cochée');
-  assert.deepEqual((await appelsDe(page, 'LocalNotifications')).map(a => a.f).filter(f => f !== 'cancel'), ['checkPermissions', 'requestPermissions', 'schedule']);
+  // (addListener : toucher un rappel ouvre le bon écran, branché au démarrage.)
+  assert.deepEqual((await appelsDe(page, 'LocalNotifications')).map(a => a.f).filter(f => f !== 'cancel' && f !== 'addListener'), ['checkPermissions', 'requestPermissions', 'schedule']);
   const n = (await appelsDe(page, 'LocalNotifications', 'schedule'))[0].o.notifications[0];
   assert.equal(n.id, 41000);
   assert.equal(n.title, 'Repos terminé');
@@ -4726,4 +4727,140 @@ test("Ajouter un gymbro par son nom d'utilisateur : le + de la rangée ouvre la 
   assert.deepEqual(r.karim, [['@karim', 'Gymbro ✓']]);
   assert.deepEqual(r.sections, ['Tes gymbros · 2', 'Demande envoyée']);
   assert.match(r.lienDuo, /Ajouter un gymbro par son nom d'utilisateur/);
+}));
+
+test('objectif adapté à la balance : chaque lundi, les repas notés et les pesées corrigent la formule, avec ses garde-fous', () => avecAppli({}, async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-11-04T09:00:00'));
+  const r = await page.evaluate(() => {
+    userProfile.height = 180; userProfile.age = 30; userProfile.gender = 'm';
+    const auj = todayStr();
+    // 8 semaines de repas notés (kcal par jour) et une pesée tous les deux jours (pente en kg par semaine).
+    const remplir = (kcal, pente) => {
+      for (let k = 56; k >= 1; k--) {
+        const d = shiftDate(auj, -k), j = getDay(d);
+        j.meals = { breakfast: [], lunch: [{ name: 'Repas', grams: 500, kcal, p: 150, c: 200, f: 60 }], snack: [], dinner: [] };
+        j.weight = k % 2 === 0 ? Math.round((85 - (56 - k) * pente / 7) * 10) / 10 : null;
+        if (k === 56) j.goal = 'seche';
+      }
+      saveData();
+      return computeTargets(getDay(auj), auj);
+    };
+    const res = {};
+    res.vide = computeTargets(getDay(auj), auj).correction;
+    res.rappelsWeb = getComputedStyle(document.getElementById('carte-rappels')).display;
+    // 2 000 kcal par jour et 0,5 kg perdu par semaine : la vraie dépense est d'environ 2 550 kcal.
+    const t = remplir(2000, 0.5);
+    res.perte = { correction: t.correction, formule: t.tdeeFormule, tdee: t.tdee, bmr: t.bmr, plancher: t.plancher, reelle: t.ajustement.reelle, target: t.target, goal: t.goal };
+    res.semaines = [];
+    for (let k = 6; k >= 0; k--) { const c = correctionMaintenance(shiftDate(lundiDe(auj), -7 * k)); res.semaines.push(c ? c.kcal : 0); }
+    res.memeSemaine = computeTargets(getDay(shiftDate(auj, -1)), shiftDate(auj, -1)).correction;
+    // Ta journée : la ligne et d'où elle vient.
+    currentDate = auj; renderApp(); ouvrirDepense();
+    res.detail = document.getElementById('detail-depense').textContent;
+    fermerModal('depense-modal');
+    // Ce qu'on note cette semaine ne compte qu'à partir de lundi prochain.
+    const v = versionDonnees;
+    saveData(auj); res.cetteSemaine = versionDonnees === v;
+    saveData(shiftDate(lundiDe(auj), -1)); res.avantLundi = versionDonnees !== v;
+    // Désactivé dans le Profil : la formule seule.
+    allerA('reglages'); renderApp();
+    const caseVitrine = () => document.getElementById('vitrine-ajustement');
+    res.caseAvant = caseVitrine().checked;
+    caseVitrine().click();
+    res.coupe = { correction: computeTargets(getDay(auj), auj).correction, profil: userProfile.ajustementBalance, case: caseVitrine().checked, texte: caseVitrine().closest('label').textContent };
+    caseVitrine().click();
+    res.remis = { correction: computeTargets(getDay(auj), auj).correction, profil: 'ajustementBalance' in userProfile };
+    // Stable mais seulement 1 600 kcal notées : −15 % au plus, et le plancher baisse avec.
+    const bas = remplir(1600, 0);
+    res.stable = { correction: bas.correction, formule: bas.tdeeFormule, bmr: bas.bmr, plancher: bas.plancher };
+    // Des jours à moitié notés (700 kcal) ne comptent pas : rien à corriger.
+    res.moitie = remplir(700, 0).correction;
+    return res;
+  });
+  assert.equal(r.vide, 0, 'rien de noté : la formule seule');
+  assert.equal(r.rappelsWeb, 'none', 'les rappels n\'existent que dans l\'app iPhone');
+  assert.ok(r.perte.correction > 0, JSON.stringify(r.perte));
+  assert.ok(Math.abs(r.perte.reelle - 2550) < 80, `dépense réelle ${r.perte.reelle}`);
+  assert.equal(r.perte.tdee, r.perte.formule + r.perte.correction);
+  assert.ok(r.perte.correction <= Math.round(r.perte.formule * 0.15) + 10, 'pas plus de 15 % de la formule');
+  assert.equal(r.perte.plancher, r.perte.bmr, 'un ajustement en hausse ne relève pas le plancher');
+  assert.equal(r.perte.target, Math.max(r.perte.plancher, Math.round(r.perte.tdee * 0.8)), 'sèche : −20 % de la dépense ajustée');
+  r.semaines.forEach((c, i) => { if (i) assert.ok(Math.abs(c - r.semaines[i - 1]) <= 100, `100 kcal au plus d'une semaine à l'autre : ${r.semaines}`); });
+  assert.equal(r.memeSemaine, r.perte.correction, 'le même ajustement toute la semaine');
+  assert.ok(r.detail.includes(`Ajustement d'après ta balance+ ${r.perte.correction} kcal`), r.detail);
+  assert.match(r.detail, /tu dépenses environ 2\s5\d\d\skcal par jour ; la formule en prévoyait/);
+  assert.deepEqual([r.cetteSemaine, r.avantLundi], [true, true]);
+  assert.equal(r.caseAvant, true);
+  assert.equal(r.coupe.correction, 0);
+  assert.equal(r.coupe.profil, false);
+  assert.equal(r.coupe.case, false);
+  assert.match(r.coupe.texte, /Désactivé : ton objectif suit la formule seule/);
+  assert.deepEqual(r.remis, { correction: r.perte.correction, profil: false });
+  assert.ok(r.stable.correction < 0 && Math.abs(r.stable.correction + r.stable.formule * 0.15) <= 20, JSON.stringify(r.stable));
+  assert.ok(r.stable.plancher < r.stable.bmr, 'un ajustement en baisse baisse aussi le plancher');
+  assert.equal(r.moitie, 0, 'les jours à moitié notés ne comptent pas');
+}));
+
+test('rappels sur l\'iPhone : activés avec l\'autorisation, recalculés à chaque saisie, et ils ouvrent le bon écran', () => avecAppli({ natif: true }, async ({ page, dialogues }) => {
+  await page.clock.setFixedTime(new Date('2026-11-04T09:00:00'));
+  const r = await page.evaluate(async () => {
+    let accord = 'prompt';
+    window.__reponsesNatives['LocalNotifications.checkPermissions'] = () => ({ display: accord });
+    window.__reponsesNatives['LocalNotifications.requestPermissions'] = () => { accord = window.__refus ? 'denied' : 'granted'; return { display: accord }; };
+    const notifs = () => window.__appelsNatifs.filter(a => a[0] === 'LocalNotifications');
+    const attendre = async () => { await new Promise(ok => setTimeout(ok, 900)); await fileRappels; };
+    const programmes = () => { const s = notifs().filter(a => a[1] === 'schedule').pop(); return s ? s[2].notifications : []; };
+    const res = {};
+    // Sans rappel activé : aucun appel aux notifications.
+    renderApp(); await attendre();
+    res.ecoute = notifs().filter(a => a[1] === 'addListener').map(a => a[2]);
+    res.auDepart = notifs().filter(a => a[1] !== 'addListener').length;
+    ouvrirModal('reglages-modal'); await new Promise(ok => setTimeout(ok, 150));
+    res.visible = getComputedStyle(document.getElementById('carte-rappels')).display !== 'none';
+    res.focus = document.activeElement && document.activeElement.id;
+    // Refusée : la case se décoche, avec l'explication.
+    window.__refus = true;
+    const c = document.getElementById('rappel-proteines');
+    c.checked = true; await changerRappel('proteines');
+    res.refus = { case: c.checked, reglage: reglagesRappels().proteines.on };
+    // Accordée : 7 jours de rappels de protéines à 18 h.
+    window.__refus = false; accord = 'prompt';
+    c.checked = true; await changerRappel('proteines'); await attendre();
+    res.permission = notifs().map(a => a[1]).filter(f => /Permissions/.test(f));
+    res.proteines = programmes().map(n => [n.id, new Date(n.schedule.at).toISOString().slice(0, 16), n.title, n.body, n.extra.rappel]);
+    // Un repas protéiné : le rappel du jour disparaît, les autres restent.
+    getDay(todayStr()).meals.lunch.push({ name: 'Poulet', grams: 600, kcal: 900, p: 190, c: 0, f: 20 });
+    saveData(todayStr()); renderApp(); await attendre();
+    res.apresRepas = programmes().map(n => n.id);
+    res.annules = (notifs().filter(a => a[1] === 'cancel').pop() || [, , { notifications: [] }])[2].notifications.length;
+    // Toucher un rappel : la séance ouvre Ta journée, la pesée sa saisie.
+    ouvrirDepuisRappel({ rappel: 'seance', date: todayStr() }); await new Promise(ok => setTimeout(ok, 200));
+    res.toucheSeance = document.getElementById('depense-modal').classList.contains('show');
+    fermerModal('depense-modal');
+    ouvrirDepuisRappel({ rappel: 'pesee' }); await new Promise(ok => setTimeout(ok, 200));
+    res.touchePesee = document.getElementById('feuille-saisie-rapide').classList.contains('show');
+    fermerFeuilles();
+    // Tout coupé : les rappels programmés sont annulés.
+    c.checked = false; await changerRappel('proteines'); await attendre();
+    res.coupe = { dernier: notifs().pop()[1], programmes: localStorage.getItem('mc_rappels_programmes') };
+    return res;
+  });
+  assert.equal(r.auDepart, 0, 'sans rappel activé, l\'appli ne touche pas aux notifications');
+  assert.deepEqual(r.ecoute, ['localNotificationActionPerformed'], 'toucher un rappel est écouté dès le démarrage');
+  assert.equal(r.visible, true);
+  assert.notEqual(r.focus, 'rappel-heure-proteines', 'le sélecteur d\'heure ne s\'ouvre pas tout seul');
+  assert.deepEqual(r.refus, { case: false, reglage: false });
+  // Refusée puis accordée : demandée seulement en activant, puis juste vérifiée.
+  assert.deepEqual(r.permission, ['checkPermissions', 'requestPermissions', 'checkPermissions', 'requestPermissions', 'checkPermissions']);
+  assert.ok(dialogues.some(d => /Les notifications sont coupées pour Askēsis/.test(d)), dialogues.join(' | '));
+  assert.equal(r.proteines.length, 7, JSON.stringify(r.proteines));
+  assert.deepEqual(r.proteines[0].slice(0, 3), [42000, '2026-11-04T18:00', 'Protéines']);
+  assert.match(r.proteines[0][3], /^Rien de noté aujourd'hui : ton objectif est de \d+ g de protéines\.$/);
+  assert.equal(r.proteines[0][4], 'proteines');
+  assert.deepEqual(r.proteines.map(x => x[0]), [42000, 42001, 42002, 42003, 42004, 42005, 42006]);
+  assert.deepEqual(r.apresRepas, [42001, 42002, 42003, 42004, 42005, 42006], 'protéines atteintes : plus de rappel aujourd\'hui');
+  assert.equal(r.annules, 28, 'tous les rappels sont annulés avant d\'être reprogrammés');
+  assert.equal(r.toucheSeance, true);
+  assert.equal(r.touchePesee, true);
+  assert.deepEqual(r.coupe, { dernier: 'cancel', programmes: null });
 }));

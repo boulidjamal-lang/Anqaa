@@ -2800,7 +2800,16 @@
     .obj-ic { width: 36px; height: 36px; margin: 0 auto 7px; border-radius: 12px; display: grid; place-items: center; color: #fff; box-shadow: 0 8px 16px -8px rgba(0,0,0,.5); }
     .obj-ic .icone-ui { width: 18px; height: 18px; }
     .obj-cibles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--trait); text-align: center; font-size: .64rem; font-weight: 700; color: var(--text-muted); }
-    .obj-cibles b { display: block; font-size: 1rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }    /* Les tuiles remplacent la carte « Objectif » (son sélecteur reste la source) */
+    .obj-cibles b { display: block; font-size: 1rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+    .rappel-ligne .ligne-txt { flex: 1; min-width: 0; }
+    html:root input.rappel-heure { width: 76px !important; flex: none; min-width: 0; margin: 0; padding: 6px 4px !important; font-size: 16px; text-align: center; border-radius: 10px; }
+    input.rappel-heure::-webkit-calendar-picker-indicator { display: none; }
+    .rappel-ligne .ligne-txt b { overflow-wrap: normal; word-break: normal; }
+    html:root input.rappel-heure:disabled { opacity: .4; }
+    .obj-ajust { display: flex; align-items: flex-start; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--trait); cursor: pointer; }
+    .obj-ajust input { margin-top: 1px; }
+    .obj-ajust b { display: block; font-size: .84rem; font-weight: 800; }
+    .obj-ajust small { display: block; margin-top: 2px; font-size: .74rem; font-weight: 500; line-height: 1.4; color: var(--text-muted); }    /* Les tuiles remplacent la carte « Objectif » (son sélecteur reste la source) */
     #vitrine-profil:not(:empty) ~ #carte-objectif { display: none; }
 
 
@@ -5325,6 +5334,8 @@
       </div>
       <p class="note note-explicative" style="margin:10px 0 0;">Reste actif jusqu'à ce que tu le changes — l'historique passé n'est jamais réécrit.</p>
       <p class="note hidden" style="margin:10px 0 0;" id="note-recomposition"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M8 16H3v5" /></svg> Calories du maintien, protéines de sèche : prendre du muscle et perdre du gras à la fois, si tu progresses encore en charge.</p>
+      <label class="partage-option" style="margin:12px 0 0;"><input type="checkbox" id="ajustement-balance" checked onchange="basculerAjustementBalance(this.checked)"> Ajuster mon objectif d'après ma balance</label>
+      <p class="note note-explicative" id="note-ajustement-profil" style="margin:4px 0 0;">Chaque lundi, tes repas notés et tes pesées des 4 dernières semaines corrigent la formule.</p>
     </div>
 
     <!-- Mon corps : ce qui sert aux calculs (sexe, âge, taille), puis le suivi
@@ -6501,6 +6512,31 @@
     </div>
     <p class="note reglages-note seulement-web">Bloqué dans l'appli Withings au lieu de revenir ici ? Reste appuyé sur « Connecter » pour choisir « Ouvrir dans Safari ».</p>
 
+    <div class="reglages-titre seulement-ios">Rappels</div>
+    <div class="carte-liste seulement-ios" id="carte-rappels">
+      <div class="ligne-reglage rappel-ligne">
+        <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.4 15.63a7.875 6 135 1 1 6.23-6.23 4.5 3.43 135 0 0-6.23 6.23" /><path d="m8.29 12.71-2.6 2.6a2.5 2.5 0 1 0-1.65 4.65A2.5 2.5 0 1 0 8.7 18.3l2.59-2.59" /></svg></span>
+        <span class="ligne-txt"><b>Protéines</b><small>Si tu es en retard</small></span>
+        <input type="time" class="rappel-heure" id="rappel-heure-proteines" value="18:00" onchange="changerRappel('proteines')" aria-label="Heure du rappel : protéines"><input type="checkbox" id="rappel-proteines" onchange="changerRappel('proteines')" aria-label="Rappel : protéines">
+      </div>
+      <div class="ligne-reglage rappel-ligne">
+        <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg></span>
+        <span class="ligne-txt"><b>Séance prévue</b><small>2 h après son heure, si pas faite</small></span>
+        <input type="checkbox" id="rappel-seance" onchange="changerRappel('seance')" aria-label="Rappel : séance prévue">
+      </div>
+      <div class="ligne-reglage rappel-ligne">
+        <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="3" /><path d="M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z" /></svg></span>
+        <span class="ligne-txt"><b>Pesée</b><small>Après 7 jours sans pesée</small></span>
+        <input type="time" class="rappel-heure" id="rappel-heure-pesee" value="08:00" onchange="changerRappel('pesee')" aria-label="Heure du rappel : pesée"><input type="checkbox" id="rappel-pesee" onchange="changerRappel('pesee')" aria-label="Rappel : pesée">
+      </div>
+      <div class="ligne-reglage rappel-ligne">
+        <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg></span>
+        <span class="ligne-txt"><b>Hydratation</b><small>Moins de la moitié bue</small></span>
+        <input type="time" class="rappel-heure" id="rappel-heure-eau" value="16:00" onchange="changerRappel('eau')" aria-label="Heure du rappel : hydratation"><input type="checkbox" id="rappel-eau" onchange="changerRappel('eau')" aria-label="Rappel : hydratation">
+      </div>
+    </div>
+    <p class="note reglages-note seulement-ios">Sur ce téléphone, recalculés à chaque saisie : un rappel devenu inutile ne sonne pas.</p>
+
     <div class="reglages-titre">Affichage</div>
     <div class="carte-liste">
       <div class="ligne-reglage">
@@ -6719,6 +6755,7 @@
           <p class="note" style="margin:10px 0 0;"><b>Métabolisme de base</b> : formule de Mifflin-St Jeor (poids, taille, âge, sexe), ou Katch-McArdle si ton % de masse grasse est noté (calcul sur ta masse maigre, protéines aussi).</p>
           <p class="note" style="margin:6px 0 0;"><b>Vie courante</b> : × 1,2, soit environ 4 000 pas. Seuls les pas au-delà s'ajoutent.</p>
           <p class="note" style="margin:6px 0 0;"><b>Séances</b> : MET du <em>Compendium of Physical Activities</em> × ton poids, moins ce que tu aurais dépensé au repos. Cardio : selon ta vitesse si la distance est notée. Musculation : 3,5 MET repos compris, 2 à 4 min par série faite.</p>
+          <p class="note" style="margin:6px 0 0;"><b>Ajustement</b> : chaque lundi, tes repas notés et ta balance des 4 dernières semaines corrigent la formule (±15 % au plus, 100 kcal par semaine). Il faut 10 jours notés et 4 pesées.</p>
           <p class="note" style="margin:6px 0 0;"><b>Objectif</b> : sèche −20 % (jamais sous le métabolisme de base), masse +15 %. Recomposition : calories du maintien, protéines de sèche.</p>
         </details>
       </div>
@@ -7742,6 +7779,147 @@ async function majRappelsReposMaintenant() {
   rappelsReposIds = prevus.map(p => p.id);
 }
 
+/* Rappels sur le téléphone (appli iPhone) : des notifications programmées
+   pour les 7 prochains jours (protéines, séance prévue pas faite, pesée,
+   eau). Leur texte vient de ce qui est noté au moment du calcul, refait à
+   chaque saisie et au retour dans l'appli : un repas ajouté reprogramme
+   tout, et un rappel devenu inutile disparaît. Réglages propres à
+   l'appareil (localStorage) ; l'autorisation n'est demandée qu'en activant
+   un premier rappel. */
+var RAPPELS_LS = 'mc_rappels', RAPPEL_PESEE_LS = 'mc_rappel_pesee', RAPPELS_PROGRAMMES_LS = 'mc_rappels_programmes', RAPPELS_JOURS = 7;
+var RAPPELS = { proteines: { base: 42000, heure: '18:00' }, seance: { base: 42100 }, pesee: { base: 42200, heure: '08:00' }, eau: { base: 42300, heure: '16:00' } };
+var rappelsSignature = '', fileRappels = Promise.resolve(), minuteurRappels = 0;
+function reglagesRappels() {
+  let r = {};
+  try { r = JSON.parse(localStorage.getItem(RAPPELS_LS)) || {}; } catch (e) {}
+  const res = {};
+  Object.keys(RAPPELS).forEach(k => {
+    const x = r[k] || {};
+    res[k] = { on: !!x.on, heure: /^\d\d:\d\d$/.test(x.heure || '') ? x.heure : RAPPELS[k].heure };
+  });
+  return res;
+}
+function majRappels() {
+  if (!NATIF) return;
+  clearTimeout(minuteurRappels);
+  minuteurRappels = setTimeout(() => { fileRappels = fileRappels.then(majRappelsMaintenant, majRappelsMaintenant); }, 800);
+}
+/* Les rappels à programmer : [{ id, at, titre, texte, type, date }]. */
+function rappelsPrevus(maintenant) {
+  const r = reglagesRappels(), auj = todayStr(), res = [];
+  const apres = (maintenant || Date.now()) + 60000;
+  const vide = () => ({ weight: null, goal: null, steps: 0, workouts: [], meals: { breakfast: [], lunch: [], snack: [], dinner: [] } });
+  const fr = n => Math.round(n).toLocaleString('fr-FR');
+  const litres = n => (Math.round(n / 100) / 10).toLocaleString('fr-FR');
+  const a = (d, hhmm) => new Date(d + 'T' + hhmm + ':00');
+  const ajouter = (type, k, at, titre, texte, date) => { if (at.getTime() > apres) res.push({ id: RAPPELS[type].base + k, at, titre, texte, type, date }); };
+  for (let k = 0; k < RAPPELS_JOURS; k++) {
+    const d = shiftDate(auj, k), j = appData[d] || vide();
+    if (r.proteines.on) {
+      const t = computeTargets(j, d), p = sumMeals(j).p, manque = Math.round(t.protein - p);
+      if (manque > Math.max(20, t.protein * 0.15))
+        ajouter('proteines', k, a(d, r.proteines.heure), 'Protéines', p > 0 ? `Il te manque ${fr(manque)} g de protéines aujourd'hui.` : `Rien de noté aujourd'hui : ton objectif est de ${fr(t.protein)} g de protéines.`, d);
+    }
+    if (r.eau.on) {
+      const bu = Number(j.eauMl) || 0, quota = quotaEauSuggere(d);
+      if (bu < quota * 0.5) ajouter('eau', k, a(d, r.eau.heure), 'Hydratation', `Tu en es à ${litres(bu)} L sur ${litres(quota)} L : pense à boire.`, d);
+    }
+  }
+  if (r.seance.on) prochainesSeances(RAPPELS_JOURS).forEach(s => {
+    const k = numeroJour(s.date) - numeroJour(auj), h = Math.min(21.5, (s.heure != null ? s.heure : 19) + 2);
+    const at = dateLocale(s.date); at.setHours(Math.floor(h), Math.round(h % 1 * 60), 0, 0);
+    ajouter('seance', k, at, 'Séance ' + s.nom, "Pas encore faite. Pas aujourd'hui ? Retire-la pour ajuster ton objectif.", s.date);
+  });
+  if (r.pesee.on) {
+    // Le premier matin possible à 7 jours ou plus de la dernière pesée, puis
+    // chaque semaine. Ce jour est retenu : ouvrir l'appli chaque jour sans se
+    // peser ne le décale pas (sinon, un rappel par jour).
+    let derniere = '', ancre = null;
+    Object.keys(appData).forEach(d => { if (d <= auj && d > derniere && Number(appData[d] && appData[d].weight) > 0) derniere = d; });
+    try { ancre = localStorage.getItem(RAPPEL_PESEE_LS); } catch (e) {}
+    let d;
+    if (ancre && (!derniere || ancre >= shiftDate(derniere, 7))) d = ancre;
+    else ancre = null;
+    if (!ancre) d = derniere && shiftDate(derniere, 7) > auj ? shiftDate(derniere, 7) : auj;
+    while (a(d, r.pesee.heure).getTime() <= apres) d = shiftDate(d, ancre && d === ancre ? 7 : 1);
+    try { localStorage.setItem(RAPPEL_PESEE_LS, d); } catch (e) {}
+    for (; numeroJour(d) - numeroJour(auj) < RAPPELS_JOURS; d = shiftDate(d, 7)) {
+      const ecart = derniere ? numeroJour(d) - numeroJour(derniere) : null;
+      ajouter('pesee', numeroJour(d) - numeroJour(auj), a(d, r.pesee.heure), 'Pesée', ecart != null ? `Dernière pesée il y a ${ecart} jours : pèse-toi ce matin, à jeun.` : 'Pèse-toi ce matin, à jeun : ton objectif sera plus juste.', d);
+    }
+  }
+  return res.sort((x, y) => x.at - y.at);
+}
+async function permissionNotifications(demander) {
+  let p = await appelNatif('LocalNotifications', 'checkPermissions');
+  if (demander && p && p.display !== 'granted' && p.display !== 'denied') p = await appelNatif('LocalNotifications', 'requestPermissions');
+  permissionRappels = !!(p && p.display === 'granted');
+  return permissionRappels;
+}
+async function majRappelsMaintenant() {
+  const r = reglagesRappels();
+  const prevus = Object.keys(r).some(k => r[k].on) ? rappelsPrevus() : [];
+  const signature = todayStr() + '#' + prevus.map(p => p.id + '@' + p.at.getTime() + ':' + p.texte).join('|');
+  if (signature === rappelsSignature) return;
+  rappelsSignature = signature;
+  // Tous les numéros des rappels, d'un coup : ceux d'hier ou d'un réglage
+  // coupé partent aussi. Seulement s'il y en a eu : sans rappel activé,
+  // l'appli ne touche pas aux notifications.
+  let deja = false;
+  try { deja = localStorage.getItem(RAPPELS_PROGRAMMES_LS) === '1'; } catch (e) {}
+  if (deja) {
+    const ids = [];
+    Object.keys(RAPPELS).forEach(k => { for (let i = 0; i < RAPPELS_JOURS; i++) ids.push({ id: RAPPELS[k].base + i }); });
+    await appelNatif('LocalNotifications', 'cancel', { notifications: ids });
+    try { localStorage.removeItem(RAPPELS_PROGRAMMES_LS); } catch (e) {}
+  }
+  if (!prevus.length || !(await permissionNotifications(false))) return;
+  await appelNatif('LocalNotifications', 'schedule', { notifications: prevus.map(p => ({
+    id: p.id, title: p.titre, body: p.texte, schedule: { at: p.at }, extra: { rappel: p.type, date: p.date } })) });
+  try { localStorage.setItem(RAPPELS_PROGRAMMES_LS, '1'); } catch (e) {}
+}
+async function changerRappel(type) {
+  const r = reglagesRappels(), c = document.getElementById('rappel-' + type), h = document.getElementById('rappel-heure-' + type);
+  const on = !!(c && c.checked);
+  if (h && /^\d\d:\d\d$/.test(h.value)) r[type].heure = h.value;
+  if (on && !r[type].on && !(await permissionNotifications(true))) {
+    if (c) c.checked = false;
+    informer('Les notifications sont coupées pour Askēsis. Active-les dans Réglages › Askēsis › Notifications, puis réessaie.');
+    return;
+  }
+  r[type].on = on;
+  try { localStorage.setItem(RAPPELS_LS, JSON.stringify(r)); } catch (e) {}
+  majReglagesRappels();
+  rappelsSignature = '';
+  majRappels();
+  vibrer('selection');
+}
+function majReglagesRappels() {
+  const r = reglagesRappels();
+  Object.keys(RAPPELS).forEach(k => {
+    const c = document.getElementById('rappel-' + k), h = document.getElementById('rappel-heure-' + k);
+    if (c) c.checked = r[k].on;
+    if (h) { h.value = r[k].heure; h.disabled = !r[k].on; }
+  });
+}
+/* Toucher un rappel ouvre ce qu'il faut : Repas du jour, Ta journée (pour
+   retirer la séance), ou la pesée. Au lancement par la notification, on
+   attend la fin du démarrage, qui choisit sinon l'écran de départ. */
+function ouvrirDepuisRappel(x) {
+  if (!x || !x.rappel) return;
+  const faire = () => setTimeout(() => {
+    currentDate = todayStr();
+    document.querySelectorAll('.modal.show').forEach(m => fermerModal(m.id));
+    allerA('repas'); renderApp();
+    if (x.rappel === 'seance') ouvrirDepense();
+    else if (x.rappel === 'pesee') ouvrirSaisieRapide('poids');
+  }, 60);
+  if (document.readyState === 'complete') faire(); else window.addEventListener('load', faire, { once: true });
+}
+if (NATIF && NATIF.LocalNotifications) {
+  try { Promise.resolve(NATIF.LocalNotifications.addListener('localNotificationActionPerformed', e => ouvrirDepuisRappel(e && e.notification && e.notification.extra))).catch(() => {}); } catch (e) {}
+}
+
 if (NATIF) {
   document.documentElement.classList.add('app-ios');
   // Un lien externe ou « nouvel onglet » s'ouvrirait dans la vue de l'appli :
@@ -7948,6 +8126,7 @@ function formatDateDisplay(dateStr) {
 
 function loadData() {
   try { appData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch (e) { appData = {}; }
+  invaliderAjustement();
   try { userProfile = Object.assign(userProfile, JSON.parse(localStorage.getItem(PROFILE_KEY)) || {}); } catch (e) {}
   appliquerGeminiKeyEffective();
   majUIWithings();
@@ -7962,6 +8141,8 @@ function loadData() {
 function saveData(jourModifie) {
   if (jourModifie && appData[jourModifie]) { appData[jourModifie].maj = Date.now(); marquerJourModifie(jourModifie); }
   if (!jourModifie) userProfile.maj = Date.now();
+  // L'ajustement de la semaine ne dépend que des jours d'avant lundi (et du profil).
+  if (!jourModifie || jourModifie < lundiDe(todayStr())) invaliderAjustement();
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
     localStorage.setItem(PROFILE_KEY, JSON.stringify(userProfile));
@@ -8340,7 +8521,7 @@ function heureSeanceTexte(h) {
   // « vers 19 h », « vers 10 h 30 » : des espaces insécables, comme pour les durées.
   return 'vers ' + hh + '\u00a0h' + (mm ? '\u00a0' + String(mm).padStart(2, '0') : '');
 }
-function computeTargets(day, dateStr) {
+function computeTargets(day, dateStr, options) {
   const weight = Number(day.weight) || dernierPoidsConnu(dateStr || todayStr());
   const bmr = metabolismeDeBase(weight, dateStr);
   const bodyFatPercent = derniereGrassePctConnue(dateStr || todayStr());
@@ -8374,6 +8555,12 @@ function computeTargets(day, dateStr) {
   const prevue = dateStr && dateStr === todayStr() && day === appData[dateStr] ? seancePrevueDuJour(dateStr) : null;
   const prevueKcal = prevue ? prevue.kcal : 0;
   let tdee = bmr * 1.2 + stepsKcal + workoutKcal + prevueKcal;
+  const tdeeFormule = tdee;
+  // Ajustement d'après la balance (voir correctionMaintenance) : le même toute
+  // la semaine. options.brut : la formule seule, pour calculer cet ajustement.
+  const ajustement = options && options.brut || !dateStr ? null : correctionMaintenance(dateStr);
+  const correction = ajustement ? ajustement.kcal : 0;
+  tdee += correction;
 
   // L'objectif s'hérite du dernier changement explicite (comme le poids),
   // il ne dépend jamais de la date affichée : changer l'objectif aujourd'hui
@@ -8384,7 +8571,10 @@ function computeTargets(day, dateStr) {
      manger moins que ce que le corps consomme au repos n'est pas une seche,
      c'est une restriction. On plafonne le deficit au metabolisme de base. */
   let target = Math.round(tdee * (1 + adj));
-  const plancher = Math.round(bmr);
+  // Le plancher suit l'ajustement quand il baisse : si ton corps dépense 8 %
+  // de moins que la formule, son métabolisme de base aussi. Jamais au-dessus
+  // de la formule : ça rendrait la sèche plus douce que −20 %.
+  const plancher = Math.round(bmr * (ajustement ? Math.min(1, ajustement.facteur) : 1));
   const sousPlancher = target < plancher;
   if (sousPlancher) target = plancher;
   // Ce que la séance prévue ajoute vraiment à l'objectif : après le −20 % /
@@ -8407,12 +8597,104 @@ function computeTargets(day, dateStr) {
     target, protein, carbs, fat,
     workoutKcal: Math.round(workoutKcal),
     seancePrevue: prevue, prevueKcal: Math.round(prevueKcal), prevueObjectif,
-    bmr: plancher, tdee: Math.round(tdee),
+    bmr: Math.round(bmr), plancher, tdee: Math.round(tdee), tdeeFormule: Math.round(tdeeFormule), correction, ajustement,
     stepsKcal: Math.round(stepsKcal), poids: weight,
     poidsEstime: !(Number(day.weight) > 0),
     goal: objectif,
     sousPlancher
   };
+}
+
+/* =====================================================================
+   OBJECTIF ADAPTÉ À TA BALANCE
+   =====================================================================
+   La formule (métabolisme de base × 1,2 + pas + séances) se trompe souvent
+   de 10 % dans un sens ou dans l'autre. Chaque lundi, on la corrige avec ce
+   qui s'est vraiment passé les 28 jours d'avant :
+     maintenance réelle = ce que tu as mangé en moyenne
+                          − pente de ton poids (kg/jour) × 7 700 kcal
+   L'écart avec la formule, sur les mêmes jours, devient la correction de la
+   semaine. Garde-fous :
+   - seulement les jours vraiment notés (au moins la moitié de la dépense
+     estimée : un jour à moitié noté ferait croire que tu manges peu) ;
+   - au moins 10 jours notés, 4 pesées étalées sur 14 jours ;
+   - confiance : la moitié de l'écart à 14 jours notés, tout à 28 ;
+   - ±15 % de la formule au plus, ±100 kcal d'une semaine à l'autre ;
+   - sans données, la correction revient doucement vers 0.
+   Le même chiffre vaut toute la semaine : ce que tu notes aujourd'hui ne
+   change l'objectif que lundi prochain. */
+const AJUST_FENETRE = 28, AJUST_JOURS_MIN = 10, AJUST_PESEES_MIN = 4, AJUST_ETENDUE_MIN = 14;
+const AJUST_PAS_SEMAINE = 100, AJUST_PLAFOND = 0.15, AJUST_SEMAINES_MAX = 104;
+var versionDonnees = 0, cacheAjustement = { version: -1, semaines: new Map() }; // var : saveData peut passer avant cette ligne
+function invaliderAjustement() { versionDonnees++; }
+function ajustementActif() { return userProfile.ajustementBalance !== false; }
+/* La correction de la semaine de `dateStr` : { kcal, facteur, … } ou null. */
+function correctionMaintenance(dateStr) {
+  if (!ajustementActif()) return null;
+  const lundi = lundiDe(dateStr);
+  if (cacheAjustement.version !== versionDonnees) cacheAjustement = { version: versionDonnees, semaines: new Map() };
+  const memo = cacheAjustement.semaines;
+  if (memo.has(lundi)) return memo.get(lundi);
+  // Le premier jour noté ou pesé : la chaîne des semaines part de là, à 0.
+  const jours = datesTriees(appData);
+  let premier = null;
+  for (const d of jours) { const j = appData[d]; if (j && (Number(j.weight) > 0 || (j.meals && Object.values(j.meals).some(l => Array.isArray(l) && l.length)))) { premier = d; break; } }
+  if (!premier || premier >= lundi) { memo.set(lundi, null); return null; }
+  let debut = shiftDate(lundiDe(premier), 7);
+  const limite = shiftDate(lundi, -7 * AJUST_SEMAINES_MAX);
+  if (debut < limite) debut = limite;
+  // On reprend à la dernière semaine déjà calculée, s'il y en a une.
+  let prec = 0, ref = null, w = debut;
+  for (let k = shiftDate(lundi, -7); k >= debut; k = shiftDate(k, -7)) {
+    if (memo.has(k)) { const m = memo.get(k); prec = m ? m.kcal : 0; ref = m ? m.ref : null; w = shiftDate(k, 7); break; }
+  }
+  const parJour = new Map();
+  const infosJour = d => {
+    if (parJour.has(d)) return parJour.get(d);
+    const j = appData[d];
+    let r = null;
+    if (j) {
+      const kcal = sumMeals(j).kcal, poids = Number(j.weight) > 0 ? Number(j.weight) : null;
+      const formule = kcal > 0 ? computeTargets(j, d, { brut: true }).tdee : null;
+      r = { kcal, poids, formule };
+    }
+    parJour.set(d, r);
+    return r;
+  };
+  let res = null;
+  for (; w <= lundi; w = shiftDate(w, 7)) {
+    const notes = [], pesees = [];
+    for (let i = AJUST_FENETRE; i >= 1; i--) {
+      const d = shiftDate(w, -i), x = infosJour(d);
+      if (!x) continue;
+      if (x.formule && x.kcal >= x.formule * 0.5) notes.push(x);
+      if (x.poids) pesees.push([AJUST_FENETRE - i, x.poids]);
+    }
+    const etendue = pesees.length ? pesees[pesees.length - 1][0] - pesees[0][0] : 0;
+    let kcal, info = { jours: notes.length, pesees: pesees.length };
+    if (notes.length >= AJUST_JOURS_MIN && pesees.length >= AJUST_PESEES_MIN && etendue >= AJUST_ETENDUE_MIN) {
+      // Pente du poids par les moindres carrés : une pesée isolée ne la fausse pas.
+      const n = pesees.length, mx = pesees.reduce((a, p) => a + p[0], 0) / n, my = pesees.reduce((a, p) => a + p[1], 0) / n;
+      const pente = pesees.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / pesees.reduce((a, p) => a + (p[0] - mx) ** 2, 0);
+      const conso = notes.reduce((a, x) => a + x.kcal, 0) / notes.length;
+      const formule = notes.reduce((a, x) => a + x.formule, 0) / notes.length;
+      const reelle = conso - pente * KCAL_PAR_KG;
+      const confiance = Math.min(1, notes.length / AJUST_FENETRE);
+      const cible = Math.max(-AJUST_PLAFOND * formule, Math.min(AJUST_PLAFOND * formule, (reelle - formule) * confiance));
+      kcal = Math.max(prec - AJUST_PAS_SEMAINE, Math.min(prec + AJUST_PAS_SEMAINE, cible));
+      info = Object.assign(info, { reelle: Math.round(reelle), conso: Math.round(conso), formule: Math.round(formule), pente, confiance });
+      ref = formule;
+    } else {
+      // Pas assez de données : on revient vers 0, au même pas.
+      kcal = prec > 0 ? Math.max(0, prec - AJUST_PAS_SEMAINE) : Math.min(0, prec + AJUST_PAS_SEMAINE);
+    }
+    kcal = Math.round(kcal / 10) * 10;
+    // facteur : la même correction en proportion, pour le métabolisme de base (plancher).
+    res = kcal || info.reelle != null ? Object.assign(info, { kcal, lundi: w, ref, facteur: ref ? (ref + kcal) / ref : 1 }) : null;
+    memo.set(w, res);
+    prec = kcal;
+  }
+  return memo.get(lundi) || null;
 }
 
 function sumMeals(day) {
@@ -8637,6 +8919,7 @@ function renderApp() {
 
   document.getElementById('objectif-select').value = dernierObjectifConnu(todayStr());
   majNoteRecomposition();
+  majReglageAjustement();
   remplirInfosPersonnelles();
   document.getElementById('daily-steps').value = day.steps || '';
   renderJaugePas(day.steps);
@@ -8650,6 +8933,8 @@ function renderApp() {
   renderSemaine();
   majSalut();
   renderVitrineProfil();
+  majReglagesRappels();
+  majRappels();
 }
 
 /* ---------- En-tête : « Bonjour … », date et série de jours ---------- */
@@ -9262,7 +9547,7 @@ function analyseCoach(day, totals, t) {
       ajouter({ cle: 'poids', prio: 21, icone: 'poids', texte: `Tu ${verbe} <b>${kg(r)}\u00a0kg par semaine</b> : ${variante('poids-ok', ['pile dans la bonne direction', 'un rythme régulier, c\'est ce qui dure', 'continue comme ça'])}.${quand}` });
     } else if (r < 0.1) {
       ajouter({ cle: 'poids', prio: 36, icone: 'poids',
-        texte: `Ton poids ne bouge presque plus depuis 4 semaines${vise ? ` (objectif ${kg(vise)}\u00a0kg)` : ''}. ${sens < 0 ? 'Pour relancer : 100 à 150 kcal de moins par jour, ou 2 000 pas de plus.' : 'Pour relancer : 150 à 200 kcal de plus par jour, surtout des glucides.'}` });
+        texte: `Ton poids ne bouge presque plus depuis 4 semaines${vise ? ` (objectif ${kg(vise)}\u00a0kg)` : ''}. ${ajustementActif() ? 'Ton objectif s\'ajuste chaque lundi d\'après ta balance : continue à noter tes repas et à te peser.' : sens < 0 ? 'Pour relancer : 100 à 150 kcal de moins par jour, ou 2 000 pas de plus.' : 'Pour relancer : 150 à 200 kcal de plus par jour, surtout des glucides.'}` });
     } else {
       ajouter({ cle: 'poids', prio: 40, icone: 'poids',
         texte: `Ton poids ${rythme > 0 ? 'monte' : 'baisse'} (<b>${rythme > 0 ? '+' : '−'}${kg(r)}\u00a0kg par semaine</b>) alors que tu vises ${vise ? `<b>${kg(vise)}\u00a0kg</b>` : sens < 0 ? 'une perte' : 'une prise'}. L'écart vient souvent du week-end.` });
@@ -10123,7 +10408,7 @@ function renderSeancesPrevues() {
     const facteur = t.goal === 'seche' ? 0.8 : t.goal === 'masse' ? 1.15 : 1;
     const effet = ajout === dep ? 'Déjà comptée dans ton objectif.'
       : ajout < Math.round(dep * facteur) - 1
-        ? `${ajout > 0 ? `Objectif +${fr(ajout)}\u00a0kcal seulement` : 'Objectif inchangé'} : en sèche, il ne descend jamais sous ton métabolisme de base (${fr(t.bmr)}\u00a0kcal), et il y serait déjà sans séance.`
+        ? `${ajout > 0 ? `Objectif +${fr(ajout)}\u00a0kcal seulement` : 'Objectif inchangé'} : en sèche, il ne descend jamais sous ton métabolisme de base${t.plancher !== t.bmr ? ' ajusté' : ''} (${fr(t.plancher)}\u00a0kcal), et il y serait déjà sans séance.`
         : `Objectif +${fr(ajout)}\u00a0kcal (${t.goal === 'seche' ? 'sèche\u00a0: dépense −20\u00a0%' : 'masse\u00a0: dépense +15\u00a0%'}).`;
     html += `<div class="sp-titre" style="margin-top:0;">Aujourd'hui</div>` + ligne(duJour, true)
       + `<p class="sp-note">${effet} Estimée ${origine}, puis remplacée par la vraie dépense.</p>`
@@ -10630,6 +10915,8 @@ function majDetailDepense(day, t) {
   ];
   // La séance prévue aujourd'hui, comptée d'avance (voir prochainesSeances).
   if (t.seancePrevue) lignes.push(['Séance prévue (' + t.seancePrevue.nom + ', estimée)', '+ ' + t.prevueKcal + ' kcal']);
+  // L'ajustement de la semaine d'après la balance (voir correctionMaintenance).
+  if (t.correction) lignes.push(["Ajustement d'après ta balance", (t.correction > 0 ? '+ ' : '− ') + Math.abs(t.correction) + ' kcal']);
   const nbDetail = lignes.length;
   lignes.push(['Dépense totale estimée', t.tdee + ' kcal'],
     ['Objectif (' + ({ seche: 'sèche −20 %', masse: 'masse +15 %', maintien: 'maintien', recomposition: 'recomposition' }[t.goal] || t.goal) + ')', t.target + ' kcal']);
@@ -10655,6 +10942,14 @@ function majDetailDepense(day, t) {
   const aEau = document.createElement('span'); aEau.innerHTML = '<svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg> Objectif eau';
   const bEau = document.createElement('span'); bEau.textContent = quotaEauSuggere(currentDate).toLocaleString('fr-FR') + ' ml';
   ligneEau.appendChild(aEau); ligneEau.appendChild(bEau); el.appendChild(ligneEau);
+  // D'où vient l'ajustement, en une phrase.
+  const a = t.ajustement;
+  if (a && a.reelle != null) {
+    const n = document.createElement('p');
+    n.className = 'note'; n.id = 'note-ajustement'; n.style.margin = '8px 0 0';
+    n.textContent = `D'après tes repas et ta balance des 4 dernières semaines, tu dépenses environ ${a.reelle.toLocaleString('fr-FR')}\u00a0kcal par jour ; la formule en prévoyait ${a.formule.toLocaleString('fr-FR')}. Recalculé chaque lundi, 100\u00a0kcal d'écart au plus d'une semaine à l'autre.`;
+    el.appendChild(n);
+  }
   renderSeancesPrevues();
   const note = document.getElementById('note-poids');
   if (note) {
@@ -10714,6 +11009,29 @@ function changerObjectif() {
 function majNoteRecomposition() {
   const note = document.getElementById('note-recomposition');
   if (note) note.classList.toggle('hidden', document.getElementById('objectif-select').value !== 'recomposition');
+}
+/* Objectif adapté à la balance (voir correctionMaintenance) : activé par
+   défaut, désactivable dans le Profil. Gardé dans le profil, donc synchronisé. */
+function texteAjustement() {
+  const a = ajustementActif() ? correctionMaintenance(todayStr()) : null;
+  return !ajustementActif() ? 'Désactivé : ton objectif suit la formule seule.'
+    : a && a.kcal ? `Cette semaine : ${a.kcal > 0 ? '+' : '−'}${Math.abs(a.kcal).toLocaleString('fr-FR')}\u00a0kcal sur ta dépense. Recalculé chaque lundi d'après tes repas notés et tes pesées.`
+    : a && a.reelle != null ? 'Cette semaine : la formule tombe juste, aucun ajustement. Recalculé chaque lundi.'
+    : `Chaque lundi, tes repas notés et tes pesées des 4 dernières semaines corrigent la formule. Il faut ${AJUST_JOURS_MIN} jours notés et ${AJUST_PESEES_MIN} pesées.`;
+}
+function majReglageAjustement() {
+  const c = document.getElementById('ajustement-balance');
+  if (c) c.checked = ajustementActif();
+  const note = document.getElementById('note-ajustement-profil');
+  if (note) note.textContent = texteAjustement();
+}
+function basculerAjustementBalance(actif) {
+  if (actif) delete userProfile.ajustementBalance; else userProfile.ajustementBalance = false;
+  saveData();
+  renderApp();
+  buildMasterArrays();
+  if (ecranActif === 'stats') { mettreAJourStats(); mettreAJourStatsNutrition(); }
+  vibrer('selection');
 }
 
 /* =====================================================================
@@ -10856,7 +11174,9 @@ function ouvrirModal(id, sansFocus) {
      précédent lui donnait le focus, si bien qu'Entrée refermait la fenêtre
      au lieu de valider, et que le champ de recherche ne s'ouvrait jamais
      sur ses suggestions. On vise un champ de saisie, la croix en dernier. */
-  const premier = el.querySelector('input:not([type="file"]):not([readonly]), select')
+  // Ni case à cocher ni heure (les rappels des Réglages) : sur l'iPhone, le
+  // sélecteur d'heure s'ouvrirait à chaque ouverture de la fenêtre.
+  const premier = el.querySelector('input:not([type="file"]):not([type="checkbox"]):not([type="time"]):not([readonly]), select')
     || el.querySelector('.close-modal');
   if (premier) setTimeout(() => premier.focus(), 60);
 }
@@ -11394,7 +11714,7 @@ function historique() {
   if (!cacheHistorique) cacheHistorique = construireHistorique();
   return cacheHistorique;
 }
-function invaliderHistorique() { cacheHistorique = null; }
+function invaliderHistorique() { cacheHistorique = null; invaliderAjustement(); }
 /* Retire une entrée de « Déjà mangé » sans toucher aux repas passés. Elle
    revient d'elle-même si l'aliment est remangé ensuite. Gardé dans le
    profil, donc synchronisé entre appareils. */
@@ -27642,7 +27962,8 @@ function renderVitrineProfil() {
     <div class="chiffres-geants"><div class="cg"><b data-compte="${musculationHistorique.length}">${musculationHistorique.length}</b><small>séances</small></div><div class="cg"><b data-compte="${niv.joursNotes}">${niv.joursNotes}</b><small>jours suivis</small></div><div class="cg"><b data-compte="${joursDAffilee()}">${joursDAffilee()}</b><small>d'affilée</small></div></div>
     <div class="vitrine-sec"><h3>Mon objectif</h3></div>
     <div class="carte-objectifs"><div class="obj-tuiles">${tuile('seche', 'Sèche', 'bas', 'linear-gradient(135deg,#22d3ee,#0ea5e9)')}${tuile('maintien', 'Maintien', 'cible', 'linear-gradient(135deg,#34d399,#10b981)')}${tuile('masse', 'Masse', 'haut', 'linear-gradient(135deg,#fbbf24,#f97316)')}${tuile('recomposition', 'Recompo', 'recomp', 'linear-gradient(135deg,#a78bfa,#6366f1)')}</div>
-      <div class="obj-cibles"><span><b>${nombreFr(t.target)}</b> kcal</span><span><b>${t.protein}</b> g prot.</span><span><b>${t.carbs}</b> g gluc.</span><span><b>${t.fat}</b> g lip.</span></div></div>`;
+      <div class="obj-cibles"><span><b>${nombreFr(t.target)}</b> kcal</span><span><b>${t.protein}</b> g prot.</span><span><b>${t.carbs}</b> g gluc.</span><span><b>${t.fat}</b> g lip.</span></div>
+      <label class="obj-ajust"><input type="checkbox" id="vitrine-ajustement"${ajustementActif() ? ' checked' : ''} onchange="basculerAjustementBalance(this.checked)"><span><b>Ajuster d'après ma balance</b><small>${escapeHtml(texteAjustement())}</small></span></label></div>`;
   animerComptes(c);
   // En bas de la page : le niveau en détail, puis les badges.
   const b = document.getElementById('vitrine-badges');
@@ -30242,7 +30563,7 @@ window.addEventListener('load', () => {
     'Hors ligne : les données restent sur cet appareil, l’envoi reprendra au retour du réseau.'));
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
-      synchroniser('retour'); verifierNouvelleVersion();
+      synchroniser('retour'); verifierNouvelleVersion(); majRappels();
       if (Date.now() - gymbroLiensDernierChargement > 60000) chargerLiensGymbro();
       if (Date.now() - adminAValiderDernier > 60000) { compterAValiderAdmin(); compterSignalementsAdmin(); }
       chargerAnnonce();
