@@ -68,10 +68,12 @@ Deno.serve(async (req: Request) => {
 
   const brut = await req.text();
   if (brut.length > TAILLE_MAX) return json({ erreur: 'Demande trop lourde (photo trop grande ?).' }, 413);
-  let demande: { parts?: unknown[]; modele?: string };
+  let demande: { parts?: unknown[]; modele?: string; candidats?: number };
   try { demande = JSON.parse(brut); } catch { return json({ erreur: 'Demande illisible.' }, 400); }
   if (!Array.isArray(demande.parts) || !demande.parts.length) return json({ erreur: 'Demande vide.' }, 400);
   const modele = MODELES.includes(String(demande.modele)) ? String(demande.modele) : MODELES[0];
+  // Plusieurs réponses en une demande (l'analyse d'une photo en demande 3) : 3 au plus.
+  const candidats = Math.min(3, Math.max(1, Math.floor(Number(demande.candidats) || 1)));
 
   // Compté avant l'appel (deux demandes en même temps ne dépassent pas la limite).
   const { data: total, error } = await admin.rpc('compter_usage_ia', { p_utilisateur: moi, p_limite: pro ? PLAFOND_PRO : ESSAIS_GRATUITS });
@@ -85,7 +87,9 @@ Deno.serve(async (req: Request) => {
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modele}:generateContent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': cle },
-    body: JSON.stringify({ contents: [{ parts: demande.parts }] }),
+    body: JSON.stringify(candidats > 1
+      ? { contents: [{ parts: demande.parts }], generationConfig: { candidateCount: candidats } }
+      : { contents: [{ parts: demande.parts }] }),
   });
   const reponse = await r.json().catch(() => ({}));
   if (!r.ok) await admin.rpc('rendre_usage_ia', { p_utilisateur: moi });

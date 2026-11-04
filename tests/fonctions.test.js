@@ -100,6 +100,18 @@ test('fonction « ia » : Pro sans limite pratique ; un échec de Gemini rend l\
   assert.equal((await appelIA(h, 'jeton-pro', 'POST', { parts: [] })).status, 400);
 });
 
+test('fonction « ia » : plusieurs réponses en une demande (3 au plus), comptées comme un seul essai', async () => {
+  const base = fausseBase();
+  const corps = [];
+  globalThis.fetch = async (url, o) => { corps.push(JSON.parse(o.body)); return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: 'a' }] } }, { content: { parts: [{ text: 'b' }] } }] }), { status: 200 }); };
+  const h = await chargerFonction('ia', envIA, base);
+  const r = await appelIA(h, 'jeton-libre', 'POST', { parts: [{ text: 'photo' }], modele: 'gemini-3.5-flash', candidats: 3 });
+  assert.deepEqual([r.status, r.corps.restant, r.corps.candidates.length], [200, 2, 2]);
+  await appelIA(h, 'jeton-libre', 'POST', { parts: [{ text: 'photo' }], candidats: 9 });
+  await appelIA(h, 'jeton-libre', 'POST', { parts: [{ text: 'texte' }] });
+  assert.deepEqual(corps.map(c => c.generationConfig || null), [{ candidateCount: 3 }, { candidateCount: 3 }, null]);
+});
+
 test('fonction « ia » : sans clé Gemini sur le serveur, rien n\'est compté', async () => {
   const base = fausseBase();
   const h = await chargerFonction('ia', { ...envIA, GEMINI_API_KEY: '' }, base);

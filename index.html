@@ -6900,15 +6900,13 @@
       <textarea id="ai-description" rows="2" placeholder="ex : poulet basquaise maison, riz basmati, un filet d'huile d'olive"
                 style="width:100%; resize:vertical; font-family:inherit;"></textarea>
       <small style="color:var(--text-muted); display:block; margin-top:6px; font-size:0.75rem;">
-        Avec une photo, précise ce qui n'est pas visible (recette, cuisson, marque, matière grasse ajoutée).
-        Sans photo — quand tu sais ce que tu as mangé mais que tu n'as pas de photo —
-        décris le plat le plus précisément possible : ce sera la seule information dont l'IA dispose.
-        Une photo, une description, ou les deux : au moins l'un des deux est nécessaire.
+        Précise ce qui ne se voit pas (recette, cuisson, matière grasse). Sans photo, décris le plat le plus précisément possible.
       </small>
     </div>
     <div class="input-group">
       <label for="ai-file-input">Photo (facultative)</label>
       <input type="file" id="ai-file-input" accept="image/*" onchange="previsualiserPhoto(event)">
+      <small id="ai-astuce-photo" style="color:var(--text-muted); display:block; margin-top:6px; font-size:0.75rem;">Prends la photo un peu de biais, l'assiette entière dans le cadre&nbsp;: la hauteur des aliments se voit mieux.</small>
     </div>
     <span class="puce-ia"></span>
     <img id="preview-image" class="hidden" alt="Aperçu du plat photographié">
@@ -13186,7 +13184,52 @@ function fichierVersBase64(file) {
   });
 }
 
-const PROMPT_JSON_ALIMENTS = "Renvoie UNIQUEMENT un objet JSON (sans texte autour), de la forme {\"type\": \"aliment\" ou \"recette\", \"nom\": string (nom du plat, uniquement si type est \"recette\"), \"aliments\": tableau}. Mets \"recette\" si c'est un plat composé de plusieurs ingrédients assemblés ou cuisinés ensemble (ex: gratin, curry, salade composée, plat mijoté, pâtes en sauce, sushis/makis, sandwich, wrap, burger, pizza, onigiri) qui mérite d'être enregistré comme recette réutilisable — même si le plat se présente en plusieurs morceaux identiques côte à côte (ex: un plateau de makis, plusieurs parts de pizza, plusieurs sandwichs identiques) : ce sont toujours les ingrédients d'une seule recette, pas des aliments séparés. Mets \"aliment\" uniquement si les éléments visibles sont réellement distincts et non assemblés entre eux (ex: un yaourt posé à côté d'une pomme, un fruit seul, une boisson seule). Le tableau \"aliments\" liste dans les deux cas les éléments détectés : les ingrédients si \"recette\", les aliments séparés si \"aliment\". Chaque élément du tableau doit être UN SEUL aliment réel et précis, correspondant à une entrée qu'on trouverait dans une base nutritionnelle (ex: \"Saumon\", \"Thon\", \"Surimi\") — jamais un regroupement ou une description combinant plusieurs aliments entre parenthèses ou avec \"et\"/\"ou\" (proscris par exemple \"Garniture de poisson (saumon, thon et surimi)\" ou \"Légumes (carotte, courgette)\") : si plusieurs aliments distincts composent une garniture ou un mélange, crée une entrée séparée pour chacun, avec sa propre estimation de poids et ses propres valeurs nutritionnelles. Pour chaque élément du tableau : {\"name\": string en français, \"grams\": number (portion estimée en g), \"marge\": number (marge d'erreur de ton estimation de grams, en %), \"kcal100\": number (kcal pour 100g), \"p100\": number, \"c100\": number, \"f100\": number}. Pour \"marge\" : donne honnêtement l'incertitude de ton estimation du poids, en pourcentage — environ 10 pour un aliment entier facile à juger (une pomme, un yaourt, une tranche de pain), 20 à 30 pour une portion en vrac dans une assiette, 30 à 50 pour un aliment en partie caché, empilé, dans une sauce, ou une matière grasse de cuisson invisible. Une marge trop faible ferait sous-estimer les calories. Pour estimer grams le plus précisément possible : si une photo est fournie, examine d'abord l'intégralité de l'image (pas seulement l'aliment) pour repérer tous les objets de référence disponibles — assiette, bol, couverts, verre, main, emballage, table, etc. Sers-toi de tailles standards connues pour calibrer l'échelle de la photo : assiette plate ~24-27cm de diamètre, assiette à dessert ~18-20cm, fourchette ou couteau ~20cm, verre standard ~8-10cm de diamètre, main d'adulte ~18-20cm de longueur. Quand plusieurs repères sont visibles, croise-les entre eux plutôt que de te fier à un seul, pour fiabiliser l'échelle avant d'estimer le poids. Tiens compte aussi du volume apparent de l'aliment (hauteur et empilement dans l'assiette, pas seulement la surface occupée vue de dessus) et de sa densité (un féculent cuit ou une viande pèsent plus qu'un légume vert pour un volume équivalent) ; sans photo, base-toi sur une portion individuelle standard pour ce type d'aliment.";
+const PROMPT_JSON_ALIMENTS = "Renvoie UNIQUEMENT un objet JSON (sans texte autour), de la forme {\"type\": \"aliment\" ou \"recette\", \"nom\": string (nom du plat, uniquement si type est \"recette\"), \"echelle\": string, \"aliments\": tableau}. Mets \"recette\" si c'est un plat composé de plusieurs ingrédients assemblés ou cuisinés ensemble (ex: gratin, curry, salade composée, plat mijoté, pâtes en sauce, sushis/makis, sandwich, wrap, burger, pizza, onigiri) qui mérite d'être enregistré comme recette réutilisable — même si le plat se présente en plusieurs morceaux identiques côte à côte (ex: un plateau de makis, plusieurs parts de pizza, plusieurs sandwichs identiques) : ce sont toujours les ingrédients d'une seule recette, pas des aliments séparés. Mets \"aliment\" uniquement si les éléments visibles sont réellement distincts et non assemblés entre eux (ex: un yaourt posé à côté d'une pomme, un fruit seul, une boisson seule). Le tableau \"aliments\" liste dans les deux cas les éléments détectés : les ingrédients si \"recette\", les aliments séparés si \"aliment\". Chaque élément du tableau doit être UN SEUL aliment réel et précis, correspondant à une entrée qu'on trouverait dans une base nutritionnelle (ex: \"Saumon\", \"Thon\", \"Surimi\") — jamais un regroupement ou une description combinant plusieurs aliments entre parenthèses ou avec \"et\"/\"ou\" (proscris par exemple \"Garniture de poisson (saumon, thon et surimi)\" ou \"Légumes (carotte, courgette)\") : si plusieurs aliments distincts composent une garniture ou un mélange, crée une entrée séparée pour chacun, avec sa propre estimation de poids et ses propres valeurs nutritionnelles. Pour chaque élément du tableau : {\"name\": string en français, \"unites\": number ou null, \"poids_unite\": number ou null, \"surface_cm2\": number ou null, \"hauteur_cm\": number ou null, \"volume_ml\": number ou null, \"densite\": number ou null, \"grams\": number, \"marge\": number, \"kcal100\": number (kcal pour 100g), \"p100\": number, \"c100\": number, \"f100\": number}. Mesure avant d'estimer, dans cet ordre. 1) L'échelle : si une photo est fournie, examine toute l'image (pas seulement l'aliment) pour repérer les objets de taille connue — assiette plate ~24-27cm de diamètre, assiette à dessert ~18-20cm, bol ~12-16cm, fourchette ou couteau ~20cm, verre ~8-10cm de diamètre, main d'adulte ~18-20cm, emballage — et croise-les entre eux plutôt que de te fier à un seul ; écris le repère retenu dans \"echelle\" à la racine de l'objet (ex : \"assiette ~26 cm\"). 2) Si l'aliment se compte (oeuf, fruit, tranche de pain, yaourt, biscuit, carré de chocolat, nugget, sushi...), donne \"unites\" et \"poids_unite\" (poids moyen d'une unité en g) et laisse le volume à null. 3) Sinon, mesure la surface qu'il occupe vue de dessus (\"surface_cm2\") et sa hauteur moyenne (\"hauteur_cm\" : tiens compte du dôme, de l'empilement, du creux du bol, de l'angle de la photo), puis son volume (\"volume_ml\") et sa densité telle que servie (\"densite\" en g/ml : environ 0,1 à 0,3 pour une salade ou des feuilles, 0,5 à 0,7 pour des légumes en morceaux ou des frites, 0,7 à 0,9 pour du riz, des pâtes ou une purée, 1 pour une viande, un poisson, une sauce, une soupe ou une boisson). Pour une boisson, volume_ml est le volume du liquide. 4) \"grams\" = unites × poids_unite, ou volume_ml × densite. Sans photo, base-toi sur une portion individuelle standard pour ce type d'aliment. Pour \"marge\" : donne honnêtement l'incertitude de ton poids, en pourcentage — environ 10 pour un aliment entier facile à juger (une pomme, un yaourt, une tranche de pain), 20 à 30 pour une portion en vrac dans une assiette, 30 à 50 pour un aliment en partie caché, empilé, dans une sauce, ou une matière grasse de cuisson invisible. Une marge trop faible ferait sous-estimer les calories.";
+
+/* Le poids d'un aliment selon une estimation de l'IA, recalculé ici :
+   unités × poids d'une unité, sinon volume × densité, sinon le poids donné.
+   Une valeur hors des limites plausibles fait passer à la suivante. */
+function poidsEstimeIA(a) {
+  const u = Number(a && a.unites), pu = Number(a && a.poids_unite), v = Number(a && a.volume_ml), d = Number(a && a.densite), g = Number(a && a.grams);
+  if (u > 0 && u <= 60 && pu > 0 && pu <= 2000) return { grams: u * pu, calcul: 'unites', unites: u, poidsUnite: pu };
+  if (v > 0 && v <= 5000 && d >= 0.05 && d <= 1.6) return { grams: v * d, calcul: 'volume', volume: v, densite: d };
+  if (g > 0 && g <= 5000) return { grams: g, calcul: 'direct' };
+  return null;
+}
+/* Plusieurs estimations du même repas : la liste d'aliments de celle du
+   milieu (par nombre d'aliments) ; pour chaque aliment, le poids médian des
+   estimations où il apparaît (même nom, ou mêmes mots), avec son calcul, et
+   la marge médiane. */
+function combinerEstimationsIA(donnees) {
+  const valides = donnees.filter(d => d && Array.isArray(d.aliments) && d.aliments.length);
+  if (!valides.length) return null;
+  const base = valides.slice().sort((x, y) => x.aliments.length - y.aliments.length)[Math.floor((valides.length - 1) / 2)];
+  const mots = a => new Set(normaliserRecherche(String(a && a.name || '')).split(' ').filter(m => m.length > 2));
+  const proche = (a, b) => {
+    const x = mots(a), y = mots(b);
+    if (!x.size || !y.size) return false;
+    let n = 0; x.forEach(m => { if (y.has(m)) n++; });
+    return n / (x.size + y.size - n) >= 0.5;
+  };
+  const mediane = l => l.slice().sort((x, y) => x - y)[Math.floor((l.length - 1) / 2)];
+  const aliments = base.aliments.map(a => {
+    const cle = normaliserRecherche(String(a.name || ''));
+    const pareils = valides.map(d => d === base ? a : d.aliments.find(x => normaliserRecherche(String(x.name || '')) === cle) || d.aliments.find(x => proche(x, a))).filter(Boolean);
+    const mesures = pareils.map(x => ({ x, m: poidsEstimeIA(x) })).filter(e => e.m).sort((e, f) => e.m.grams - f.m.grams);
+    const milieu = mesures[Math.floor((mesures.length - 1) / 2)];
+    const marges = pareils.map(x => Number(x.marge)).filter(m => m > 0);
+    return Object.assign({}, a, { mesure: milieu ? milieu.m : null, nbEstimations: mesures.length, marge: marges.length ? mediane(marges) : a.marge,
+      fourchette: mesures.length > 1 ? [Math.round(mesures[0].m.grams), Math.round(mesures[mesures.length - 1].m.grams)] : null });
+  });
+  return Object.assign({}, base, { aliments });
+}
+/* Le détail d'un poids, en clair : « ≈ 240 ml × 0,85 g/ml », « 2 × 60 g ». */
+function texteCalculIA(m) {
+  if (!m) return '';
+  const fr = (n, d) => Number(n).toLocaleString('fr-FR', { maximumFractionDigits: d || 0 });
+  return m.calcul === 'volume' ? `≈ ${fr(m.volume)} ml × ${fr(m.densite, 2)} g/ml`
+    : m.calcul === 'unites' ? `${fr(m.unites, 1)} × ${fr(m.poidsUnite)} g` : '';
+}
 
 /* Marge d'erreur de l'IA sur un poids, en % : celle qu'elle donne, entre 5
    et 60 ; 20 si elle n'en donne pas. Le poids retenu en est le haut, pour
@@ -13223,8 +13266,9 @@ async function analyserRepasGemini() {
     const parts = [{ text: prompt }];
     if (file) parts.push({ inline_data: { mime_type: file.type || 'image/jpeg', data: await fichierVersBase64(file) } });
 
-    const res = await geminiGenerate(parts, 'photo');
-    const data = parseJsonObject(res);
+    // Trois estimations en une seule demande ; on garde la médiane de chaque poids.
+    const textes = await geminiCandidats(parts, 'photo', 3);
+    const data = combinerEstimationsIA(textes.map(parseJsonObject));
     const aliments = data && Array.isArray(data.aliments) ? data.aliments : null;
     if (!aliments || !aliments.length) { document.getElementById('ai-loader').classList.add('hidden'); showAiError('Aucun aliment détecté.'); return; }
 
@@ -13233,9 +13277,10 @@ async function analyserRepasGemini() {
     // Le poids retenu est le haut de la marge d'erreur donnée par l'IA :
     // mieux vaut compter un peu trop que pas assez (voir margeIA).
     detectedBufferGemini = aliments.map(a => {
-      const estime = Number(a.grams) > 0 ? Number(a.grams) : 100, marge = margeIA(a.marge);
+      const estime = a.mesure ? a.mesure.grams : 100, marge = margeIA(a.marge);
       return {
         name: a.name || 'Aliment', grams: Math.round(estime * (1 + marge / 100)), estime: Math.round(estime), marge,
+        calcul: texteCalculIA(a.mesure), nbEstimations: a.nbEstimations || 1, fourchette: a.fourchette,
         kcal100: Number(a.kcal100) || 0, p100: Number(a.p100) || 0,
         c100: Number(a.c100) || 0, f100: Number(a.f100) || 0
       };
@@ -13295,7 +13340,7 @@ function renderDetectedRows() {
 
   document.getElementById('detected-ingredients-list').innerHTML = `<p class="note" id="ai-note-marge" style="margin:0 0 8px;">Poids comptés au haut de la marge d'erreur de l'IA, pour ne pas sous-estimer tes calories. Corrige-les si tu les connais.</p>` + detectedBufferGemini.map((a, i) => `
     <div class="detected-row">
-      <span style="font-weight:600;font-size:0.88rem;">${escapeHtml(a.name)}${estRecette && a.dejaEnBase ? ' <span style="font-weight:400;color:var(--text-muted);font-size:0.75rem;">(déjà en base)</span>' : ''}${a.marge ? `<small class="ai-marge">estimé ${a.estime}\u00a0g · +${a.marge}\u00a0%</small>` : ''}</span>
+      <span style="font-weight:600;font-size:0.88rem;">${escapeHtml(a.name)}${estRecette && a.dejaEnBase ? ' <span style="font-weight:400;color:var(--text-muted);font-size:0.75rem;">(déjà en base)</span>' : ''}${a.marge ? `<small class="ai-marge">${a.calcul ? escapeHtml(a.calcul) + ' → ' : 'estimé '}${a.estime}\u00a0g · +${a.marge}\u00a0%${a.nbEstimations > 1 ? ` · médiane de ${a.nbEstimations}` : ''}</small>` : ''}</span>
       <div style="display:flex;align-items:center;gap:6px;">
         <input type="number" value="${Math.round(a.grams)}" onchange="detectedBufferGemini[${i}].grams=Number(this.value)"> <span style="font-size:0.75rem;color:var(--text-muted);">g</span>
       </div>
@@ -13620,12 +13665,12 @@ function messageIA(e) {
 
 /* L'IA par le serveur (fonction « ia ») : la clé Gemini reste là-bas, et le
    serveur compte les essais (3 par mois sans Pro). */
-async function geminiParServeur(parts, type) {
+async function geminiParServeur(parts, type, candidats) {
   const DELAIS_RETRY_MS = [1500, 3000];
   let statut, corps;
   for (let essai = 0; ; essai++) {
     incrementerIA(type);
-    const { data, error } = await supa.functions.invoke('ia', { body: { parts, modele: GEMINI_MODEL } });
+    const { data, error } = await supa.functions.invoke('ia', { body: Object.assign({ parts, modele: GEMINI_MODEL }, candidats > 1 ? { candidats } : {}) });
     if (!error) { statut = 200; corps = data || {}; break; }
     statut = error.context && typeof error.context.status === 'number' ? error.context.status : 0;
     corps = {};
@@ -13646,11 +13691,10 @@ async function geminiParServeur(parts, type) {
   if (statut === 401) throw lisible("Connecte-toi pour utiliser l'IA.");
   if (statut === 429) throw lisible('Quota atteint. Réessaie dans un moment.');
   if (statut === 503) throw lisible(/configurée/.test(corps.erreur || '') ? corps.erreur : 'Gemini est surchargé pour le moment (forte demande). Réessaie dans une minute.');
-  if (statut !== 200) throw new Error((corps.error && corps.error.message) || corps.erreur || ('HTTP ' + statut));
-  const text = corps.candidates && corps.candidates[0] && corps.candidates[0].content && corps.candidates[0].content.parts
-    ? corps.candidates[0].content.parts.map(p => p.text || '').join('') : '';
-  if (!text) throw new Error('Réponse vide.');
-  return text;
+  const message = (corps.error && corps.error.message) || corps.erreur || ('HTTP ' + statut);
+  if (statut === 400 && candidats > 1 && /candidat/i.test(message)) throw Object.assign(new Error(message), { candidatsRefuses: true });
+  if (statut !== 200) throw new Error(message);
+  return textesCandidats(corps);
 }
 
 /* Avant le premier envoi à l'IA : un accord explicite, demandé une fois et
@@ -13678,9 +13722,32 @@ function majAccordIA() {
   el.innerHTML = d && !isNaN(d) ? `Partage avec l'IA (Gemini) accepté le ${escapeHtml(d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }))}.<button type="button" onclick="retirerAccordIA()">Retirer</button>` : '';
 }
 
-async function geminiGenerate(parts, type) {
+async function geminiGenerate(parts, type) { return (await geminiTextes(parts, type, 1))[0]; }
+/* Plusieurs réponses à une même demande, en une seule requête (candidateCount) :
+   le texte de chacune. Si le modèle refuse plusieurs réponses, une seule (et
+   on s'en souvient pour ce modèle). */
+var IA_UNE_REPONSE_LS = 'mc_ia_une_reponse';
+async function geminiCandidats(parts, type, n) {
+  let refus = false;
+  try { refus = localStorage.getItem(IA_UNE_REPONSE_LS) === GEMINI_MODEL; } catch (e) {}
+  if (n > 1 && !refus) {
+    try { return await geminiTextes(parts, type, n); }
+    catch (e) {
+      if (!e.candidatsRefuses) throw e;
+      try { localStorage.setItem(IA_UNE_REPONSE_LS, GEMINI_MODEL); } catch (er) {}
+    }
+  }
+  return geminiTextes(parts, type, 1);
+}
+function textesCandidats(j) {
+  const t = (j && Array.isArray(j.candidates) ? j.candidates : [])
+    .map(c => c && c.content && c.content.parts ? c.content.parts.map(p => p.text || '').join('') : '').filter(Boolean);
+  if (!t.length) throw new Error('Réponse vide.');
+  return t;
+}
+async function geminiTextes(parts, type, candidats) {
   if (!(await accordIA())) throw Object.assign(new Error("Analyse annulée : rien n'a été envoyé."), { lisible: true });
-  if (iaServeur && iaServeur.pret && supa) return geminiParServeur(parts, type);
+  if (iaServeur && iaServeur.pret && supa) return geminiParServeur(parts, type, candidats);
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(geminiKey)}`;
   const DELAIS_RETRY_MS = [1500, 3000];
   let j, r;
@@ -13690,7 +13757,7 @@ async function geminiGenerate(parts, type) {
     incrementerIA(type);
     r = await fetch(url, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts }] })
+      body: JSON.stringify(Object.assign({ contents: [{ parts }] }, candidats > 1 ? { generationConfig: { candidateCount: candidats } } : {}))
     });
     j = await r.json();
 
@@ -13717,11 +13784,10 @@ async function geminiGenerate(parts, type) {
       : "Quota atteint pour aujourd'hui. Réessaie demain, ou saisis l'aliment à la main.");
   }
   if (r.status === 503) throw new Error("Gemini est surchargé pour le moment (forte demande). Réessaie dans une minute.");
-  if (!r.ok) throw new Error((j.error && j.error.message) || ('HTTP ' + r.status));
-  const text = j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts
-    ? j.candidates[0].content.parts.map(p => p.text || '').join('') : '';
-  if (!text) throw new Error('Réponse vide.');
-  return text;
+  const message = (j.error && j.error.message) || ('HTTP ' + r.status);
+  if (r.status === 400 && candidats > 1 && /candidat/i.test(message)) throw Object.assign(new Error(message), { candidatsRefuses: true });
+  if (!r.ok) throw new Error(message);
+  return textesCandidats(j);
 }
 function parseJsonArray(text) {
   try {

@@ -4969,36 +4969,81 @@ test('Administration : l\'historique de l\'objectif adapté d\'un compte, semain
   assert.ok(r.demande.some(f => JSON.stringify(f) === JSON.stringify([['eq', 'utilisateur', 'a1']])), JSON.stringify(r.demande));
 }));
 
-test('photo IA : chaque poids compté au haut de la marge d\'erreur donnée par Gemini, pour ne pas sous-estimer les calories', () => avecAppli({}, async ({ page }) => {
+test('photo IA : Gemini mesure (unités, volume × densité), trois estimations en une demande, la médiane, puis le haut de la marge', () => avecAppli({}, async ({ page }) => {
   const r = await page.evaluate(async () => {
     geminiKey = 'cle-test';
-    let envoye = '';
-    window.geminiGenerate = async parts => {
-      envoye = parts[0].text;
-      return JSON.stringify({ type: 'aliment', aliments: [
-        { name: 'Riz cuit', grams: 150, marge: 25, kcal100: 130, p100: 2.7, c100: 28, f100: 0.3 },
-        { name: 'Pomme', grams: 180, marge: 2, kcal100: 52, p100: 0.3, c100: 14, f100: 0.2 },
-        { name: 'Huile d\'olive', grams: 10, kcal100: 900, p100: 0, c100: 0, f100: 100 },
-        { name: 'Sauce', grams: 50, marge: 90, kcal100: 200, p100: 1, c100: 10, f100: 17 }] });
+    let envoi = null;
+    const estimation = (riz, pomme, huile) => JSON.stringify({ type: 'aliment', echelle: 'assiette ~26 cm', aliments: [
+      { name: 'Riz cuit', surface_cm2: 120, hauteur_cm: 2.5, volume_ml: riz, densite: 0.8, grams: 999, marge: 25, kcal100: 130, p100: 2.7, c100: 28, f100: 0.3 },
+      { name: 'Pomme', unites: 1, poids_unite: pomme, grams: 999, marge: 2, kcal100: 52, p100: 0.3, c100: 14, f100: 0.2 },
+      { name: 'Huile d\'olive', volume_ml: huile, densite: 0.92, grams: 10, kcal100: 900, p100: 0, c100: 0, f100: 100 }] });
+    window.geminiCandidats = async (parts, type, n) => {
+      envoi = { texte: parts[0].text, type, n };
+      return [estimation(250, 170, 10),
+        // La deuxième voit un aliment de plus, et une densité impossible pour l'huile : le poids donné reprend.
+        JSON.stringify({ type: 'aliment', aliments: [
+          { name: 'Riz basmati cuit', volume_ml: 200, densite: 0.8, grams: 160, marge: 30, kcal100: 130, p100: 2.7, c100: 28, f100: 0.3 },
+          { name: 'Pomme', unites: 1, poids_unite: 190, marge: 10, kcal100: 52, p100: 0.3, c100: 14, f100: 0.2 },
+          { name: 'Huile d\'olive', volume_ml: 12, densite: 920, grams: 11, kcal100: 900, p100: 0, c100: 0, f100: 100 },
+          { name: 'Persil', grams: 2, kcal100: 36, p100: 3, c100: 6, f100: 1 }] }),
+        estimation(300, 180, 14)];
     };
     ouvrirModal('ai-modal', true);
     document.getElementById('ai-description').value = 'du riz, une pomme et un filet d\'huile';
     await analyserRepasGemini();
     const res = {
-      prompt: /"marge": number \(marge d'erreur de ton estimation de grams, en %\)/.test(envoye) && /Une marge trop faible ferait sous-estimer les calories/.test(envoye),
-      retenus: detectedBufferGemini.map(a => [a.name, a.estime, a.marge, a.grams]),
+      envoi: { type: envoi.type, n: envoi.n, mesure: /Mesure avant d'estimer/.test(envoi.texte) && /"volume_ml": number ou null/.test(envoi.texte) && /"poids_unite": number ou null/.test(envoi.texte) && /"marge": number/.test(envoi.texte) },
+      retenus: detectedBufferGemini.map(a => [a.name, a.estime, a.marge, a.grams, a.nbEstimations]),
       lignes: [...document.querySelectorAll('#detected-ingredients-list .detected-row')].map(l => [l.querySelector('span').textContent, l.querySelector('input').value]),
-      note: document.getElementById('ai-note-marge').textContent
+      astuce: document.getElementById('ai-astuce-photo').textContent
     };
     activeMealId = 'lunch';
     ajouterIngredientsGemini();
     res.repas = getDay(currentDate).meals.lunch.map(i => [i.name, i.grams, Math.round(i.kcal)]);
+    // Une seule estimation (modèle sans réponses multiples) : la même chaîne de calcul.
+    window.geminiCandidats = async () => [estimation(250, 170, 10)];
+    ouvrirModal('ai-modal', true);
+    await analyserRepasGemini();
+    res.seule = detectedBufferGemini.map(a => [a.name, a.estime, a.nbEstimations]);
+    res.ligneSeule = document.querySelector('#detected-ingredients-list .detected-row span').textContent;
     return res;
   });
-  assert.equal(r.prompt, true, 'Gemini donne une marge d\'erreur pour chaque poids');
-  // 150 g ±25 % → 188 g ; une marge trop faible remonte à 5 %, absente à 20 %, trop grande plafonnée à 60 %.
-  assert.deepEqual(r.retenus, [['Riz cuit', 150, 25, 188], ['Pomme', 180, 5, 189], ['Huile d\'olive', 10, 20, 12], ['Sauce', 50, 60, 80]]);
-  assert.deepEqual(r.lignes[0], ['Riz cuitestimé 150 g · +25 %', '188']);
-  assert.match(r.note, /^Poids comptés au haut de la marge d'erreur de l'IA/);
-  assert.deepEqual(r.repas, [['Riz cuit', 188, 244], ['Pomme', 189, 98], ['Huile d\'olive', 12, 108], ['Sauce', 80, 160]]);
+  assert.deepEqual(r.envoi, { type: 'photo', n: 3, mesure: true });
+  // Riz : 200, 160, 240 g → médiane 200 g, marge médiane 25 % → 250 g. Pomme : 170, 180, 190 → 180 g ; marges 2, 10, 2 → 2, remontée à 5 %.
+  // Huile : 9,2 g, 11 g (densité impossible), 12,9 g → 11 g, marge 20 % par défaut. Le persil, vu une seule fois, ne reste pas.
+  assert.deepEqual(r.retenus, [['Riz cuit', 200, 25, 250, 3], ['Pomme', 180, 5, 189, 3], ['Huile d\'olive', 11, 20, 13, 3]]);
+  assert.deepEqual(r.lignes[0], ['Riz cuit≈ 250 ml × 0,8 g/ml → 200 g · +25 % · médiane de 3', '250']);
+  assert.deepEqual(r.lignes[1], ['Pomme1 × 180 g → 180 g · +5 % · médiane de 3', '189']);
+  assert.match(r.astuce, /^Prends la photo un peu de biais/);
+  assert.deepEqual(r.repas, [['Riz cuit', 250, 325], ['Pomme', 189, 98], ['Huile d\'olive', 13, 117]]);
+  assert.deepEqual(r.seule, [['Riz cuit', 200, 1], ['Pomme', 170, 1], ['Huile d\'olive', 9, 1]]);
+  assert.equal(r.ligneSeule, 'Riz cuit≈ 250 ml × 0,8 g/ml → 200 g · +25 %');
 }));
+
+test('Gemini : trois réponses demandées en une requête ; si le modèle refuse, une seule, et il s\'en souvient', () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    geminiKey = 'cle-test'; userProfile.accordIA = true; iaServeur = null;
+    const corps = [];
+    let refuse = true;
+    window.fetch = async (url, o) => {
+      const b = JSON.parse(o.body); corps.push(b.generationConfig || null);
+      if (b.generationConfig && refuse) return new Response(JSON.stringify({ error: { message: 'Multiple candidates is not enabled for this model' } }), { status: 400 });
+      const n = b.generationConfig ? b.generationConfig.candidateCount : 1;
+      return new Response(JSON.stringify({ candidates: Array.from({ length: n }, (_, k) => ({ content: { parts: [{ text: 'réponse ' + k }] } })) }), { status: 200 });
+    };
+    const res = {};
+    res.refus = await geminiCandidats([{ text: 'x' }], 'photo', 3);
+    res.ensuite = await geminiCandidats([{ text: 'x' }], 'photo', 3);
+    localStorage.removeItem('mc_ia_une_reponse'); refuse = false;
+    res.trois = await geminiCandidats([{ text: 'x' }], 'photo', 3);
+    res.simple = await geminiGenerate([{ text: 'x' }]);
+    res.corps = corps;
+    return res;
+  });
+  assert.deepEqual(r.refus, ['réponse 0']);
+  assert.deepEqual(r.ensuite, ['réponse 0']);
+  assert.deepEqual(r.trois, ['réponse 0', 'réponse 1', 'réponse 2']);
+  assert.equal(r.simple, 'réponse 0');
+  assert.deepEqual(r.corps, [{ candidateCount: 3 }, null, null, { candidateCount: 3 }, null], 'après un refus, plus de demande multiple pour ce modèle');
+}));
+
