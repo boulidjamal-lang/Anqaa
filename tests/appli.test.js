@@ -4901,3 +4901,70 @@ test('objectif adapté : réservé à Pro (cadenas et fenêtre Pro pour un compt
   assert.ok(r.fondateur.correction > 0, 'Pro : l\'ajustement s\'applique');
   assert.deepEqual([r.fondateur.case, r.fondateur.cadenas], [true, false]);
 }));
+
+test('objectif adapté : un historique par semaine, gardé dans le profil, figé une fois la semaine passée, visible dans Ta journée', () => avecAppli({}, async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-11-04T09:00:00'));
+  const r = await page.evaluate(() => {
+    userProfile.height = 180; userProfile.age = 30; userProfile.gender = 'm';
+    const auj = todayStr();
+    for (let k = 56; k >= 1; k--) {
+      const j = getDay(shiftDate(auj, -k));
+      j.meals.lunch.push({ name: 'Repas', grams: 500, kcal: 2000, p: 150, c: 200, f: 60 });
+      if (k % 2 === 0) j.weight = Math.round((85 - (56 - k) * 0.5 / 7) * 10) / 10;
+    }
+    saveData();
+    currentDate = auj; renderApp();
+    const h = userProfile.ajustements;
+    const res = { semaines: h.map(x => x.l), rec: h.map(x => !!x.rec), fidele: h.every(x => { const a = correctionMaintenance(x.l); return a.kcal === x.k && a.reelle === x.r && a.jours === x.j && a.pesees === x.p; }) };
+    ouvrirDepense();
+    const d = document.getElementById('hist-ajust');
+    res.liste = d ? [...d.querySelectorAll('li')].map(li => li.textContent) : null;
+    fermerModal('depense-modal');
+    return res;
+  });
+  // Les semaines déjà notées sont reconstituées (marquées), la semaine en cours est la vraie.
+  assert.deepEqual(r.semaines, ['2026-09-28', '2026-10-05', '2026-10-12', '2026-10-19', '2026-10-26', '2026-11-02']);
+  assert.deepEqual(r.rec, [true, true, true, true, true, false]);
+  assert.equal(r.fidele, true, 'chaque ligne reprend l\'ajustement appliqué cette semaine-là');
+  assert.equal(r.liste.length, 6);
+  assert.match(r.liste[0], /^Cette semaine\+\d+\skcaldépense réelle 2\s5\d\d$/);
+  assert.match(r.liste[1], /^Sem\. du 26 oct\.\+\d+\skcaldépense réelle /);
+
+  // Une semaine plus tard : la nouvelle s'ajoute. Changer de vieux repas ne réécrit pas les semaines passées.
+  await page.clock.setFixedTime(new Date('2026-11-11T09:00:00'));
+  const r2 = await page.evaluate(() => {
+    const avant = JSON.stringify(userProfile.ajustements);
+    for (let d = '2026-10-12'; d <= '2026-10-31'; d = shiftDate(d, 1)) { getDay(d).meals.lunch[0].kcal = 1600; saveData(d); }
+    const recalcul = correctionMaintenance('2026-11-02').kcal;
+    currentDate = todayStr(); renderApp();
+    const h = userProfile.ajustements;
+    return { avantInchange: JSON.stringify(h.slice(0, -1)) === avant, recalcul, garde: h[h.length - 2].k, nouvelle: [h[h.length - 1].l, !!h[h.length - 1].rec], stockee: JSON.parse(localStorage.getItem(PROFILE_KEY)).ajustements.length === h.length };
+  });
+  assert.equal(r2.avantInchange, true, 'les semaines passées restent comme elles ont été appliquées');
+  assert.notEqual(r2.recalcul, r2.garde, 'recalculée aujourd\'hui, la semaine du 2 novembre aurait changé');
+  assert.deepEqual(r2.nouvelle, ['2026-11-09', false]);
+  assert.equal(r2.stockee, true, 'gardé dans le profil enregistré (donc synchronisé)');
+}));
+
+test('Administration : l\'historique de l\'objectif adapté d\'un compte, semaine par semaine', () => avecAppli({}, async ({ page }) => {
+  await installerFauxAdmin(page, () => ({
+    'rpc:admin_liste_comptes': [{ utilisateur: 'admin', email: 'moi@x.fr', maj: Date.now(), nb_journees: 40 }, { utilisateur: 'a1', email: 'alice@x.fr', maj: Date.now(), nb_journees: 60 }],
+    'table:profil': { donnees: { ajustementBalance: false, ajustements: [
+      { l: '2026-10-26', k: 200, r: 2500, f: 2300, j: 27, p: 13, rec: 1 },
+      { l: '2026-11-02', k: -140, r: 2130, f: 2270, j: 28, p: 14 }] } }
+  }));
+  const r = await page.evaluate(async () => {
+    allerA('admin');
+    await chargerAdmin();
+    ouvrirCompteAdmin('a1');
+    await new Promise(ok => setTimeout(ok, 100));
+    const c = document.getElementById('admin-ajustement');
+    return { lignes: [...c.querySelectorAll('tbody tr')].map(tr => [...tr.cells].map(td => td.textContent)), pied: c.querySelector('.adm-ajust-pied').textContent,
+      demande: window.__appels.filter(a => a[1] === 'profil').map(a => a[3]) };
+  });
+  assert.deepEqual(r.lignes, [
+    ['2 nov.', '−140 kcal', '2 130', '2 270', '28 · 14'],
+    ['26 oct.*', '+200 kcal', '2 500', '2 300', '27 · 13']]);
+  assert.match(r.pied, /^Réglage : désactivé par l'utilisateur ; ne s'applique qu'avec Pro\. \* semaine reconstituée/);
+  assert.ok(r.demande.some(f => JSON.stringify(f) === JSON.stringify([['eq', 'utilisateur', 'a1']])), JSON.stringify(r.demande));
+}));

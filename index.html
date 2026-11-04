@@ -2806,6 +2806,17 @@
     input.rappel-heure::-webkit-calendar-picker-indicator { display: none; }
     .rappel-ligne .ligne-txt b { overflow-wrap: normal; word-break: normal; }
     html:root input.rappel-heure:disabled { opacity: .4; }
+    .hist-ajust { margin-top: 8px; }
+    .hist-ajust summary { cursor: pointer; font-size: .75rem; font-weight: 700; color: var(--text-muted); }
+    .hist-ajust ul { list-style: none; margin: 6px 0 0; padding: 0; }
+    .hist-ajust li { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; padding: 6px 0; border-top: 1px solid var(--verre-brd); font-size: .8rem; }
+    .hist-ajust li b { text-align: right; font-variant-numeric: tabular-nums; }
+    .hist-ajust li small { grid-column: 1 / -1; color: var(--text-muted); font-size: .72rem; }
+    .adm-ajust { width: 100%; border-collapse: collapse; font-size: .76rem; font-variant-numeric: tabular-nums; }
+    .adm-ajust th { text-align: left; font-weight: 700; color: var(--text-muted); padding: 8px 6px 6px; }
+    .adm-ajust td { padding: 6px; border-top: 1px solid var(--trait); }
+    .adm-ajust td:not(:first-child), .adm-ajust th:not(:first-child) { text-align: right; }
+    .adm-ajust-pied { padding: 4px 6px 10px; }
     .obj-ajust { display: flex; align-items: flex-start; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--trait); cursor: pointer; }
     .obj-ajust input { margin-top: 1px; }
     button.obj-ajust { width: 100%; border: 0; border-top: 1px solid var(--trait); background: none; font: inherit; color: inherit; text-align: left; padding-left: 0; padding-right: 0; padding-bottom: 0; }
@@ -5230,6 +5241,8 @@
       <input type="file" id="admin-import-file-input" accept=".json,application/json" class="hidden" onchange="importerDonneesUtilisateurAdmin(event)">
       <div class="reglages-titre">Abonnement</div>
       <div class="carte-liste" id="admin-pro"></div>
+      <div class="reglages-titre">Objectif adapté</div>
+      <div class="carte-liste" id="admin-ajustement"></div>
       <div class="reglages-titre">Avancé</div>
       <div class="carte-liste">
         <div class="ligne-reglage"><span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4" /><path d="m21 2-9.6 9.6" /><circle cx="7.5" cy="15.5" r="5.5" /></svg></span><span class="ligne-txt"><b>Clé Gemini du compte</b><small id="admin-cle-etat"></small></span>
@@ -8923,6 +8936,7 @@ function renderApp() {
 
   document.getElementById('objectif-select').value = dernierObjectifConnu(todayStr());
   majNoteRecomposition();
+  noterAjustementSemaine();
   majReglageAjustement();
   remplirInfosPersonnelles();
   document.getElementById('daily-steps').value = day.steps || '';
@@ -10903,6 +10917,7 @@ function quotaEauSuggere(dateStr) {
 
 /* Un objectif calorique sorti de nulle part n'inspire pas confiance : on montre
    d'ou viennent les chiffres, et surtout quand le poids est une estimation. */
+var histAjustOuvert = false;
 function majDetailDepense(day, t) {
   const lien = document.getElementById('lien-depense');
   if (lien && t && t.tdee) lien.textContent = 'Dépense estimée : ' + t.tdee + ' kcal ›';
@@ -10953,6 +10968,16 @@ function majDetailDepense(day, t) {
     n.className = 'note'; n.id = 'note-ajustement'; n.style.margin = '8px 0 0';
     n.textContent = `D'après tes repas et ta balance des 4 dernières semaines, tu dépenses environ ${a.reelle.toLocaleString('fr-FR')}\u00a0kcal par jour ; la formule en prévoyait ${a.formule.toLocaleString('fr-FR')}. Recalculé chaque lundi, 100\u00a0kcal d'écart au plus d'une semaine à l'autre.`;
     el.appendChild(n);
+  }
+  // Les semaines précédentes (les 8 dernières), la plus récente en haut.
+  const h = ajustementActif() ? historiqueAjustement().slice(-8).reverse() : [];
+  if (h.length > 1) {
+    const lundi = lundiDe(todayStr());
+    const d = document.createElement('details');
+    d.className = 'hist-ajust'; d.id = 'hist-ajust'; d.open = histAjustOuvert;
+    d.addEventListener('toggle', () => { histAjustOuvert = d.open; });
+    d.innerHTML = `<summary>Semaines précédentes</summary><ul>${h.map(x => `<li><span>${x.l === lundi ? 'Cette semaine' : 'Sem. du ' + escapeHtml(dateCourteAjustement(x.l))}</span><b>${kcalSigne(x.k)}</b><small>${x.r != null ? 'dépense réelle ' + x.r.toLocaleString('fr-FR') : 'pas assez de données'}</small></li>`).join('')}</ul>`;
+    el.appendChild(d);
   }
   renderSeancesPrevues();
   const note = document.getElementById('note-poids');
@@ -11016,6 +11041,45 @@ function majNoteRecomposition() {
 }
 /* Objectif adapté à la balance (voir correctionMaintenance) : activé par
    défaut, désactivable dans le Profil. Gardé dans le profil, donc synchronisé. */
+/* Historique de l'ajustement : une ligne par semaine (lundi), gardée dans
+   le profil, donc synchronisée et lue par l'Administration. La semaine en
+   cours se met à jour tant qu'elle dure ; les semaines passées restent comme
+   elles ont été appliquées, même si de vieux repas changent ensuite. La
+   première fois, les semaines déjà calculables sont reconstituées (rec). */
+const AJUST_HISTO_MAX = 52;
+function ligneAjustement(a) {
+  return { l: a.lundi, k: a.kcal, r: a.reelle != null ? a.reelle : null, f: a.formule != null ? a.formule : null, j: a.jours, p: a.pesees };
+}
+function historiqueAjustement() { return Array.isArray(userProfile.ajustements) ? userProfile.ajustements : []; }
+function noterAjustementSemaine() {
+  if (!ajustementActif()) return;
+  const lundi = lundiDe(todayStr());
+  const avant = Array.isArray(userProfile.ajustements) ? userProfile.ajustements : null;
+  const h = avant ? avant.slice() : [];
+  const derniere = h.length ? h[h.length - 1].l : null;
+  // Les semaines à remplir : depuis la dernière notée (elle comprise si
+  // c'est la semaine en cours), sinon jusqu'à un an en arrière.
+  let w = derniere ? (derniere === lundi ? lundi : shiftDate(derniere, 7)) : shiftDate(lundi, -7 * (AJUST_HISTO_MAX - 1));
+  let change = false;
+  for (; w <= lundi; w = shiftDate(w, 7)) {
+    const a = correctionMaintenance(w);
+    if (!a) continue;
+    const l = ligneAjustement(a);
+    if (!avant && w < lundi) l.rec = 1;
+    const i = h.length - 1;
+    if (i >= 0 && h[i].l === w) {
+      if (JSON.stringify(h[i]) !== JSON.stringify(Object.assign({}, l, h[i].rec ? { rec: 1 } : {}))) { h[i] = Object.assign(l, h[i].rec ? { rec: 1 } : {}); change = true; }
+    } else { h.push(l); change = true; }
+  }
+  if (!change) return;
+  userProfile.ajustements = h.slice(-AJUST_HISTO_MAX);
+  userProfile.maj = Date.now();
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(userProfile)); } catch (e) {}
+  if (typeof planifierSync === 'function') planifierSync();
+}
+function dateCourteAjustement(l) { return dateLocale(l).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }); }
+function kcalSigne(n) { return (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toLocaleString('fr-FR') + ' kcal'; }
+
 function texteAjustement() {
   if (!accesPro()) return "Avec Pro, ton objectif est corrigé chaque lundi d'après tes repas notés et ta balance.";
   const a = ajustementActif() ? correctionMaintenance(todayStr()) : null;
@@ -27092,6 +27156,27 @@ async function afficherProAdmin(utilisateur) {
     ${!abonnementProValide(data) ? `<button type="button" class="pilule" onclick="basculerProAdmin(${argJs(utilisateur)}, true)">Offrir Pro</button>` : ''}
     ${data && data.formule === 'offert' ? `<button type="button" class="pilule" onclick="basculerProAdmin(${argJs(utilisateur)}, false)">Retirer</button>` : ''}</div>`;
 }
+/* L'historique de l'objectif adapté d'un compte (gardé dans son profil) :
+   une ligne par semaine, la plus récente en haut. */
+async function afficherAjustementAdmin(utilisateur) {
+  const c = document.getElementById('admin-ajustement');
+  if (!c || !supa) return;
+  c.innerHTML = '<p class="note adm-ajust-pied">Chargement…</p>';
+  const { data, error } = await supa.from('profil').select('donnees').eq('utilisateur', utilisateur).maybeSingle();
+  if (adminUserCourant !== utilisateur) return;
+  if (error) { c.innerHTML = `<p class="note adm-ajust-pied">${escapeHtml(error.message)}</p>`; return; }
+  const p = (data && data.donnees) || {};
+  const h = Array.isArray(p.ajustements) ? p.ajustements.slice().reverse() : [];
+  const etat = `Réglage : ${p.ajustementBalance === false ? "désactivé par l'utilisateur" : 'activé'} ; ne s'applique qu'avec Pro.`;
+  if (!h.length) {
+    c.innerHTML = `<p class="note adm-ajust-pied">${etat} Aucune semaine enregistrée : il faut Pro, 10 jours de repas notés et 4 pesées.</p>`;
+    return;
+  }
+  const fr = n => n == null ? '—' : Number(n).toLocaleString('fr-FR');
+  c.innerHTML = `<table class="adm-ajust"><thead><tr><th>Semaine du</th><th>Ajust.</th><th>Réelle</th><th>Formule</th><th>Jours · pesées</th></tr></thead><tbody>${h.map(x =>
+    `<tr><td>${escapeHtml(dateCourteAjustement(String(x.l)))}${x.rec ? '*' : ''}</td><td><b>${escapeHtml(kcalSigne(Number(x.k) || 0))}</b></td><td>${fr(x.r)}</td><td>${fr(x.f)}</td><td>${fr(x.j)} · ${fr(x.p)}</td></tr>`).join('')}</tbody></table>
+    <p class="note adm-ajust-pied">${etat}${h.some(x => x.rec) ? ' * semaine reconstituée à partir des données déjà notées.' : ''}</p>`;
+}
 async function basculerProAdmin(utilisateur, offrir) {
   const { error } = await supa.rpc('admin_offrir_pro', { p_utilisateur: utilisateur, p_offert: offrir });
   if (error) { informer('Impossible : ' + error.message); return; }
@@ -31126,6 +31211,7 @@ function ouvrirCompteAdmin(id) {
   rendreCompteAdmin(user);
   afficherVueAdmin('compte');
   afficherProAdmin(id);
+  afficherAjustementAdmin(id);
   chargerDetailsCompteAdmin(id);
 }
 function masquerCleAdmin(k) { k = String(k || ''); return k.length > 12 ? k.slice(0, 6) + '…' + k.slice(-4) : '••••'; }
