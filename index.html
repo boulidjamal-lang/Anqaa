@@ -2587,6 +2587,9 @@
       background: var(--piste); color: var(--text); font-family: inherit; font-weight: 600; font-size: 1.2rem; line-height: 1; }
     .repas-equilibre { display: flex; gap: 2px; height: 5px; margin: 12px 0 2px; border-radius: 99px; overflow: hidden; }
     .repas-equilibre i { display: block; border-radius: 99px; }
+    .repas-macros { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 2px 0; font-size: .76rem; font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .repas-macros span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .repas-macros i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
     /* Repas repliable (basculerRepas) : l'en-tête est un bouton ; la liste se
        replie en douceur (grille 1fr → 0fr), puis sort du parcours au clavier. */
     .repas-bascule { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; margin: 0; padding: 0; border: 0; background: none;
@@ -10610,8 +10613,13 @@ function renderMeals(day) {
         <span class="repas-plus" aria-hidden="true">+</span>
       </div>`;
     // Équilibre du repas (part des calories venant de chaque macro).
-    const tot = items.reduce((a, it) => ({ p: a.p + (Number(it.p) || 0) * 4, c: a.c + (Number(it.c) || 0) * 4, f: a.f + (Number(it.f) || 0) * 9 }), { p: 0, c: 0, f: 0 });
+    const grammes = items.reduce((a, it) => ({ p: a.p + (Number(it.p) || 0), c: a.c + (Number(it.c) || 0), f: a.f + (Number(it.f) || 0) }), { p: 0, c: 0, f: 0 });
+    const tot = { p: grammes.p * 4, c: grammes.c * 4, f: grammes.f * 9 };
     const somme = tot.p + tot.c + tot.f || 1;
+    // Les macros du repas, en grammes, sous la barre (de la couleur de chaque part).
+    const macrosRepas = `<div class="repas-macros"><span><i style="background:var(--protein)" aria-hidden="true"></i>${Math.round(grammes.p)} g prot.</span>`
+      + `<span><i style="background:var(--carbs)" aria-hidden="true"></i>${Math.round(grammes.c)} g gluc.</span>`
+      + `<span><i style="background:var(--fat)" aria-hidden="true"></i>${Math.round(grammes.f)} g lip.</span></div>`;
     const replie = repasReplies.has(mealId);
     return `
       <div class="meal-card${replie ? ' replie' : ''}" data-repas="${mealId}">
@@ -10624,6 +10632,7 @@ function renderMeals(day) {
           <button type="button" class="repas-ajouter" ${ajouter} aria-label="Ajouter à ${escapeHtml(MEAL_LABELS[mealId])}">+</button>
         </div>
         <div class="repas-equilibre" aria-hidden="true"><i style="flex:${tot.p / somme};background:var(--protein)"></i><i style="flex:${tot.c / somme};background:var(--carbs)"></i><i style="flex:${tot.f / somme};background:var(--fat)"></i></div>
+        ${macrosRepas}
         <div class="repas-depliant"><ul class="food-list" id="aliments-${mealId}">${rows}</ul></div>
       </div>`;
   }).join('');
