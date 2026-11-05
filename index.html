@@ -4690,6 +4690,154 @@
     .annonce-fermer { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; border: 0; border-radius: 50%; background: var(--s2); color: var(--text-muted);
       display: grid; place-items: center; font: inherit; font-size: 1.05rem; line-height: 1; cursor: pointer; }
     .feuille-contenu .annonce-fermer { background: var(--s3); }
+    /* =====================================================================
+       APP IPHONE — À LA MANIÈRE D'iOS 27
+       Posé en dernier et seulement dans l'app (html.app-ios) : couleurs du
+       système, le rose des muscles en couleur d'accent (ce qui se touche),
+       interlettrage d'Apple, chiffres arrondis, boutons et sélecteurs en
+       pilule, cartes sans ombre, fenêtres en feuilles qui montent du bas et
+       se ferment en les tirant (voir glisserPourFermer), listes façon
+       Réglages. Le site garde son habillage.
+       ===================================================================== */
+    html.app-ios:root, html.app-ios:root[data-theme="light"] {
+      --bg: #f2f2f7; --s1: #ffffff; --s2: #f2f2f7; --s3: #e5e5ea; --s-fen: #ffffff;
+      --ligne: rgba(60,60,67,.13); --text: #000000; --inv: #000000; --sur-inv: #ffffff;
+      --ok: #34c759; --alerte: #ff3b30; --attention: #ff9500; --ok-t: #248a3d; --alerte-t: #d70015; --attention-t: #c93400;
+      --ombre-carte: none; --ios-accent: #d6246e; --ios-remplir: rgba(120,120,128,.14); --ios-verre: rgba(255,255,255,.86);
+      --ios-voile: rgba(0,0,0,.26);
+    }
+    html.app-ios:root[data-theme="dark"] {
+      --bg: #000000; --s1: #1c1c1e; --s2: #2c2c2e; --s3: #3a3a3c; --s-fen: #1c1c1e;
+      --ligne: rgba(84,84,88,.55); --text: #ffffff; --inv: #ffffff; --sur-inv: #000000; --t3: rgba(235,235,245,.32);
+      --ok: #30d158; --alerte: #ff453a; --attention: #ff9f0a; --ok-t: #30d158; --alerte-t: #ff6961; --attention-t: #ffb340;
+      --ombre-carte: none; --ios-accent: #ff6aa9; --ios-remplir: rgba(120,120,128,.3); --ios-verre: rgba(30,30,32,.86);
+      --ios-voile: rgba(0,0,0,.5); --corps-contour: #000000;
+    }
+
+    /* Typographie : l'interlettrage de SF Pro est celui du système (pas de
+       resserrage), un gras par niveau, chiffres arrondis comme Forme et Santé. */
+    html.app-ios:root body :is(.titre-ecran, .titre-section, .vitrine-sec h3, .modal-entete h3, .feuille-titre, .hx-titre, .pg-heros h3, .sdj h4, .meal-title, .salut b) {
+      letter-spacing: normal !important; }
+    html.app-ios:root body :is(.titre-section, .vitrine-sec h3) { font-size: 1.35rem !important; font-weight: 700 !important; }
+    html.app-ios:root body :is(.btn, .pilule, .segment button, .feuille-action, .coach-action, .cp-bouton, .obj-tuile, .onglet) { font-weight: 600 !important; letter-spacing: normal !important; }
+    html.app-ios:root body :is(#total-kcals, .reste-kcal, .carte-stats-valeur b, .eau-texte, .hx-geant, .cardio-gros, .bt-n, .pg-tuile b, .pg-pas-tete b, .cg b,
+      .sh-chrono, .mc-r b, .meal-kcals, .heros-puces b, .cle-val, .stats-valeur, .bilan-geant b, .bilan-tuile b, .repos-chrono, .pave-val, .semaine-jour b, .niveau-t b) {
+      font-family: ui-rounded, 'SF Pro Rounded', var(--police) !important; letter-spacing: -.01em !important; }
+    /* « 30 séries » : un chiffre plein, sans dégradé. */
+    html.app-ios:root body .hx-geant { background: none !important; -webkit-background-clip: border-box !important; background-clip: border-box !important;
+      color: var(--text) !important; -webkit-text-fill-color: currentColor; font-weight: 700 !important; }
+    /* Les plus petits textes passent à 11 px, le minimum d'Apple. */
+    html.app-ios:root body :is(.semaine-barres div, .semaine-lettre, .pave-champ > small, .obj-cibles span, .serie-prec small, .med em) { font-size: max(11px, 1em) !important; }
+
+    /* Ce qui se touche prend la couleur d'accent ; plus de liens soulignés. */
+    html.app-ios:root body :is(.coach-plus, .lien-depliant, .pg-lien, .pg-lien-clair, .compte-liens .lien, .serie-legere button, .compte-accord-ia button,
+      .session-repli-barre button, .recette-source a, .note a, .modal-content a:not(.pilule):not(.btn)) {
+      color: var(--ios-accent) !important; text-decoration: none !important; }
+    html.app-ios:root body :is(.compte-liens .lien, .pg-lien-clair, .serie-legere button) { font-weight: 600 !important; }
+    html.app-ios:root body :is(.exo-en-programme-nom, .session-exo-nom) { text-decoration: none !important; }
+    html.app-ios:root body .coach-plus .coach-nb { background: color-mix(in srgb, var(--ios-accent) 14%, transparent) !important; color: var(--ios-accent) !important; }
+
+    /* Boutons et sélecteurs en pilule, comme iOS 26 et 27. */
+    html.app-ios:root body .btn { border-radius: 999px !important; }
+    html.app-ios:root body .segment { border-radius: 999px !important; padding: 3px !important; }
+    html.app-ios:root body .segment button { border-radius: 999px !important; }
+    /* Un appui enfonce légèrement ce qu'on touche, puis ça revient en souplesse. */
+    html.app-ios:root body :is(.btn, .pilule, .feuille-action, .action-tuile, .ligne-reglage--bouton, .obj-tuile, .coach-action, .cp-bouton, .repas-ajouter, .close-modal) {
+      transition: transform .45s cubic-bezier(.3,1.4,.5,1), background-color .2s !important; }
+    html.app-ios:root body :is(.btn, .pilule, .feuille-action, .action-tuile, .ligne-reglage--bouton, .obj-tuile, .coach-action, .cp-bouton, .repas-ajouter, .close-modal):active:not(:disabled) {
+      transform: scale(.96) !important; transition-duration: .08s !important; }
+
+    /* Cartes : unies, sans ombre ni liseré. */
+    html.app-ios:root[data-theme="dark"] body :is(.summary-card, .fitness-card, .analysis-card, .meal-card, .bloc-verre, .carte-stats, .cle, .niveau, .cg, .carte-badges, .carte-objectifs,
+      .carte-liste, .session-exo-bloc, .exo-en-programme, .verre, .action-tuile, .coach-carte, .sdj, .pc, .pg-heros, .pg-tuile, .pg-carte, .pg-constat, .seance-heros) { box-shadow: none !important; }
+
+    /* Fenêtres : feuilles qui montent du bas, décollées des bords, aux coins
+       qui épousent ceux de l'écran ; seuls la recherche d'aliment (plein
+       écran) et les messages (alertes) restent à part. */
+    html.app-ios body :is(.modal, .feuille) { background-color: var(--ios-voile) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    html.app-ios body .modal:not(#manual-modal):not(#modal-dialogue) { align-items: flex-end; padding: calc(env(safe-area-inset-top, 0px) + 10px) 8px 8px; animation: none; }
+    html.app-ios body .modal:not(#manual-modal):not(#modal-dialogue) .modal-content,
+    html.app-ios body .feuille-contenu {
+      width: 100%; max-width: 560px; border-radius: 46px !important; background: var(--ios-verre) !important;
+      -webkit-backdrop-filter: blur(30px) saturate(1.8) !important; backdrop-filter: blur(30px) saturate(1.8) !important;
+      box-shadow: 0 24px 70px -24px rgba(0,0,0,.45), inset 0 0 0 .5px rgba(255,255,255,.35) !important;
+      animation: feuilleIos .5s cubic-bezier(.32,.72,0,1) both !important; }
+    html.app-ios body .modal:not(#manual-modal):not(#modal-dialogue) .modal-content {
+      max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 18px); padding: 26px 20px max(22px, calc(env(safe-area-inset-bottom, 0px) + 4px)); position: relative; }
+    html.app-ios body .feuille { padding: 0 8px 8px; }
+    html.app-ios body .feuille-contenu { padding: 8px 18px max(20px, calc(env(safe-area-inset-bottom, 0px) + 2px)) !important; }
+    @keyframes feuilleIos { from { transform: translateY(105%); } to { transform: none; } }
+    /* Poignée : en haut de chaque feuille ; on la tire (ou l'en-tête) vers le bas pour fermer. */
+    html.app-ios body .modal:not(#manual-modal):not(#modal-dialogue) .modal-content::before { content: ''; position: absolute; top: 7px; left: 50%; width: 36px; height: 5px;
+      margin-left: -18px; border-radius: 99px; background: var(--t3); }
+    html.app-ios body .feuille-poignee { position: relative; width: 36px; height: 5px; background: var(--t3) !important; margin: 0 auto 12px; touch-action: none; }
+    html.app-ios body .feuille-poignee::before { content: ''; position: absolute; inset: -14px -60px; }
+    html.app-ios body :is(.modal-entete, .feuille-titre) { touch-action: none; }
+    /* En-tête de feuille : titre net, sans tuile d'icône ; croix ronde en verre. */
+    html.app-ios body .modal-entete h3 { font-size: 1.25rem !important; font-weight: 700 !important; }
+    html.app-ios body .modal-entete h3 > .icone-ui, html.app-ios body .modal-entete h3 > .ic { display: none !important; }
+    html.app-ios body :is(.close-modal, .feuille-fermer) { width: 34px !important; height: 34px !important; flex: 0 0 34px !important; border-radius: 50% !important;
+      background: var(--ios-remplir) !important; color: var(--text-muted) !important; font-size: 1.3rem !important; font-weight: 500; }
+    /* Dans une feuille, les rangées sont blanches (noires en sombre) sur le verre. */
+    html.app-ios body :is(.modal-content, .feuille-contenu) :is(.carte-liste, .feuille-action, .bloc-verre, .fitness-card, .verre) { background: var(--s1) !important; }
+    html.app-ios:root[data-theme="dark"] body :is(.modal-content, .feuille-contenu) :is(.carte-liste, .feuille-action, .bloc-verre, .fitness-card, .verre) { background: var(--s2) !important; }
+    html.app-ios:root[data-theme="dark"] body .feuille-contenu > .btn-secondaire:last-child { background: var(--s2) !important; }
+    html.app-ios body :is(.modal-content, .feuille-contenu) .carte-liste .segment { background: var(--ios-remplir) !important; }
+    html.app-ios body :is(.modal-content, .feuille-contenu) :is(.btn-secondaire, .btn-icone) { background: var(--ios-remplir) !important; }
+    html.app-ios body .feuille-contenu > .btn-secondaire:last-child { color: var(--ios-accent) !important; background: var(--s1) !important; }
+    /* Les messages (confirmer, informer) : alerte d'iOS, au centre, en verre. */
+    html.app-ios body #modal-dialogue .modal-content { max-width: 300px; border-radius: 34px !important; background: var(--ios-verre) !important; text-align: center;
+      -webkit-backdrop-filter: blur(30px) saturate(1.8) !important; backdrop-filter: blur(30px) saturate(1.8) !important; }
+
+    /* Listes façon Réglages : icônes pleines de couleur, glyphe blanc. */
+    html.app-ios body .modal-content .ligne-reglage .action-ic { width: 30px !important; height: 30px !important; border-radius: 8px !important; color: #fff !important; background: #8e8e93 !important; }
+    html.app-ios body .modal-content .ligne-reglage .action-ic :is(.icone-ui, svg) { width: 18px !important; height: 18px !important; color: #fff !important; stroke: #fff !important; }
+    html.app-ios body .ligne-reglage:has(#reglages-email) .action-ic { background: #007aff !important; }
+    html.app-ios body .ligne-reglage:has(#sante-inactive) .action-ic { background: #ff2d55 !important; }
+    html.app-ios body .ligne-reglage:has(#rappel-proteines) .action-ic { background: #ff3b30 !important; }
+    html.app-ios body .ligne-reglage:has(#rappel-seance) .action-ic { background: #ff9500 !important; }
+    html.app-ios body .ligne-reglage:has(#rappel-pesee) .action-ic { background: #5856d6 !important; }
+    html.app-ios body .ligne-reglage:has(#rappel-eau) .action-ic { background: #32ade6 !important; }
+    html.app-ios body .ligne-reglage:has(#segment-theme) .action-ic { background: #636366 !important; }
+    html.app-ios body .ligne-reglage[onclick*="'zones'"] .action-ic { background: #34c759 !important; }
+    html.app-ios body .ligne-reglage[onclick*="'increments'"] .action-ic { background: #ff9500 !important; }
+    html.app-ios body #btn-revoir-tutoriel .action-ic { background: #007aff !important; }
+    html.app-ios body #btn-visite-muscu .action-ic { background: #34c759 !important; }
+    html.app-ios body #btn-premiers-pas .action-ic { background: #ffcc00 !important; }
+    /* Les actions d'une rangée (« Gérer », « Connecter ») : du texte d'accent, comme dans Réglages. */
+    html.app-ios body .modal-content .ligne-reglage .pilule { background: none !important; color: var(--ios-accent) !important; padding: 8px 4px !important; font-size: 1rem !important; font-weight: 400 !important; }
+    /* Les choix d'une feuille d'ajout : une couleur par action. */
+    html.app-ios body .feuille-action .ic { border-radius: 9px !important; color: #fff !important; background: #8e8e93 !important; }
+    html.app-ios body .feuille-action .ic :is(.icone-ui, svg) { color: #fff !important; stroke: #fff !important; }
+    html.app-ios body #opt-hier .ic { background: #5856d6 !important; }
+    html.app-ios body #opt-manuel .ic { background: #007aff !important; }
+    html.app-ios body #opt-recette .ic { background: #ff9500 !important; }
+    html.app-ios body #opt-photo .ic { background: #af52de !important; }
+    html.app-ios body #opt-barcode .ic { background: #34c759 !important; }
+    html.app-ios body #opt-seance-jour .ic { background: #ff2d55 !important; }
+    html.app-ios body #opt-seance-vide .ic { background: #ff9500 !important; }
+    html.app-ios body #opt-cardio .ic { background: #ff3b30 !important; }
+
+    /* Mon corps : des rangées « Âge  29 », valeur à droite, comme une fiche iOS. */
+    html.app-ios body #carte-corps .infos-grille { display: block !important; }
+    html.app-ios body #carte-corps .infos-grille .input-group { display: flex !important; align-items: center; justify-content: space-between; gap: 12px; margin: 0 !important;
+      min-height: 46px; padding: 2px 0; border-bottom: .5px solid var(--ligne); }
+    html.app-ios body #carte-corps .infos-grille .input-group label { margin: 0 !important; font-size: 1rem !important; font-weight: 400 !important; color: var(--text) !important; }
+    html.app-ios body #carte-corps .infos-grille .input-group :is(input, select) { width: auto !important; max-width: 50%; min-height: 40px; margin: 0 !important; padding: 0 2px !important;
+      border: 0 !important; background: none !important; box-shadow: none !important; text-align: right; text-align-last: right; font-size: 1rem !important; color: var(--text-muted) !important; }
+
+    /* Repas : on glisse un aliment vers la gauche pour le supprimer (voir
+       glisserPourSupprimer) ; la croix ne reste que pour VoiceOver. */
+    html.app-ios body #meals-container .food-item { position: relative; overflow: hidden; }
+    html.app-ios body #meals-container .food-item-ligne { position: relative; z-index: 1; touch-action: pan-y; background: var(--s1); }
+    html.app-ios body #meals-container .food-item::after { content: 'Supprimer'; position: absolute; top: 10px; right: 0; bottom: 0; width: 100%; z-index: 0; display: flex;
+      align-items: center; justify-content: flex-end; padding-right: 18px; border-radius: 14px; background: var(--alerte); color: #fff; font-weight: 600; font-size: .9rem; opacity: 0; }
+    html.app-ios body #meals-container .food-item.glisse::after { opacity: 1; }
+    html.app-ios body #meals-container .btn-delete { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important;
+      overflow: hidden !important; clip-path: inset(50%) !important; white-space: nowrap; border: 0 !important; }
+
+    /* Barre d'onglets du site (avant iOS 26) : l'onglet choisi dans une bulle. */
+    html.app-ios body .onglet.actif { background: var(--ios-remplir) !important; border-radius: 999px !important; }
   </style>
 </head>
 <body>
@@ -15151,6 +15299,101 @@ window.addEventListener('scroll', () => {
   barreTitreEnAttente = true;
   requestAnimationFrame(majBarreTitre);
 }, { passive: true });
+
+/* App iPhone : une feuille se ferme en tirant sa poignée (ou son en-tête)
+   vers le bas, comme sur iOS. Au-delà de 110 px, ou d'un coup sec, elle
+   descend et se ferme par sa propre croix ou son « Annuler » (chaque fenêtre
+   garde ainsi sa logique de fermeture) ; sinon elle remonte en souplesse. */
+function fermerCoucheDepuis(contenu) {
+  const m = contenu.closest('.modal'), f = contenu.closest('.feuille');
+  if (m) {
+    const croix = m.querySelector('.close-modal');
+    if (croix) croix.click(); else fermerModal(m.id);
+  } else if (f) {
+    const bouton = [...f.querySelectorAll('button')].find(b => /^(Annuler|Fermer|Plus tard)$/i.test(b.textContent.trim())) || f.querySelector('.feuille-fermer');
+    if (bouton) bouton.click(); else fermerFeuilles();
+  }
+}
+(function glisserPourFermer() {
+  if (!NATIF) return;
+  let g = null;
+  document.addEventListener('pointerdown', e => {
+    if (e.button > 0) return;
+    const c = e.target.closest('.feuille.show .feuille-contenu, .modal.show:not(#manual-modal):not(#modal-dialogue) .modal-content');
+    if (!c || c.scrollTop > 2) return;
+    const enTete = e.target.closest('.feuille-poignee, .modal-entete, .feuille-titre') || e.clientY - c.getBoundingClientRect().top < 26;
+    if (!enTete || e.target.closest('button, input, select, textarea, a')) return;
+    g = { c, id: e.pointerId, y0: e.clientY, t0: performance.now(), dy: 0 };
+  });
+  document.addEventListener('pointermove', e => {
+    if (!g || e.pointerId !== g.id) return;
+    g.dy = Math.max(0, e.clientY - g.y0);
+    g.c.style.transition = 'none';
+    g.c.style.transform = g.dy ? `translateY(${g.dy}px)` : '';
+  }, { passive: true });
+  const fin = e => {
+    if (!g || e.pointerId !== g.id) return;
+    const { c, dy, t0 } = g; g = null;
+    const vitesse = dy / Math.max(1, performance.now() - t0);
+    if (dy > 110 || (dy > 36 && vitesse > .55)) {
+      c.style.transition = 'transform .24s cubic-bezier(.3,.6,.4,1)';
+      c.style.transform = 'translateY(110%)';
+      setTimeout(() => { fermerCoucheDepuis(c); c.style.transition = ''; c.style.transform = ''; }, 220);
+    } else {
+      c.style.transition = 'transform .4s cubic-bezier(.32,.72,0,1)';
+      c.style.transform = '';
+      setTimeout(() => { c.style.transition = ''; }, 420);
+    }
+  };
+  document.addEventListener('pointerup', fin);
+  document.addEventListener('pointercancel', fin);
+})();
+
+/* App iPhone : on glisse un aliment vers la gauche pour le supprimer (le
+   fond rouge « Supprimer » apparaît dessous) ; au-delà d'un tiers de la
+   largeur, il part et la suppression passe par sa croix, avec l'annulation
+   habituelle. Un glissement ne compte pas comme un appui sur l'aliment. */
+(function glisserPourSupprimer() {
+  if (!NATIF) return;
+  let g = null, bloquerClic = false;
+  document.addEventListener('pointerdown', e => {
+    if (e.button > 0) return;
+    const ligne = e.target.closest('#meals-container .food-item-ligne');
+    if (!ligne || e.target.closest('button, input')) return;
+    g = { ligne, item: ligne.closest('.food-item'), id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, actif: false };
+  });
+  document.addEventListener('pointermove', e => {
+    if (!g || e.pointerId !== g.id) return;
+    const dx = e.clientX - g.x0, dy = e.clientY - g.y0;
+    if (!g.actif) {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { g = null; return; }
+      if (dx > -10) return;
+      g.actif = true; g.item.classList.add('glisse');
+    }
+    g.dx = Math.min(0, dx);
+    g.ligne.style.transition = 'none';
+    g.ligne.style.transform = `translateX(${g.dx}px)`;
+  }, { passive: true });
+  const fin = e => {
+    if (!g || e.pointerId !== g.id) return;
+    const { ligne, item, dx, actif } = g; g = null;
+    if (!actif) return;
+    bloquerClic = true; setTimeout(() => { bloquerClic = false; }, 60);
+    if (-dx > Math.min(140, ligne.offsetWidth / 3)) {
+      if (typeof vibrer === 'function') vibrer('moyen');
+      ligne.style.transition = 'transform .22s ease-in';
+      ligne.style.transform = 'translateX(-110%)';
+      setTimeout(() => { const croix = item.querySelector('.btn-delete'); if (croix) croix.click(); }, 200);
+    } else {
+      ligne.style.transition = 'transform .35s cubic-bezier(.32,.72,0,1)';
+      ligne.style.transform = '';
+      setTimeout(() => { item.classList.remove('glisse'); ligne.style.transition = ''; }, 360);
+    }
+  };
+  document.addEventListener('pointerup', fin);
+  document.addEventListener('pointercancel', fin);
+  document.addEventListener('click', e => { if (bloquerClic && e.target.closest('#meals-container .food-item')) { e.stopPropagation(); e.preventDefault(); } }, true);
+})();
 
 /* Garde des fonctions IA : sans clé liée au compte, leurs boutons sont
    cachés ; si l'une est appelée quand même (écran resté ouvert pendant que

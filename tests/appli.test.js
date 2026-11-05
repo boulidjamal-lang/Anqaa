@@ -4105,6 +4105,36 @@ test("app iPhone : titre compact en haut quand le grand titre a défilé ; régl
   assert.deepEqual(r.selection, ['none', 'text']);
 }));
 
+test("app iPhone : une feuille se ferme en tirant sa poignée ; un aliment glissé vers la gauche est supprimé (la croix reste pour VoiceOver)", () => avecAppli({ natif: true }, async ({ page }) => {
+  // Feuille d'ajout : tirée de 40 px, elle remonte ; tirée de 160 px, elle se ferme.
+  await page.evaluate(() => { allerA('repas'); ouvrirFeuilleRepas('lunch'); });
+  await page.waitForTimeout(600);
+  const poignee = await page.evaluate(() => { const r = document.querySelector('#feuille-repas .feuille-poignee').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+  const tirer = async dy => { await page.mouse.move(poignee.x, poignee.y); await page.mouse.down(); for (let i = 1; i <= 8; i++) await page.mouse.move(poignee.x, poignee.y + dy * i / 8); await page.mouse.up(); await page.waitForTimeout(500); };
+  await tirer(40);
+  assert.equal(await page.evaluate(() => document.getElementById('feuille-repas').classList.contains('show')), true);
+  await tirer(160);
+  assert.equal(await page.evaluate(() => document.getElementById('feuille-repas').classList.contains('show')), false);
+  // Un aliment : un petit glissement le laisse, un grand le supprime.
+  await page.evaluate(() => {
+    const j = getDay(todayStr()); j.meals.lunch = [{ name: 'Riz', grams: 200, kcal: 260, p: 5, c: 56, f: 1 }, { name: 'Poulet', grams: 150, kcal: 248, p: 46, c: 0, f: 5 }];
+    saveData(todayStr()); renderApp();
+  });
+  const ligne = async () => page.evaluate(() => {
+    const el = document.querySelector('#meals-container .meal-card[data-repas="lunch"] .food-item-ligne');
+    el.scrollIntoView({ block: 'center' });
+    const r = el.getBoundingClientRect(); return { x: r.x + r.width * .8, y: r.y + r.height / 2, l: r.width };
+  });
+  const glisser = async dx => { const l = await ligne(); await page.mouse.move(l.x, l.y); await page.mouse.down(); for (let i = 1; i <= 10; i++) await page.mouse.move(l.x + dx * i / 10, l.y); await page.mouse.up(); await page.waitForTimeout(500); };
+  const noms = () => page.evaluate(() => getDay(todayStr()).meals.lunch.map(a => a.name));
+  await glisser(-40);
+  assert.deepEqual(await noms(), ['Riz', 'Poulet']);
+  await glisser(-220);
+  assert.deepEqual(await noms(), ['Poulet']);
+  // La croix est toujours là (VoiceOver), mais plus visible.
+  assert.deepEqual(await page.evaluate(() => { const b = document.querySelector('#meals-container .btn-delete'); const r = b.getBoundingClientRect(); return [!!b, r.width <= 1]; }), [true, true]);
+}));
+
 test("site (hors app) : pas de titre compact", () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => { document.body.style.minHeight = '4000px'; allerA('seance'); window.scrollTo(0, 700); });
   await page.waitForTimeout(200);
