@@ -3578,48 +3578,77 @@ test('synchro : une journée modifiée des deux côtés sans version commune gar
   assert.deepEqual((await journee(tab)).matin.sort(), ['Banane', 'Flocons']);
 }));
 
-test('compte : le remplissage automatique (email dans la case cachée du nom) ne bloque plus la création', () => avecAppli({}, async ({ page }) => {
+test("compte : un mot de passe faux le dit simplement ; « Créer un compte » à part (nom, deux cases) ; « Mot de passe oublié ? » ; changer son mot de passe une fois connecté", () => avecAppli({}, async ({ page }) => {
   const r = await page.evaluate(async () => {
-    const appels = [];
+    const appels = { signUp: [], reset: [], signOut: 0 };
+    let existe = false;
     supa = { auth: {
       signInWithPassword: async () => ({ error: { message: 'Invalid login credentials' } }),
-      signUp: async o => { appels.push(o.email); out.consentement = o.options.data.consentement; return { data: { user: { identities: [{}] }, session: null }, error: null }; },
+      signUp: async o => { appels.signUp.push({ email: o.email, consentement: o.options.data.consentement }); return { data: { user: { identities: existe ? [] : [{}] }, session: null }, error: null }; },
+      resetPasswordForEmail: async email => { appels.reset.push(email); return { error: null }; },
+      signOut: async () => { appels.signOut++; return { error: null }; },
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) },
       rpc: async () => ({ data: true, error: null }) };
     const champ = id => document.getElementById(id);
-    var out = { autocompletes: [champ('compte-email-input').autocomplete, champ('compte-pseudo-input').autocomplete] };
+    const visible = id => !champ(id).classList.contains('hidden');
+    const out = { autocompletes: [champ('compte-email-input').autocomplete, champ('compte-pseudo-input').autocomplete] };
+    // Connexion : mot de passe faux.
+    champ('compte-email-input').value = 'moi@exemple.fr';
+    champ('compte-mdp-input').value = 'mauvais12';
+    await connexionOuCreerCompte();
+    out.connexion = { note: champ('note-compte').textContent, nom: visible('compte-pseudo-wrap'), cases: visible('compte-accord-wrap'), bouton: champ('compte-bouton').textContent, signUp: appels.signUp.length };
+    // Mot de passe oublié : sans adresse, puis avec.
+    champ('compte-email-input').value = '';
+    await motDePasseOublie();
+    out.oublieSansEmail = champ('note-compte').textContent;
+    champ('compte-email-input').value = 'moi@exemple.fr';
+    const attente = motDePasseOublie();
+    await new Promise(ok => setTimeout(ok, 30));
+    out.fenetre = [champ('titre-creer-compte').textContent, champ('creer-compte-texte').textContent];
+    validerConfirmationCompte();
+    await attente;
+    out.oublie = { note: champ('note-compte').textContent, reset: appels.reset.slice() };
+    // Créer un compte : nom (l'email collé par Safari est ignoré), puis les deux cases.
+    document.querySelector('#compte-liens-connexion .lien:last-child').click();
+    out.creation = { nom: visible('compte-pseudo-wrap'), cases: visible('compte-accord-wrap'), bouton: champ('compte-bouton').textContent, retour: visible('compte-liens-creation'), mdp: champ('compte-mdp-input').getAttribute('autocomplete') };
     champ('compte-email-input').value = 'nouveau@exemple.fr';
     champ('compte-mdp-input').value = 'secret123';
-    champ('compte-pseudo-input').value = 'nouveau@exemple.fr';   // ce que Safari y mettait
+    champ('compte-pseudo-input').value = 'nouveau@exemple.fr';
     await connexionOuCreerCompte();
-    out.caseVisible = !champ('compte-pseudo-wrap').classList.contains('hidden');
-    out.caseVidee = champ('compte-pseudo-input').value;
-    out.note1 = champ('note-compte').textContent;
-    out.casesVisibles = !champ('compte-accord-wrap').classList.contains('hidden');
+    out.sansNom = [champ('note-compte').textContent, champ('compte-pseudo-input').value];
     champ('compte-pseudo-input').value = 'jamal.fit';
-    // Sans les deux cases cochées, rien n'est créé.
     champ('compte-accord-conditions').checked = true;
     await connexionOuCreerCompte();
-    out.noteCases = champ('note-compte').textContent;
-    out.appelsSansCases = appels.length;
+    out.uneCase = [champ('note-compte').textContent, appels.signUp.length];
     champ('compte-accord-sante').checked = true;
     await connexionOuCreerCompte();
-    out.appels = appels;
-    out.note2 = champ('note-compte').textContent;
+    out.cree = [champ('note-compte').textContent, appels.signUp.length, appels.signUp[0] && appels.signUp[0].consentement];
+    // Adresse déjà inscrite : rien n'est créé, retour à la connexion.
+    existe = true;
+    champ('compte-accord-conditions').checked = true; champ('compte-accord-sante').checked = true;
+    await connexionOuCreerCompte();
+    out.existe = { note: champ('note-compte').textContent, bouton: champ('compte-bouton').textContent, nom: visible('compte-pseudo-wrap'), cases: [champ('compte-accord-conditions').checked, champ('compte-accord-sante').checked] };
+    // Connecté : changer son mot de passe ; Annuler ne déconnecte pas.
+    ouvrirChangementMdp();
+    out.changer = champ('modal-nouveau-mdp').classList.contains('show');
+    annulerNouveauMdp();
+    out.deconnexions = appels.signOut;
     return out;
   });
   assert.deepEqual(r.autocompletes, ['username', 'nickname']);
-  assert.equal(r.caseVisible, true);
-  assert.equal(r.caseVidee, '');
-  assert.match(r.note1, /Choisis un nom d'utilisateur/);
-  assert.equal(r.casesVisibles, true);
-  assert.equal(r.noteCases, 'Coche les deux cases pour créer ton compte.');
-  assert.equal(r.appelsSansCases, 0);
-  assert.deepEqual(r.appels, ['nouveau@exemple.fr']);
-  assert.match(r.note2, /Compte créé/);
-  assert.equal(r.consentement.conditions, 1);
-  assert.equal(r.consentement.sante, true);
-  assert.match(r.consentement.le, /^\d{4}-\d\d-\d\dT/);
+  assert.deepEqual(r.connexion, { note: 'Email ou mot de passe incorrect.', nom: false, cases: false, bouton: 'Se connecter', signUp: 0 });
+  assert.match(r.oublieSansEmail, /^Tape d'abord ton adresse email/);
+  assert.deepEqual(r.fenetre, ['Mot de passe oublié', 'Recevoir à moi@exemple.fr un email pour choisir un nouveau mot de passe ?']);
+  assert.deepEqual(r.oublie, { note: 'Email envoyé à moi@exemple.fr : suis le lien pour choisir un nouveau mot de passe.', reset: ['moi@exemple.fr'] });
+  assert.deepEqual(r.creation, { nom: true, cases: true, bouton: 'Créer mon compte', retour: true, mdp: 'new-password' });
+  assert.deepEqual(r.sansNom, ["Choisis un nom d'utilisateur.", '']);
+  assert.deepEqual(r.uneCase, ['Coche les deux cases pour créer ton compte.', 0]);
+  assert.match(r.cree[0], /^Compte créé/);
+  assert.equal(r.cree[1], 1);
+  assert.deepEqual([r.cree[2].conditions, r.cree[2].sante], [1, true]);
+  assert.deepEqual(r.existe, { note: 'Un compte existe déjà avec cette adresse : connecte-toi, ou touche « Mot de passe oublié ? ».', bouton: 'Se connecter', nom: false, cases: [false, false] });
+  assert.equal(r.changer, true);
+  assert.equal(r.deconnexions, 0);
 }));
 
 test("compte plus ancien : les conditions s'acceptent une fois (deux cases), sinon déconnexion ; un compte qui les a acceptées n'est pas dérangé", () => avecAppli({}, async ({ page }) => {

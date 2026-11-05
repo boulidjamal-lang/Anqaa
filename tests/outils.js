@@ -17,8 +17,10 @@ function cheminChromium() {
   try {
     const dossiers = fs.readdirSync(base).filter(d => /^chromium-\d+$/.test(d)).sort().reverse();
     for (const d of dossiers) {
-      const exe = path.join(base, d, 'chrome-linux', 'chrome');
-      if (fs.existsSync(exe)) return exe;
+      for (const sous of ['chrome-linux', 'chrome-linux64']) {
+        const exe = path.join(base, d, sous, 'chrome');
+        if (fs.existsSync(exe)) return exe;
+      }
     }
   } catch (e) {}
   return undefined;

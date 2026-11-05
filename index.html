@@ -877,6 +877,9 @@
     /* Ouverte depuis #compte-modal (z-index 1000 par défaut), doit se poser
        par-dessus, pas derrière. */
     #modal-creer-compte, #modal-nouveau-mdp { z-index: 1100; }
+    .compte-liens { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; }
+    .compte-liens .lien { min-height: 40px; padding: 0 2px; border: 0; background: none; font: inherit; font-size: .85rem; font-weight: 700; color: var(--text); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    #compte-liens-creation { justify-content: center; }
     .feuille-contenu {
       width: 100%; max-width: 560px; max-height: min(85dvh, 85vh);
       background: var(--verre-fort);
@@ -6283,7 +6286,7 @@
 <div class="modal" id="modal-creer-compte" role="dialog" aria-modal="true" aria-labelledby="titre-creer-compte">
   <div class="modal-content">
     <div class="modal-entete">
-      <h3 id="titre-creer-compte">Mot de passe incorrect</h3>
+      <h3 id="titre-creer-compte">Mot de passe oublié</h3>
       <button class="close-modal" type="button" onclick="annulerConfirmationCompte()" aria-label="Fermer">&times;</button>
     </div>
     <p class="note" id="creer-compte-texte">&mdash;</p>
@@ -6396,7 +6399,7 @@
         <input type="password" id="compte-mdp-input" placeholder="6 caractères minimum" autocomplete="current-password">
       </div>
       <div class="input-group hidden" id="compte-pseudo-wrap">
-        <label for="compte-pseudo-input">Nom d'utilisateur (nouveau compte)</label>
+        <label for="compte-pseudo-input">Nom d'utilisateur</label>
         <input type="text" id="compte-pseudo-input" placeholder="ex : jamal.fit" autocomplete="nickname" autocapitalize="none" spellcheck="false" maxlength="20">
         <small class="note" style="display:block; margin-top:6px;">3 à 20 caractères : minuscules, chiffres, point ou tiret bas. Tes gymbros te trouveront avec ce nom.</small>
       </div>
@@ -6404,11 +6407,17 @@
       <label class="pro-accord case-accord"><input type="checkbox" id="compte-accord-conditions"> <span>J'accepte les <a href="cgv.html" target="_blank" rel="noopener">conditions d'utilisation</a> (aucun contenu choquant toléré dans Gymbro) et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>.</span></label>
       <label class="pro-accord case-accord"><input type="checkbox" id="compte-accord-sante"> <span>J'accepte que mes données de santé (poids, mensurations, repas, séances) soient enregistrées sur mon compte pour faire fonctionner l'appli.</span></label>
       </div>
-      <p class="note" id="note-compte"></p>
+      <p class="note" id="note-compte" role="status"></p>
       <div style="display:flex; gap:10px;">
-        <button class="btn btn-primary" style="flex:1;" onclick="connexionOuCreerCompte()">Se connecter</button>
+        <button class="btn btn-primary" style="flex:1;" id="compte-bouton" onclick="connexionOuCreerCompte()">Se connecter</button>
       </div>
-      <p class="note note-explicative" style="margin-top:12px;">Première visite ? Choisis une adresse et un mot de passe : ton compte se crée tout seul.</p>
+      <div class="compte-liens" id="compte-liens-connexion">
+        <button type="button" class="lien" onclick="motDePasseOublie()">Mot de passe oublié ?</button>
+        <button type="button" class="lien" onclick="choisirModeCompte('creation')">Créer un compte</button>
+      </div>
+      <div class="compte-liens hidden" id="compte-liens-creation">
+        <button type="button" class="lien" onclick="choisirModeCompte('connexion')">J'ai déjà un compte</button>
+      </div>
     </div>
 
     <div id="compte-connecte" class="hidden">
@@ -6416,6 +6425,7 @@
         <label style="display:block;font-weight:700;font-size:0.72rem;margin-bottom:6px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;">Connecté en tant que</label>
         <p style="margin:0; font-weight:700;" id="compte-email"></p>
       </div>
+      <button class="btn btn-secondaire" style="width:100%; margin-bottom:10px;" onclick="ouvrirChangementMdp()">Changer mon mot de passe</button>
       <button class="btn btn-secondaire" style="width:100%;" onclick="deconnexionCompte()">Se déconnecter</button>
       <p class="note compte-accord-ia" id="accord-ia-etat"></p>
       <button type="button" class="compte-supprimer" onclick="supprimerMonCompte()">Supprimer mon compte</button>
@@ -15920,106 +15930,98 @@ async function connexionCompte() {
    même pour un tout premier compte. Si l'adresse a en fait déjà un compte
    et que c'est le mot de passe qui est faux, propose de le réinitialiser
    par email plutôt que d'en créer un second. */
+/* Fenêtre de connexion, deux modes : « Se connecter » (par défaut) et
+   « Créer un compte » (nom d'utilisateur et conditions en plus). Un mot de
+   passe faux le dit simplement ; Supabase répond pareil pour une adresse
+   inconnue, d'où « Email ou mot de passe incorrect ». */
+var modeCompte = 'connexion';
+function choisirModeCompte(mode) {
+  modeCompte = mode === 'creation' ? 'creation' : 'connexion';
+  const creation = modeCompte === 'creation';
+  document.getElementById('compte-pseudo-wrap').classList.toggle('hidden', !creation);
+  document.getElementById('compte-accord-wrap').classList.toggle('hidden', !creation);
+  document.getElementById('compte-liens-connexion').classList.toggle('hidden', creation);
+  document.getElementById('compte-liens-creation').classList.toggle('hidden', !creation);
+  document.getElementById('compte-bouton').textContent = creation ? 'Créer mon compte' : 'Se connecter';
+  document.getElementById('compte-mdp-input').setAttribute('autocomplete', creation ? 'new-password' : 'current-password');
+  if (!creation) ['compte-accord-conditions', 'compte-accord-sante'].forEach(id => { document.getElementById(id).checked = false; });
+  const note = document.getElementById('note-compte');
+  if (note) note.textContent = '';
+}
 async function connexionOuCreerCompte() {
   if (!supa) { alert("Renseigne d'abord l'URL et la clé du projet Supabase (section Synchronisation) : la connexion utilise le même projet."); return; }
+  if (modeCompte === 'creation') return creerCompte();
   const email = (document.getElementById('compte-email-input').value || '').trim();
   const mdp = document.getElementById('compte-mdp-input').value || '';
   const note = document.getElementById('note-compte');
-  if (!email || !mdp) { if (note) note.textContent = 'Renseigne une adresse et un mot de passe.'; return; }
-
+  if (!email || !mdp) { if (note) note.textContent = 'Renseigne ton adresse email et ton mot de passe.'; return; }
   if (note) note.textContent = 'Connexion en cours…';
   try {
     const { error } = await supa.auth.signInWithPassword({ email, password: mdp });
-    if (!error) {
-      if (note) note.textContent = '';
-      document.getElementById('compte-mdp-input').value = '';
-      return;
-    }
-    // Supabase renvoie volontairement la même erreur générique ("Invalid
-    // login credentials") que l'adresse soit inconnue OU que le mot de
-    // passe soit faux, pour ne pas révéler quelles adresses ont un compte.
-    // On ne peut donc distinguer les deux cas qu'en tentant signUp() ensuite :
-    // sur une adresse qui a déjà un compte confirmé, signUp() ne crée rien
-    // et renvoie identities vide plutôt qu'une erreur.
-    if (!/invalid login credentials/i.test(error.message || '')) throw error;
-  } catch (e) { if (note) note.textContent = messageAuth(e); return; }
-
-  // Nouveau compte probable (identifiants inconnus) : un nom d'utilisateur
-  // est demandé AVANT la création — on ne peut pas savoir à coup sûr si
-  // c'est un nouveau compte ou un mot de passe faux, d'où le message.
-  // Tant que la case est cachée, ce qu'elle contient ne compte pas : le
-  // remplissage automatique de Safari y mettait l'email, refusé comme nom
-  // d'utilisateur sans que la case apparaisse — impossible de créer un compte.
-  const wrapPseudo = document.getElementById('compte-pseudo-wrap');
-  const champPseudo = document.getElementById('compte-pseudo-input');
-  const caseCachee = wrapPseudo.classList.contains('hidden');
-  if (caseCachee || /@/.test(champPseudo.value)) champPseudo.value = '';
-  const pseudoSaisi = normaliserPseudo(champPseudo.value);
-  const cases = ['compte-accord-conditions', 'compte-accord-sante'].map(id => document.getElementById(id));
-  if (caseCachee) cases.forEach(c => { c.checked = false; });
-  if (!pseudoSaisi) {
-    wrapPseudo.classList.remove('hidden');
-    document.getElementById('compte-accord-wrap').classList.remove('hidden');
-    if (note) note.textContent = "Identifiants inconnus. Nouveau compte ? Choisis un nom d'utilisateur ci-dessus puis appuie à nouveau sur le bouton. Sinon, vérifie ton mot de passe.";
-    champPseudo.focus();
-    return;
+    if (error) throw error;
+    if (note) note.textContent = '';
+    document.getElementById('compte-mdp-input').value = '';
+  } catch (e) {
+    if (note) note.textContent = /invalid login credentials/i.test((e && e.message) || '') ? 'Email ou mot de passe incorrect.' : messageAuth(e);
   }
+}
+async function creerCompte() {
+  const email = (document.getElementById('compte-email-input').value || '').trim();
+  const mdp = document.getElementById('compte-mdp-input').value || '';
+  const note = document.getElementById('note-compte');
+  const champPseudo = document.getElementById('compte-pseudo-input');
+  // Le remplissage automatique de Safari mettait parfois l'email dans le nom.
+  if (/@/.test(champPseudo.value)) champPseudo.value = '';
+  const pseudoSaisi = normaliserPseudo(champPseudo.value);
+  if (!email || !mdp) { if (note) note.textContent = 'Renseigne une adresse email et un mot de passe.'; return; }
+  if (mdp.length < 6) { if (note) note.textContent = 'Mot de passe trop court (6 caractères minimum).'; return; }
+  if (!pseudoSaisi) { if (note) note.textContent = "Choisis un nom d'utilisateur."; champPseudo.focus(); return; }
   const errPseudo = erreurFormatPseudo(pseudoSaisi);
   if (errPseudo) { if (note) note.textContent = errPseudo; champPseudo.focus(); return; }
-  if (!cases.every(c => c.checked)) { if (note) note.textContent = 'Coche les deux cases pour créer ton compte.'; return; }
+  if (!['compte-accord-conditions', 'compte-accord-sante'].every(id => document.getElementById(id).checked)) { if (note) note.textContent = 'Coche les deux cases pour créer ton compte.'; return; }
   try {
     const { data: dispo, error: eDispo } = await supa.rpc('pseudo_disponible', { p: pseudoSaisi });
     if (!eDispo && dispo === false) { if (note) note.textContent = 'Ce nom d\'utilisateur est déjà pris : choisis-en un autre.'; return; }
   } catch (e) { /* SQL pas encore exécuté : le nom sera enregistré plus tard */ }
-  try { localStorage.setItem(PSEUDO_ATTENTE_LS, pseudoSaisi); } catch (e) {}
-
-  if (note) note.textContent = 'Vérification…';
-  let sonde;
+  if (note) note.textContent = 'Création du compte…';
+  let reponse;
   try {
-    sonde = await supa.auth.signUp({
+    reponse = await supa.auth.signUp({
       email, password: mdp,
-      // Sans ceci, le lien de confirmation envoyé par email renvoie vers
-      // l'URL "Site URL" configurée côté tableau de bord Supabase, qui ne
-      // pointe pas forcément vers cette appli — d'où un lien qui "ne renvoie
-      // à rien". Il faut aussi que cette URL soit dans la liste blanche
-      // "Redirect URLs" du projet Supabase (Authentication URL
-      // Configuration), sinon Supabase l'ignore et retombe sur Site URL.
+      // Le lien de confirmation reçu par email ramène ici (cette URL doit
+      // figurer dans les Redirect URLs du projet Supabase).
       options: { emailRedirectTo: urlRetourEmail(), data: { consentement: consentementActuel() } }
     });
-    if (sonde.error) throw sonde.error;
+    if (reponse.error) throw reponse.error;
   } catch (e) { if (note) note.textContent = messageAuth(e); return; }
-
-  // data.user.identities est vide quand l'adresse a déjà un compte confirmé :
-  // le mot de passe saisi est donc le vrai coupable, pas une adresse inconnue.
-  // On ne propose plus jamais "créer un compte" dans ce cas — ce serait faux
-  // et trompeur — mais la réinitialisation du mot de passe.
-  const compteExisteDeja = !!(sonde.data.user && sonde.data.user.identities && sonde.data.user.identities.length === 0);
-  if (compteExisteDeja) {
-    if (note) note.textContent = 'Adresse ou mot de passe incorrect.';
-    if (!(await demanderResetMdp(email))) return;
-    if (note) note.textContent = 'Envoi en cours…';
-    try {
-      const { error: errReset } = await supa.auth.resetPasswordForEmail(email, {
-        redirectTo: urlRetourEmail()
-      });
-      if (errReset) throw errReset;
-      if (note) note.textContent = `Email envoyé à ${email} : suis le lien pour choisir un nouveau mot de passe.`;
-    } catch (e) { if (note) note.textContent = messageAuth(e); }
+  // identities vide : l'adresse a déjà un compte (rien n'a été créé).
+  if (reponse.data.user && reponse.data.user.identities && reponse.data.user.identities.length === 0) {
+    choisirModeCompte('connexion');
+    document.getElementById('compte-mdp-input').value = '';
+    if (note) note.textContent = 'Un compte existe déjà avec cette adresse : connecte-toi, ou touche « Mot de passe oublié ? ».';
     return;
   }
-
-  // Vraiment une nouvelle adresse : le signUp() ci-dessus vient de créer le
-  // compte (impossible de demander confirmation avant : tant qu'on ignore
-  // lequel des deux cas c'est, il faut déjà avoir appelé signUp() pour le
-  // savoir).
-  if (sonde.data.session) {
-    // Confirmation par email désactivée côté Supabase : le compte est
-    // actif immédiatement, la session est déjà valide.
+  try { localStorage.setItem(PSEUDO_ATTENTE_LS, pseudoSaisi); } catch (e) {}
+  if (reponse.data.session) {
+    // Confirmation par email désactivée côté Supabase : le compte est actif.
     if (note) note.textContent = '';
     document.getElementById('compte-mdp-input').value = '';
   } else {
     if (note) note.textContent = 'Compte créé : vérifie ta boîte mail pour confirmer ton adresse, puis reviens te connecter avec ce même mot de passe.';
   }
+}
+async function motDePasseOublie() {
+  const email = (document.getElementById('compte-email-input').value || '').trim();
+  const note = document.getElementById('note-compte');
+  if (!supa) return;
+  if (!email) { if (note) note.textContent = 'Tape d\'abord ton adresse email, puis touche « Mot de passe oublié ? ».'; document.getElementById('compte-email-input').focus(); return; }
+  if (!(await demanderResetMdp(email))) return;
+  if (note) note.textContent = 'Envoi en cours…';
+  try {
+    const { error } = await supa.auth.resetPasswordForEmail(email, { redirectTo: urlRetourEmail() });
+    if (error) throw error;
+    if (note) note.textContent = `Email envoyé à ${email} : suis le lien pour choisir un nouveau mot de passe.`;
+  } catch (e) { if (note) note.textContent = messageAuth(e); }
 }
 
 /* Conditions d'utilisation et consentement aux données de santé (RGPD,
@@ -19578,7 +19580,7 @@ function demanderResetMdp(email) {
   const modal = document.getElementById('modal-creer-compte');
   const texte = document.getElementById('creer-compte-texte');
   if (!modal) return Promise.resolve(false);
-  if (texte) texte.innerHTML = `Le mot de passe saisi ne correspond pas au compte <strong>${escapeHtml(email)}</strong>.<br><br>Recevoir un email pour en choisir un nouveau ?`;
+  if (texte) texte.innerHTML = `Recevoir à <strong>${escapeHtml(email)}</strong> un email pour choisir un nouveau mot de passe ?`;
   modal.classList.add('show');
   majCoucheOuverte();
   return new Promise(res => { confirmCompteResolve = res; });
@@ -19605,6 +19607,7 @@ async function validerNouveauMdp() {
     fermerModal('modal-nouveau-mdp');
     document.getElementById('nouveau-mdp-input').value = '';
     if (note) note.textContent = '';
+    nouveauMdpDepuisCompte = false;
     alert('Mot de passe mis à jour : tu es connecté avec ce nouveau mot de passe.');
   } catch (e) { if (note) note.textContent = messageAuth(e); }
 }
@@ -19612,9 +19615,16 @@ async function validerNouveauMdp() {
 // Le lien reçu par email ouvre une session de récupération temporaire :
 // annuler doit la refermer, sinon l'appareil resterait connecté sans que
 // la personne ait choisi de nouveau mot de passe ni reconnu ce compte.
+var nouveauMdpDepuisCompte = false;
+function ouvrirChangementMdp() {
+  nouveauMdpDepuisCompte = true;
+  document.getElementById('note-nouveau-mdp').textContent = '';
+  ouvrirModal('modal-nouveau-mdp');
+}
 function annulerNouveauMdp() {
   fermerModal('modal-nouveau-mdp');
   document.getElementById('nouveau-mdp-input').value = '';
+  if (nouveauMdpDepuisCompte) { nouveauMdpDepuisCompte = false; return; }
   try { supa.auth.signOut(); } catch (e) {}
 }
 
