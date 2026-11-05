@@ -3917,6 +3917,12 @@
     /* Pendant l'écran de démarrage : la couleur de son fond. */
     html.spl-actif .bord-haut { background: #fff; }
     html.spl-actif[data-theme="dark"] .bord-haut { background: #0a0a0b; }
+    /* App iPhone : ce flou sous l'heure est celui de Safari (appli web
+       installée), pas celui de l'app : la grille monte jusqu'en haut, bande
+       comprise (toujours opaque : ce qui défile passe dessous). */
+    html.app-ios:root body::before { -webkit-mask-image: none; mask-image: none; }
+    html.app-ios:not(.spl-actif) .bord-haut {
+      background: linear-gradient(var(--grille) 1px, transparent 1px) 0 0/100% 32px, linear-gradient(90deg, var(--grille) 1px, transparent 1px) 0 0/32px 100%, var(--bg); }
     html:root .app-bar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
     html:root :is(.titre-ecran, .titre-section, .salut b, .anneaux-centre h1, .reste-kcal, .heros-puces b, .carte-stats-valeur b, .eau-texte, .meal-title, .meal-kcals, .cle-val, .feuille-titre, .modal-entete h3, .semaine-num b) {
       font-family: 'Manrope', 'Inter', sans-serif; }
@@ -4326,9 +4332,24 @@
     html:root body #ecran-repas .meal-card--vide { background: transparent !important; box-shadow: inset 0 0 0 1px var(--ligne) !important; }
     html:root body .meal-title { font-weight: 700 !important; }
 
-    /* ---------- Barre d'onglets : pleine, sans halo ; le + en négatif ---------- */
-    html:root body .onglets { background: var(--s1) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
-      box-shadow: 0 0 0 1px var(--ligne), 0 12px 32px -14px rgba(0,0,0,.45) !important; border: 0 !important; }
+    /* ---------- Barre d'onglets en verre liquide ; le + en négatif ----------
+       Peu teintée et peu floutée : ce qui défile dessous la traverse,
+       adouci ; reflet en haut, liseré clair sur le bord. */
+    html:root body .onglets { background: color-mix(in srgb, var(--s1) 24%, transparent) !important;
+      -webkit-backdrop-filter: blur(7px) saturate(2) brightness(1.06) !important; backdrop-filter: blur(7px) saturate(2) brightness(1.06) !important;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,.85), inset 0 -1px 1px rgba(255,255,255,.35), inset 0 0 0 .5px rgba(255,255,255,.5),
+        0 0 0 .5px rgba(0,0,0,.08), 0 10px 30px -10px rgba(16,24,40,.3) !important; border: 0 !important; isolation: isolate; }
+    html:root body .onglets::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,.38), rgba(255,255,255,0) 52%), radial-gradient(120% 90% at 50% 120%, rgba(255,255,255,.18), transparent 60%); }
+    html:root[data-theme="dark"] body .onglets { background: color-mix(in srgb, var(--s1) 40%, transparent) !important;
+      -webkit-backdrop-filter: blur(7px) saturate(1.8) brightness(.9) !important; backdrop-filter: blur(7px) saturate(1.8) brightness(.9) !important;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,.22), inset 0 -1px 1px rgba(255,255,255,.07), inset 0 0 0 .5px rgba(255,255,255,.14),
+        0 0 0 .5px rgba(0,0,0,.6), 0 14px 34px -12px rgba(0,0,0,.7) !important; }
+    html:root[data-theme="dark"] body .onglets::before { background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,0) 50%); }
+    /* Sans flou (navigateur, peu de mémoire, transparence réduite) : barre
+       pleine, sinon illisible. */
+    html.sans-verre body .onglets, html.flou-leger body .onglets { background: var(--s1) !important; }
+    @media (prefers-reduced-transparency: reduce) { html:root body .onglets { background: var(--s1) !important; } }
     html:root body .onglet { color: var(--t3) !important; }
     html:root body .onglet.actif { background: transparent !important; color: var(--text) !important; }
     html:root body .onglet.actif .icone-ui { stroke: currentColor !important; }
