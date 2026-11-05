@@ -4723,9 +4723,7 @@
     html.app-ios:root body :is(#total-kcals, .reste-kcal, .carte-stats-valeur b, .eau-texte, .hx-geant, .cardio-gros, .bt-n, .pg-tuile b, .pg-pas-tete b, .cg b,
       .sh-chrono, .mc-r b, .meal-kcals, .heros-puces b, .cle-val, .stats-valeur, .bilan-geant b, .bilan-tuile b, .repos-chrono, .pave-val, .semaine-jour b, .niveau-t b) {
       font-family: ui-rounded, 'SF Pro Rounded', var(--police) !important; letter-spacing: -.01em !important; }
-    /* « 30 séries » : un chiffre plein, sans dégradé. */
-    html.app-ios:root body .hx-geant { background: none !important; -webkit-background-clip: border-box !important; background-clip: border-box !important;
-      color: var(--text) !important; -webkit-text-fill-color: currentColor; font-weight: 700 !important; }
+    /* Les gros chiffres gardent leur fondu vers le bas (« 30 séries », …). */
     /* Les plus petits textes passent à 11 px, le minimum d'Apple. */
     html.app-ios:root body :is(.semaine-barres div, .semaine-lettre, .pave-champ > small, .obj-cibles span, .serie-prec small, .med em) { font-size: max(11px, 1em) !important; }
 
