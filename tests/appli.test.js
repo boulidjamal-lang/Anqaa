@@ -2654,7 +2654,7 @@ test('Repas du jour : « 62/1 821 kcal » et la roulette Pas / Hydratation / Poi
   await page.waitForFunction(() => document.querySelector('#cartes-stats-repas > .actif').id === 'carte-stats-pas');
 }));
 
-test('Repas du jour : un repas se replie et se déplie par son en-tête, et le reste', () => avecAppli({}, async ({ page }) => {
+test('Repas du jour : un repas se replie et se déplie par son en-tête, et le reste', () => avecAppli({ https: true }, async ({ page }) => {
   await page.evaluate(() => {
     const j = getDay(todayStr());
     j.meals[MEALS[0]].push({ name: 'Pain', grams: 80, kcal: 200, p: 7, c: 40, f: 2 }, { name: 'Beurre', grams: 10, kcal: 74, p: 0, c: 0, f: 8 });
@@ -4117,6 +4117,8 @@ test('habillage sobre : accent noir (blanc en sombre), silhouettes en couleur av
   });
   const clair = await lire();
   await page.evaluate(() => choisirTheme('dark'));
+  // Le changement de thème passe en fondu : on lit les couleurs une fois arrivées.
+  await page.waitForTimeout(600);
   const sombre = await lire();
   assert.deepEqual(clair, { primaire: '#0b0b0c', sdj: 'rgb(219, 39, 119)', programme: 'rgb(219, 39, 119)', neutre: 'rgb(212, 212, 218)' });
   assert.deepEqual(sombre, { primaire: '#f5f5f7', sdj: 'rgb(244, 114, 182)', programme: 'rgb(244, 114, 182)', neutre: 'rgb(46, 46, 51)' });
@@ -4406,7 +4408,24 @@ test('app iOS : le scanner du téléphone remplace la caméra du navigateur', ()
   const r = await page.evaluate(() => ({ code: window.__codeCherche, champ: document.getElementById('manual-barcode-input').value,
     lecteur: getComputedStyle(document.getElementById('reader')).display, fenetre: document.getElementById('barcode-modal').classList.contains('show') }));
   assert.deepEqual(r, { code: '3017620422003', champ: '3017620422003', lecteur: 'none', fenetre: true });
-  assert.equal((await appelsDe(page, 'CapacitorBarcodeScanner', 'scanBarcode'))[0].o.hint, 17);
+  // Tous les réglages que le module natif exige (sans scanOrientation, il refusait le scan).
+  assert.deepEqual((await appelsDe(page, 'CapacitorBarcodeScanner', 'scanBarcode'))[0].o,
+    { hint: 17, scanInstructions: 'Vise le code-barres du produit', scanButton: false, scanText: ' ', cameraDirection: 1, scanOrientation: 1 });
+  // Refus du module : fermé (rien), caméra refusée, autre erreur (dite, jamais silencieuse).
+  const messages = [];
+  for (const [codeErreur, message] of [['OS-PLUG-BARC-0006', 'Couldn’t scan because the process was cancelled.'],
+    ['OS-PLUG-BARC-0007', 'Couldn’t scan because camera access wasn’t provided.'], ['OS-PLUG-BARC-0008', 'Scanning parameters are invalid.']]) {
+    messages.push(await page.evaluate(async ([c, m]) => {
+      const dits = [];
+      informer = t => { dits.push(t); return Promise.resolve(true); };
+      window.__reponsesNatives['CapacitorBarcodeScanner.scanBarcode'] = () => { throw Object.assign(new Error(m), { code: c }); };
+      await scannerNatif();
+      return dits;
+    }, [codeErreur, message]));
+  }
+  assert.deepEqual(messages[0], []);
+  assert.match(messages[1][0], /refusé à Askēsis : autorise-le dans Réglages › Askēsis › Appareil photo/);
+  assert.match(messages[2][0], /^Le scanner n'a pas pu s'ouvrir\. .*\(OS-PLUG-BARC-0008\)$/);
 }));
 
 test('compte : accord avant l\'IA (un refus n\'envoie rien), suppression du compte, signaler et bloquer un gymbro', () => avecAppli({}, async ({ page }) => {

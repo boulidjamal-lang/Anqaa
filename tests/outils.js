@@ -8,6 +8,10 @@ const { chromium } = require('playwright-core');
 const RACINE = path.join(__dirname, '..');
 const URL_APPLI = 'file://' + path.join(RACINE, 'index.html');
 const CHART_JS = path.join(RACINE, 'node_modules', 'chart.js', 'dist', 'chart.umd.min.js');
+// Le Chromium des tests perd parfois, au rechargement, le localStorage d'une
+// page ouverte en fichier local (file://) : les tests qui rechargent l'appli
+// la servent en https sur ce faux domaine (voir options.https).
+const HOTE_HTTPS = 'appli.test';
 
 // Chromium : CHROMIUM_PATH si défini, sinon celui préinstallé pour
 // Playwright (/opt/pw-browsers), sinon celui que Playwright connaît.
@@ -37,9 +41,17 @@ async function ouvrirAppli(navigateur, options = {}) {
   // Mouvement réduit par défaut : les chiffres s'affichent tout de suite à
   // leur valeur (pas de défilement), ce que les tests lisent aussitôt.
   const ctx = await navigateur.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1,
-    reducedMotion: options.animations ? 'no-preference' : 'reduce' });
+    reducedMotion: options.animations ? 'no-preference' : 'reduce', serviceWorkers: 'block' });
   await ctx.route(/^https?:/, r => {
-    if (/\/npm\/chart\.js@/.test(r.request().url())) return r.fulfill({ path: CHART_JS, contentType: 'application/javascript' });
+    const url = new URL(r.request().url());
+    if (/\/npm\/chart\.js@/.test(url.href)) return r.fulfill({ path: CHART_JS, contentType: 'application/javascript' });
+    // options.https : l'appli servie en https (https://appli.test/) depuis
+    // le dossier du dépôt, comme sur le site, au lieu d'un fichier local.
+    if (options.https && url.host === HOTE_HTTPS) {
+      const fichier = path.join(RACINE, decodeURIComponent(url.pathname));
+      if (fichier.startsWith(RACINE + path.sep) && fs.existsSync(fichier)) return r.fulfill({ path: fichier });
+      return r.fulfill({ status: 404, body: '' });
+    }
     return r.abort();
   });
   // La proposition « installer sur l'écran d'accueil » s'ouvre 1,2 s après
@@ -54,7 +66,7 @@ async function ouvrirAppli(navigateur, options = {}) {
   // Les fenêtres de l'appli (confirmer / informer) remplacent confirm() et
   // alert() : elles sont notées dans `dialogues` et acceptées d'office.
   await page.exposeFunction('__noterDialogue', m => { dialogues.push(m); });
-  await page.goto(URL_APPLI, { waitUntil: 'domcontentloaded' });
+  await page.goto(options.https ? `https://${HOTE_HTTPS}/index.html` : URL_APPLI, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => typeof allerA === 'function' && typeof Chart !== 'undefined');
   await page.waitForTimeout(800);
   await preparer(page, options.theme);

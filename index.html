@@ -12786,14 +12786,21 @@ async function scannerNatif() {
   if (scannerEnDemarrage) return;
   scannerEnDemarrage = true;
   try {
-    // hint 17 : tous les formats (EAN, UPC, Code 128…), la lecture native est rapide.
-    const r = await NATIF.CapacitorBarcodeScanner.scanBarcode({ hint: 17, scanInstructions: 'Vise le code-barres du produit', scanButton: false, cameraDirection: 1 });
+    // Le module natif exige tous ses réglages (sans scanOrientation, il
+    // refusait le scan sans rien ouvrir) : ceux que sa couche JS remplit
+    // d'habitude. hint 17 : tous les formats (EAN, UPC, Code 128…) ;
+    // caméra arrière (1) ; portrait (1), comme l'app.
+    const r = await NATIF.CapacitorBarcodeScanner.scanBarcode({ hint: 17, scanInstructions: 'Vise le code-barres du produit',
+      scanButton: false, scanText: ' ', cameraDirection: 1, scanOrientation: 1 });
     const code = r && String(r.ScanResult || '').trim();
     scannerEnDemarrage = false;
     if (code) await onScanSuccess(code);
   } catch (e) {
-    const texte = String((e && (e.message || e.code)) || '');
-    if (/permission|denied|autoris|refus/i.test(texte)) informer("L'appareil photo est refusé à Askēsis : autorise-le dans Réglages › Askēsis pour scanner.");
+    const code = String((e && e.code) || ''), texte = String((e && e.message) || '');
+    // Fermé par la personne (OS-PLUG-BARC-0006) : rien à dire.
+    if (/0006$/.test(code) || /cancel/i.test(texte)) return;
+    if (/0007$/.test(code) || /permission|denied|access|autoris|refus/i.test(texte)) informer("L'appareil photo est refusé à Askēsis : autorise-le dans Réglages › Askēsis › Appareil photo, puis réessaie.");
+    else informer("Le scanner n'a pas pu s'ouvrir. Tape le code-barres à la main en attendant." + (code ? ` (${code})` : ''));
   } finally {
     scannerEnDemarrage = false;
   }
