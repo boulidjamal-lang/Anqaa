@@ -4082,6 +4082,35 @@ test("bande unie en haut (contre le flou d'iOS) : couleur du fond, absente du Pr
   await page.evaluate(() => document.documentElement.classList.remove('spl-actif'));
 }));
 
+test("app iPhone : titre compact en haut quand le grand titre a défilé ; réglages marche/arrêt en interrupteurs ; pas de sélection de texte hors des champs", () => avecAppli({ natif: true }, async ({ page }) => {
+  const etat = () => page.evaluate(() => ({ compact: document.documentElement.classList.contains('titre-compact'), titre: document.getElementById('barre-titre-txt').textContent }));
+  await page.evaluate(() => { document.body.style.minHeight = '4000px'; allerA('seance'); });
+  assert.equal((await etat()).compact, false);
+  await page.evaluate(() => window.scrollTo(0, 700));
+  await page.waitForFunction(() => document.documentElement.classList.contains('titre-compact'));
+  assert.equal((await etat()).titre, 'Activité');
+  // Changer d'écran remonte en haut : plus de titre compact.
+  await page.evaluate(() => allerA('stats'));
+  assert.equal((await etat()).compact, false);
+  const r = await page.evaluate(() => {
+    const largeur = id => getComputedStyle(document.getElementById(id)).width;
+    return { interrupteurs: [...document.querySelectorAll('input.interrupteur')].map(i => i.id + ':' + i.getAttribute('role') + ':' + getComputedStyle(i).width).sort(),
+      accords: ['accord-conditions', 'accord-sante', 'compte-accord-conditions', 'compte-accord-sante'].map(largeur),
+      selection: [getComputedStyle(document.body).userSelect, getComputedStyle(document.getElementById('compte-email-input')).userSelect] };
+  });
+  assert.deepEqual(r.interrupteurs, ['ajustement-balance', 'partage-masquer-charges', 'profil-partage', 'profil-partage-direct', 'rappel-eau', 'rappel-pesee', 'rappel-proteines',
+    'rappel-seance', 'reglage-demander-rir', 'vitrine-ajustement'].map(id => id + ':switch:51px').sort());
+  // Les cases d'accord (conditions, données de santé) restent des cases.
+  assert.deepEqual(r.accords, ['22px', '22px', '22px', '22px']);
+  assert.deepEqual(r.selection, ['none', 'text']);
+}));
+
+test("site (hors app) : pas de titre compact", () => avecAppli({}, async ({ page }) => {
+  await page.evaluate(() => { document.body.style.minHeight = '4000px'; allerA('seance'); window.scrollTo(0, 700); });
+  await page.waitForTimeout(200);
+  assert.deepEqual(await page.evaluate(() => [document.documentElement.classList.contains('titre-compact'), getComputedStyle(document.getElementById('barre-titre')).display]), [false, 'none']);
+}));
+
 test("barre d'onglets : l'icône de l'onglet actif garde tous ses traits (manche de la fourchette de Repas)", () => avecAppli({}, async ({ page }) => {
   // L'onglet actif se dessine d'une couleur unie, celle du texte : tous les
   // traits sont peints. (Un dégradé calculé sur la boîte de chaque trait ne

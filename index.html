@@ -2855,6 +2855,11 @@
     .ligne-reglage + .ligne-reglage, .carte-liste > * + .ligne-reglage { border-top: 1px solid var(--trait); }
     .ligne-reglage--bouton { cursor: pointer; }
     .ligne-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+    /* « Thème » coupé en « Thèm / e » par Clair / Sombre / Auto : le libellé
+       reste entier, les boutons se resserrent. */
+    .ligne-txt--court b { white-space: nowrap; }
+    #segment-theme { flex: 0 1 auto; min-width: 0; }
+    #segment-theme button { padding-left: 10px; padding-right: 10px; }
     .ligne-txt small { font-size: .68rem; font-weight: 700; color: var(--text-muted); }
     .ligne-txt b { font-size: .92rem; font-weight: 800; letter-spacing: -.01em; overflow-wrap: anywhere; }
     .ligne-txt .puce-sync { min-height: 0; padding: 4px 0 0; }
@@ -3923,6 +3928,25 @@
     html.app-ios:root body::before { -webkit-mask-image: none; mask-image: none; }
     html.app-ios:not(.spl-actif) .bord-haut {
       background: linear-gradient(var(--grille) 1px, transparent 1px) 0 0/100% 32px, linear-gradient(90deg, var(--grille) 1px, transparent 1px) 0 0/32px 100%, var(--bg); }
+    /* App iPhone : pas de sélection de texte ni de loupe au toucher long
+       sur l'interface, comme dans une app ; les champs restent sélectionnables. */
+    html.app-ios body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+    html.app-ios :is(input, textarea, [contenteditable="true"]) { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+    /* App iPhone : titre compact, comme dans les apps d'Apple. Quand le grand
+       titre de l'écran a défilé sous l'heure, une barre en verre apparaît avec
+       le nom de l'écran en petit (voir majBarreTitre). */
+    .barre-titre { display: none; }
+    html.app-ios .barre-titre { display: flex; position: fixed; top: 0; left: 0; right: 0; z-index: 901; pointer-events: none;
+      height: calc(env(safe-area-inset-top, 0px) + 44px); padding-top: env(safe-area-inset-top, 0px); box-sizing: border-box; align-items: center; justify-content: center;
+      background: color-mix(in srgb, var(--bg) 86%, transparent); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
+      box-shadow: 0 .5px 0 var(--ligne); opacity: 0; transition: opacity .2s; }
+    html.app-ios .barre-titre span { font-family: 'Inter', -apple-system, sans-serif; font-size: 1.0625rem; font-weight: 650; letter-spacing: -.02em; color: var(--text);
+      transform: translateY(5px); transition: transform .25s cubic-bezier(.3,.9,.4,1); }
+    html.app-ios.titre-compact .barre-titre { opacity: 1; }
+    html.app-ios.titre-compact .barre-titre span { transform: none; }
+    html.app-ios body.mode-seance .barre-titre { display: none; }
+    html.sans-verre.app-ios .barre-titre, html.flou-leger.app-ios .barre-titre { background: var(--bg); }
+    @media (prefers-reduced-transparency: reduce) { html.app-ios .barre-titre { background: var(--bg); } }
     html:root .app-bar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
     html:root :is(.titre-ecran, .titre-section, .salut b, .anneaux-centre h1, .reste-kcal, .heros-puces b, .carte-stats-valeur b, .eau-texte, .meal-title, .meal-kcals, .cle-val, .feuille-titre, .modal-entete h3, .semaine-num b) {
       font-family: 'Manrope', 'Inter', sans-serif; }
@@ -4210,6 +4234,20 @@
     html:root body :is(.modal-content, .feuille-contenu) :is(.input-group input, .input-group select, .input-group textarea, #modal-cardio input) { background: var(--s3) !important; }
     html:root body :is(.input-group input, .input-group select, .input-group textarea, .serie-ligne input):focus { border-color: var(--text) !important; box-shadow: none !important; }
     html:root body input[type="checkbox"]:checked { background-color: var(--inv) !important; border-color: var(--inv) !important; background-image: none; }
+    /* Interrupteurs (réglages marche/arrêt), comme sur iPhone : la pastille
+       blanche glisse, le fond passe au vert. Dessinés en arrière-plan (pas de
+       ::before sur un champ), placés au bout de leur ligne. */
+    html:root body input[type="checkbox"].interrupteur { width: 51px !important; height: 31px; border-radius: 999px; border: 0 !important; box-shadow: none !important;
+      background: radial-gradient(circle, #fff 0 13.5px, rgba(0,0,0,.12) 14px, rgba(0,0,0,0) 15.5px) 0 50% / 31px 31px no-repeat, #e5e5ea !important;
+      transition: background-position .25s cubic-bezier(.3,.9,.4,1), background-color .25s; }
+    html:root body input[type="checkbox"].interrupteur:checked {
+      background: radial-gradient(circle, #fff 0 13.5px, rgba(0,0,0,.12) 14px, rgba(0,0,0,0) 15.5px) 20px 50% / 31px 31px no-repeat, #34c759 !important; }
+    html:root[data-theme="dark"] body input[type="checkbox"].interrupteur:not(:checked) { background-color: #39393d !important; }
+    html:root[data-theme="dark"] body input[type="checkbox"].interrupteur:checked { background-color: #30d158 !important; }
+    html:root body input[type="checkbox"].interrupteur:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 40%, transparent) !important; }
+    html:root body input[type="checkbox"].interrupteur:disabled { opacity: .5; }
+    label > input.interrupteur { order: 2; margin-left: auto !important; }
+    .obj-ajust > input.interrupteur { margin-top: 2px; }
     html:root body :is(a, .pg-lien, .lien) { color: var(--text); }
 
     /* Fenêtres et feuilles : unies, sans liseré d'aurore. */
@@ -4333,16 +4371,16 @@
     html:root body .meal-title { font-weight: 700 !important; }
 
     /* ---------- Barre d'onglets en verre liquide ; le + en négatif ----------
-       Peu teintée et peu floutée : ce qui défile dessous la traverse,
-       adouci ; reflet en haut, liseré clair sur le bord. */
-    html:root body .onglets { background: color-mix(in srgb, var(--s1) 24%, transparent) !important;
-      -webkit-backdrop-filter: blur(7px) saturate(2) brightness(1.06) !important; backdrop-filter: blur(7px) saturate(2) brightness(1.06) !important;
+       À moitié teintée : ce qui défile dessous la traverse, adouci, sans
+       gêner les icônes ; reflet en haut, liseré clair sur le bord. */
+    html:root body .onglets { background: color-mix(in srgb, var(--s1) 52%, transparent) !important;
+      -webkit-backdrop-filter: blur(12px) saturate(2) brightness(1.08) !important; backdrop-filter: blur(12px) saturate(2) brightness(1.08) !important;
       box-shadow: inset 0 1px 1px rgba(255,255,255,.85), inset 0 -1px 1px rgba(255,255,255,.35), inset 0 0 0 .5px rgba(255,255,255,.5),
         0 0 0 .5px rgba(0,0,0,.08), 0 10px 30px -10px rgba(16,24,40,.3) !important; border: 0 !important; isolation: isolate; }
     html:root body .onglets::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
       background: linear-gradient(180deg, rgba(255,255,255,.38), rgba(255,255,255,0) 52%), radial-gradient(120% 90% at 50% 120%, rgba(255,255,255,.18), transparent 60%); }
-    html:root[data-theme="dark"] body .onglets { background: color-mix(in srgb, var(--s1) 40%, transparent) !important;
-      -webkit-backdrop-filter: blur(7px) saturate(1.8) brightness(.9) !important; backdrop-filter: blur(7px) saturate(1.8) brightness(.9) !important;
+    html:root[data-theme="dark"] body .onglets { background: color-mix(in srgb, var(--s1) 58%, transparent) !important;
+      -webkit-backdrop-filter: blur(12px) saturate(1.8) brightness(.85) !important; backdrop-filter: blur(12px) saturate(1.8) brightness(.85) !important;
       box-shadow: inset 0 1px 1px rgba(255,255,255,.22), inset 0 -1px 1px rgba(255,255,255,.07), inset 0 0 0 .5px rgba(255,255,255,.14),
         0 0 0 .5px rgba(0,0,0,.6), 0 14px 34px -12px rgba(0,0,0,.7) !important; }
     html:root[data-theme="dark"] body .onglets::before { background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,0) 50%); }
@@ -4822,6 +4860,7 @@
 </script>
 
 <div class="bord-haut" aria-hidden="true"></div>
+<div class="barre-titre" id="barre-titre" aria-hidden="true"><span id="barre-titre-txt"></span></div>
 
 <!-- Halo d'ambiance : s'allume seulement près de l'objectif, puis au dépassement -->
 <div class="etat-bg" id="etat-bg" aria-hidden="true"></div>
@@ -5386,7 +5425,7 @@
       </div>
       <p class="note note-explicative" style="margin:10px 0 0;">Reste actif jusqu'à ce que tu le changes — l'historique passé n'est jamais réécrit.</p>
       <p class="note hidden" style="margin:10px 0 0;" id="note-recomposition"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M8 16H3v5" /></svg> Calories du maintien, protéines de sèche : prendre du muscle et perdre du gras à la fois, si tu progresses encore en charge.</p>
-      <label class="partage-option" style="margin:12px 0 0;"><input type="checkbox" id="ajustement-balance" checked onchange="basculerAjustementBalance(this.checked)"> Ajuster mon objectif d'après ma balance</label>
+      <label class="partage-option" style="margin:12px 0 0;"><input type="checkbox" class="interrupteur" role="switch" id="ajustement-balance" checked onchange="basculerAjustementBalance(this.checked)"> Ajuster mon objectif d'après ma balance</label>
       <p class="note note-explicative" id="note-ajustement-profil" style="margin:4px 0 0;">Chaque lundi, tes repas notés et tes pesées des 4 dernières semaines corrigent la formule.</p>
     </div>
 
@@ -6521,11 +6560,11 @@
       </div>
       <p class="note hidden" id="profil-perso-note" style="margin:0 0 12px;">Ta photo et ta bio ne sont visibles que par tes gymbros acceptés.</p>
       <label class="hidden" style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:600; margin:10px 0 0; cursor:pointer;">
-        <input type="checkbox" id="profil-partage" style="width:auto;" onchange="basculerPartageSeances(this.checked)">
+        <input type="checkbox" class="interrupteur" role="switch" id="profil-partage" style="width:auto;" onchange="basculerPartageSeances(this.checked)">
         Partager mes séances avec mes gymbros
       </label>
       <label class="hidden" style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:600; margin:10px 0 0; cursor:pointer;">
-        <input type="checkbox" id="profil-partage-direct" style="width:auto;" onchange="basculerPartageDirect(this.checked)">
+        <input type="checkbox" class="interrupteur" role="switch" id="profil-partage-direct" style="width:auto;" onchange="basculerPartageDirect(this.checked)">
         Montrer ma séance en cours à mes gymbros
       </label>
     </div>
@@ -6580,22 +6619,22 @@
       <div class="ligne-reglage rappel-ligne">
         <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.4 15.63a7.875 6 135 1 1 6.23-6.23 4.5 3.43 135 0 0-6.23 6.23" /><path d="m8.29 12.71-2.6 2.6a2.5 2.5 0 1 0-1.65 4.65A2.5 2.5 0 1 0 8.7 18.3l2.59-2.59" /></svg></span>
         <span class="ligne-txt"><b>Protéines</b><small>Si tu es en retard</small></span>
-        <input type="time" class="rappel-heure" id="rappel-heure-proteines" value="18:00" onchange="changerRappel('proteines')" aria-label="Heure du rappel : protéines"><input type="checkbox" id="rappel-proteines" onchange="changerRappel('proteines')" aria-label="Rappel : protéines">
+        <input type="time" class="rappel-heure" id="rappel-heure-proteines" value="18:00" onchange="changerRappel('proteines')" aria-label="Heure du rappel : protéines"><input type="checkbox" class="interrupteur" role="switch" id="rappel-proteines" onchange="changerRappel('proteines')" aria-label="Rappel : protéines">
       </div>
       <div class="ligne-reglage rappel-ligne">
         <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z" /><path d="m2.5 21.5 1.4-1.4" /><path d="m20.1 3.9 1.4-1.4" /><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z" /><path d="m9.6 14.4 4.8-4.8" /></svg></span>
         <span class="ligne-txt"><b>Séance prévue</b><small>2 h après son heure, si pas faite</small></span>
-        <input type="checkbox" id="rappel-seance" onchange="changerRappel('seance')" aria-label="Rappel : séance prévue">
+        <input type="checkbox" class="interrupteur" role="switch" id="rappel-seance" onchange="changerRappel('seance')" aria-label="Rappel : séance prévue">
       </div>
       <div class="ligne-reglage rappel-ligne">
         <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="3" /><path d="M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z" /></svg></span>
         <span class="ligne-txt"><b>Pesée</b><small>Après 7 jours sans pesée</small></span>
-        <input type="time" class="rappel-heure" id="rappel-heure-pesee" value="08:00" onchange="changerRappel('pesee')" aria-label="Heure du rappel : pesée"><input type="checkbox" id="rappel-pesee" onchange="changerRappel('pesee')" aria-label="Rappel : pesée">
+        <input type="time" class="rappel-heure" id="rappel-heure-pesee" value="08:00" onchange="changerRappel('pesee')" aria-label="Heure du rappel : pesée"><input type="checkbox" class="interrupteur" role="switch" id="rappel-pesee" onchange="changerRappel('pesee')" aria-label="Rappel : pesée">
       </div>
       <div class="ligne-reglage rappel-ligne">
         <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" /></svg></span>
         <span class="ligne-txt"><b>Hydratation</b><small>Moins de la moitié bue</small></span>
-        <input type="time" class="rappel-heure" id="rappel-heure-eau" value="16:00" onchange="changerRappel('eau')" aria-label="Heure du rappel : hydratation"><input type="checkbox" id="rappel-eau" onchange="changerRappel('eau')" aria-label="Rappel : hydratation">
+        <input type="time" class="rappel-heure" id="rappel-heure-eau" value="16:00" onchange="changerRappel('eau')" aria-label="Heure du rappel : hydratation"><input type="checkbox" class="interrupteur" role="switch" id="rappel-eau" onchange="changerRappel('eau')" aria-label="Rappel : hydratation">
       </div>
     </div>
     <p class="note reglages-note seulement-ios">Sur ce téléphone, recalculés à chaque saisie : un rappel devenu inutile ne sonne pas.</p>
@@ -6604,7 +6643,7 @@
     <div class="carte-liste">
       <div class="ligne-reglage">
         <span class="action-ic"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 18a6 6 0 0 0 0-12v12z" /></svg></span>
-        <span class="ligne-txt"><b>Thème</b></span>
+        <span class="ligne-txt ligne-txt--court"><b>Thème</b></span>
         <div class="segment" id="segment-theme">
         <button type="button" onclick="choisirTheme('light')" aria-pressed="false">Clair</button>
         <button type="button" onclick="choisirTheme('dark')" aria-pressed="false">Sombre</button>
@@ -6661,7 +6700,7 @@
       <button class="close-modal" onclick="fermerModal('partage-stats-modal')" aria-label="Fermer">&times;</button>
     </div>
     <div class="partage-apercu"><img id="partage-stats-img" alt="Aperçu de l'image à partager"></div>
-    <label class="partage-option"><input type="checkbox" id="partage-masquer-charges" onchange="genererImagePartage()"> Masquer les charges (kg)</label>
+    <label class="partage-option"><input type="checkbox" class="interrupteur" role="switch" id="partage-masquer-charges" onchange="genererImagePartage()"> Masquer les charges (kg)</label>
     <div class="ia-prog-nav">
       <button type="button" class="btn btn-secondaire" onclick="enregistrerImagePartage()">Enregistrer</button>
       <button type="button" class="btn btn-primary" id="btn-partager-stats" onclick="partagerImageStats()">Partager</button>
@@ -6688,7 +6727,7 @@
       <button type="button" class="btn btn-secondaire" style="margin-top:10px;" onclick="reinitialiserZonesPerso()">Revenir aux valeurs par défaut</button>
     </div>
     <div id="muscu-reglages-increments" class="hidden">
-      <label class="partage-option" style="margin-bottom:6px;"><input type="checkbox" id="reglage-demander-rir" onchange="modifierDemandeRir(this.checked)"> Demander le RIR après chaque série</label>
+      <label class="partage-option" style="margin-bottom:6px;"><input type="checkbox" class="interrupteur" role="switch" id="reglage-demander-rir" onchange="modifierDemandeRir(this.checked)"> Demander le RIR après chaque série</label>
       <p class="note" style="margin:0 2px 14px;">Après chaque série cochée, une bande te demande combien de reps il te restait. Facultatif.</p>
       <div class="fiche-bloc-titre">Repos entre les séries</div>
       <div class="segment" id="reglage-repos-defaut" role="group" aria-label="Repos par défaut" style="margin-bottom:6px;">
@@ -15049,6 +15088,7 @@ function allerA(nom) {
   majModeSeance();
   window.scrollTo({ top: 0, behavior: 'auto' });
   reduireAppBar(false);
+  majBarreTitre();
   if (nom === 'stats') { prepareStats(); }
   if (nom === 'seance') { renderSeance(); choisirModeSeance(modeSeance, true); renderRangeesGymbros(); chargerFilGymbros(); chargerDirect(); }
   if (nom === 'repas') { majNoteCleIA(); renderPremiersPas(); }
@@ -15085,6 +15125,31 @@ window.addEventListener('scroll', () => {
   if (appBarScrollEnAttente) return;
   appBarScrollEnAttente = true;
   requestAnimationFrame(onScrollAppBar);
+}, { passive: true });
+
+/* App iPhone : titre compact (voir .barre-titre). Repère : le grand titre de
+   l'écran (sur Repas, « Bonjour ») ; dès que son bas passe sous la barre, le
+   nom de l'écran s'affiche en petit en haut. */
+var NOMS_BARRE_TITRE = { repas: 'Repas', seance: 'Activité', stats: 'Progrès', reglages: 'Profil' };
+var barreTitreEnAttente = false;
+function majBarreTitre() {
+  barreTitreEnAttente = false;
+  if (!NATIF || !NOMS_BARRE_TITRE) return;
+  const barre = document.getElementById('barre-titre'), nom = NOMS_BARRE_TITRE[ecranActif];
+  const sec = document.getElementById('ecran-' + ecranActif);
+  const repere = !nom ? null : ecranActif === 'repas' ? document.getElementById('salut-nom') : sec && sec.querySelector('.titre-ecran');
+  let compact = false;
+  if (barre && repere) {
+    const r = repere.getBoundingClientRect();
+    compact = (window.scrollY || 0) > 4 && r.height > 0 && r.bottom < barre.getBoundingClientRect().bottom;
+    if (compact) document.getElementById('barre-titre-txt').textContent = nom;
+  }
+  document.documentElement.classList.toggle('titre-compact', compact);
+}
+window.addEventListener('scroll', () => {
+  if (barreTitreEnAttente) return;
+  barreTitreEnAttente = true;
+  requestAnimationFrame(majBarreTitre);
 }, { passive: true });
 
 /* Garde des fonctions IA : sans clé liée au compte, leurs boutons sont
@@ -28333,7 +28398,7 @@ function renderVitrineProfil() {
     <div class="vitrine-sec"><h3>Mon objectif</h3></div>
     <div class="carte-objectifs"><div class="obj-tuiles">${tuile('seche', 'Sèche', 'bas', 'linear-gradient(135deg,#22d3ee,#0ea5e9)')}${tuile('maintien', 'Maintien', 'cible', 'linear-gradient(135deg,#34d399,#10b981)')}${tuile('masse', 'Masse', 'haut', 'linear-gradient(135deg,#fbbf24,#f97316)')}${tuile('recomposition', 'Recompo', 'recomp', 'linear-gradient(135deg,#a78bfa,#6366f1)')}</div>
       <div class="obj-cibles"><span><b>${nombreFr(t.target)}</b> kcal</span><span><b>${t.protein}</b> g prot.</span><span><b>${t.carbs}</b> g gluc.</span><span><b>${t.fat}</b> g lip.</span></div>
-      ${accesPro() ? `<label class="obj-ajust"><input type="checkbox" id="vitrine-ajustement"${ajustementActif() ? ' checked' : ''} onchange="basculerAjustementBalance(this.checked)"><span><b>Ajuster d'après ma balance</b><small>${escapeHtml(texteAjustement())}</small></span></label>`
+      ${accesPro() ? `<label class="obj-ajust"><input type="checkbox" class="interrupteur" role="switch" id="vitrine-ajustement"${ajustementActif() ? ' checked' : ''} onchange="basculerAjustementBalance(this.checked)"><span><b>Ajuster d'après ma balance</b><small>${escapeHtml(texteAjustement())}</small></span></label>`
         : `<button type="button" class="obj-ajust obj-ajust--pro" id="vitrine-ajustement-pro" onclick="ouvrirPro('ajustement')"><span class="obj-ajust-ic">${svgV('cadenas')}</span><span><b>Ajuster d'après ma balance<span class="pastille-pro">Pro</span></b><small>${escapeHtml(texteAjustement())}</small></span></button>`}</div>`;
   animerComptes(c);
   // En bas de la page : le niveau en détail, puis les badges.
