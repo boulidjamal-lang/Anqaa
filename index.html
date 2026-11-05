@@ -4836,6 +4836,12 @@
     html.app-ios body #meals-container .btn-delete { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important;
       overflow: hidden !important; clip-path: inset(50%) !important; white-space: nowrap; border: 0 !important; }
 
+    /* iOS 26 et plus : la vraie barre d'iOS remplace celle de la page (voir
+       initOngletsNatifs) ; l'espace du bas et ce qui flotte au-dessus se
+       règlent sur elle (sa hauteur est dans la zone sûre du bas). */
+    html.onglets-natifs body :is(.onglets, .bandeau-seance-flottant) { display: none !important; }
+    html.onglets-natifs body { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important; }
+    html.onglets-natifs body :is(.toast-annuler, .duo-invit) { bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important; }
     /* Barre d'onglets du site (avant iOS 26) : l'onglet choisi dans une bulle. */
     html.app-ios body .onglet.actif { background: var(--ios-remplir) !important; border-radius: 999px !important; }
   </style>
@@ -15237,6 +15243,7 @@ function allerA(nom) {
   window.scrollTo({ top: 0, behavior: 'auto' });
   reduireAppBar(false);
   majBarreTitre();
+  if (ONGLETS_NATIFS) { appelOnglets('selectionner', { nom }); majOngletsNatifs(); }
   if (nom === 'stats') { prepareStats(); }
   if (nom === 'seance') { renderSeance(); choisirModeSeance(modeSeance, true); renderRangeesGymbros(); chargerFilGymbros(); chargerDirect(); }
   if (nom === 'repas') { majNoteCleIA(); renderPremiersPas(); }
@@ -15314,6 +15321,50 @@ function fermerCoucheDepuis(contenu) {
     if (bouton) bouton.click(); else fermerFeuilles();
   }
 }
+/* App iPhone, iOS 26 et plus : la vraie barre d'onglets d'iOS (verre
+   liquide, bulle de sélection qui glisse, « + » à part, séance en cours
+   posée au-dessus) remplace celle de la page (voir OngletsNatifs.swift dans
+   l'app). La page lui dit quel écran est affiché, quand se cacher (fenêtre
+   ouverte, séance en plein écran, démarrage) et ce que fait le « + ». */
+var ONGLETS_NATIFS = false, ongletsNatifsVisibles = null, ongletsPlusEtat = '';
+function appelOnglets(methode, options) {
+  if (!ONGLETS_NATIFS) return;
+  // La séance au-dessus de la barre : seulement quand elle change.
+  if (methode === 'accessoire') { const cle = JSON.stringify(options); if (cle === ongletsAccessoireEtat) return; ongletsAccessoireEtat = cle; }
+  try { Promise.resolve(NATIF.Onglets[methode](options || {})).catch(() => {}); } catch (e) {}
+}
+var ongletsAccessoireEtat = JSON.stringify({ cacher: true });
+async function initOngletsNatifs() {
+  if (!NATIF || !NATIF.Onglets) return;
+  try { const r = await NATIF.Onglets.etat(); if (!r || !r.actif) return; } catch (e) { return; }
+  ONGLETS_NATIFS = true;
+  document.documentElement.classList.add('onglets-natifs');
+  const ecouter = (nom, f) => { try { Promise.resolve(NATIF.Onglets.addListener(nom, f)).catch(() => {}); } catch (e) {} };
+  ecouter('onglet', e => { if (e && e.nom && e.nom !== ecranActif) allerA(e.nom); });
+  ecouter('retouche', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  let dernierPlus = 0;
+  ecouter('plus', () => { if (Date.now() - dernierPlus < 500) return; dernierPlus = Date.now(); actionPlus(); });
+  ecouter('accessoire', () => ouvrirSessionModal());
+  // Fenêtres, plein écran, démarrage : la barre suit les classes de la page.
+  let attente = false;
+  const suivre = () => { if (attente) return; attente = true; requestAnimationFrame(() => { attente = false; majOngletsNatifs(); }); };
+  new MutationObserver(suivre).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  new MutationObserver(suivre).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  appelOnglets('selectionner', { nom: ecranActif });
+  majOngletsNatifs();
+  majBandeauSeanceFlottant();
+}
+function majOngletsNatifs() {
+  if (!ONGLETS_NATIFS) return;
+  const tour = document.getElementById('tour-overlay');
+  const visibles = !document.body.classList.contains('couche-ouverte') && !document.body.classList.contains('mode-seance')
+    && !document.documentElement.classList.contains('spl-actif') && !(tour && !tour.classList.contains('hidden'));
+  if (visibles !== ongletsNatifsVisibles) { ongletsNatifsVisibles = visibles; appelOnglets('afficher', { visible: visibles }); }
+  // Le « + » : caché sur Progrès (on y regarde, on n'y note pas).
+  const plus = (ecranActif !== 'stats' && ecranActif !== 'admin') + '|' + (LIBELLES_PLUS[ecranActif] || 'Ajouter');
+  if (plus !== ongletsPlusEtat) { ongletsPlusEtat = plus; const [v, libelle] = plus.split('|'); appelOnglets('plus', { visible: v === 'true', libelle }); }
+}
+
 (function glisserPourFermer() {
   if (!NATIF) return;
   let g = null;
@@ -15504,7 +15555,13 @@ function appliquerTheme(choix) {
 // Plus de bouton dans l'en-tete (retiré) : seul le choix explicite dans les
 // réglages (choisirTheme, via le segment Clair/Sombre) appelle encore
 // appliquerTheme().
-function choisirTheme(t) { appliquerTheme(t); majCouleurBarreStyle(); renderVitrineProfil(); renderVitrineMuscu(); }
+function choisirTheme(t) { appliquerTheme(t); majCouleurBarreStyle(); renderVitrineProfil(); renderVitrineMuscu(); apparenceNative(); }
+// App iPhone : les éléments d'iOS (barre d'onglets, claviers, alertes) suivent le thème choisi.
+function apparenceNative() {
+  if (!NATIF || !NATIF.Onglets) return;
+  let pref = 'light'; try { pref = localStorage.getItem('elite_theme') || 'light'; } catch (e) {}
+  try { Promise.resolve(NATIF.Onglets.apparence({ style: pref === 'dark' || pref === 'auto' ? pref : 'light' })).catch(() => {}); } catch (e) {}
+}
 
 // Barre d'état du téléphone à la couleur de fond.
 function majCouleurBarreStyle() {
@@ -23156,6 +23213,38 @@ function sauvegarderSessionActive() {
   } catch (e) {}
   majRappelsRepos();
   majDirectSession();
+  majActiviteEnDirect();
+}
+/* App iPhone : la séance en cours sur l'écran verrouillé et dans la Dynamic
+   Island (activité en direct, voir ActiviteSeance.swift dans l'app) :
+   programme, chrono, exercice et série en cours, séries cochées, et le
+   compte à rebours du repos. Elle s'arrête avec la séance. */
+var activiteEnDirect = null, activiteEnDirectEtat = '';
+function majActiviteEnDirect() {
+  if (!NATIF || !NATIF.ActiviteSeance) return;
+  const s = musculationSessionActive;
+  if (!s || s.demo) {
+    if (activiteEnDirect) { activiteEnDirect = null; activiteEnDirectEtat = ''; appelNatif('ActiviteSeance', 'terminer'); }
+    return;
+  }
+  const exos = s.exercices || [];
+  const total = exos.reduce((n, e) => n + e.series.length, 0), faites = exos.reduce((n, e) => n + e.series.filter(x => x.fait).length, 0);
+  const ei = exos.findIndex(e => e.series.some(x => !x.fait)), exo = exos[ei];
+  const nomExo = exo ? (libelleExercice(trouverExercice(exo.exerciceId)) || exo.nom || 'Exercice') : '';
+  const detail = !exos.length ? 'Ajoute ton premier exercice' : !exo ? 'Toutes les séries sont cochées'
+    : `${nomExo} · série ${Math.min(exo.series.length, exo.series.filter(x => x.fait).length + 1)}/${exo.series.length}`;
+  // Le repos le plus proche de sa fin.
+  let reposFin = 0;
+  Object.keys(reposActifs).forEach(clef => {
+    const fin = Number(reposActifs[clef]) + reposCibleExo(Number(clef.split('_')[0])) * 1000;
+    if (fin > Date.now() + 1000 && (!reposFin || fin < reposFin)) reposFin = fin;
+  });
+  const etat = { titre: s.programmeNom || 'Séance libre', debut: s.debut || Date.now(), detail, seriesFaites: faites, seriesTotal: total, reposFin: reposFin || 0 };
+  const cle = JSON.stringify(etat);
+  if (cle === activiteEnDirectEtat) return;
+  activiteEnDirectEtat = cle;
+  if (activiteEnDirect !== String(etat.debut)) { activiteEnDirect = String(etat.debut); appelNatif('ActiviteSeance', 'demarrer', etat); }
+  else appelNatif('ActiviteSeance', 'maj', etat);
 }
 function sauvegarderProgrammeEnEdition() {
   // Même logique que sauvegarderSessionActive() ci-dessus : local uniquement,
@@ -23568,12 +23657,15 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 function majBandeauSeanceFlottant() {
   majVerrouEcran();
   majRappelsRepos();
+  majActiviteEnDirect();
   queueMicrotask(majBandeauInvitation);
   const el = document.getElementById('bandeau-seance-flottant');
   if (!el) return;
-  if (!musculationSessionActive || ecranActif === 'seance') { el.classList.add('hidden'); return; }
+  if (!musculationSessionActive || ecranActif === 'seance') { el.classList.add('hidden'); appelOnglets('accessoire', { cacher: true }); return; }
   el.classList.remove('hidden');
   const nbFaites = musculationSessionActive.exercices.reduce((n, e) => n + e.series.filter(s => s.fait).length, 0);
+  appelOnglets('accessoire', { titre: musculationSessionActive.programmeNom || 'Séance libre',
+    detail: `${nbFaites} ${nbFaites > 1 ? 'séries cochées' : 'série cochée'}`, depuis: musculationSessionActive.debut || Date.now() });
   // Un nom trop long se coupe (…) avant le nombre de séries, qui reste visible.
   document.getElementById('bandeau-seance-flottant-texte').innerHTML =
     `<span class="bsf-nom">${escapeHtml(musculationSessionActive.programmeNom || 'Séance libre')}</span><span class="bsf-compte">&nbsp;· ${nbFaites} ${nbFaites > 1 ? 'séries cochées' : 'série cochée'}</span>`;
@@ -31191,6 +31283,9 @@ window.addEventListener('load', () => {
   verifierSupportVerre();
   if (navigator.deviceMemory && navigator.deviceMemory <= 2) document.documentElement.classList.add('flou-leger');
   appliquerTheme(themeActuel());
+  // App iPhone : thème des éléments d'iOS, et barre d'onglets native (iOS 26 et plus).
+  apparenceNative();
+  initOngletsNatifs();
   // Hors ligne : service worker (voir sw.js), seulement servi en http(s).
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
   // Nouvelle version en ligne : bandeau « Mettre à jour » (voir verifierNouvelleVersion).

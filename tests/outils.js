@@ -81,15 +81,15 @@ function installerFauxNatif() {
   window.__appelsNatifs = [];
   window.__reponsesNatives = window.__reponsesNatives || {};
   const module = nom => new Proxy({}, {
-    get: (cible, methode) => options => {
+    get: (cible, methode) => (options, ...reste) => {
       window.__appelsNatifs.push([nom, methode, options === undefined ? null : JSON.parse(JSON.stringify(options))]);
       const r = window.__reponsesNatives[nom + '.' + methode];
-      try { return Promise.resolve(typeof r === 'function' ? r(options) : (r === undefined ? {} : r)); } catch (e) { return Promise.reject(e); }
+      try { return Promise.resolve(typeof r === 'function' ? r(options, ...reste) : (r === undefined ? {} : r)); } catch (e) { return Promise.reject(e); }
     }
   });
   const natif = { plateforme: 'ios', version: 'test', disponible: () => true };
   ['App', 'Browser', 'Filesystem', 'Haptics', 'Keyboard', 'LocalNotifications', 'ScreenOrientation', 'Share', 'SplashScreen',
-    'StatusBar', 'KeepAwake', 'CapacitorBarcodeScanner', 'Health', 'NativePurchases'].forEach(n => { natif[n] = module(n); });
+    'StatusBar', 'KeepAwake', 'CapacitorBarcodeScanner', 'Health', 'NativePurchases', 'Onglets'].forEach(n => { natif[n] = module(n); });
   window.AppNatif = natif;
 }
 

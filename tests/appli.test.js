@@ -4135,6 +4135,44 @@ test("app iPhone : une feuille se ferme en tirant sa poignée ; un aliment gliss
   assert.deepEqual(await page.evaluate(() => { const b = document.querySelector('#meals-container .btn-delete'); const r = b.getBoundingClientRect(); return [!!b, r.width <= 1]; }), [true, true]);
 }));
 
+test("app iPhone, iOS 26 et plus : la barre d'onglets native remplace celle de la page et suit l'écran, les fenêtres, le « + » et la séance en cours", () => avecAppli({ natif: true }, async ({ page }) => {
+  // Sans barre native (iOS plus ancien) : la page garde la sienne.
+  assert.equal(await page.evaluate(() => document.documentElement.classList.contains('onglets-natifs')), false);
+  await page.evaluate(async () => {
+    window.__ecouteurs = {};
+    window.__reponsesNatives['Onglets.etat'] = { actif: true };
+    window.__reponsesNatives['Onglets.addListener'] = (nom, f) => { window.__ecouteurs[nom] = f; return {}; };
+    allerA('repas');
+    window.__appelsNatifs.length = 0;
+    await initOngletsNatifs();
+  });
+  const appels = () => page.evaluate(() => window.__appelsNatifs.filter(a => a[0] === 'Onglets' && a[1] !== 'addListener').map(a => a[1] + ' ' + JSON.stringify(a[2])));
+  const pause = () => page.evaluate(() => new Promise(f => requestAnimationFrame(() => requestAnimationFrame(f))));
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.onglets')).display), 'none');
+  assert.deepEqual((await appels()).slice(0, 3), ['etat null', 'selectionner {"nom":"repas"}', 'afficher {"visible":true}']);
+  // L'écran choisi dans la page : la barre suit ; sur Progrès, pas de « + ».
+  await page.evaluate(() => { window.__appelsNatifs.length = 0; allerA('stats'); });
+  assert.deepEqual(await appels(), ['selectionner {"nom":"stats"}', 'plus {"visible":false,"libelle":"Ajouter"}']);
+  // Une feuille ouverte : la barre se cache, puis revient.
+  await page.evaluate(() => { window.__appelsNatifs.length = 0; allerA('repas'); ouvrirFeuilleRepas('lunch'); });
+  await pause();
+  assert.ok((await appels()).includes('afficher {"visible":false}'), JSON.stringify(await appels()));
+  await page.evaluate(() => { window.__appelsNatifs.length = 0; fermerFeuilles(); });
+  await pause();
+  assert.deepEqual(await appels(), ['afficher {"visible":true}']);
+  // Un onglet touché dans la barre native : la page change d'écran ; le « + » agit sur l'écran affiché.
+  await page.evaluate(() => window.__ecouteurs.onglet({ nom: 'seance' }));
+  assert.equal(await page.evaluate(() => ecranActif), 'seance');
+  await page.evaluate(() => window.__ecouteurs.plus());
+  assert.equal(await page.evaluate(() => document.getElementById('feuille-activite').classList.contains('show')), true);
+  await page.evaluate(() => fermerFeuilles());
+  // Séance en cours, réduite : posée au-dessus de la barre native, et rouverte d'un appui.
+  await page.evaluate(async () => { await demarrerSeanceLibre(); window.__appelsNatifs.length = 0; allerA('repas'); majBandeauSeanceFlottant(); });
+  const acc = (await appels()).filter(a => a.startsWith('accessoire'));
+  assert.ok(acc.length && /"titre":"Séance libre"/.test(acc[acc.length - 1]) && /"depuis":\d+/.test(acc[acc.length - 1]), JSON.stringify(acc));
+  assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('bandeau-seance-flottant')).display), 'none');
+}));
+
 test("site (hors app) : pas de titre compact", () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => { document.body.style.minHeight = '4000px'; allerA('seance'); window.scrollTo(0, 700); });
   await page.waitForTimeout(200);
