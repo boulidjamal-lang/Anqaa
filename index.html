@@ -2916,6 +2916,9 @@
     .serie-record { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 3px 2px; padding: 7px 10px; border-radius: 12px; font-size: .74rem; font-weight: 800;
       color: #92400e; background: linear-gradient(90deg, #fde68a, #fbbf24); box-shadow: 0 8px 18px -10px rgba(245,158,11,.8); }
     .serie-record .icone-ui { width: 15px; height: 15px; color: inherit; }
+    .serie-legere { display: flex; align-items: center; gap: 8px; margin: 0 6px 4px; font-size: .72rem; line-height: 1.3; color: var(--text-muted); }
+    .serie-legere span { flex: 1; min-width: 0; }
+    .serie-legere button { flex: none; min-height: 32px; padding: 0 2px; border: 0; background: none; font: inherit; font-weight: 800; color: var(--text); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
     @media (prefers-reduced-motion: reduce) { .celebration { transition: none; } .confettis, .serie-check.pop::after { display: none; } .serie-check.pop { animation: none; } }
 
 
@@ -25929,6 +25932,9 @@ function reference1RMExercice(exerciceId, dateRef, historique, exercicesCourants
 }
 function estSerieDeTravail(x, ref) {
   if (!x || !x.fait || x.technique === 'echauffement') return false;
+  // À l'échec ou en dégressif : une vraie série de travail, quelle que soit
+  // la charge (un mouvement fait autrement, une série après une plus lourde…).
+  if (x.technique === 'echec' || x.technique === 'degressif') return true;
   // RIR noté pendant la séance : il remplace l'estimation par le 1RM.
   if (x.rir != null && x.rir !== '' && Number.isFinite(Number(x.rir))) return Number(x.rir) <= RIR_MAX_SERIE_TRAVAIL;
   const p = Number(x.poids) || 0, r = Number(x.reps) || 0;
@@ -29771,6 +29777,8 @@ function blocProgressionHTML(exo, ei) {
 function renderSessionExerciceBlocHTML(exo, ei) {
   const exerciceComplet = trouverExercice(exo.exerciceId);
   const precedente = dernierePerfExercice(exo.exerciceId);
+  // Repère des séries de travail (meilleure série des 8 dernières semaines).
+  const refTravail = exerciceComplet ? reference1RMExercice(exo.exerciceId, todayStr(), musculationHistorique, musculationSessionActive.exercices) : 0;
   // La série à faire (la première non cochée) s'ouvre en grand pavé de saisie.
   const siCourant = exo.series.findIndex(s => !s.fait);
   const lignesSeries = exo.series.map((set, si) => {
@@ -29793,7 +29801,7 @@ function renderSessionExerciceBlocHTML(exo, ei) {
         <button type="button" onclick="arreterRepos(${ei},${si})" aria-label="Arrêter le minuteur de repos"><svg class="icone-ui" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
       </div>`;
     })() : '';
-    const suite = (set.fait && set.record ? `<div class="serie-record">${svgV('trophee', 2)} Nouveau record · ${nombreFr(Math.round(unRmEstime(Number(set.poids), Number(set.reps))))} kg estimés sur 1 répétition</div>` : '') + bandeRirHTML(ei, si, set) + barreRepos + blocPaliersHTML(ei, si, set);
+    const suite = (set.fait && set.record ? `<div class="serie-record">${svgV('trophee', 2)} Nouveau record · ${nombreFr(Math.round(unRmEstime(Number(set.poids), Number(set.reps))))} kg estimés sur 1 répétition</div>` : '') + bandeRirHTML(ei, si, set) + (exerciceComplet ? serieLegereHTML(ei, si, set, refTravail) : '') + barreRepos + blocPaliersHTML(ei, si, set);
     if (si === siCourant && !exo.replie) return paveSerieHTML(exo, ei, si, set, ref, exerciceComplet) + suite;
     return `
     <div class="serie-ligne-fenetre">
@@ -30177,6 +30185,14 @@ function choisirRirSerie(ei, si, valeur) {
   rirDemande = null;
   sauvegarderSessionActive();
   renderSessionModal();
+}
+/* Série cochée qui ne compte pas dans les séries par muscle : estimée trop
+   loin de l'échec d'après la meilleure série de l'exercice. On le dit, avec
+   de quoi corriger : le RIR noté remplace l'estimation. */
+function serieLegereHTML(ei, si, set, ref) {
+  if (!set.fait || set.technique === 'echauffement' || estSerieDeTravail(set, ref)) return '';
+  if (rirDemande && rirDemande.ei === ei && rirDemande.si === si) return '';
+  return `<div class="serie-legere"><span>Trop légère pour compter par muscle.</span><button type="button" onclick="ouvrirRirSerie(${ei},${si})">C'était dur ?</button></div>`;
 }
 function ouvrirRirSerie(ei, si) {
   rirDemande = { ei, si };

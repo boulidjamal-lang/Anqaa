@@ -249,6 +249,46 @@ test('éditeur de programme : appui long pour déplacer un exercice', () => avec
   assert.equal(await page.locator('#programme-exercices-container .exo-en-programme-reordre').count(), 0, 'plus de flèches');
 }));
 
+test("séries par muscle : une série « Échec » ou « Dégressif » compte toujours ; une série trop légère le dit en séance, et le RIR noté la fait compter", () => avecAppli({}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const exo = toutesLesExercices().find(e => e.nom === 'Développé couché avec barre');
+    const avant = decalerJours(todayStr(), -3);
+    musculationHistorique = [{ id: 'h1', date: avant, exercices: [{ exerciceId: exo.id, nom: exo.nom, series: [{ poids: 22, reps: 10, fait: true }] }] }];
+    allerA('seance'); choisirModeSeance('muscu');
+    musculationSessionActive = { programmeId: null, programmeNom: null, debut: Date.now(), notes: '',
+      exercices: [{ exerciceId: exo.id, nom: exo.nom, series: [
+        { poids: 22, reps: 10, fait: true },
+        { poids: 13, reps: 10, fait: true },
+        { poids: 13, reps: 8, fait: true, technique: 'echec' },
+        { poids: 13, reps: 10, fait: true, technique: 'degressif' },
+        { poids: 13, reps: 10 }] }] };
+    sauvegarderSessionActive(); renderSeance(); renderSessionModal();
+    const compter = () => ajouterSeriesParGroupe({}, musculationSessionActive.exercices, { historique: musculationHistorique })[exo.groupe];
+    const res = { avant: compter(), legeres: [...document.querySelectorAll('#session-exercices-container .serie-legere span')].map(x => x.textContent) };
+    document.querySelector('#session-exercices-container .serie-legere button').click();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.bandeOuverte = !!document.querySelector('#session-exercices-container .rir-bande');
+    res.legeresPendantBande = document.querySelectorAll('#session-exercices-container .serie-legere').length;
+    [...document.querySelectorAll('#session-exercices-container .rir-choix')].find(b => b.textContent === '2').click();
+    await new Promise(ok => setTimeout(ok, 50));
+    res.apres = compter();
+    res.legeresApres = document.querySelectorAll('#session-exercices-container .serie-legere').length;
+    res.unitaires = [
+      estSerieDeTravail({ fait: true, poids: 13, reps: 10 }, 29.3),
+      estSerieDeTravail({ fait: true, poids: 13, reps: 10, technique: 'echec' }, 29.3),
+      estSerieDeTravail({ fait: true, poids: 13, reps: 10, technique: 'degressif' }, 29.3),
+      estSerieDeTravail({ fait: true, poids: 13, reps: 10, technique: 'echauffement' }, 29.3),
+      estSerieDeTravail({ fait: false, poids: 13, reps: 10, technique: 'echec' }, 29.3)];
+    musculationSessionActive = null; musculationHistorique = [];
+    return res;
+  });
+  assert.deepEqual(r.unitaires, [false, true, true, false, false]);
+  assert.equal(r.avant, 3, '22 kg, échec et dégressif comptent ; 13 kg sans rien, non');
+  assert.deepEqual(r.legeres, ['Trop légère pour compter par muscle.']);
+  assert.deepEqual([r.bandeOuverte, r.legeresPendantBande], [true, 0]);
+  assert.deepEqual([r.apres, r.legeresApres], [4, 0]);
+}));
+
 test('séance en cours : appui long sur un exercice pour le déplacer', () => avecAppli({}, async ({ page }) => {
   await page.evaluate(() => {
     allerA('seance'); choisirModeSeance('muscu');
