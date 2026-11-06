@@ -3935,21 +3935,6 @@
        sur l'interface, comme dans une app ; les champs restent sélectionnables. */
     html.app-ios body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     html.app-ios :is(input, textarea, [contenteditable="true"]) { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
-    /* App iPhone : titre compact, comme dans les apps d'Apple. Quand le grand
-       titre de l'écran a défilé sous l'heure, une barre en verre apparaît avec
-       le nom de l'écran en petit (voir majBarreTitre). */
-    .barre-titre { display: none; }
-    html.app-ios .barre-titre { display: flex; position: fixed; top: 0; left: 0; right: 0; z-index: 901; pointer-events: none;
-      height: calc(env(safe-area-inset-top, 0px) + 44px); padding-top: env(safe-area-inset-top, 0px); box-sizing: border-box; align-items: center; justify-content: center;
-      background: color-mix(in srgb, var(--bg) 86%, transparent); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
-      box-shadow: 0 .5px 0 var(--ligne); opacity: 0; transition: opacity .2s; }
-    html.app-ios .barre-titre span { font-family: 'Inter', -apple-system, sans-serif; font-size: 1.0625rem; font-weight: 650; letter-spacing: -.02em; color: var(--text);
-      transform: translateY(5px); transition: transform .25s cubic-bezier(.3,.9,.4,1); }
-    html.app-ios.titre-compact .barre-titre { opacity: 1; }
-    html.app-ios.titre-compact .barre-titre span { transform: none; }
-    html.app-ios body.mode-seance .barre-titre { display: none; }
-    html.sans-verre.app-ios .barre-titre, html.flou-leger.app-ios .barre-titre { background: var(--bg); }
-    @media (prefers-reduced-transparency: reduce) { html.app-ios .barre-titre { background: var(--bg); } }
     html:root .app-bar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
     html:root :is(.titre-ecran, .titre-section, .salut b, .anneaux-centre h1, .reste-kcal, .heros-puces b, .carte-stats-valeur b, .eau-texte, .meal-title, .meal-kcals, .cle-val, .feuille-titre, .modal-entete h3, .semaine-num b) {
       font-family: 'Manrope', 'Inter', sans-serif; }
@@ -4742,6 +4727,46 @@
     html.app-ios:root body .btn { border-radius: 999px !important; }
     html.app-ios:root body .segment { border-radius: 999px !important; padding: 3px !important; }
     html.app-ios:root body .segment button { border-radius: 999px !important; }
+    /* App iPhone : le verre liquide de la barre d'onglets (à moitié teinté,
+       reflet en haut, liseré clair) pour ce qui flotte sur le fond des
+       écrans : Musculation / Cardio, les onglets de Progrès, sa période (et
+       son menu), la série de jours de Repas, « Dos » sur Activité et le rond
+       « Ajouter » de Tes gymbros. */
+    html.app-ios:root { --verre-fond: color-mix(in srgb, var(--s1) 52%, transparent); --verre-filtre: blur(12px) saturate(2) brightness(1.08);
+      --verre-ombre: inset 0 1px 1px rgba(255,255,255,.85), inset 0 -1px 1px rgba(255,255,255,.35), inset 0 0 0 .5px rgba(255,255,255,.5),
+        0 0 0 .5px rgba(0,0,0,.08), 0 10px 30px -10px rgba(16,24,40,.3);
+      --verre-reflet: linear-gradient(180deg, rgba(255,255,255,.38), rgba(255,255,255,0) 52%), radial-gradient(120% 90% at 50% 120%, rgba(255,255,255,.18), transparent 60%); }
+    html.app-ios:root[data-theme="dark"] { --verre-fond: color-mix(in srgb, var(--s1) 58%, transparent); --verre-filtre: blur(12px) saturate(1.8) brightness(.85);
+      --verre-ombre: inset 0 1px 1px rgba(255,255,255,.22), inset 0 -1px 1px rgba(255,255,255,.07), inset 0 0 0 .5px rgba(255,255,255,.14),
+        0 0 0 .5px rgba(0,0,0,.6), 0 14px 34px -12px rgba(0,0,0,.7);
+      --verre-reflet: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,0) 50%); }
+    html.app-ios:root body :is(#seance-mode-nav, #stats-onglets-nav, .gav.gav--inviter > i, .pg-periode, .serie-jours, .cp-bouton) { isolation: isolate; border: 0 !important; background: var(--verre-fond) !important;
+      -webkit-backdrop-filter: var(--verre-filtre); backdrop-filter: var(--verre-filtre); box-shadow: var(--verre-ombre) !important; }
+    html.app-ios:root body :is(.gav.gav--inviter > i, .pg-periode, .serie-jours, :not(.hx--pivot) > .cp-bouton) { position: relative; }
+    html.app-ios:root body :is(#seance-mode-nav, #stats-onglets-nav, .gav.gav--inviter > i, .pg-periode, .serie-jours, .cp-bouton)::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+      pointer-events: none; background: var(--verre-reflet); }
+    html.app-ios:root body .pg-periode-menu { border-radius: 24px; background: var(--ios-verre) !important;
+      -webkit-backdrop-filter: blur(30px) saturate(1.8); backdrop-filter: blur(30px) saturate(1.8);
+      box-shadow: 0 24px 60px -18px rgba(0,0,0,.4), inset 0 0 0 .5px rgba(255,255,255,.35) !important; }
+    html.app-ios.sans-verre body :is(#seance-mode-nav, #stats-onglets-nav, .gav.gav--inviter > i, .pg-periode, .serie-jours, .cp-bouton), html.app-ios.flou-leger body :is(#seance-mode-nav, #stats-onglets-nav, .gav.gav--inviter > i, .pg-periode, .serie-jours, .cp-bouton) { background: var(--s1) !important; }
+    @media (prefers-reduced-transparency: reduce) { html.app-ios:root body :is(#seance-mode-nav, #stats-onglets-nav, .gav.gav--inviter > i, .pg-periode, .serie-jours, .cp-bouton) { background: var(--s1) !important; } }
+    html.app-ios:root body .gav.gav--inviter > i { color: var(--text); font-weight: 500; }
+    /* App iPhone : dans chaque sélecteur (.segment), une bulle glisse d'un
+       choix à l'autre, comme dans les barres d'iOS (placée par
+       bullesSegments). Sur les barres en verre (Activité, Progrès), elle est
+       grise et le choix s'écrit en rose, comme dans la barre d'onglets. */
+    html.app-ios:root body .segment { position: relative; isolation: isolate; }
+    html.app-ios:root body .segment.a-bulle::after { content: ''; position: absolute; z-index: 0; left: 0; top: 0; width: var(--bulle-l, 0px); height: var(--bulle-h, 0px);
+      transform: translate(var(--bulle-x, 0px), var(--bulle-y, 0px)); border-radius: 999px; pointer-events: none; background: var(--bulle-fond, var(--s1));
+      box-shadow: var(--bulle-ombre, 0 1px 2px rgba(0,0,0,.1), 0 4px 10px -4px rgba(0,0,0,.16), inset 0 1px 1px rgba(255,255,255,.9));
+      transition: transform .38s cubic-bezier(.3,1.25,.45,1), width .38s cubic-bezier(.3,1.25,.45,1), height .38s ease; }
+    html.app-ios:root body .segment.a-bulle.sans-glisse::after { transition: none; }
+    html.app-ios:root[data-theme="dark"] body .segment.a-bulle { --bulle-fond: #636366; --bulle-ombre: 0 1px 2px rgba(0,0,0,.4), inset 0 1px 1px rgba(255,255,255,.12); }
+    html.app-ios:root body .segment.a-bulle > button:not(#_) { position: relative; z-index: 1; background: transparent !important; box-shadow: none !important; }
+    html.app-ios:root body :is(#seance-mode-nav, #stats-onglets-nav) { --bulle-fond: var(--ios-remplir); --bulle-ombre: none; gap: 4px !important; padding: 4px !important; }
+    html.app-ios:root body :is(#seance-mode-nav, #stats-onglets-nav) > button:not(#_) { color: var(--text) !important; }
+    html.app-ios:root body :is(#seance-mode-nav, #stats-onglets-nav) > button[aria-pressed="true"]:not(#_) { color: var(--ios-accent) !important; }
+    @media (prefers-reduced-motion: reduce) { html.app-ios:root body .segment.a-bulle::after { transition: none; } }
     /* Un appui enfonce légèrement ce qu'on touche, puis ça revient en souplesse. */
     html.app-ios:root body :is(.btn, .pilule, .feuille-action, .action-tuile, .ligne-reglage--bouton, .obj-tuile, .coach-action, .cp-bouton, .repas-ajouter, .close-modal) {
       transition: transform .45s cubic-bezier(.3,1.4,.5,1), background-color .2s !important; }
@@ -4768,6 +4793,14 @@
     html.app-ios body .feuille { padding: 0 8px 8px; }
     html.app-ios body .feuille-contenu { padding: 8px 18px max(20px, calc(env(safe-area-inset-bottom, 0px) + 2px)) !important; }
     @keyframes feuilleIos { from { transform: translateY(105%); } to { transform: none; } }
+    /* Clavier ouvert : l'app ne redimensionne pas la page, le clavier passait
+       donc par-dessus la feuille et cachait le champ tapé. La feuille remonte
+       juste au-dessus du clavier (--clavier, sa hauteur annoncée par l'app),
+       et rétrécit au besoin : son contenu défile. */
+    html.app-ios body :is(.modal:not(#manual-modal):not(#modal-dialogue), .feuille) { padding-bottom: calc(8px + var(--clavier, 0px)) !important;
+      transition: padding-bottom .32s cubic-bezier(.32,.72,0,1); }
+    html.app-ios body .modal:not(#manual-modal):not(#modal-dialogue) .modal-content { max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 18px - var(--clavier, 0px)); }
+    html.app-ios body .feuille-contenu { max-height: min(85dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 18px - var(--clavier, 0px))); }
     /* Poignée : en haut de chaque feuille ; on la tire (ou l'en-tête) vers le bas pour fermer. */
     html.app-ios body .modal:not(#manual-modal):not(#modal-dialogue) .modal-content::before { content: ''; position: absolute; top: 7px; left: 50%; width: 36px; height: 5px;
       margin-left: -18px; border-radius: 99px; background: var(--t3); }
@@ -5015,7 +5048,6 @@
 </script>
 
 <div class="bord-haut" aria-hidden="true"></div>
-<div class="barre-titre" id="barre-titre" aria-hidden="true"><span id="barre-titre-txt"></span></div>
 
 <!-- Halo d'ambiance : s'allume seulement près de l'objectif, puis au dépassement -->
 <div class="etat-bg" id="etat-bg" aria-hidden="true"></div>
@@ -15249,7 +15281,6 @@ function allerA(nom) {
   majModeSeance();
   window.scrollTo({ top: 0, behavior: 'auto' });
   reduireAppBar(false);
-  majBarreTitre();
   if (ONGLETS_NATIFS) { appelOnglets('selectionner', { nom: ongletNatifDe(nom) }); majOngletsNatifs(); }
   if (nom === 'stats') { prepareStats(); }
   if (nom === 'seance') { renderSeance(); choisirModeSeance(modeSeance, true); renderRangeesGymbros(); chargerFilGymbros(); chargerDirect(); }
@@ -15289,30 +15320,44 @@ window.addEventListener('scroll', () => {
   requestAnimationFrame(onScrollAppBar);
 }, { passive: true });
 
-/* App iPhone : titre compact (voir .barre-titre). Repère : le grand titre de
-   l'écran (sur Repas, « Bonjour ») ; dès que son bas passe sous la barre, le
-   nom de l'écran s'affiche en petit en haut. */
-var NOMS_BARRE_TITRE = { repas: 'Repas', seance: 'Activité', stats: 'Progrès', reglages: 'Profil' };
-var barreTitreEnAttente = false;
-function majBarreTitre() {
-  barreTitreEnAttente = false;
-  if (!NATIF || !NOMS_BARRE_TITRE) return;
-  const barre = document.getElementById('barre-titre'), nom = NOMS_BARRE_TITRE[ecranActif];
-  const sec = document.getElementById('ecran-' + ecranActif);
-  const repere = !nom ? null : ecranActif === 'repas' ? document.getElementById('salut-nom') : sec && sec.querySelector('.titre-ecran');
-  let compact = false;
-  if (barre && repere) {
-    const r = repere.getBoundingClientRect();
-    compact = (window.scrollY || 0) > 4 && r.height > 0 && r.bottom < barre.getBoundingClientRect().bottom;
-    if (compact) document.getElementById('barre-titre-txt').textContent = nom;
+/* App iPhone : dans chaque sélecteur (.segment), une bulle glisse d'un choix
+   à l'autre, comme dans les barres d'iOS. Elle se cale sur le bouton choisi
+   (--bulle-x, -y, -l, -h : voir CSS), mesuré à chaque changement de choix,
+   de contenu ou de taille ; un sélecteur caché la retrouve en réapparaissant. */
+(function bullesSegments() {
+  if (!NATIF || typeof ResizeObserver === 'undefined' || typeof MutationObserver === 'undefined') return;
+  const aPlacer = new Set(), suivis = new WeakSet();
+  let prevu = false;
+  const taille = new ResizeObserver(entrees => entrees.forEach(e => planifier(e.target.classList.contains('segment') ? e.target : e.target.parentElement)));
+  function placer(seg) {
+    if (!seg || !seg.isConnected || !seg.classList || !seg.classList.contains('segment') || seg.closest('.pg-periode-menu')) return;
+    [seg, ...seg.querySelectorAll(':scope > button')].forEach(el => { if (!suivis.has(el)) { suivis.add(el); taille.observe(el); } });
+    const choisi = seg.querySelector(':scope > button[aria-pressed="true"]');
+    if (!choisi || !choisi.offsetWidth) { seg.classList.remove('a-bulle'); return; }
+    seg.style.setProperty('--bulle-x', choisi.offsetLeft + 'px');
+    seg.style.setProperty('--bulle-y', choisi.offsetTop + 'px');
+    seg.style.setProperty('--bulle-l', choisi.offsetWidth + 'px');
+    seg.style.setProperty('--bulle-h', choisi.offsetHeight + 'px');
+    if (!seg.classList.contains('a-bulle')) {
+      // Première pose (ou retour à l'écran) : en place d'emblée, sans glisser depuis le bord.
+      seg.classList.add('sans-glisse', 'a-bulle');
+      requestAnimationFrame(() => requestAnimationFrame(() => seg.classList.remove('sans-glisse')));
+    }
   }
-  document.documentElement.classList.toggle('titre-compact', compact);
-}
-window.addEventListener('scroll', () => {
-  if (barreTitreEnAttente) return;
-  barreTitreEnAttente = true;
-  requestAnimationFrame(majBarreTitre);
-}, { passive: true });
+  function planifier(seg) {
+    if (!seg) return;
+    aPlacer.add(seg);
+    if (prevu) return;
+    prevu = true;
+    requestAnimationFrame(() => { prevu = false; const liste = [...aPlacer]; aPlacer.clear(); liste.forEach(placer); });
+  }
+  new MutationObserver(changements => changements.forEach(c => {
+    if (c.type === 'attributes') { planifier(c.target.parentElement); return; }
+    if (c.target.classList && c.target.classList.contains('segment')) planifier(c.target);
+    c.addedNodes.forEach(n => { if (n.nodeType === 1) (n.classList.contains('segment') ? [n] : n.querySelectorAll('.segment')).forEach(planifier); });
+  })).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-pressed'] });
+  document.querySelectorAll('.segment').forEach(planifier);
+})();
 
 /* App iPhone : une feuille se ferme en tirant sa poignée (ou son en-tête)
    vers le bas, comme sur iOS. Au-delà de 110 px, ou d'un coup sec, elle
@@ -31227,6 +31272,24 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener('scroll', majHauteurVisible);
   majHauteurVisible();
 }
+
+/* App iPhone : le clavier ne redimensionne pas la page (réglage de l'app) et
+   passait par-dessus les feuilles posées en bas, le champ tapé disparaissait
+   dessous. L'app annonce sa hauteur : la feuille ouverte remonte juste
+   au-dessus (--clavier, voir CSS), puis le champ est ramené en vue dans la
+   feuille si elle a dû rétrécir. */
+function hauteurClavier(h) {
+  h = Math.max(0, Math.round(Number(h) || 0));
+  document.documentElement.style.setProperty('--clavier', h + 'px');
+  document.documentElement.classList.toggle('clavier-ouvert', h > 0);
+}
+window.addEventListener('keyboardWillShow', e => hauteurClavier(e && e.keyboardHeight));
+window.addEventListener('keyboardWillHide', () => hauteurClavier(0));
+window.addEventListener('keyboardDidShow', () => {
+  const champ = document.activeElement;
+  if (!champ || !champ.closest || !champ.closest('.modal.show, .feuille.show')) return;
+  setTimeout(() => { try { champ.scrollIntoView({ block: 'nearest' }); } catch (e) {} }, 120);
+});
 
 /* =====================================================================
    NOUVELLE VERSION EN LIGNE — sur iPhone, l'appli reste ouverte en

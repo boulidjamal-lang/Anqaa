@@ -4082,16 +4082,18 @@ test("bande unie en haut (contre le flou d'iOS) : couleur du fond, absente du Pr
   await page.evaluate(() => document.documentElement.classList.remove('spl-actif'));
 }));
 
-test("app iPhone : titre compact en haut quand le grand titre a défilé ; réglages marche/arrêt en interrupteurs ; pas de sélection de texte hors des champs", () => avecAppli({ natif: true }, async ({ page }) => {
-  const etat = () => page.evaluate(() => ({ compact: document.documentElement.classList.contains('titre-compact'), titre: document.getElementById('barre-titre-txt').textContent }));
-  await page.evaluate(() => { document.body.style.minHeight = '4000px'; allerA('seance'); });
-  assert.equal((await etat()).compact, false);
-  await page.evaluate(() => window.scrollTo(0, 700));
-  await page.waitForFunction(() => document.documentElement.classList.contains('titre-compact'));
-  assert.equal((await etat()).titre, 'Activité');
-  // Changer d'écran remonte en haut : plus de titre compact.
+test("app iPhone : pas de barre de titre en haut, même une fois la page défilée ; réglages marche/arrêt en interrupteurs ; pas de sélection de texte hors des champs", () => avecAppli({ natif: true }, async ({ page }) => {
+  // Seule la bande du haut (sous l'heure) reste : rien d'autre ne se pose en haut de l'écran au défilement.
+  await page.evaluate(() => { document.body.style.minHeight = '4000px'; allerA('seance'); window.scrollTo(0, 700); });
+  await page.waitForTimeout(200);
+  const enHaut = await page.evaluate(() => [...document.querySelectorAll('body *')].filter(e => {
+    const st = getComputedStyle(e);
+    if (st.position !== 'fixed' || st.display === 'none' || st.visibility === 'hidden' || +st.opacity === 0) return false;
+    const r = e.getBoundingClientRect();
+    return r.height > 0 && r.height < 200 && r.top < 60 && r.bottom > 0;
+  }).map(e => e.className));
+  assert.deepEqual(enHaut, ['bord-haut']);
   await page.evaluate(() => allerA('stats'));
-  assert.equal((await etat()).compact, false);
   const r = await page.evaluate(() => {
     const largeur = id => getComputedStyle(document.getElementById(id)).width;
     return { interrupteurs: [...document.querySelectorAll('input.interrupteur')].map(i => i.id + ':' + i.getAttribute('role') + ':' + getComputedStyle(i).width).sort(),
@@ -4103,6 +4105,52 @@ test("app iPhone : titre compact en haut quand le grand titre a défilé ; régl
   // Les cases d'accord (conditions, données de santé) restent des cases.
   assert.deepEqual(r.accords, ['22px', '22px', '22px', '22px']);
   assert.deepEqual(r.selection, ['none', 'text']);
+}));
+
+test("app iPhone : verre liquide sur ce qui flotte (Musculation / Cardio, onglets et période de Progrès, série, « Ajouter » de Tes gymbros) ; dans chaque sélecteur, une bulle glisse sous le choix", () => avecAppli({ natif: true }, async ({ page }) => {
+  await page.evaluate(() => { sessionUtilisateur = { id: 'moi', email: 'moi@x.fr' }; gymbroLiensActifs = true; gymbroLiens = []; renderRangeesGymbros(); allerA('seance'); choisirModeSeance('muscu'); });
+  await page.waitForTimeout(300);
+  const verre = sels => page.evaluate(sels => sels.map(s => /blur/.test(getComputedStyle(document.querySelector(s)).backdropFilter)), sels);
+  assert.deepEqual(await verre(['#seance-mode-nav', '#stats-onglets-nav', '#gymbros-rangee .gav--inviter > i', '#pg-periode-btn', '#serie-jours']), [true, true, true, true, true]);
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('#gymbros-rangee .gav--inviter > i')).borderTopStyle), 'none');
+  // La bulle se cale sur le bouton choisi, et le suit ; sur les barres en verre, le choix s'écrit en rose.
+  const bulle = id => page.evaluate(id => {
+    const seg = document.getElementById(id), choisi = seg.querySelector(':scope > button[aria-pressed="true"]');
+    return { posee: seg.classList.contains('a-bulle') && getComputedStyle(seg, '::after').content !== 'none',
+      cale: seg.style.getPropertyValue('--bulle-x') === choisi.offsetLeft + 'px' && seg.style.getPropertyValue('--bulle-l') === choisi.offsetWidth + 'px',
+      fond: getComputedStyle(choisi).backgroundColor, couleur: getComputedStyle(choisi).color, autre: getComputedStyle(seg.querySelector(':scope > button[aria-pressed="false"]')).color };
+  }, id);
+  assert.deepEqual(await bulle('seance-mode-nav'), { posee: true, cale: true, fond: 'rgba(0, 0, 0, 0)', couleur: 'rgb(214, 36, 110)', autre: 'rgb(0, 0, 0)' });
+  await page.evaluate(() => choisirModeSeance('cardio'));
+  await page.waitForTimeout(200);
+  assert.deepEqual(await bulle('seance-mode-nav'), { posee: true, cale: true, fond: 'rgba(0, 0, 0, 0)', couleur: 'rgb(214, 36, 110)', autre: 'rgb(0, 0, 0)' });
+  // Progrès : la barre est cachée tant qu'on n'y est pas, la bulle s'y pose en arrivant.
+  await page.evaluate(() => { allerA('stats'); choisirOngletStats('poids'); });
+  await page.waitForTimeout(300);
+  assert.deepEqual(await bulle('stats-onglets-nav'), { posee: true, cale: true, fond: 'rgba(0, 0, 0, 0)', couleur: 'rgb(214, 36, 110)', autre: 'rgb(0, 0, 0)' });
+  // Dans une fenêtre (thème des Réglages) : la même bulle, sur le fond gris du sélecteur.
+  await page.evaluate(() => ouvrirModal('reglages-modal'));
+  await page.waitForTimeout(400);
+  const theme = await bulle('segment-theme');
+  assert.equal(theme.posee && theme.cale, true, JSON.stringify(theme));
+  assert.equal(theme.fond, 'rgba(0, 0, 0, 0)');
+}));
+
+test("app iPhone : clavier ouvert, la feuille remonte juste au-dessus (le champ reste visible) ; elle redescend quand il se ferme", () => avecAppli({ natif: true }, async ({ page }) => {
+  const clavier = h => page.evaluate(h => window.dispatchEvent(Object.assign(new Event(h ? 'keyboardWillShow' : 'keyboardWillHide'), { keyboardHeight: h })), h);
+  const ecart = sel => page.evaluate(sel => { const r = document.querySelector(sel).getBoundingClientRect(); return { bas: Math.round(window.innerHeight - r.bottom), haut: Math.round(r.top) }; }, sel);
+  for (const [ouvrir, sel] of [["ouvrirModal('compte-modal')", '#compte-modal .modal-content'], ["ouvrirSaisieRapide('poids')", '#feuille-saisie-rapide .feuille-contenu']]) {
+    await page.evaluate(f => { fermerFeuilles(); document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show')); (0, eval)(f); }, ouvrir);
+    await page.waitForTimeout(700);
+    assert.ok((await ecart(sel)).bas <= 10, sel + ' posée en bas');
+    await clavier(336);
+    await page.waitForTimeout(600);
+    const e = await ecart(sel);
+    assert.ok(Math.abs(e.bas - 344) <= 2 && e.haut >= 0, sel + ' au-dessus du clavier : ' + JSON.stringify(e));
+    await clavier(0);
+    await page.waitForTimeout(600);
+    assert.ok((await ecart(sel)).bas <= 10, sel + ' redescendue');
+  }
 }));
 
 test("app iPhone : une feuille se ferme en tirant sa poignée ; un aliment glissé vers la gauche est supprimé (la croix reste pour VoiceOver)", () => avecAppli({ natif: true }, async ({ page }) => {
@@ -4187,12 +4235,6 @@ test("app iPhone, iOS 26 et plus : la barre d'onglets native remplace celle de l
   const acc = (await appels()).filter(a => a.startsWith('accessoire'));
   assert.ok(acc.length && /"titre":"Séance libre"/.test(acc[acc.length - 1]) && /"depuis":\d+/.test(acc[acc.length - 1]), JSON.stringify(acc));
   assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('bandeau-seance-flottant')).display), 'none');
-}));
-
-test("site (hors app) : pas de titre compact", () => avecAppli({}, async ({ page }) => {
-  await page.evaluate(() => { document.body.style.minHeight = '4000px'; allerA('seance'); window.scrollTo(0, 700); });
-  await page.waitForTimeout(200);
-  assert.deepEqual(await page.evaluate(() => [document.documentElement.classList.contains('titre-compact'), getComputedStyle(document.getElementById('barre-titre')).display]), [false, 'none']);
 }));
 
 test("barre d'onglets : l'icône de l'onglet actif garde tous ses traits (manche de la fourchette de Repas)", () => avecAppli({}, async ({ page }) => {
