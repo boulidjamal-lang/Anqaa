@@ -4150,9 +4150,24 @@ test("app iPhone, iOS 26 et plus : la barre d'onglets native remplace celle de l
   const pause = () => page.evaluate(() => new Promise(f => requestAnimationFrame(() => requestAnimationFrame(f))));
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.onglets')).display), 'none');
   assert.deepEqual((await appels()).slice(0, 3), ['etat null', 'selectionner {"nom":"repas"}', 'afficher {"visible":true}']);
-  // L'écran choisi dans la page : la barre suit ; sur Progrès, pas de « + ».
+  // L'écran choisi dans la page : la barre suit ; sur Progrès, le « + » reste (il y ouvre la pesée).
   await page.evaluate(() => { window.__appelsNatifs.length = 0; allerA('stats'); });
-  assert.deepEqual(await appels(), ['selectionner {"nom":"stats"}', 'plus {"visible":false,"libelle":"Ajouter"}']);
+  assert.deepEqual(await appels(), ['selectionner {"nom":"stats"}', 'plus {"visible":true,"libelle":"Ajouter une pesée"}']);
+  await page.evaluate(() => window.__ecouteurs.plus());
+  assert.equal(await page.evaluate(() => document.getElementById('feuille-saisie-rapide').classList.contains('show')), true);
+  await page.evaluate(() => fermerFeuilles());
+  // Administration n'a pas d'onglet : la barre montre le Profil, et toucher le
+  // Profil (déjà en surbrillance) ou un autre onglet ramène à son écran.
+  await page.evaluate(() => { window.__appelsNatifs.length = 0; allerA('admin'); });
+  assert.ok((await appels()).includes('selectionner {"nom":"reglages"}'), JSON.stringify(await appels()));
+  await page.evaluate(() => window.__ecouteurs.retouche({ nom: 'reglages' }));
+  assert.equal(await page.evaluate(() => ecranActif), 'reglages');
+  await page.evaluate(() => { allerA('admin'); window.__ecouteurs.retouche({ nom: 'repas' }); });
+  assert.equal(await page.evaluate(() => ecranActif), 'repas');
+  // L'onglet de l'écran affiché, touché à nouveau : on reste, la page remonte.
+  await page.evaluate(() => { window.scrollTo(0, 300); window.__ecouteurs.retouche({ nom: 'repas' }); });
+  assert.equal(await page.evaluate(() => ecranActif), 'repas');
+  await page.evaluate(() => allerA('stats'));
   // Une feuille ouverte : la barre se cache, puis revient.
   await page.evaluate(() => { window.__appelsNatifs.length = 0; allerA('repas'); ouvrirFeuilleRepas('lunch'); });
   await pause();
@@ -4163,6 +4178,7 @@ test("app iPhone, iOS 26 et plus : la barre d'onglets native remplace celle de l
   // Un onglet touché dans la barre native : la page change d'écran ; le « + » agit sur l'écran affiché.
   await page.evaluate(() => window.__ecouteurs.onglet({ nom: 'seance' }));
   assert.equal(await page.evaluate(() => ecranActif), 'seance');
+  await page.waitForTimeout(550);   // deux « + » à moins d'une demi-seconde n'en font qu'un
   await page.evaluate(() => window.__ecouteurs.plus());
   assert.equal(await page.evaluate(() => document.getElementById('feuille-activite').classList.contains('show')), true);
   await page.evaluate(() => fermerFeuilles());

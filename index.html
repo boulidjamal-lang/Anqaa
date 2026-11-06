@@ -15250,7 +15250,7 @@ function allerA(nom) {
   window.scrollTo({ top: 0, behavior: 'auto' });
   reduireAppBar(false);
   majBarreTitre();
-  if (ONGLETS_NATIFS) { appelOnglets('selectionner', { nom }); majOngletsNatifs(); }
+  if (ONGLETS_NATIFS) { appelOnglets('selectionner', { nom: ongletNatifDe(nom) }); majOngletsNatifs(); }
   if (nom === 'stats') { prepareStats(); }
   if (nom === 'seance') { renderSeance(); choisirModeSeance(modeSeance, true); renderRangeesGymbros(); chargerFilGymbros(); chargerDirect(); }
   if (nom === 'repas') { majNoteCleIA(); renderPremiersPas(); }
@@ -15348,28 +15348,42 @@ async function initOngletsNatifs() {
   document.documentElement.classList.add('onglets-natifs');
   const ecouter = (nom, f) => { try { Promise.resolve(NATIF.Onglets.addListener(nom, f)).catch(() => {}); } catch (e) {} };
   ecouter('onglet', e => { if (e && e.nom && e.nom !== ecranActif) allerA(e.nom); });
-  ecouter('retouche', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  // L'onglet déjà en surbrillance touché à nouveau : retour en haut, ou à son
+  // écran si la page en montre un autre (Administration, rattachée au Profil).
+  ecouter('retouche', e => {
+    if (e && e.nom && e.nom !== ecranActif) allerA(e.nom);
+    else window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  // Le « + » : sur Progrès (où la page grise le sien), il ouvre la pesée.
   let dernierPlus = 0;
-  ecouter('plus', () => { if (Date.now() - dernierPlus < 500) return; dernierPlus = Date.now(); actionPlus(); });
+  ecouter('plus', () => {
+    if (Date.now() - dernierPlus < 500) return;
+    dernierPlus = Date.now();
+    if (ecranActif === 'stats') ouvrirSaisieRapide('poids'); else actionPlus();
+  });
   ecouter('accessoire', () => ouvrirSessionModal());
   // Fenêtres, plein écran, démarrage : la barre suit les classes de la page.
   let attente = false;
   const suivre = () => { if (attente) return; attente = true; requestAnimationFrame(() => { attente = false; majOngletsNatifs(); }); };
   new MutationObserver(suivre).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
   new MutationObserver(suivre).observe(document.body, { attributes: true, attributeFilter: ['class'] });
-  appelOnglets('selectionner', { nom: ecranActif });
+  appelOnglets('selectionner', { nom: ongletNatifDe(ecranActif) });
   majOngletsNatifs();
   majBandeauSeanceFlottant();
 }
+// L'onglet de la barre native pour un écran : Administration n'en a pas,
+// elle s'ouvre depuis le Profil.
+function ongletNatifDe(nom) { return ['repas', 'seance', 'stats', 'reglages'].includes(nom) ? nom : 'reglages'; }
 function majOngletsNatifs() {
   if (!ONGLETS_NATIFS) return;
   const tour = document.getElementById('tour-overlay');
   const visibles = !document.body.classList.contains('couche-ouverte') && !document.body.classList.contains('mode-seance')
     && !document.documentElement.classList.contains('spl-actif') && !(tour && !tour.classList.contains('hidden'));
   if (visibles !== ongletsNatifsVisibles) { ongletsNatifsVisibles = visibles; appelOnglets('afficher', { visible: visibles }); }
-  // Le « + » : caché sur Progrès (on y regarde, on n'y note pas).
-  const plus = (ecranActif !== 'stats' && ecranActif !== 'admin') + '|' + (LIBELLES_PLUS[ecranActif] || 'Ajouter');
-  if (plus !== ongletsPlusEtat) { ongletsPlusEtat = plus; const [v, libelle] = plus.split('|'); appelOnglets('plus', { visible: v === 'true', libelle }); }
+  // Le « + » reste toujours là (la barre ne se recompose pas d'un écran à
+  // l'autre) ; seul son nom, lu par VoiceOver, suit l'écran.
+  const libelle = ecranActif === 'stats' ? 'Ajouter une pesée' : (LIBELLES_PLUS[ecranActif] || 'Ajouter');
+  if (libelle !== ongletsPlusEtat) { ongletsPlusEtat = libelle; appelOnglets('plus', { visible: true, libelle }); }
 }
 
 (function glisserPourFermer() {
